@@ -10,12 +10,7 @@ const tables = [
   {
     name: "study",
     columns: [
-      {
-        name: "title",
-        type: "string",
-        notNull: true,
-        defaultValue: "Untitled",
-      },
+      { name: "name", type: "string", notNull: true, defaultValue: "Untitled" },
       { name: "owner", type: "string" },
       { name: "public", type: "bool", defaultValue: "false" },
       { name: "starred", type: "bool", defaultValue: "false" },

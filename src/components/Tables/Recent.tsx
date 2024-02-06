@@ -1,5 +1,6 @@
 import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
+import Link from 'next/link'
 
 import { IconShare, IconTrash, IconEdit, IconStar, IconStarFilled } from "@tabler/icons-react";
 
@@ -27,7 +28,7 @@ export default async function RecentTable({
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Title
+                Name
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
                 Passage
@@ -47,10 +48,11 @@ export default async function RecentTable({
             {studies.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black dark:text-white">
-                    {studyItem.title}
-                  </h5>
-                  <p className="text-sm">Psalm {studyItem.passage}</p>
+                  <Link href={"/studies/" + studyItem.id + "/edit"}>
+                    <h5 className="font-medium text-black dark:text-white">
+                      {studyItem.name}
+                    </h5>
+                  </Link>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
