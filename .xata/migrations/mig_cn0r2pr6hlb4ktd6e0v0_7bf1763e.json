@@ -1,0 +1,18 @@
+{
+  "id": "mig_cn0r2pr6hlb4ktd6e0v0",
+  "parentID": "mig_cn0r2db6hlb4ktd6e0u0",
+  "checksum": "1:7bf1763e844b55ebf0c269f2eee4acf43ef8578a5433f11de12545bad5f994be",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "title",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": "Untitled"
+        },
+        "table": "study"
+      }
+    }
+  ]
+}

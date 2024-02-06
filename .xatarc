@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://Sela-ab123i.us-east-1.xata.sh/db/main",
+  "codegen": {
+    "output": "src/xata.ts"
+  }
+}
