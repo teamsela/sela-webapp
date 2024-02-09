@@ -1,12 +1,36 @@
 import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
 import Link from 'next/link'
-
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { IconShare, IconTrash, IconEdit, IconStar, IconStarFilled } from "@tabler/icons-react";
 
 import SearchBar from "@/components/Tables/Search";
+import SwitcherThree from '@/components/Switchers/PublicAccess';
 
 const xataClient = getXataClient();
+
+async function togglePublic(studyId: string, publicAccess: boolean) {
+  "use server";
+
+  try {
+    await xataClient.db.study.updateOrThrow({ id: studyId, public: publicAccess});
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Study.' };
+  }
+   
+}
+
+async function toggleDelete(studyId: string) {
+  "use server";
+
+  try {
+    await xataClient.db.study.deleteOrThrow({ id: studyId });
+  } catch (error) {
+    return { message: 'Database Error: Failed to Delete Study.' };
+  }
+   
+}
 
 export default async function RecentTable({
   query,
@@ -37,7 +61,7 @@ export default async function RecentTable({
                 Last Modified
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Status
+                Shared to Public
               </th>
               <th className="py-4 px-4 font-medium text-black dark:text-white">
                 Actions
@@ -65,15 +89,7 @@ export default async function RecentTable({
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p
-                    className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${
-                      studyItem.public 
-                        ? "text-success bg-success"
-                        : "text-danger bg-danger"
-                    }`}
-                  >
-                    {studyItem.public ? "Public" : "Private" }
-                  </p>
+                    <SwitcherThree studyId={studyItem.id} publicAccess={studyItem.public ? true : false} togglePublic={togglePublic}/>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
