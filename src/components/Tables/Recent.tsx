@@ -1,6 +1,7 @@
 import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
 import Link from 'next/link'
+import { revalidatePath } from 'next/cache';
 import { IconTrash, IconEdit, IconStar, IconStarFilled } from "@tabler/icons-react";
 
 import SearchBar from "@/components/Tables/Search";
@@ -17,7 +18,7 @@ async function updatePublic(studyId: string, publicAccess: boolean) {
   } catch (error) {
     return { message: 'Database Error: Failed to Update Study.' };
   }
-   
+  revalidatePath('/');
 }
 
 async function deleteStudy(studyId: string) {
@@ -28,7 +29,7 @@ async function deleteStudy(studyId: string) {
   } catch (error) {
     return { message: 'Database Error: Failed to Delete Study.' };
   }
-   
+  revalidatePath('/');   
 }
 
 async function updateStar(studyId: string, isStarred: boolean) {
@@ -39,7 +40,7 @@ async function updateStar(studyId: string, isStarred: boolean) {
   } catch (error) {
     return { message: 'Database Error: Failed to Update Study.' };
   }
-   
+  revalidatePath('/');   
 }
 
 export default async function RecentTable({
