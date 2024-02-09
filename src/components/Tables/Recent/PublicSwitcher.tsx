@@ -5,11 +5,11 @@ import { useState } from "react";
 const PublicSwitcher = ({
   studyId,
   publicAccess,
-  togglePublic
+  handleSwitcher
 }: {
   studyId: string;
   publicAccess: boolean;
-  togglePublic: (studyId: string, access: boolean) => void;
+  handleSwitcher: (studyId: string, access: boolean) => void;
 } ) => {
 
 
@@ -28,7 +28,7 @@ const PublicSwitcher = ({
             className="sr-only"
             onChange={() => {
               setEnabled(!enabled);
-              togglePublic(studyId, !enabled);
+              handleSwitcher(studyId, !enabled);
             }}
           />
           <div className="block h-8 w-14 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>

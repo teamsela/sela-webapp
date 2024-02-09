@@ -2,11 +2,12 @@ import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache';
-import { IconTrash, IconEdit, IconStar, IconStarFilled } from "@tabler/icons-react";
 
 import SearchBar from "@/components/Tables/Search";
 import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
+import DeleteStudyModal from '@/components/Modals/DeleteStudy';
+import EditStudyModal from '@/components/Modals/EditStudy';
 
 const xataClient = getXataClient();
 
@@ -100,20 +101,13 @@ export default async function RecentTable({
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                    <PublicSwitcher studyId={studyItem.id} publicAccess={studyItem.public ? true : false} togglePublic={updatePublic}/>
+                    <PublicSwitcher studyId={studyItem.id} publicAccess={studyItem.public ? true : false} handleSwitcher={updatePublic}/>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
-                    <button className="hover:text-primary">
-                      <IconEdit />
-                    </button>
-                    <button className="hover:text-primary">
-                      <IconTrash />
-                    </button>
-                    <button className="hover:text-primary">
-                      <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} toggleStar={updateStar} />
-                      {/*studyItem.starred ? <IconStarFilled /> : <IconStar /> */}
-                    </button>
+                    <EditStudyModal studyId={studyItem.id} studyName={studyItem.name} />
+                    <DeleteStudyModal studyId={studyItem.id} studyName={studyItem.name} handleClicked={deleteStudy} />
+                    <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} handleToggle={updateStar} />
                   </div>
                 </td>
               </tr>
