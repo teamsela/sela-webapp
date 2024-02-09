@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useMediaQuery } from 'react-responsive';
 
 import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
 
@@ -20,11 +21,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const sidebar = useRef<any>(null);
 
   let storedSidebarExpanded = "true";
-  const [sidebarExpanded, setSidebarExpanded] = useState(
+  /*const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === "true"
-  );
+  );*/
 
   // close on click outside
+  const [isMobile, setIsMobile] = useState(false)
+   
+  //choose the screen size 
+  const handleResize = () => {
+    if (window.innerWidth < 640) {
+      console.log("GG");
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }
+  
+  // create an event listener
+  useEffect(() => {
+    window.addEventListener("resize", handleResize)
+  })
+
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
       if (!sidebar.current || !trigger.current) return;
@@ -50,20 +68,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
-  useEffect(() => {
+
+  /*useEffect(() => {
     localStorage.setItem("sidebar-expanded", sidebarExpanded.toString());
     if (sidebarExpanded) {
       document.querySelector("body")?.classList.add("sidebar-expanded");
     } else {
       document.querySelector("body")?.classList.remove("sidebar-expanded");
     }
-  }, [sidebarExpanded]);
+  }, [sidebarExpanded]);*/
 
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static ${
+        sidebarOpen ? "translate-x-0" : "-translate-x-full hidden"
       }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
