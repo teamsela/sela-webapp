@@ -90,7 +90,7 @@ const DeleteStudyModal = ({
             </svg>
           </span>
           <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-            "{studyName}"
+            &ldquo;{studyName}&rdquo;
           </h3>
           <p className="mb-10">
             Are you sure you want to delete this study permanently?
