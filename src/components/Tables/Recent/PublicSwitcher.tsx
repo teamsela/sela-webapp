@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const SwitcherThree = ({
+const PublicSwitcher = ({
   studyId,
   publicAccess,
   togglePublic
@@ -76,4 +76,4 @@ const SwitcherThree = ({
   );
 };
 
-export default SwitcherThree;
+export default PublicSwitcher;
