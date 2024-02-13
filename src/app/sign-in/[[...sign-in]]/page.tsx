@@ -2,6 +2,8 @@
 
 import { SignIn } from '@clerk/nextjs';
 import React, {useState, useEffect} from "react";
+import Image from 'next/image'
+
 
 
 export default function SignInPage() {
@@ -23,7 +25,7 @@ export default function SignInPage() {
     return (
       <main>
         <div className={`min-h-screen justify-center items-center ${isMobile? "flex-row" : "flex"} `}>
-          <img src="/images/digging-for-gems.png" width="40%" style={{marginRight: 100}} className={`${isMobile ? "ml-30 my-10" : ""}`} />
+          <Image src="/images/digging-for-gems.png" width={0} height={0} sizes="100vw" alt="Bible Poetry Logo" style={{marginRight: 100}} className={`w-2/5 ${isMobile ? "ml-30 my-10" : ""}`} />
           <div className="flex w-full flex-1 justify-center gap-2 px-8 sm:max-w-md">
             <SignIn />
           </div>
