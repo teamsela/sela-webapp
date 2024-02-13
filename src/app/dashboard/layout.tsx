@@ -8,7 +8,7 @@ import Header from "@/components/Header";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [loading, setLoading] = useState<boolean>(true);
 
