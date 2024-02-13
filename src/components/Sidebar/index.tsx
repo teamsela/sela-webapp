@@ -18,8 +18,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
- 
-  // choose the screen size 
+
+  // close on click outside
+   
+  //choose the screen size 
   const handleResize = () => {
     if (window.innerWidth < 640) {
       setSidebarOpen(false);
