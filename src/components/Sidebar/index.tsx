@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useMediaQuery } from 'react-responsive';
 
 import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
 
@@ -20,18 +19,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
 
-  let storedSidebarExpanded = "true";
-  /*const [sidebarExpanded, setSidebarExpanded] = useState(
-    storedSidebarExpanded === null ? false : storedSidebarExpanded === "true"
-  );*/
-
   // close on click outside
-  const [isMobile, setIsMobile] = useState(false)
    
   //choose the screen size 
   const handleResize = () => {
     if (window.innerWidth < 640) {
-      console.log("GG");
       setSidebarOpen(false);
     } else {
       setSidebarOpen(true);
@@ -68,15 +60,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
-
-  /*useEffect(() => {
-    localStorage.setItem("sidebar-expanded", sidebarExpanded.toString());
-    if (sidebarExpanded) {
-      document.querySelector("body")?.classList.add("sidebar-expanded");
-    } else {
-      document.querySelector("body")?.classList.remove("sidebar-expanded");
-    }
-  }, [sidebarExpanded]);*/
 
   return (
     <aside
