@@ -1,6 +1,6 @@
 import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
-import Link from 'next/link'
+import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
 import SearchBar from "@/components/Tables/Search";
