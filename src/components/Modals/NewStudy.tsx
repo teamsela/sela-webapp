@@ -1,27 +1,83 @@
-import { Fragment, useRef, useState } from 'react'
+import { FormEvent, Fragment, useRef, useState } from 'react'
 import { IconPlus } from '@tabler/icons-react';
+import { useFormState, useFormStatus } from "react-dom";
+import { State, updateStudyName } from '@/lib/actions';
 
 interface NewStudyModalProps {
     open: boolean;
     setOpen: (arg: boolean) => void;
 }
 export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
-    const cancelButtonRef = useRef(null)
-    const [studyName, setStudyName] = useState("");
-    const [passage, setPassage] = useState("");
+    const [passage, setPassage] = useState('');
     const modal = useRef<any>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [error, setError] = useState<string | null>(null)
+    const initialState = { message: null, errors: {} };
+    //const createNewStudy = createStudy.bind(null, passage);
+    //const [state, dispatch] = useFormState<State, FormData>(createNewStudy, initialState);
 
 
     const onCancel = () => {
-        setStudyName("");
         setPassage("");
         setOpen(false);
+        setError(null);
     }
 
-    const onSubmit = () => {
-        console.log(studyName);
-        console.log(passage);
+    async function onSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setIsLoading(true);
+        setError(null); // Clear previous errors when a new request starts
+        const extracted = validate(passage);
+        if (extracted instanceof Error) {
+            setError(extracted.message);
+            setIsLoading(false);
+            return;
+        } else {
+            setOpen(false);
+            setPassage('');
+        }
+        try {
+            // call api
+        } catch (e) {
+            // Capture the error message to display to the user
+            setError((e as Error).message)
+            console.error(e)
+        } finally {
+            setIsLoading(false);
+        }
     }
+
+    function validate(verse: string): { book: string, chapterStart: string, verseStart: string, chapterEnd?: string, verseEnd?: string } | Error {
+        // Regular expression to match the pattern of a valid Bible verse
+        const verseRegex = /^(?:(\d+)\s)?([a-zA-Z\s]+)\s(\d+)(?::(\d+))?(?:-(\d+)(?::(\d+))?)?$/;
+
+        const match = verse.match(verseRegex);
+        if (!match) {
+            return Error("Invalid format. Please use the format Book Chapter:Verse(-Verse) (e.g., John 3:16 or Psalm 23:1-4)");
+        }
+
+        const [, , book, chapterStart, verseStart, chapterEnd, verseEnd] = match;
+
+        if (parseInt(chapterStart) <= 0 || parseInt(verseStart) <= 0 || (verseEnd && parseInt(verseEnd) <= parseInt(verseStart))) {
+            return Error("Invalid chapter or verse numbers.");
+
+        }
+
+        if (chapterEnd && parseInt(chapterEnd) < parseInt(chapterStart)) {
+            return Error("Ending chapter number must be greater than or equal to starting chapter number.");
+        }
+
+        console.log(`Valid verse: ${book} ${chapterStart}:${verseStart}${verseEnd ? `-${chapterEnd}:${verseEnd}` : ''}`);
+        return {
+            book,
+            chapterStart,
+            verseStart,
+            chapterEnd: chapterEnd || undefined,
+            verseEnd: verseEnd || undefined
+        };
+    }
+
+
 
     return (
         <div
@@ -33,69 +89,59 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                 onFocus={() => setOpen(true)}
                 className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
             >
-                <h3 className="text-base font-semibold leading-6 text-gray-900">
+                <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
                     Create New Study
                 </h3>
-                <div className="mt-2">
-                    <form>
-                        <div className="sm:col-span-4">
-                            <label htmlFor="newstudy" className="block text-sm font-medium leading-6 text-gray-900">
-                                Study Name
-                            </label>
-                            <div className="mt-2">
-                                <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                                    <input
-                                        type="text"
-                                        name="newstudy"
-                                        id="newstudy"
-                                        autoComplete="newstudy"
-                                        className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                                        placeholder="New Study"
-                                        value={studyName}
-                                        onChange={e => { setStudyName(e.target.value) }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="sm:col-span-4">
-                            <label htmlFor="passage" className="block text-sm font-medium leading-6 text-gray-900">
-                                Passage
-                            </label>
-                            <div className="mt-2">
-                                <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                                    <input
-                                        type="text"
-                                        name="passage"
-                                        id="passage"
-                                        className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                                        placeholder="John 3:16-20"
-                                        value={passage}
-                                        onChange={e => { setPassage(e.target.value) }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                            <button
-                                type="button"
-                                className="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                                onClick={() => { onSubmit() }}
-                            >
-                                Create New Study
-                            </button>
-                            <button
-                                type="button"
-                                className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                                onClick={() => onCancel()}
-                                ref={cancelButtonRef}
+                <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
+                <form onSubmit={onSubmit}>
+                    <input
+                        type="text"
+                        min={2}
+                        max={50}
+                        value={passage}
+                        onChange={e => { setPassage(e.target.value) }}
+                        name="passage"
+                        id="passage"
+                        placeholder="John 3:16-20"
+                        className="w-full rounded-lg border-[2px] border-primary bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:bg-form-input dark:text-white"
+                    />
+
+                    <div className="-mx-3 my-10 flex flex-wrap gap-y-4">
+                        <div className="w-full px-3 2xsm:w-1/2">
+                            <button type="reset"
+                                onClick={() => {
+                                    onCancel();
+                                }}
+                                className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
                             >
                                 Cancel
                             </button>
                         </div>
-                    </form>
-                </div>
+                        <div className="w-full px-3 2xsm:w-1/2">
+                            <button type="submit"
+                                className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90"
+                            >
+                                {isLoading ? 'Loading...' : 'OK'}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {error ?
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
+                        <span className="block sm:inline">{error}</span>
+                        <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+                            <button onClick={()=>{setError(null)}}>
+                                <svg className="fill-current h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" /></svg>
+                            </button>
+                        </span>
+                    </div> : <div></div>
+                }
             </div>
-        </div>
+     </div>
 
     )
+}
+
+function delay(arg0: number) {
+    throw new Error('Function not implemented.');
 }

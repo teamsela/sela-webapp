@@ -48,6 +48,10 @@ const config: Config = {
       success: "#219653",
       danger: "#D34053",
       warning: "#FFA70B",
+      "red-100": "#FEE2E2",
+      "red-400": "#f87171",
+      "red-500": "#ef4444",
+      "red-700": "#b91c1c",
     },
     screens: {
       "2xsm": "375px",
