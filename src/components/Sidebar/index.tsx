@@ -7,19 +7,21 @@ import { usePathname } from "next/navigation";
 import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
 
 import CreateStudy from './CreateStudy';
-import NewStudyModal from "@/components/Modals/NewStudy";
+import EditStudyModal from "../Modals/EditStudy";
+import DeleteStudyModal from "../Modals/DeleteStudy";
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
+  createStudyOpen:boolean;
+  setCreateStudyOpen: (arg: boolean) => void;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyOpen}: SidebarProps) => {
   const pathname = usePathname();
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
-  const [open, setOpen] = useState(false)
 
 
   // close on click outside
@@ -67,7 +69,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static ${sidebarOpen ? "translate-x-0" : "-translate-x-full hidden"
+      className={`relative left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static ${sidebarOpen ? "translate-x-0" : "-translate-x-full hidden"
         }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
@@ -86,13 +88,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
 
 
-      <button onClick={() => setOpen(true)} className="inline-flex justify-left gap-3 rounded-full mx-8 bg-primary py-4 px-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
+      <button onClick={() => setCreateStudyOpen(true)} className="inline-flex justify-left gap-3 rounded-full mx-8 bg-primary py-4 px-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
         <span><IconPlus /></span>
         New Study
       </button>
-
-      <NewStudyModal open={open} setOpen={setOpen} />
-
 
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
