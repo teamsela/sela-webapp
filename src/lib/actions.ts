@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getXataClient } from '@/xata';
-
+import { currentUser } from '@clerk/nextjs';
+import { StudyRecord } from '@/xata.js';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -50,4 +51,60 @@ export async function updateStudyName(
     return { message: 'Database Error: Failed to Update Study.' };
   }
   redirect('/dashboard/home');
+}
+
+export async function updatePublic(studyId: string, publicAccess: boolean) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.updateOrThrow({ id: studyId, public: publicAccess});
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Study.' };
+  }
+  revalidatePath('/');
+}
+
+export async function deleteStudy(studyId: string) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.deleteOrThrow({ id: studyId });
+  } catch (error) {
+    return { message: 'Database Error: Failed to Delete Study.' };
+  }
+  revalidatePath('/');   
+}
+
+export async function updateStar(studyId: string, isStarred: boolean) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.updateOrThrow({ id: studyId, starred: isStarred });
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Study.' };
+  }
+  revalidatePath('/');   
+}
+
+export async function createStudy(passage: string) {
+  "use server";
+  console.log("Creating a new study (" + passage + ")");
+
+  const user = await currentUser();
+
+  if (user)
+  {
+    var record : StudyRecord;
+    const xataClient = getXataClient();
+    try {
+      record = await xataClient.db.study.create({ name: "Untitled", passage: passage, owner: user.id });
+    } catch (error) {
+      return { message: 'Database Error: Failed to Create Study.' };
+    }
+    if (record)
+       redirect('/studies/' + record.id + '/edit');
+  }
 }

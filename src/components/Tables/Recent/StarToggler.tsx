@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from "react";
+import { updateStar } from '@/lib/actions';
 
 const StarToggler = ({
   studyId,
-  isStarred,
-  handleToggle
+  isStarred
 }: {
   studyId: string;
   isStarred: boolean;
-  handleToggle: (studyId: string, starred: boolean) => void;
 } ) => {
 
   const [starred, setStarred] = useState(isStarred);
@@ -26,7 +25,7 @@ const StarToggler = ({
         xmlns="http://www.w3.org/2000/svg"
         onClick={() => {
           setStarred(() => !starred);
-          handleToggle(studyId, !starred);
+          updateStar(studyId, !starred);
         }}
         className={
           starred ? "fill-[#FFD02C] " : "fill-[#E5E7EE] dark:fill-[#E5E7EE]/70"

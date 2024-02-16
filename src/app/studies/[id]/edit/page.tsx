@@ -1,4 +1,3 @@
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { notFound } from 'next/navigation';
 
 import { getXataClient } from '@/xata';
@@ -20,8 +19,6 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
     
   return (
     <main>
-      <Breadcrumb pageName="Study" />
- 
       <h1>{study.name}</h1>
       <h4>{study.passage}</h4>
     </main>

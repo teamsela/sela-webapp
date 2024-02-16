@@ -6,10 +6,6 @@ import { usePathname } from "next/navigation";
 
 import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
 
-import CreateStudy from './CreateStudy';
-import EditStudyModal from "../Modals/EditStudy";
-import DeleteStudyModal from "../Modals/DeleteStudy";
-
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;

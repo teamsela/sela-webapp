@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { updatePublic } from '@/lib/actions';
 
 const PublicSwitcher = ({
   studyId,
-  publicAccess,
-  handleSwitcher
+  publicAccess
 }: {
   studyId: string;
   publicAccess: boolean;
-  handleSwitcher: (studyId: string, access: boolean) => void;
 } ) => {
 
 
@@ -28,7 +27,7 @@ const PublicSwitcher = ({
             className="sr-only"
             onChange={() => {
               setEnabled(!enabled);
-              handleSwitcher(studyId, !enabled);
+              updatePublic(studyId, !enabled);
             }}
           />
           <div className="block h-8 w-14 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>

@@ -1,13 +1,15 @@
 import { FormEvent, Fragment, useRef, useState } from 'react'
 import { IconPlus } from '@tabler/icons-react';
 import { useFormState, useFormStatus } from "react-dom";
-import { State, updateStudyName } from '@/lib/actions';
+import { State, createStudy } from '@/lib/actions';
+
 
 interface NewStudyModalProps {
     open: boolean;
     setOpen: (arg: boolean) => void;
 }
 export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
+
     const [passage, setPassage] = useState('');
     const modal = useRef<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -24,6 +26,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
     }
 
     async function onSubmit(event: FormEvent<HTMLFormElement>) {
+
         event.preventDefault();
         setIsLoading(true);
         setError(null); // Clear previous errors when a new request starts
@@ -37,11 +40,11 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
             setPassage('');
         }
         try {
-            // call api
+            createStudy(passage);
         } catch (e) {
             // Capture the error message to display to the user
-            setError((e as Error).message)
-            console.error(e)
+            setError((e as Error).message);
+            console.error(e);
         } finally {
             setIsLoading(false);
         }
@@ -90,7 +93,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                 className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
             >
                 <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-                    Create New Study
+                    Input a passage to start a study
                 </h3>
                 <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
                 <form onSubmit={onSubmit}>

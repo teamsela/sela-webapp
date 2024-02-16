@@ -1,48 +1,12 @@
 import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
 import Link from 'next/link'
-import { revalidatePath } from 'next/cache';
 
 import SearchBar from "@/components/Tables/Search";
 import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
-
-const xataClient = getXataClient();
-
-async function updatePublic(studyId: string, publicAccess: boolean) {
-  "use server";
-
-  try {
-    await xataClient.db.study.updateOrThrow({ id: studyId, public: publicAccess});
-  } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
-  }
-  revalidatePath('/');
-}
-
-async function deleteStudy(studyId: string) {
-  "use server";
-
-  try {
-    await xataClient.db.study.deleteOrThrow({ id: studyId });
-  } catch (error) {
-    return { message: 'Database Error: Failed to Delete Study.' };
-  }
-  revalidatePath('/');   
-}
-
-async function updateStar(studyId: string, isStarred: boolean) {
-  "use server";
-
-  try {
-    await xataClient.db.study.updateOrThrow({ id: studyId, starred: isStarred });
-  } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
-  }
-  revalidatePath('/');   
-}
 
 export default async function RecentTable({
   query,
@@ -53,6 +17,7 @@ export default async function RecentTable({
 }) {
   const user = await currentUser();
 
+  const xataClient = getXataClient();
   const studies = await xataClient.db.study.filter({ owner: user?.id }).getMany();
 
   return (
@@ -101,13 +66,13 @@ export default async function RecentTable({
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                    <PublicSwitcher studyId={studyItem.id} publicAccess={studyItem.public ? true : false} handleSwitcher={updatePublic}/>
+                    <PublicSwitcher studyId={studyItem.id} publicAccess={studyItem.public ? true : false} />
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
                     <EditStudyModal studyId={studyItem.id} studyName={studyItem.name} />
-                    <DeleteStudyModal studyId={studyItem.id} studyName={studyItem.name} handleClicked={deleteStudy} />
-                    <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} handleToggle={updateStar} />
+                    <DeleteStudyModal studyId={studyItem.id} studyName={studyItem.name} />
+                    <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} />
                   </div>
                 </td>
               </tr>

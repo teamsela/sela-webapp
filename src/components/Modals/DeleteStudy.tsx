@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from "react";
+import { deleteStudy } from '@/lib/actions';
 
 import { IconTrash } from "@tabler/icons-react";
 
 const DeleteStudyModal = ({
   studyId,
-  studyName,
-  handleClicked
+  studyName
 }: {
   studyId: string;
   studyName: string;
-  handleClicked: (studyId: string) => void;
 } ) => {
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -106,7 +105,7 @@ const DeleteStudyModal = ({
             </div>
             <div className="w-full px-3 2xsm:w-1/2">
               <button 
-                onClick={() => handleClicked(studyId)}
+                onClick={() => deleteStudy(studyId)}
                 className="block w-full rounded border border-meta-1 bg-meta-1 p-3 text-center font-medium text-white transition hover:bg-opacity-90">
                 Delete
               </button>
