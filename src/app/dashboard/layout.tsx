@@ -37,10 +37,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* <!-- ===== Content Area Start ===== --> */}
           <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
             {/* <!-- ===== Header Start ===== --> */}
-            {<Header
+            {/*<Header
               sidebarOpen={sidebarOpen}
               setSidebarOpen={setSidebarOpen}
-            />}
+            />*/}
             {/* <!-- ===== Header End ===== --> */}
 
             {/* <!-- ===== Main Content Start ===== --> */}

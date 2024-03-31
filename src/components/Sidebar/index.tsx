@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
+import { UserButton } from '@clerk/nextjs';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -69,11 +70,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
         }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className="flex items-center justify-center gap-2 px-6 py-5.5 lg:py-6.5">
+      <div className="flex items-center justify-center gap-2 mr-4 mb-8 lg:py-2.5">
         <Link href="/">
           <Image
-            width={176}
-            height={32}
+            width={148}
+            height={20}
             src={"/images/logo/logo.svg"}
             alt="Logo"
           />
@@ -90,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
       </button>
 
 
-      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+      <div className="no-scrollbar flex flex-col overflow-hidden duration-300 ease-linear">
         {/* <!-- Sidebar Menu --> */}
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
@@ -131,7 +132,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
 
         </nav>
         {/* <!-- Sidebar Menu --> */}
-      </div>
+
+        {/* <!-- Clerk User Box --> */}
+        <div className="mt-auto min-h-4 mx-auto mb-10 w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default">
+          <UserButton afterSignOutUrl="/" 
+            appearance={{
+              elements: {
+                rootBox: "relative flex w-full",
+                userButtonBox: "gap-3.5",
+                userButtonOuterIdentifier: "text-bodydark1 !antialiased order-1 text-base font-book pr-2",
+                userButtonTrigger: "cl-button after:absolute after:inset-0"
+              },
+            }}
+            showName
+          />
+        </div>
+        {/* <!-- Clerk User Box --> */}
+
+        </div>
     </aside>
   );
 };

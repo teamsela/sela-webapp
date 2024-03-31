@@ -75,7 +75,7 @@ export default async function PublicTable({
                     {studyItem.xata.updatedAt.toLocaleString()}
                   </p>
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
+                <td className="border-b border-[#eee] py-7 px-4 dark:border-strokedark flex items-center">
                   <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
                     <img src={mp.get(studyItem.owner)?.imageUrl} alt="Avatar" />
                   </div>
