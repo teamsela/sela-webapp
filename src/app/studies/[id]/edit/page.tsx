@@ -1,3 +1,5 @@
+import Header from "@/components/Header";
+
 import { notFound } from 'next/navigation';
 
 import { getXataClient } from '@/xata';
@@ -18,9 +20,13 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
     
   return (
+    <>
+    <Header studyName={study.name} studyPassage={study.passage} />
     <main>
-      <h1>{study.name}</h1>
-      <h4>{study.passage}</h4>
+      <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+      </div>
     </main>
+    </>
   );
 }

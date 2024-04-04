@@ -14,7 +14,21 @@ const tables = [
       { name: "owner", type: "string" },
       { name: "public", type: "bool", defaultValue: "false" },
       { name: "starred", type: "bool", defaultValue: "false" },
-      { name: "passage", type: "string" },
+      { name: "passage", type: "text", notNull: true, defaultValue: "1" },
+    ],
+  },
+  {
+    name: "heb_bible",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "book", type: "string" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "wlcWord", type: "string" },
+      { name: "hebUnicode", type: "string" },
+      { name: "strongNumber", type: "int" },
+      { name: "gloss", type: "string" },
+      { name: "morphology", type: "string" },
     ],
   },
 ] as const;
@@ -25,14 +39,19 @@ export type InferredTypes = SchemaInference<SchemaTables>;
 export type Study = InferredTypes["study"];
 export type StudyRecord = Study & XataRecord;
 
+export type HebBible = InferredTypes["heb_bible"];
+export type HebBibleRecord = HebBible & XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
+  heb_bible: HebBibleRecord;
 };
 
 const DatabaseClient = buildClient();
 
 const defaultOptions = {
-  databaseURL: "https://Sela-ab123i.us-east-1.xata.sh/db/main",
+  databaseURL:
+    "https://BiblePoetry-s-workspace-ab123i.us-east-1.xata.sh/db/main",
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {

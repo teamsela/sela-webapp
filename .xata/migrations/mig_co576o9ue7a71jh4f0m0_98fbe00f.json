@@ -1,0 +1,13 @@
+{
+  "id": "mig_co576o9ue7a71jh4f0m0",
+  "parentID": "mig_co575j4fiil5rc1ub1pg",
+  "checksum": "1:98fbe00f3183bfea562bdae73f7bf32f5ce467cf2cf64820295b9586d7bfda2c",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "passage_old",
+        "table": "study"
+      }
+    }
+  ]
+}

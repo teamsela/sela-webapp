@@ -73,7 +73,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
       <div className="flex items-center justify-center gap-2 mr-4 mb-8 lg:py-2.5">
         <Link href="/">
           <Image
-            width={148}
+            width={168}
             height={20}
             src={"/images/logo/logo.svg"}
             alt="Logo"
@@ -132,15 +132,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
 
         </nav>
         {/* <!-- Sidebar Menu --> */}
-
+      </div>
+      
+      <div>
         {/* <!-- Clerk User Box --> */}
-        <div className="mt-auto min-h-4 mx-auto mb-10 w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default">
+        <div className="mt-auto min-h-[4rem] mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100">
           <UserButton afterSignOutUrl="/" 
             appearance={{
               elements: {
                 rootBox: "relative flex w-full",
                 userButtonBox: "gap-3.5",
-                userButtonOuterIdentifier: "text-bodydark1 !antialiased order-1 text-base font-book pr-2",
+                userButtonOuterIdentifier: "font-semibold text-white !antialiased order-1 text-base font-book pr-2",
                 userButtonTrigger: "cl-button after:absolute after:inset-0"
               },
             }}
