@@ -136,7 +136,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
       
       <div>
         {/* <!-- Clerk User Box --> */}
-        <div className="mt-auto mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100 mb-4">
+        <div className="mt-auto mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100 mb-8">
           <UserButton afterSignOutUrl="/" 
             appearance={{
               elements: {
