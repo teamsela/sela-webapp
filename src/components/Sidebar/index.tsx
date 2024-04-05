@@ -91,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
       </button>
 
 
-      <div className="no-scrollbar flex flex-col overflow-hidden duration-300 ease-linear">
+      <div className="flex flex-col justify-between h-full">
         {/* <!-- Sidebar Menu --> */}
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
@@ -136,7 +136,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
       
       <div>
         {/* <!-- Clerk User Box --> */}
-        <div className="mt-auto min-h-[4rem] mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100">
+        <div className="mt-auto mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100">
           <UserButton afterSignOutUrl="/" 
             appearance={{
               elements: {
