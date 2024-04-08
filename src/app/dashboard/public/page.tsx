@@ -5,7 +5,7 @@ import PublicTable from "@/components/Tables/Public";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Public - Sela Bible Poetry"
+  title: "Public | Sela Bible Poetry"
   // other metadata
 };
 

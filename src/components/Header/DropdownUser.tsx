@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { currentUser, UserButton } from '@clerk/nextjs';
+import { UserButton } from '@clerk/nextjs';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -37,8 +35,6 @@ const DropdownUser = () => {
 
   return (
     <div className="relative">
-
-
         <UserButton afterSignOutUrl="/" />
     </div>
   );

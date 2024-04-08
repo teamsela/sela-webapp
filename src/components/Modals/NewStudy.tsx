@@ -105,7 +105,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                         onChange={e => { setPassage(e.target.value) }}
                         name="passage"
                         id="passage"
-                        placeholder="John 3:16-20"
+                        placeholder="Psalm 23"
                         className="w-full rounded-lg border-[2px] border-primary bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:bg-form-input dark:text-white"
                     />
 

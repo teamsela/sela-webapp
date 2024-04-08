@@ -1,10 +1,8 @@
-"use client";
+'use client';
 
 import { SignIn } from '@clerk/nextjs';
 import React, {useState, useEffect} from "react";
 import Image from 'next/image'
-
-
 
 export default function SignInPage() {
   const [isMobile, setIsMobile] = useState(false)

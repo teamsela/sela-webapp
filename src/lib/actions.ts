@@ -100,7 +100,7 @@ export async function createStudy(passage: string) {
     var record : StudyRecord;
     const xataClient = getXataClient();
     try {
-      record = await xataClient.db.study.create({ name: "Untitled", passage: passage, owner: user.id });
+      record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, owner: user.id });
     } catch (error) {
       return { message: 'Database Error: Failed to Create Study.' };
     }

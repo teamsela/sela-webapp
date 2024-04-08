@@ -4,6 +4,13 @@ import "@/styles/satoshi.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign in | Sela Bible Poetry"
+  // other metadata
+};
+
 export default function RootLayout({
   children,
 }: {

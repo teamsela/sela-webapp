@@ -5,7 +5,7 @@ import RecentTable from "@/components/Tables/Recent";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Home - Sela Bible Poetry"
+  title: "Home | Sela Bible Poetry"
   // other metadata
 };
 
