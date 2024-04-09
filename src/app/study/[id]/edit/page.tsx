@@ -9,7 +9,7 @@ import { currentUser } from '@clerk/nextjs';
 const xataClient = getXataClient();
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const studyId = params.id;
+  const studyId = "rec_" + params.id;
 
   const thisUser = await currentUser();
 
@@ -28,12 +28,17 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 
 export default async function StudyPage({ params }: { params: { id: string } }) {
-  const studyId = params.id;
+  const studyId = "rec_" + params.id;
 
   const thisUser = await currentUser();
 
   // fetch a study by id from xata
   const study = await xataClient.db.study.filter({ owner: thisUser?.id, id: studyId }).getFirst();
+
+  /* TODO -
+     Add authorization check
+     Only the owner has write access to this study. Any users can read if this study is public 
+  */
 
   if (!study) {
     notFound();

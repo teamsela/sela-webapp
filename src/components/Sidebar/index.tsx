@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { IconHome, IconUsersGroup, IconPlus } from '@tabler/icons-react';
+import { IconHome, IconHourglassEmpty, IconUsersGroup, IconPlus } from '@tabler/icons-react';
+import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
+
 import { UserButton } from '@clerk/nextjs';
 
 interface SidebarProps {
@@ -52,17 +54,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
     return () => document.removeEventListener("click", clickHandler);
   });
 
-  // close if the esc key is pressed
-  useEffect(() => {
-    const keyHandler = ({ key }: KeyboardEvent) => {
-      if (!sidebarOpen || key !== "Escape") return;
-      setSidebarOpen(false);
-    };
-    document.addEventListener("keydown", keyHandler);
-    return () => document.removeEventListener("keydown", keyHandler);
-  });
-
-
   return (
     <aside
       ref={sidebar}
@@ -86,7 +77,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
 
 
       <button onClick={() => setCreateStudyOpen(true)} className="inline-flex justify-left gap-3 rounded-full mx-8 bg-primary py-4 px-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
-        <span><IconPlus /></span>
+        <span><HiPlus size="24px" stroke-width="1" /></span>
         New Study
       </button>
 
@@ -107,8 +98,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("home") && "bg-graydark dark:bg-meta-4"
                     }`}
                 >
-                  <IconHome />
-                  Home
+                  <HiOutlineClock size="20px" />
+                  Recent
                 </Link>
               </li>
               {/* <!-- Menu Item Home --> */}
@@ -120,7 +111,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("public") && "bg-graydark dark:bg-meta-4"
                     }`}
                 >
-                  <IconUsersGroup />
+                  <HiUserGroup size="20px" />
                   Public
                 </Link>
               </li>

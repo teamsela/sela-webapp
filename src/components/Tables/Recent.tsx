@@ -49,7 +49,7 @@ export default async function RecentTable({
             {studies.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <Link href={"/studies/" + studyItem.id + "/edit"}>
+                  <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/edit"}>
                     <h5 className="font-medium text-black dark:text-white">
                       {studyItem.name}
                     </h5>

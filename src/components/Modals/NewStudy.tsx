@@ -1,6 +1,4 @@
-import { FormEvent, Fragment, useRef, useState } from 'react'
-import { IconPlus } from '@tabler/icons-react';
-import { useFormState, useFormStatus } from "react-dom";
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { State, createStudy } from '@/lib/actions';
 
 
@@ -8,22 +6,29 @@ interface NewStudyModalProps {
     open: boolean;
     setOpen: (arg: boolean) => void;
 }
+
 export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
 
     const [passage, setPassage] = useState('');
     const modal = useRef<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
-    const initialState = { message: null, errors: {} };
-    //const createNewStudy = createStudy.bind(null, passage);
-    //const [state, dispatch] = useFormState<State, FormData>(createNewStudy, initialState);
-
 
     const onCancel = () => {
         setPassage("");
         setOpen(false);
         setError(null);
     }
+
+    // close if the esc key is pressed
+    useEffect(() => {
+      const keyHandler = ({ key }: KeyboardEvent) => {
+        if (!open || key !== "Escape") return;
+        setOpen(false);
+      };
+      document.addEventListener("keydown", keyHandler);
+      return () => document.removeEventListener("keydown", keyHandler);
+    });
 
     async function onSubmit(event: FormEvent<HTMLFormElement>) {
 
@@ -50,13 +55,13 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
         }
     }
 
-    function validate(verse: string): { book: string, chapterStart: string, verseStart: string, chapterEnd?: string, verseEnd?: string } | Error {
+    function validate(verse: string): { /*book: string,*/ chapterStart: string, verseStart: string, chapterEnd?: string, verseEnd?: string } | Error {
         // Regular expression to match the pattern of a valid Bible verse
-        const verseRegex = /^(?:(\d+)\s)?([a-zA-Z\s]+)\s(\d+)(?::(\d+))?(?:-(\d+)(?::(\d+))?)?$/;
+        const verseRegex = /^(?:(\d+)\s)?(\d+)(?::(\d+))?(?:-(\d+)(?::(\d+))?)?$/;
 
         const match = verse.match(verseRegex);
         if (!match) {
-            return Error("Invalid format. Please use the format Book Chapter:Verse(-Verse) (e.g., John 3:16 or Psalm 23:1-4)");
+            return Error("Please enter Chapter:Verse[-Verse]. E.g., 23:1-4");
         }
 
         const [, , book, chapterStart, verseStart, chapterEnd, verseEnd] = match;
@@ -72,7 +77,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
 
         console.log(`Valid verse: ${book} ${chapterStart}:${verseStart}${verseEnd ? `-${chapterEnd}:${verseEnd}` : ''}`);
         return {
-            book,
+            /*book,*/
             chapterStart,
             verseStart,
             chapterEnd: chapterEnd || undefined,
@@ -93,7 +98,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                 className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
             >
                 <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-                    Input a passage to start a study
+                    Start a study in Psalm...
                 </h3>
                 <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
                 <form onSubmit={onSubmit}>
@@ -105,7 +110,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                         onChange={e => { setPassage(e.target.value) }}
                         name="passage"
                         id="passage"
-                        placeholder="Psalm 23"
+                        placeholder="23:1-5"
                         className="w-full rounded-lg border-[2px] border-primary bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:bg-form-input dark:text-white"
                     />
 
@@ -145,6 +150,3 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
     )
 }
 
-function delay(arg0: number) {
-    throw new Error('Function not implemented.');
-}

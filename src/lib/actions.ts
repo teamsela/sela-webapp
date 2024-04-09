@@ -105,6 +105,6 @@ export async function createStudy(passage: string) {
       return { message: 'Database Error: Failed to Create Study.' };
     }
     if (record)
-       redirect('/studies/' + record.id + '/edit');
+      redirect('/study/' + record.id.replace("rec_", "") + '/edit');
   }
 }
