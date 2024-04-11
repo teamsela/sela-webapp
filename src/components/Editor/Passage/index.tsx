@@ -48,7 +48,7 @@ const Passage = ({
 
   return (
       <div>
-        <div className={`flex flex-col justify-end gap-4 lg:flex-row ${isHebrew ? 'rtlDirection hbFont' : 'enFont'}`}>
+        <div className={`flex flex-wrap justify-end gap-4 lg:flex-row ${isHebrew ? 'rtlDirection hbFont' : 'enFont'}`}>
         {content.map((word) => (
           <>
             <button className="flex items-center justify-center rounded border border-primary px-8 py-2.5 text-center font-medium text-primary hover:opacity-90">
