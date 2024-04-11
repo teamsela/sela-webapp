@@ -174,3 +174,31 @@ span.flatpickr-weekday,
 .map-btn .jvectormap-container .jvectormap-zoomin {
   right: 45px;
 }
+
+.verseNumber {
+  vertical-align: top;
+  color: var(--clrText);
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.rtlDirection {
+  direction: rtl;
+  text-align: right;
+  font-size: large;
+  line-height: 1em;
+}
+
+.hidden {
+  display: none;
+}
+
+.hbFont {
+  font-family: 'Ezra SIL' !important;
+  font-size: x-large;
+  /*src: url('http://localhost:3000/public/fonts/SIL_Ezra.ttf');*/
+}
+
+.enFont {
+  font-size: large;
+}

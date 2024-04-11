@@ -1,0 +1,18 @@
+{
+  "id": "mig_coafgk4osp475jbhef10",
+  "parentID": "mig_coafgesosp475jbheet0",
+  "checksum": "1:5aa6127e0afd8e2d10176fed5e9d1432737ca9df435a7c1343370433900707de",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "startVerse",
+          "type": "int",
+          "notNull": true,
+          "defaultValue": "1"
+        },
+        "table": "study"
+      }
+    }
+  ]
+}

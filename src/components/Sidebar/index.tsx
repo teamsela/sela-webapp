@@ -77,7 +77,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyO
 
 
       <button onClick={() => setCreateStudyOpen(true)} className="inline-flex justify-left gap-3 rounded-full mx-8 bg-primary py-4 px-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10">
-        <span><HiPlus size="24px" stroke-width="1" /></span>
+        <span><HiPlus size="24px" strokeWidth="1" /></span>
         New Study
       </button>
 

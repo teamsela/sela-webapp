@@ -62,7 +62,7 @@ export const ColorFillBtn = () => {
       <button 
         className="hover:text-primary"
         onClick={() => console.log("Color Fill Clicked")} >
-        <MdFormatColorFill fill-opacity="0.4" fontSize="1.4em" />
+        <MdFormatColorFill fillOpacity="0.4" fontSize="1.4em" />
       </button>
     </div>
   );
@@ -75,7 +75,7 @@ export const BorderColorBtn = () => {
       <button 
         className="hover:text-primary"
         onClick={() => console.log("Border Color Clicked")} >
-        <MdBorderColor fill-opacity="0.4" fontSize="1.4em" />
+        <MdBorderColor fillOpacity="0.4" fontSize="1.4em" />
       </button>
     </div>
   );
@@ -88,7 +88,7 @@ export const TextColorBtn = () => {
       <button 
         className="hover:text-primary"
         onClick={() => console.log("Text Color Clicked")} >
-        <MdFormatColorText fill-opacity="0.4" fontSize="1.4em" />
+        <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
       </button>
     </div>
   );

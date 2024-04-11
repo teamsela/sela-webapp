@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { State, createStudy } from '@/lib/actions';
-
+import { createStudy } from '@/lib/actions';
+import { parsePassageInfo } from '@/lib/utils';
 
 interface NewStudyModalProps {
     open: boolean;
@@ -35,9 +35,9 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
         event.preventDefault();
         setIsLoading(true);
         setError(null); // Clear previous errors when a new request starts
-        const extracted = validate(passage);
-        if (extracted instanceof Error) {
-            setError(extracted.message);
+        const passageInfo = parsePassageInfo(passage);
+        if (passageInfo instanceof Error) {
+            setError(passageInfo.message);
             setIsLoading(false);
             return;
         } else {
@@ -54,38 +54,6 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
             setIsLoading(false);
         }
     }
-
-    function validate(verse: string): { /*book: string,*/ chapterStart: string, verseStart: string, chapterEnd?: string, verseEnd?: string } | Error {
-        // Regular expression to match the pattern of a valid Bible verse
-        const verseRegex = /^(?:(\d+)\s)?(\d+)(?::(\d+))?(?:-(\d+)(?::(\d+))?)?$/;
-
-        const match = verse.match(verseRegex);
-        if (!match) {
-            return Error("Please enter Chapter:Verse[-Verse]. E.g., 23:1-4");
-        }
-
-        const [, , book, chapterStart, verseStart, chapterEnd, verseEnd] = match;
-
-        if (parseInt(chapterStart) <= 0 || parseInt(verseStart) <= 0 || (verseEnd && parseInt(verseEnd) <= parseInt(verseStart))) {
-            return Error("Invalid chapter or verse numbers.");
-
-        }
-
-        if (chapterEnd && parseInt(chapterEnd) < parseInt(chapterStart)) {
-            return Error("Ending chapter number must be greater than or equal to starting chapter number.");
-        }
-
-        console.log(`Valid verse: ${book} ${chapterStart}:${verseStart}${verseEnd ? `-${chapterEnd}:${verseEnd}` : ''}`);
-        return {
-            /*book,*/
-            chapterStart,
-            verseStart,
-            chapterEnd: chapterEnd || undefined,
-            verseEnd: verseEnd || undefined
-        };
-    }
-
-
 
     return (
         <div

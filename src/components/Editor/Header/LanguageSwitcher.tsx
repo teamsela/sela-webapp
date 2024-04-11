@@ -1,7 +1,11 @@
-import { useState } from "react";
 
-const LanguageSwitcher = () => {
-  const [enabled, setEnabled] = useState(false);
+const LanguageSwitcher = ({ 
+  isHebrew,
+  setLangToHebrew
+} : {
+  isHebrew: boolean;
+  setLangToHebrew: (arg: boolean) => void;
+}) => {
 
   return (
     <div>
@@ -15,19 +19,19 @@ const LanguageSwitcher = () => {
             id="toggleLang"
             className="sr-only"
             onChange={() => {
-              setEnabled(!enabled);
+              setLangToHebrew(!isHebrew);
             }}
           />
           <div className="block h-10 w-34 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
           <div
             className={`dot absolute left-1 top-1 flex h-8 w-16 items-center justify-center rounded-full bg-white transition font-semibold ${
-              enabled && "!right-1 !translate-x-full"
+              isHebrew && "!right-1 !translate-x-full"
             }`}
           >
-            <span className={`hidden ${enabled && "!block"}`}>
+            <span className={`hidden ${isHebrew && "!block"}`}>
             עִב
             </span>
-            <span className={`${enabled && "hidden"}`}>
+            <span className={`${isHebrew && "hidden"}`}>
             En
             </span>
           </div>

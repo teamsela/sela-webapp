@@ -1,24 +1,16 @@
-import Header from "@/components/Header";
-import Toolbar from "@/components/Toolbar";
-
 import { notFound } from 'next/navigation';
-
-import { getXataClient } from '@/xata';
 import { currentUser } from '@clerk/nextjs';
 
-const xataClient = getXataClient();
+import { fetchStudyById, fetchPassageContent } from '@/lib/data';
+import Editor from "@/components/Editor";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const studyId = "rec_" + params.id;
-
-  const thisUser = await currentUser();
-
-  // fetch a study by id from xata
-  const study = await xataClient.db.study.filter({ owner: thisUser?.id, id: studyId }).getFirst();
-
   var studyName = "Not Found";
 
-  if (study) {
+  const [study] = await Promise.all([fetchStudyById(studyId)]);
+
+  if (study.name) {
     studyName = study.name;
   }
 
@@ -30,10 +22,11 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 export default async function StudyPage({ params }: { params: { id: string } }) {
   const studyId = "rec_" + params.id;
 
-  const thisUser = await currentUser();
-
-  // fetch a study by id from xata
-  const study = await xataClient.db.study.filter({ owner: thisUser?.id, id: studyId }).getFirst();
+  const [thisUser, study, passageContent] = await Promise.all([
+    currentUser,
+    fetchStudyById(studyId),
+    fetchPassageContent(studyId)
+  ]);
 
   /* TODO -
      Add authorization check
@@ -45,14 +38,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <>
-    <Header studyName={study.name} studyPassage={study.passage} />
-    <Toolbar />
-    <main>
-      <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-
-      </div>
-    </main>
-    </>
+      <Editor study={study} content={passageContent} />
   );
+
 }

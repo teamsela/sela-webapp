@@ -1,0 +1,13 @@
+{
+  "id": "mig_coafgn08qt0jm63n7n20",
+  "parentID": "mig_coafgk4osp475jbhef10",
+  "checksum": "1:5e824d7d2ed1276cc800249915ba63f355b1254703ad87f08b15cb5df19d3f83",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "endChapter",
+        "table": "study"
+      }
+    }
+  ]
+}
