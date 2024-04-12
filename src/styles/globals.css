@@ -179,24 +179,22 @@ span.flatpickr-weekday,
   vertical-align: top;
   color: var(--clrText);
   display: inline-block;
-  line-height: 1.2;
+  line-height: 1.4;
+  width: 10px;
+}
+
+.verseRow {
+  display: flex;
 }
 
 .rtlDirection {
   direction: rtl;
-  text-align: right;
-  font-size: large;
   line-height: 1em;
-}
-
-.hidden {
-  display: none;
 }
 
 .hbFont {
   font-family: 'Ezra SIL' !important;
   font-size: x-large;
-  /*src: url('http://localhost:3000/public/fonts/SIL_Ezra.ttf');*/
 }
 
 .enFont {

@@ -11,7 +11,7 @@ export interface StudyData {
     passage: string;
 }
 
-export interface HebWord {
+export type HebWord = {
     id: number;
     chapter: number;
     verse: number;
@@ -21,14 +21,18 @@ export interface HebWord {
 }
 
 export type ChapterData = {
-    chapter: number;
+    id: number;
     numOfVerses: number;
-    verseMap: Map<number, HebWord[]>;
+    verses: VerseData[];
 }
 
 export type VerseData = {
-    verse: number;
+    id: number;
     words: HebWord[];
+}
+
+export type PassageData = {
+    chapters: ChapterData[];
 }
 
 export async function fetchStudyById(studyId: string) {
@@ -63,9 +67,8 @@ export async function fetchPassageContent(studyId: string) {
     try {
         // fetch a study by id from xata
         const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
-
-        let words: HebWord[] = [];
-        
+       
+        let passageData = { chapters: [] } as PassageData;
 
         if (study)
         {
@@ -84,7 +87,11 @@ export async function fetchPassageContent(studyId: string) {
             
                 //console.log(passageContent.toArray());
 
+                let currentChapterIdx = -1;
+                let currentVerseIdx = -1;
+
                 passageContent.forEach(word => {
+
                     let hebWord = {} as HebWord;
                     hebWord.id = word.hebId || 0;
                     hebWord.chapter = word.chapter || 0;
@@ -92,11 +99,27 @@ export async function fetchPassageContent(studyId: string) {
                     hebWord.strongNumber = word.strongNumber || 0;
                     hebWord.wlcWord = word.wlcWord || "";
                     hebWord.gloss = word.gloss || "";
-                    words.push(hebWord);
+
+                    let chapterData = passageData.chapters[currentChapterIdx];
+                    if (chapterData === undefined || chapterData.id != hebWord.chapter) {
+                      passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
+                      chapterData = passageData.chapters[++currentChapterIdx];
+                      currentVerseIdx = -1;
+                    }
+                
+                    chapterData.numOfVerses = hebWord.verse;
+                
+                    let verseData = chapterData.verses[currentVerseIdx];
+                    if (verseData === undefined || verseData.id != hebWord.verse) {
+                      chapterData.verses.push({id: hebWord.verse, words: []});
+                      verseData = chapterData.verses[++currentVerseIdx];
+                    }
+
+                    verseData.words.push(hebWord);
                 })
             }
         }
-        return words;
+        return passageData;
 
     } catch (error) {
         console.error('Database Error:', error);

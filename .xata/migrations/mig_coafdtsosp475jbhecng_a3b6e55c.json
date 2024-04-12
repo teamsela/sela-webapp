@@ -1,12 +1,12 @@
 {
-  "id": "mig_coafgk4osp475jbhef10",
-  "parentID": "mig_coafgesosp475jbheet0",
-  "checksum": "1:5aa6127e0afd8e2d10176fed5e9d1432737ca9df435a7c1343370433900707de",
+  "id": "mig_coafdtsosp475jbhecng",
+  "parentID": "mig_co576o9ue7a71jh4f0m0",
+  "checksum": "1:a3b6e55c6f7af47ecf0696ac7168b6bd16e9738563fdc0bce1ce8d29232a68ac",
   "operations": [
     {
       "addColumn": {
         "column": {
-          "name": "startVerse",
+          "name": "startChapter",
           "type": "int",
           "notNull": true,
           "defaultValue": "1"

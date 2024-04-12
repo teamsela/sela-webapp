@@ -1,0 +1,14 @@
+{
+  "id": "mig_cn0us7khai7b5bk8pcbg",
+  "parentID": "mig_cn0rs6p4p31jf4mt8t40",
+  "checksum": "1:b61bc73d6db2e41aa07fcbc55a318c01eb68475366bc4cc36e7706caacc0924d",
+  "operations": [
+    {
+      "renameColumn": {
+        "newName": "name",
+        "oldName": "title",
+        "table": "study"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "mig_coafea4osp475jbhecqg",
+  "parentID": "mig_coafe5cosp475jbhecpg",
+  "checksum": "1:bc948a74eeaf147f68a717e702a0d24c7d8203e7673f50918b685ecd424e919e",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "endVerse",
+          "type": "int"
+        },
+        "table": "study"
+      }
+    }
+  ]
+}
