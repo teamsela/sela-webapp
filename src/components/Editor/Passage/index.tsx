@@ -1,16 +1,14 @@
 import { HebWord, PassageData } from '@/lib/data';
-import { table } from 'console';
 
-const VerseNumber = ({ verseNumber } : { verseNumber: number }) => {
+const VerseContent = ({ isHebrew, verseNumber, verseContent } : { 
+  isHebrew: boolean;
+  verseNumber: number;
+  verseContent: HebWord[];
+}) => {
   return (
-    <span key={verseNumber} className="verseNumber">{verseNumber}</span>
-  );
-};
-
-const VerseContent = ({ isHebrew, verseContent } : { isHebrew: boolean; verseContent: HebWord[]; }) => {
-  return (
-    verseContent.map((word) => (
+    verseContent.map((word, index) => (
         <span key={word.id} className="flex items-center justify-center rounded border select-none px-4 py-2 text-center font-medium hover:opacity-60">
+          {index === 0 ? <span key={verseNumber} className="verseNumber">{verseNumber}</span> : "" }
           {!isHebrew ? word.gloss : word.wlcWord}
         </span>
     ))
@@ -29,12 +27,9 @@ const Passage = ({
     {
       content.chapters.map((chapter) => (
         chapter.verses.map((verse) => (
-          <>
-            <div className={`flex flex-wrap gap-4 mb-4 ${isHebrew ? 'rtlDirection hbFont' : 'enFont'}`}>
-              <VerseNumber verseNumber={verse.id} />
-              <VerseContent isHebrew={isHebrew} verseContent={verse.words} />
-            </div>
-          </>
+          <div key={chapter.id + "." + verse.id} className={`flex flex-wrap gap-4 mb-4 ${isHebrew ? 'rtlDirection hbFont' : 'enFont'}`}>
+            <VerseContent isHebrew={isHebrew} verseNumber={verse.id} verseContent={verse.words} />
+          </div>
         ))
       ))
     }

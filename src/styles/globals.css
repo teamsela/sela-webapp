@@ -176,11 +176,9 @@ span.flatpickr-weekday,
 }
 
 .verseNumber {
-  vertical-align: top;
   color: var(--clrText);
-  display: inline-block;
-  line-height: 1.4;
-  width: 10px;
+  width: 18px;
+  font-size: x-small;
 }
 
 .verseRow {
