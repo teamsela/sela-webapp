@@ -185,16 +185,7 @@ span.flatpickr-weekday,
   display: flex;
 }
 
-.rtlDirection {
-  direction: rtl;
-  line-height: 1em;
-}
-
 .hbFont {
   font-family: 'Ezra SIL' !important;
-  font-size: x-large;
-}
-
-.enFont {
-  font-size: large;
+  direction: rtl;
 }

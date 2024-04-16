@@ -3,6 +3,8 @@
 import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
 
+import { zoomLevelMap } from "@/lib/utils";
+
 export const UndoBtn = () => {
 
   return (
@@ -37,36 +39,48 @@ export const RedoBtn = () => {
   );
 };
 
-export const ZoomInBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Zoom In Clicked")} >
-        <MdOutlineTextIncrease fontSize="1.7em" />
-      </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Increase font size
-      </div>
-    </div>
-  );
-};
-
-export const ZoomOutBtn = () => {
+export const ZoomOutBtn = ({
+  zoomLevel,
+  setZoomLevel
+}: {
+  zoomLevel: number;
+  setZoomLevel: (arg: number) => void;
+}) => {
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Zoom Out Clicked")} >
-        <MdOutlineTextDecrease fontSize="1.7em" />
+        onClick={ () => (zoomLevelMap[zoomLevel-1] !== undefined) && setZoomLevel(zoomLevel - 1) } >
+        <LuZoomOut fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Decrease font size
+        Zoom out
       </div>      
+    </div>
+  );
+};
+
+export const ZoomInBtn = ({
+  zoomLevel,
+  setZoomLevel
+}: {
+  zoomLevel: number;
+  setZoomLevel: (arg: number) => void;
+}) => {
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={ () => (zoomLevelMap[zoomLevel+1] !== undefined) && setZoomLevel(zoomLevel + 1) } >
+        <LuZoomIn fontSize="1.5em" />
+      </button>
+      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
+        Zoom in
+      </div>
     </div>
   );
 };

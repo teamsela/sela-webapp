@@ -1,4 +1,5 @@
 import { HebWord, PassageData } from '@/lib/data';
+import { zoomLevelMap} from "@/lib/utils";
 
 const VerseContent = ({ isHebrew, verseNumber, verseContent } : { 
   isHebrew: boolean;
@@ -16,18 +17,21 @@ const VerseContent = ({ isHebrew, verseNumber, verseContent } : {
 };
 
 const Passage = ({ 
-    content, isHebrew
+    content, isHebrew, zoomLevel
   }: {
     content: PassageData;
     isHebrew: boolean;
+    zoomLevel: number;
   }) => {
+
+  console.log(zoomLevel);
 
   return (
     <div>
     {
       content.chapters.map((chapter) => (
         chapter.verses.map((verse) => (
-          <div key={chapter.id + "." + verse.id} className={`flex flex-wrap gap-4 mb-4 ${isHebrew ? 'rtlDirection hbFont' : 'enFont'}`}>
+          <div key={chapter.id + "." + verse.id} className={`flex flex-wrap gap-2 mb-2 ${zoomLevelMap[zoomLevel].fontSize} ${isHebrew ? 'hbFont' : ''}`}>
             <VerseContent isHebrew={isHebrew} verseNumber={verse.id} verseContent={verse.words} />
           </div>
         ))

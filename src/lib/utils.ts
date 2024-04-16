@@ -198,3 +198,20 @@ export function parsePassageInfo(inputString: string) : PassageInfo | Error {
 
   return result;
 }
+
+type ZoomLevel = {
+  [level: number]: { percent: number, fontSize: string };
+}
+
+export const zoomLevelMap: ZoomLevel = {
+  0: { percent: 20, fontSize: "text-xs"   },
+  1: { percent: 40, fontSize: "text-sm"   },
+  2: { percent: 60, fontSize: "text-base" },
+  3: { percent: 80, fontSize: "text-lg"   },
+  4: { percent: 100, fontSize: "text-xl"  },
+  5: { percent: 120, fontSize: "text-2xl" },
+  6: { percent: 140, fontSize: "text-3xl" },
+  7: { percent: 160, fontSize: "text-4xl" },
+  8: { percent: 180, fontSize: "text-5xl" },
+  9: { percent: 200, fontSize: "text-6xl" },
+}
