@@ -15,7 +15,7 @@ const Editor = ({
     content: PassageData;
   }) => {
     const [isHebrew, setHebrew] = useState(false);
-    const [zoomLevel, setZoomLevel] = useState(4);
+    const [zoomLevel, setZoomLevel] = useState(100);
 
     return (
         <>

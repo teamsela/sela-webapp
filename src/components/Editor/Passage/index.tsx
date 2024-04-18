@@ -1,5 +1,4 @@
 import { HebWord, PassageData } from '@/lib/data';
-import { zoomLevelMap } from '@/lib/utils';
 
 const VerseContent = ({ isHebrew, verseNumber, verseContent } : { 
   isHebrew: boolean;
@@ -29,7 +28,16 @@ const Passage = ({
       className: `
         flex flex-wrap gap-2 mb-2 
         ${isHebrew && "hbFont"}
-        ${zoomLevelMap[zoomLevel].fontSize}
+        ${zoomLevel === 20 && "text-xs"}
+        ${zoomLevel === 40 && "text-sm"}
+        ${zoomLevel === 60 && "text-base"}
+        ${zoomLevel === 80 && "text-lg"}
+        ${zoomLevel === 100 && "text-xl"}
+        ${zoomLevel === 120 && "text-2xl"}
+        ${zoomLevel === 140 && "text-3xl"}
+        ${zoomLevel === 160 && "text-4xl"}
+        ${zoomLevel === 180 && "text-5xl"}
+        ${zoomLevel === 200 && "text-6xl"}
       `
     }
   }

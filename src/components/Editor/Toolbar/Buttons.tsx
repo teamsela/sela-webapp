@@ -3,8 +3,6 @@
 import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
 
-import { zoomLevelMap } from "@/lib/utils";
-
 export const UndoBtn = () => {
 
   return (
@@ -51,7 +49,7 @@ export const ZoomOutBtn = ({
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={ () => (zoomLevelMap[zoomLevel-1] !== undefined) && setZoomLevel(zoomLevel - 1) } >
+        onClick={ () => (zoomLevel >= 40) && setZoomLevel(zoomLevel - 20) } >
         <LuZoomOut fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
@@ -74,7 +72,7 @@ export const ZoomInBtn = ({
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={ () => (zoomLevelMap[zoomLevel+1] !== undefined) && setZoomLevel(zoomLevel + 1) } >
+        onClick={ () => (zoomLevel <= 180) && setZoomLevel(zoomLevel + 20) } >
         <LuZoomIn fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
