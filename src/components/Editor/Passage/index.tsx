@@ -7,8 +7,8 @@ const VerseContent = ({ isHebrew, verseNumber, verseContent } : {
 }) => {
   return (
     verseContent.map((word, index) => (
-        <span key={word.id} className="flex items-center justify-center rounded border select-none px-4 py-2 text-center font-medium hover:opacity-60">
-          {index === 0 ? <span key={verseNumber} className="verseNumber">{verseNumber}</span> : "" }
+        <span key={word.id} className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60">
+          {index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
           {!isHebrew ? word.gloss : word.wlcWord}
         </span>
     ))
@@ -23,22 +23,48 @@ const Passage = ({
     zoomLevel: number;
   }) => {
 
+  let blockTextSize : string;
+
+  switch (zoomLevel) {
+    case 1: {
+      blockTextSize = "text-3xs";
+      break;
+    }
+    case 2: {
+      blockTextSize = "text-2xs";
+      break;
+    }
+    case 3: {
+      blockTextSize = "text-xs";
+      break;
+    }
+    case 4: {
+      blockTextSize = "text-sm";
+      break;
+    }
+    case 5: {
+      blockTextSize = "text-base";
+      break;
+    }
+    case 6: {
+      blockTextSize = "text-lg";
+      break;
+    }
+    case 7: {
+      blockTextSize = "text-2xl";
+      break;
+    }
+    default: {
+      blockTextSize = "text-base";
+      break;
+    }
+  }
+
+  console.log(blockTextSize);
+
   const styles = {
     container: {
-      className: `
-        flex flex-wrap gap-2 mb-2 
-        ${isHebrew && "hbFont"}
-        ${zoomLevel === 20 && "text-xs"}
-        ${zoomLevel === 40 && "text-sm"}
-        ${zoomLevel === 60 && "text-base"}
-        ${zoomLevel === 80 && "text-lg"}
-        ${zoomLevel === 100 && "text-xl"}
-        ${zoomLevel === 120 && "text-2xl"}
-        ${zoomLevel === 140 && "text-3xl"}
-        ${zoomLevel === 160 && "text-4xl"}
-        ${zoomLevel === 180 && "text-5xl"}
-        ${zoomLevel === 200 && "text-6xl"}
-      `
+      className: `flex flex-wrap gap-2 mb-2 ${isHebrew ? "hbFont " : ""} ${blockTextSize}`
     }
   }
 

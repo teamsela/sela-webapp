@@ -18,6 +18,7 @@
     "react-color": "^2.19.3",
     "react-dom": "^18",
     "react-icons": "^5.0.1",
+    "tailwindcss-opentype": "^1.1.0",
     "use-debounce": "^10.0.0",
     "zod": "^3.22.4"
   },

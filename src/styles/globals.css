@@ -175,16 +175,6 @@ span.flatpickr-weekday,
   right: 45px;
 }
 
-.verseNumber {
-  color: var(--clrText);
-  width: 18px;
-  font-size: x-small;
-}
-
-.verseRow {
-  display: flex;
-}
-
 .hbFont {
   font-family: 'Ezra SIL' !important;
   direction: rtl;
