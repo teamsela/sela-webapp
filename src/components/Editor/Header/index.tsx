@@ -41,14 +41,11 @@ const Header = ({
           <h4 className="text-black text-title-sm dark:text-white">Psalm {studyPassage}</h4>
         </div>
 
-        <div className="hidden sm:block">
-
-          <Tabs />
-
-        </div>
-
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">
+            <div className="hidden sm:block">
+              <Tabs />
+            </div>
             <LanguageSwitcher isHebrew={isHebrew} setLangToHebrew={setLangToHebrew} />
             {/* <!-- Dark Mode Toggler --> */}
             {/*<DarkModeSwitcher />*/}
