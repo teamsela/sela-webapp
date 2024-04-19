@@ -38,7 +38,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-      <Editor study={study} content={passageContent} />
+      <Editor study={study} studyId={studyId} content={passageContent} />
   );
 
 }
