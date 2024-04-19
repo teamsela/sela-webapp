@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { IconEdit } from "@tabler/icons-react";
 import { useFormState, useFormStatus } from "react-dom";
-import { State, updateStudyName } from '@/lib/actions';
+import { State, updateStudyNameWithForm } from '@/lib/actions';
 
 const EditStudyModal = ({
   studyId,
@@ -14,7 +14,7 @@ const EditStudyModal = ({
 } ) => {
 
   const initialState = { message: null, errors: {} };
-  const updateStudyNameWithId = updateStudyName.bind(null, studyId);
+  const updateStudyNameWithId = updateStudyNameWithForm.bind(null, studyId);
   const [state, dispatch] = useFormState<State, FormData>(updateStudyNameWithId, initialState);
 
   const [modalOpen, setModalOpen] = useState(false);

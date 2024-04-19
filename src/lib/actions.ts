@@ -24,7 +24,7 @@ export type State = {
 
 const UpdateStudyName = RenameFormSchema.omit({ id: true });
 
-export async function updateStudyName(
+export async function updateStudyNameWithForm(
   id: string,
   prevState: State,
   formData: FormData,
@@ -51,6 +51,19 @@ export async function updateStudyName(
     return { message: 'Database Error: Failed to Update Study.' };
   }
   redirect('/dashboard/home');
+}
+
+export async function updateStudyName(id: string, studyName: string) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Study.' };
+  }
+
+  revalidatePath('/');
 }
 
 export async function updatePublic(studyId: string, publicAccess: boolean) {
