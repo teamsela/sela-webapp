@@ -14,9 +14,8 @@ const Title = ({ studyName, studyId }:{
   
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
+            // when clicked outside of the text box save the change
             if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
-                console.log("clicked");
-                console.log(title);
                 handleSaveClick();
             }
         };
@@ -38,10 +37,7 @@ const Title = ({ studyName, studyId }:{
   
     const handleSaveClick = async () => {
       setIsEditing(false);
-      console.log(studyId);
-      console.log(title);
       const [study] = await Promise.all([updateStudyName(studyId, title)]);
-      console.log(study);
     };
   
     const handleEditClick = () => {
