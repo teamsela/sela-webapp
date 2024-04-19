@@ -15,6 +15,8 @@ const Title = ({ studyName, studyId }:{
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
+                console.log("clicked");
+                console.log(title);
                 handleSaveClick();
             }
         };
@@ -28,7 +30,7 @@ const Title = ({ studyName, studyId }:{
         return () => {
           document.removeEventListener('mousedown', handleClickOutside);
         };
-      }, [isEditing]);
+      }, [isEditing, title]);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
       setTitle(event.target.value);
@@ -36,7 +38,9 @@ const Title = ({ studyName, studyId }:{
   
     const handleSaveClick = async () => {
       setIsEditing(false);
-      const [study] = await Promise.all([updateStudyName(studyId, studyName)]);
+      console.log(studyId);
+      console.log(title);
+      const [study] = await Promise.all([updateStudyName(studyId, title)]);
       console.log(study);
     };
   
