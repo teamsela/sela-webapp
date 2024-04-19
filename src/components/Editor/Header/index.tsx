@@ -43,7 +43,7 @@ const Header = ({
 
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">
-            <div className="hidden sm:block">
+            <div className="hidden sm:block mr-5">
               <Tabs />
             </div>
             <LanguageSwitcher isHebrew={isHebrew} setLangToHebrew={setLangToHebrew} />

@@ -49,6 +49,7 @@ const Title = ({ studyName, studyId }:{
         {isEditing ? (
           <div>
             <input
+            className="text-title-sm"
               type="text"
               value={title}
               onChange={handleInputChange}
@@ -58,7 +59,7 @@ const Title = ({ studyName, studyId }:{
           </div>
         ) : (
           <div>
-            <h1 onClick={handleEditClick}>{title}</h1>
+            <h1 className="text-title-sm" onClick={handleEditClick}>{title}</h1>
           </div>
         )}
       </div>
