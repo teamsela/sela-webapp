@@ -1,0 +1,120 @@
+{
+  "id": "mig_cod396ep7f5ih5v51vdg",
+  "parentID": "mig_coafjgsosp475jbhefo0",
+  "checksum": "1:cc893cdd802b8e734858910a06654cac123a3556cd633aa0a806488030ecf981",
+  "operations": [
+    {
+      "addTable": {
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "hebId",
+          "type": "int"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "book",
+          "type": "string"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "chapter",
+          "type": "int"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "verse",
+          "type": "int"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "wlcWord",
+          "type": "string"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "hebUnicode",
+          "type": "string"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "strongNumber",
+          "type": "float"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "gloss",
+          "type": "string"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "morphology",
+          "type": "string"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "WLCsort",
+          "type": "int"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "poetryMarker",
+          "type": "bool"
+        },
+        "table": "heb_bible2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "paragraphMarker",
+          "type": "bool"
+        },
+        "table": "heb_bible2"
+      }
+    }
+  ]
+}

@@ -46,7 +46,7 @@ export const ZoomOutBtn = ({
 }) => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
         onClick={ () => (zoomLevel > 1) && setZoomLevel(zoomLevel - 1) } >
@@ -69,7 +69,7 @@ export const ZoomInBtn = ({
 }) => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
       <button 
         className="hover:text-primary"
         onClick={ () => (zoomLevel < 7) && setZoomLevel(zoomLevel + 1) } >

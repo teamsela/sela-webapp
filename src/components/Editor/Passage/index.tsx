@@ -1,14 +1,15 @@
 import { HebWord, PassageData } from '@/lib/data';
 
-const VerseContent = ({ isHebrew, verseNumber, verseContent } : { 
+const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content } : { 
   isHebrew: boolean;
+  paragraphIndex: number;
   verseNumber: number;
-  verseContent: HebWord[];
+  content: HebWord[];
 }) => {
   return (
-    verseContent.map((word, index) => (
+    content.map((word, index) => (
         <span key={word.id} className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60">
-          {index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
+          {/*paragraphIndex === 0 &&*/ index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
           {!isHebrew ? word.gloss : word.wlcWord}
         </span>
     ))
@@ -60,11 +61,9 @@ const Passage = ({
     }
   }
 
-  console.log(blockTextSize);
-
   const styles = {
     container: {
-      className: `flex flex-wrap gap-2 mb-2 ${isHebrew ? "hbFont " : ""} ${blockTextSize}`
+      className: `flex flex-wrap gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${blockTextSize}`
     }
   }
 
@@ -72,10 +71,12 @@ const Passage = ({
     <div>
     {
       content.chapters.map((chapter) => (
-        chapter.verses.map((verse) => (
-          <div key={chapter.id + "." + verse.id} {...styles.container}>
-            <VerseContent isHebrew={isHebrew} verseNumber={verse.id} verseContent={verse.words} />
-          </div>
+        chapter.verses.map((verse, v_index) => (
+          verse.paragraphs.map((paragraph, p_index) => (
+            <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
+              <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} />
+            </div>
+          ))
         ))
       ))
     }

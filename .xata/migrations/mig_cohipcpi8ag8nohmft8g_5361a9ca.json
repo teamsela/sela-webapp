@@ -1,0 +1,13 @@
+{
+  "id": "mig_cohipcpi8ag8nohmft8g",
+  "parentID": "mig_cod396ep7f5ih5v51vdg",
+  "checksum": "1:5361a9cab0ab915b21c86f4d54eb20c23b06b289e422b4a6938a47e60f2161a7",
+  "operations": [
+    {
+      "renameTable": {
+        "newName": "heb_bible_old",
+        "oldName": "heb_bible"
+      }
+    }
+  ]
+}

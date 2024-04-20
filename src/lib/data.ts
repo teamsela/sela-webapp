@@ -26,9 +26,13 @@ export type ChapterData = {
     verses: VerseData[];
 }
 
+export type ParagraphData = {
+    words: HebWord[];
+}
+
 export type VerseData = {
     id: number;
-    words: HebWord[];
+    paragraphs: ParagraphData[];
 }
 
 export type PassageData = {
@@ -89,6 +93,7 @@ export async function fetchPassageContent(studyId: string) {
 
                 let currentChapterIdx = -1;
                 let currentVerseIdx = -1;
+                let currentParagraphIdx = -1;
 
                 passageContent.forEach(word => {
 
@@ -100,22 +105,29 @@ export async function fetchPassageContent(studyId: string) {
                     hebWord.wlcWord = word.wlcWord || "";
                     hebWord.gloss = word.gloss || "";
 
-                    let chapterData = passageData.chapters[currentChapterIdx];
-                    if (chapterData === undefined || chapterData.id != hebWord.chapter) {
-                      passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
-                      chapterData = passageData.chapters[++currentChapterIdx];
-                      currentVerseIdx = -1;
+                    let currentChapterData = passageData.chapters[currentChapterIdx];
+                    if (currentChapterData === undefined || currentChapterData.id != hebWord.chapter) {
+                        passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
+                        currentChapterData = passageData.chapters[++currentChapterIdx];
+                        currentVerseIdx = -1;
                     }
                 
-                    chapterData.numOfVerses = hebWord.verse;
+                    currentChapterData.numOfVerses = hebWord.verse;
                 
-                    let verseData = chapterData.verses[currentVerseIdx];
-                    if (verseData === undefined || verseData.id != hebWord.verse) {
-                      chapterData.verses.push({id: hebWord.verse, words: []});
-                      verseData = chapterData.verses[++currentVerseIdx];
+                    let currentVerseData = currentChapterData.verses[currentVerseIdx];
+                    if (currentVerseData === undefined || currentVerseData.id != hebWord.verse) {
+                        currentChapterData.verses.push({id: hebWord.verse, paragraphs: []});
+                        currentParagraphIdx = -1;
+                        currentVerseData = currentChapterData.verses[++currentVerseIdx];
                     }
 
-                    verseData.words.push(hebWord);
+                    let currentParagraphData = currentVerseData.paragraphs[currentParagraphIdx];
+                    if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker) {
+                        currentVerseData.paragraphs.push({words: []});
+                        currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
+                    }
+
+                    currentParagraphData.words.push(hebWord);
                 })
             }
         }

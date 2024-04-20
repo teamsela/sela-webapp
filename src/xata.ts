@@ -18,7 +18,7 @@ const tables = [
     ],
   },
   {
-    name: "heb_bible",
+    name: "heb_bible_old",
     columns: [
       { name: "hebId", type: "int" },
       { name: "book", type: "string" },
@@ -31,6 +31,23 @@ const tables = [
       { name: "morphology", type: "string" },
     ],
   },
+  {
+    name: "heb_bible",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "book", type: "string" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "wlcWord", type: "string" },
+      { name: "hebUnicode", type: "string" },
+      { name: "strongNumber", type: "float" },
+      { name: "gloss", type: "string" },
+      { name: "morphology", type: "string" },
+      { name: "WLCsort", type: "int" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -39,11 +56,15 @@ export type InferredTypes = SchemaInference<SchemaTables>;
 export type Study = InferredTypes["study"];
 export type StudyRecord = Study & XataRecord;
 
+export type HebBibleOld = InferredTypes["heb_bible_old"];
+export type HebBibleOldRecord = HebBibleOld & XataRecord;
+
 export type HebBible = InferredTypes["heb_bible"];
 export type HebBibleRecord = HebBible & XataRecord;
 
 export type DatabaseSchema = {
   study: StudyRecord;
+  heb_bible_old: HebBibleOldRecord;
   heb_bible: HebBibleRecord;
 };
 

@@ -1,0 +1,93 @@
+{
+  "id": "mig_cnr63no6bd2ce5jmdudg",
+  "parentID": "mig_cn0us7khai7b5bk8pcbg",
+  "checksum": "1:2e97cf8e13a4ac1792df2e29f7d7ed0ef1912cfd7a30a2b8262ea9171212eae7",
+  "operations": [
+    {
+      "addTable": {
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "hebId",
+          "type": "int"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "book",
+          "type": "string"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "chapter",
+          "type": "int"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "verse",
+          "type": "int"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "wlcWord",
+          "type": "string"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "hebUnicode",
+          "type": "string"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "strongNumber",
+          "type": "int"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "gloss",
+          "type": "string"
+        },
+        "table": "heb_bible"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "morphology",
+          "type": "string"
+        },
+        "table": "heb_bible"
+      }
+    }
+  ]
+}
