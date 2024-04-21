@@ -1,11 +1,14 @@
 'use server';
 
 import { z } from 'zod';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getXataClient } from '@/xata';
+import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
+import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
-import { StudyRecord } from '@/xata.js';
+
+import { parsePassageInfo } from './utils';
+import { StudyData, PassageData, HebWord } from './data';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -22,6 +25,32 @@ export type State = {
     message?: string | null;
 };
 
+export async function fetchStudyById(studyId: string) {
+
+  // Add noStore() here to prevent the response from being cached.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  //noStore();
+
+  const xataClient = getXataClient();
+
+  try {
+      // fetch a study by id from xata
+      const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
+
+      let result : StudyData = {
+          id: studyId,
+          name: study?.name || "",
+          owner: study?.owner || "",
+          passage: study?.passage || "",
+      };
+
+      return result;
+  } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch study record.');        
+  }
+}
+
 const UpdateStudyName = RenameFormSchema.omit({ id: true });
 
 export async function updateStudyNameWithForm(
@@ -37,7 +66,7 @@ export async function updateStudyNameWithForm(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Update Study.',
+      message: 'Missing Fields. Failed to update study.',
     };
   }
   const { studyName } = validatedFields.data;
@@ -48,22 +77,19 @@ export async function updateStudyNameWithForm(
   try {
     await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
+    return { message: 'Database Error: Failed to update study.' };
   }
   redirect('/dashboard/home');
 }
 
 export async function updateStudyName(id: string, studyName: string) {
-  "use server";
 
   const xataClient = getXataClient();
   try {
     await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
+    return { message: 'Database Error: Failed to update study name.' };
   }
-
-  revalidatePath('/');
 }
 
 export async function updatePublic(studyId: string, publicAccess: boolean) {
@@ -73,38 +99,34 @@ export async function updatePublic(studyId: string, publicAccess: boolean) {
   try {
     await xataClient.db.study.updateOrThrow({ id: studyId, public: publicAccess});
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
+    return { message: 'Database Error: Failed to update study public access.' };
   }
   revalidatePath('/');
 }
 
-export async function deleteStudy(studyId: string) {
-  "use server";
-
-  const xataClient = getXataClient();
-  try {
-    await xataClient.db.study.deleteOrThrow({ id: studyId });
-  } catch (error) {
-    return { message: 'Database Error: Failed to Delete Study.' };
-  }
-  revalidatePath('/');   
-}
-
 export async function updateStar(studyId: string, isStarred: boolean) {
-  "use server";
 
   const xataClient = getXataClient();
   try {
     await xataClient.db.study.updateOrThrow({ id: studyId, starred: isStarred });
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Study.' };
+    return { message: 'Database Error: Failed to update study star.' };
+  }
+  revalidatePath('/');   
+}
+
+export async function deleteStudy(studyId: string) {
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.deleteOrThrow({ id: studyId });
+  } catch (error) {
+    return { message: 'Database Error: Failed to delete study.' };
   }
   revalidatePath('/');   
 }
 
 export async function createStudy(passage: string) {
-  "use server";
-  console.log("Creating a new study (" + passage + ")");
 
   const user = await currentUser();
 
@@ -119,5 +141,78 @@ export async function createStudy(passage: string) {
     }
     if (record)
       redirect('/study/' + record.id.replace("rec_", "") + '/edit');
+  }
+}
+
+export async function fetchPassageContent(studyId: string) {
+
+  const xataClient = getXataClient();
+
+  try {
+      // fetch a study by id from xata
+      const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
+     
+      let passageData = { chapters: [] } as PassageData;
+
+      if (study)
+      {
+          const passageInfo = parsePassageInfo(study.passage);
+          // fetch all words from xata by start/end chapter and verse
+          if (passageInfo instanceof Error === false)
+          {               
+              const passageContent = await xataClient.db.heb_bible
+                  .filter("chapter", ge(passageInfo.startChapter))
+                  .filter("chapter", le(passageInfo.endChapter))
+                  .filter("verse", ge(passageInfo.startVerse))
+                  .filter("verse", le(passageInfo.endVerse))
+                  .sort("hebId", "asc")
+              //    .select(["hebId", "chapter", "verse", "hebUnicode", "strongNumber", "gloss"])
+                  .getAll();
+          
+              let currentChapterIdx = -1;
+              let currentVerseIdx = -1;
+              let currentParagraphIdx = -1;
+
+              passageContent.forEach(word => {
+
+                  let hebWord = {} as HebWord;
+                  hebWord.id = word.hebId || 0;
+                  hebWord.chapter = word.chapter || 0;
+                  hebWord.verse = word.verse || 0;
+                  hebWord.strongNumber = word.strongNumber || 0;
+                  hebWord.wlcWord = word.wlcWord || "";
+                  hebWord.gloss = word.gloss || "";
+
+                  let currentChapterData = passageData.chapters[currentChapterIdx];
+                  if (currentChapterData === undefined || currentChapterData.id != hebWord.chapter) {
+                      passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
+                      currentChapterData = passageData.chapters[++currentChapterIdx];
+                      currentVerseIdx = -1;
+                  }
+              
+                  currentChapterData.numOfVerses = hebWord.verse;
+              
+                  let currentVerseData = currentChapterData.verses[currentVerseIdx];
+                  if (currentVerseData === undefined || currentVerseData.id != hebWord.verse) {
+                      currentChapterData.verses.push({id: hebWord.verse, paragraphs: []});
+                      currentParagraphIdx = -1;
+                      currentVerseData = currentChapterData.verses[++currentVerseIdx];
+                  }
+
+                  let currentParagraphData = currentVerseData.paragraphs[currentParagraphIdx];
+                  if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker) {
+                      currentVerseData.paragraphs.push({words: []});
+                      currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
+                  }
+
+                  currentParagraphData.words.push(hebWord);
+              })
+          }
+      }
+      return passageData;
+
+  } catch (error) {
+      console.error('Database Error:', error);
+      throw new Error('Failed to fetch passage content by study id.');        
   }
 }

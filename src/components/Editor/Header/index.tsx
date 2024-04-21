@@ -2,22 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
+
+import { StudyData } from '@/lib/data';
+
 import Tabs from "./Tabs";
 import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 
+
 const Header = ({
-  studyName,
-  studyId,
-  studyPassage,
+  study,
   isHebrew,
   setLangToHebrew
 }: {
-  studyName: string;
-  studyId: string;
-  studyPassage: string;
+  study: StudyData;
   isHebrew: boolean;
   setLangToHebrew: (arg: boolean) => void;
 }) => {
@@ -34,11 +34,11 @@ const Header = ({
             />
           </Link>
           <div className="text-primary  font-bold ml-5">
-            <Title studyName={studyName} studyId={studyId} />
+            <Title study={study} />
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 ">
-          <h4 className="text-black text-title-sm dark:text-white">Psalm {studyPassage}</h4>
+          <h4 className="text-black text-title-sm dark:text-white">Psalm {study.passage}</h4>
         </div>
 
         <div className="flex items-center gap-3 2xsm:gap-7">

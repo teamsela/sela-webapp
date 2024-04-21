@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs';
 
-import { fetchStudyById, fetchPassageContent } from '@/lib/data';
+import { fetchStudyById, fetchPassageContent } from '@/lib/actions';
 import Editor from "@/components/Editor";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -38,7 +38,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-      <Editor study={study} studyId={studyId} content={passageContent} />
+      <Editor study={study} content={passageContent} />
   );
 
 }

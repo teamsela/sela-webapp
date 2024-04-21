@@ -2,22 +2,22 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { updateStudyName } from '@/lib/actions';
+import { StudyData } from '@/lib/data';
 
 
-const Title = ({ studyName, studyId }:{
-    studyName: string,
-    studyId: string
+const Title = ({ study }:{
+    study: StudyData,
 }) => {
-    const [title, setTitle] = useState(studyName);
+    const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
     const titleRef = useRef<HTMLDivElement>(null);
   
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // when clicked outside of the text box save the change
-            if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
-                handleSaveClick();
-            }
+          // when clicked outside of the text box save the change
+          if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
+              handleSaveClick();
+          }
         };
     
         if (isEditing) {
@@ -37,7 +37,7 @@ const Title = ({ studyName, studyId }:{
   
     const handleSaveClick = async () => {
       setIsEditing(false);
-      const [study] = await Promise.all([updateStudyName(studyId, title)]);
+      updateStudyName(study.id, title);
     };
   
     const handleEditClick = () => {

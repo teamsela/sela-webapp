@@ -9,10 +9,9 @@ import { StudyData, PassageData } from '@/lib/data';
 import { useState } from "react";
 
 const Editor = ({ 
-    study, studyId, content
+    study, content
   }: {
     study: StudyData;
-    studyId: string;
     content: PassageData;
   }) => {
     const [isHebrew, setHebrew] = useState(false);
@@ -20,7 +19,7 @@ const Editor = ({
 
     return (
         <>
-        <Header studyName={study.name} studyId={studyId} studyPassage={study.passage} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
+        <Header study={study} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
         <Toolbar zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
         <main>
           <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6">

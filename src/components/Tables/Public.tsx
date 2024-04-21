@@ -76,7 +76,7 @@ export default async function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-7 px-4 dark:border-strokedark flex items-center">
                   <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
-                    <Image src={mp.get(studyItem.owner)?.imageUrl} alt="Avatar" />
+                    <Image src={mp.get(studyItem.owner)?.imageUrl} width="40" height="40" alt="Avatar" />
                   </div>
                     <p className="text-black dark:text-white">
                       {thisUser?.id === studyItem.owner ? "me" : mp.get(studyItem.owner)?.firstName + " " + mp.get(studyItem.owner)?.lastName}
