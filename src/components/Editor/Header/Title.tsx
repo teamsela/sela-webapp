@@ -43,6 +43,14 @@ const Title = ({ study }:{
     const handleEditClick = () => {
       setIsEditing(true);
     };
+
+    function truncateString(str: string, maxLength: number): string {
+      if (str.length <= maxLength) {
+          return str;
+      } else {
+          return str.slice(0, maxLength) + '...';
+      }
+  }
   
     return (
       <div ref={titleRef} className="block">
@@ -59,7 +67,7 @@ const Title = ({ study }:{
           </div>
         ) : (
           <div>
-            <h1 className="text-title-sm" onClick={handleEditClick}>{title}</h1>
+            <h1 className="text-title-sm" onClick={handleEditClick}>{truncateString(title, 24)}</h1>
           </div>
         )}
       </div>
