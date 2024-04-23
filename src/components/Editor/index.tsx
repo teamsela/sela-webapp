@@ -16,11 +16,18 @@ const Editor = ({
   }) => {
     const [isHebrew, setHebrew] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(4);
+    
+    const [colorFill, setColorFill] = useState( { r:'255', g:'255', b:'255', a:'1' } )
 
     return (
         <>
         <Header study={study} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
-        <Toolbar zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
+        <Toolbar 
+          zoomLevel={zoomLevel} 
+          setZoomLevel={setZoomLevel} 
+          colorFill={colorFill}
+          setColorFill={setColorFill}
+        />
         <main>
           <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6">
             <Passage content={content} isHebrew={isHebrew} zoomLevel={zoomLevel} />
