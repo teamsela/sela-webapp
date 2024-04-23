@@ -3,6 +3,7 @@
 import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
 import { SketchPicker } from 'react-color'
+import React, { useState } from 'react';
 
 export const UndoBtn = () => {
 
@@ -100,11 +101,20 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
   setColor,
 }) => {
   
+  const [colorPanelActive, setColorPanelActive] = useState(false);
+  const handleClick = () => {
+    console.log("Color Fill Clicked")
+    setColorPanelActive(prevState => !prevState);
+  }
+  const handleChange = () => {
+    console.log('change')
+  }
+
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Color Fill Clicked")} >
+        onClick={handleClick} >
         <MdFormatColorFill fillOpacity="0.4" fontSize="1.4em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
@@ -113,19 +123,22 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
               width: "100%",
               height:"0.25rem",
               background:`rgba(${color.r},${color.g},${color.b},${color.a})`,
-              marginTop:"0.15rem" 
+              marginTop:"0.15rem",
             }
           }
         >
         </div>
       </button>
-
-      <div style={{position:"relative"}}>
-        <div style={{position:"absolute",top:"1.5rem",left:"-2rem"}}>
-          <SketchPicker />
-        </div>
-      </div>
-
+      
+      {
+        colorPanelActive && (
+          <div style={{position:"relative",zIndex:"2"}}>
+            <div style={{position:"absolute",top:"1.5rem",left:"-2rem"}}>
+              <SketchPicker color={color} onChange={handleChange} />
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };
