@@ -2,12 +2,21 @@ import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, 
 
 const Toolbar = ({
   zoomLevel,
-  setZoomLevel
+  setZoomLevel,
+  colorFill,
+  setColorFill,
 }: {
   zoomLevel: number;
   setZoomLevel: (arg: number) => void;
+  colorFill: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  };
+  setColorFill: (arg: object) => void;
 } ) => {
-
+  
   return (
     <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]">
       <UndoBtn />
@@ -19,7 +28,7 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn />
+      <ColorFillBtn color={colorFill} setColor={setColorFill}/>
       <BorderColorBtn />
       <TextColorBtn />
       <MoveUpBtn />
