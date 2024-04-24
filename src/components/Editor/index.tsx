@@ -22,7 +22,7 @@ const Editor = ({
         <Header study={study} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
         <Toolbar zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
         <main>
-          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto" style={{ whiteSpace: 'nowrap' }}>
+          <div className={`mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap ${zoomLevel >= 7 ? "mr-4" : ""}`}>
             <Passage content={content} isHebrew={isHebrew} zoomLevel={zoomLevel} />
           </div>
         </main>
