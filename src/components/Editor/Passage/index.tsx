@@ -14,7 +14,72 @@ const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colo
   };
   colorPanelActive: boolean;
 }) => {
-console.log(verseNumber)
+
+  //relocated under the Word component
+  /////
+  /////
+  // const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
+  // const [selected, setSelected] = useState(false);
+
+  // if(colorFillLocal != colorFill && selected && colorPanelActive){
+  //   setColorFillLocal(colorFill);
+  // }
+
+  // const handleClick = () => {
+  //   setSelected(prevState => !prevState);
+  // }
+
+  return (
+    content.map((word, index) => (
+
+        <Word 
+          isHebrew={isHebrew}
+          paragraphIndex={paragraphIndex}
+          verseNumber={verseNumber}
+          colorFill={colorFill}
+          colorPanelActive={colorPanelActive}
+          word={word}
+          index={index}
+        />
+        
+        //relocated under the Word component
+        /////
+        /////
+        /* <span 
+          key={word.id} 
+          className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 
+          onClick={handleClick}
+          style={
+            { 
+              background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
+            }
+        }
+        >
+          { index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
+          {!isHebrew ? word.gloss : word.wlcWord}
+        </span> */
+
+    ))
+  );
+};
+
+const Word = ({
+  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index
+}: {
+  isHebrew: boolean;
+  paragraphIndex: number;
+  verseNumber: number;
+  colorFill: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  };
+  colorPanelActive: boolean;
+  word: object;
+  index: number;
+}) => {
+
   const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
   const [selected, setSelected] = useState(false);
 
@@ -27,27 +92,25 @@ console.log(verseNumber)
   }
 
   return (
-    content.map((word, index) => (
-      <div style={ {border: selected ? "3px solid black" : "none"} }>
-
-        <span 
-          key={word.id} 
-          className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 
-          onClick={handleClick}
-          style={
+    <div style={ {border: selected ? "3px solid black" : "none"} }>
+      <span 
+        key={word.id} 
+        className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 
+        onClick={handleClick}
+        style={
             { 
               background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
             }
         }
-        >
-          {/*paragraphIndex === 0 &&*/ index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
-          {!isHebrew ? word.gloss : word.wlcWord}
-        </span>
-
-      </div>
-    ))
+      >
+        {/*paragraphIndex === 0 &&*/ index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
+        {!isHebrew ? word.gloss : word.wlcWord}
+      </span>
+    </div>
   );
-};
+
+}
+
 
 const Passage = ({ 
     content, isHebrew, zoomLevel, colorFill, colorPanelActive
