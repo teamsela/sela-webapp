@@ -11,6 +11,7 @@ const Title = ({ study }:{
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
     const titleRef = useRef<HTMLDivElement>(null);
+    const MAX_TITLE_LENGTH = 32;
   
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -43,6 +44,14 @@ const Title = ({ study }:{
     const handleEditClick = () => {
       setIsEditing(true);
     };
+
+    function truncateString(str: string, maxLength: number): string {
+      if (str.length <= maxLength) {
+          return str;
+      } else {
+          return str.slice(0, maxLength) + '...';
+      }
+  }
   
     return (
       <div ref={titleRef} className="block">
@@ -59,7 +68,7 @@ const Title = ({ study }:{
           </div>
         ) : (
           <div>
-            <h1 className="text-title-sm" onClick={handleEditClick}>{title}</h1>
+            <h1 className="text-title-sm" onClick={handleEditClick}>{truncateString(title, MAX_TITLE_LENGTH)}</h1>
           </div>
         )}
       </div>

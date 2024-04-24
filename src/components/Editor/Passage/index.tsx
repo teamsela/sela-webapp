@@ -103,7 +103,7 @@ const Passage = ({
 
   const styles = {
     container: {
-      className: `flex flex-wrap gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${blockTextSize}`
+      className: `flex gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${blockTextSize}`
     }
   }
 

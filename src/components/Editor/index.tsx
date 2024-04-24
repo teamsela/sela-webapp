@@ -37,7 +37,7 @@ const Editor = ({
           setColorFill={setColorFill}
         />
         <main>
-          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6">
+          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-4">
             <Passage 
               content={content} 
               isHebrew={isHebrew} 
