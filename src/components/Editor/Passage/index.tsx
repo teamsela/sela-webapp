@@ -15,7 +15,7 @@ const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colo
   colorPanelActive: boolean;
 }) => {
 
-  //relocated under the Word component
+  //relocated to the Word component
   /////
   /////
   // const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
@@ -42,7 +42,7 @@ const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colo
           index={index}
         />
         
-        //relocated under the Word component
+        //relocated to the Word component
         /////
         /////
         /* <span 
@@ -178,6 +178,7 @@ const Passage = ({
           verse.paragraphs.map((paragraph, p_index) => (
             <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container} >
               {/* 2024-04-23 considering: move the map function for ParagraphContent here and create a new component for each individual words */}
+              {/* 2024-04-24 I wonder if ParagraphContent is necessary here, if not I'd like to delete this component and move the map function under ParagraphContent over here to reduce code */}
               <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive}/>
             </div>
           ))
