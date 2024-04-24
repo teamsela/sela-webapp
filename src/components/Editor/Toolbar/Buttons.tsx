@@ -94,20 +94,26 @@ interface ColorProps {
     a: number;
   };
   setColor: (arg: object) => void;
+  colorPanelActive:boolean;
+  setColorPanelActive: (arg: object) => void;
 }
 
 export const ColorFillBtn: React.FC<ColorProps> = ({
   color,
   setColor,
+  colorPanelActive,
+  setColorPanelActive,
 }) => {
   
-  const [colorPanelActive, setColorPanelActive] = useState(false);
+  // const [colorPanelActive, setColorPanelActive] = useState(false);
   const handleClick = () => {
     console.log("Color Fill Clicked")
     setColorPanelActive(prevState => !prevState);
   }
-  const handleChange = () => {
+  const handleChange = (color) => {
     console.log('change')
+    console.log(color.rgb);
+    setColor(color.rgb);
   }
 
   return (

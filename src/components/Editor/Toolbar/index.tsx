@@ -3,11 +3,15 @@ import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, 
 const Toolbar = ({
   zoomLevel,
   setZoomLevel,
+  colorPanelActive, 
+  setColorPanelActive,
   colorFill,
   setColorFill,
 }: {
   zoomLevel: number;
   setZoomLevel: (arg: number) => void;
+  colorPanelActive: boolean, 
+  setColorPanelActive: (arg: object) => void,
   colorFill: {
     r: number;
     g: number;
@@ -28,7 +32,7 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn color={colorFill} setColor={setColorFill}/>
+      <ColorFillBtn color={colorFill} setColor={setColorFill} colorPanelActive={colorPanelActive} setColorPanelActive={setColorPanelActive}/>
       <BorderColorBtn />
       <TextColorBtn />
       <MoveUpBtn />
