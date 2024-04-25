@@ -138,8 +138,8 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
       
       {
         colorPanelActive && (
-          <div style={{position:"relative",zIndex:"2"}}>
-            <div style={{position:"absolute",top:"1.5rem",left:"-2rem"}}>
+          <div className="relative z-10">
+            <div className="absolute top-6 -left-6">
               <SketchPicker color={color} onChange={handleChange} />
             </div>
           </div>

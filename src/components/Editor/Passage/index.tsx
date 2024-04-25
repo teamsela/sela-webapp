@@ -92,7 +92,7 @@ const Word = ({
   }
 
   return (
-    <div style={ {border: selected ? "3px solid black" : "none"} }>
+    <div className={ selected ? "border-2 border-black" : "" }>
       <span 
         key={word.id} 
         className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 

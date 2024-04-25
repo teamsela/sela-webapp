@@ -21,8 +21,19 @@ const Toolbar = ({
   setColorFill: (arg: object) => void;
 } ) => {
   
+  //2024-04-24 plan:
+  //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
+  //pass the set state function to each colour button component
+  //when clicked, their state will be fliped
+  //if one become active, deactivate all others
+
+  //for setColorPanelActive: dont pass the function to each colour button component
+  //if at least one useState for colour button is active, set colorPanelActive as positive
+  //if not, set to negative
+  // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
+
   return (
-    <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]">
+    <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
       <UndoBtn />
       <RedoBtn />
       <ZoomOutBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
@@ -39,6 +50,10 @@ const Toolbar = ({
       <MoveDownBtn />
       <MoveLeftBtn />
       <MoveRightBtn />
+
+      <div style={{position:"absolute",bottom:"-100%",left:"30%", padding:"0.25rem 0.75rem", background:"white",borderRadius:"0.5rem"}}>
+        <button>Clear All</button>
+      </div>
     </div>
   );
 };
