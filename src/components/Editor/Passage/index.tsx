@@ -6,14 +6,8 @@ function GetBlockTextSize(zoomLevel: number) : string {
 
   switch (zoomLevel) {
     case -1:
-    case 0: {
-      blockTextSize = "text-5xs";
-      break;
-    }
-    case 1: {
-      blockTextSize = "text-4xs";
-      break;
-    }
+    case 0:
+    case 1:
     case 2: {
       blockTextSize = "text-3xs";
       break;
@@ -59,16 +53,24 @@ function GetBlockTextSize(zoomLevel: number) : string {
   return blockTextSize;
 }
 
-const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content } : { 
+const ParagraphContent = ({ isHebrew, zoomLevel, verseNumber, content } : { 
   isHebrew: boolean;
-  paragraphIndex: number;
+  zoomLevel: number;
   verseNumber: number;
   content: HebWord[];
 }) => {
+
+  const hebVerseNumberFontSize : string = GetBlockTextSize(isHebrew ? zoomLevel-2 : zoomLevel-1);
+
+  const verseNumStyles = {
+    container: {
+      className: `font-features sups ${hebVerseNumberFontSize} ${isHebrew ? "w-" + Math.floor(zoomLevel/3) + " ml-2" : "w-0.5 mr-" + Math.ceil(zoomLevel/5)}`
+    }
+  }  
   return (
     content.map((word, index) => (
         <span key={word.id} className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60">
-          {/*paragraphIndex === 0 &&*/ index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
+          {/*paragraphIndex === 0 &&*/ index === 0 ? <sup {...verseNumStyles.container}>{verseNumber}</sup> : "" }
           {!isHebrew ? word.gloss : word.wlcWord}
         </span>
     ))
@@ -93,10 +95,10 @@ const Passage = ({
     <div>
     {
       content.chapters.map((chapter) => (
-        chapter.verses.map((verse, v_index) => (
+        chapter.verses.map((verse) => (
           verse.paragraphs.map((paragraph, p_index) => (
             <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-              <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} />
+              <ParagraphContent isHebrew={isHebrew} zoomLevel={zoomLevel} verseNumber={verse.id} content={paragraph.words} />
             </div>
           ))
         ))
