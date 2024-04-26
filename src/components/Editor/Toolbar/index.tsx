@@ -73,8 +73,9 @@ const Toolbar = ({
       </div>
       <ZoomInBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
       <ColorFillBtn color={colorFill} setColor={setColorFill} colorPanelActive={colorPanelActive} setColorPanelActive={setColorPanelActive}/>
-      <BorderColorBtn />
-      <TextColorBtn />
+      {/* TBD: realize border and text color */}
+      {/* <BorderColorBtn /> */}
+      {/* <TextColorBtn /> */}
       <MoveUpBtn />
       <MoveDownBtn />
       <MoveLeftBtn />

@@ -93,9 +93,14 @@ interface ColorProps {
     b: number;
     a: number;
   };
-  setColor: (arg: object) => void;
+  setColor: (arg: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  }) => void;
   colorPanelActive:boolean;
-  setColorPanelActive: (arg: boolean) => void;
+  setColorPanelActive: (arg: any) => void;
 }
 
 export const ColorFillBtn: React.FC<ColorProps> = ({
@@ -108,9 +113,9 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
   // const [colorPanelActive, setColorPanelActive] = useState(false);
   const handleClick = () => {
     console.log("Color Fill Clicked")
-    setColorPanelActive(prevState => !prevState);
+    setColorPanelActive((prevState:any) => !prevState);
   }
-  const handleChange = (color) => {
+  const handleChange = (color:any) => {
     setColor(color.rgb);
   }
 

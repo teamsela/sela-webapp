@@ -34,10 +34,10 @@ const Word = ({
   //TBD: borderColor, textColor...
   //
   selectedWords: number[];
-  setSelectedWords: (arg: []) => void;
+  setSelectedWords: (arg: number[]) => void;
   colorPanelActive: boolean;
   //
-  word: object;
+  word: any;
   index: number;
 }) => {
 
@@ -52,7 +52,7 @@ const Word = ({
     if(!selectedWords.includes(word.id) && selected){
       setSelected(false);
     }
-  });
+  },[selectedWords]);
 
   const handleClick = () => {
     setSelected(prevState => !prevState);
@@ -73,9 +73,8 @@ const Word = ({
   } 
 
   return (
-    <div className={ selected ? "border-2 border-black" : "" }>
-      <span 
-        key={word.id} 
+    <div key={word.id} className={ selected ? "border-2 border-black" : "" }>
+      <span
         className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 
         onClick={handleClick}
         style={
@@ -107,7 +106,7 @@ const Passage = ({
     };
     //borderColor, textColor...
     selectedWords: number[];
-    setSelectedWords: (arg: []) => void;
+    setSelectedWords: (arg: number[]) => void;
     colorPanelActive: boolean;
   }) => {
 
@@ -128,6 +127,7 @@ const Passage = ({
               {
                 paragraph.words.map((word, index) => (
                     <Word 
+                      key={word.id} 
                       isHebrew={isHebrew}
                       paragraphIndex={p_index}
                       verseNumber={verse.id}

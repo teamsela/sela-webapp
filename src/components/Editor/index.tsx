@@ -24,7 +24,7 @@ const Editor = ({
     const [borderColor, setBorderColor] = useState( { r:150, g:150, b:150, a:1 } )
     const [textColor, setTextColor] = useState( { r:150, g:150, b:150, a:1 } )
 
-    const [selectedWords, setSelectedWords] = useState([]);
+    const [selectedWords, setSelectedWords] = useState<number[]>([]);
 
     return (
         <>
