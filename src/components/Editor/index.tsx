@@ -15,7 +15,7 @@ const Editor = ({
     content: PassageData;
   }) => {
     const [isHebrew, setHebrew] = useState(false);
-    const [zoomLevel, setZoomLevel] = useState(4);
+    const [zoomLevel, setZoomLevel] = useState(5);
 
     const [colorPanelActive, setColorPanelActive] = useState(false);
     
@@ -37,14 +37,14 @@ const Editor = ({
           setColorFill={setColorFill}
         />
         <main>
-          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-4">
+          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-8">
             <Passage 
-              content={content} 
-              isHebrew={isHebrew} 
-              zoomLevel={zoomLevel} 
-              colorFill={colorFill}
-              colorPanelActive={colorPanelActive}
-            />
+                content={content} 
+                isHebrew={isHebrew} 
+                zoomLevel={zoomLevel} 
+                colorFill={colorFill}
+                colorPanelActive={colorPanelActive}
+              />
           </div>
         </main>
         </>

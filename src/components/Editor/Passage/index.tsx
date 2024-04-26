@@ -1,9 +1,26 @@
 import { HebWord, PassageData } from '@/lib/data';
 import { useState } from "react";
 
-const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colorFill, colorPanelActive } : { 
+type ZoomLevel = {
+  [level: number]: { fontSize: string, verseNumMr: string };
+}
+const zoomLevelMap : ZoomLevel = {
+  0:  { fontSize: "text-4xs",  verseNumMr: "mr-0.5" },
+  1:  { fontSize: "text-4xs",  verseNumMr: "mr-0.5" },
+  2:  { fontSize: "text-3xs",  verseNumMr: "mr-0.5" },
+  3:  { fontSize: "text-2xs",  verseNumMr: "mr-0.5" },
+  4:  { fontSize: "text-xs",   verseNumMr: "mr-0.5" },
+  5:  { fontSize: "text-sm",   verseNumMr: "mr-1"   },
+  6:  { fontSize: "text-base", verseNumMr: "mr-1" },
+  7:  { fontSize: "text-lg",   verseNumMr: "mr-1" },
+  8:  { fontSize: "text-xl",   verseNumMr: "mr-1" },
+  9:  { fontSize: "text-2xl",  verseNumMr: "mr-2" },
+  10: { fontSize: "text-3xl",  verseNumMr: "mr-2" },
+}
+
+const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, colorFill, colorPanelActive  } : { 
   isHebrew: boolean;
-  paragraphIndex: number;
+  zoomLevel: number;
   verseNumber: number;
   content: HebWord[];
   colorFill: {
@@ -14,20 +31,6 @@ const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colo
   };
   colorPanelActive: boolean;
 }) => {
-
-  //relocated to the Word component
-  /////
-  /////
-  // const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
-  // const [selected, setSelected] = useState(false);
-
-  // if(colorFillLocal != colorFill && selected && colorPanelActive){
-  //   setColorFillLocal(colorFill);
-  // }
-
-  // const handleClick = () => {
-  //   setSelected(prevState => !prevState);
-  // }
 
   return (
     content.map((word, index) => (
@@ -41,26 +44,9 @@ const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content, colo
           word={word}
           index={index}
         />
-        
-        //relocated to the Word component
-        /////
-        /////
-        /* <span 
-          key={word.id} 
-          className="flex items-center justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60" 
-          onClick={handleClick}
-          style={
-            { 
-              background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
-            }
-        }
-        >
-          { index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
-          {!isHebrew ? word.gloss : word.wlcWord}
-        </span> */
-
-    ))
-  );
+    )
+    )
+  )
 };
 
 const Word = ({
@@ -91,6 +77,12 @@ const Word = ({
     setSelected(prevState => !prevState);
   }
 
+  const verseNumStyles = {
+    container: {
+      className: `font-features sups ${isHebrew ? "w-1 ml-2" : "w-1 " + zoomLevelMap[zoomLevel].verseNumMr}`
+    }
+  } 
+
   return (
     <div className={ selected ? "border-2 border-black" : "" }>
       <span 
@@ -103,7 +95,7 @@ const Word = ({
             }
         }
       >
-        {/*paragraphIndex === 0 &&*/ index === 0 ? <sup className="font-features sups">{verseNumber}&nbsp;</sup> : "" }
+        {index === 0 ? <sup {...verseNumStyles.container}>{verseNumber}</sup> : "" }
         {!isHebrew ? word.gloss : word.wlcWord}
       </span>
     </div>
@@ -127,46 +119,9 @@ const Passage = ({
     colorPanelActive: boolean;
   }) => {
 
-  let blockTextSize : string;
-
-  switch (zoomLevel) {
-    case 1: {
-      blockTextSize = "text-3xs";
-      break;
-    }
-    case 2: {
-      blockTextSize = "text-2xs";
-      break;
-    }
-    case 3: {
-      blockTextSize = "text-xs";
-      break;
-    }
-    case 4: {
-      blockTextSize = "text-sm";
-      break;
-    }
-    case 5: {
-      blockTextSize = "text-base";
-      break;
-    }
-    case 6: {
-      blockTextSize = "text-lg";
-      break;
-    }
-    case 7: {
-      blockTextSize = "text-2xl";
-      break;
-    }
-    default: {
-      blockTextSize = "text-base";
-      break;
-    }
-  }
-
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${blockTextSize}`
+      className: `flex gap-1.5 mb-1.5 ${isHebrew ? "hbFont " : ""}${zoomLevelMap[zoomLevel].fontSize}`
     }
   }
 
@@ -174,11 +129,9 @@ const Passage = ({
     <div>
     {
       content.chapters.map((chapter) => (
-        chapter.verses.map((verse, v_index) => (
+        chapter.verses.map((verse) => (
           verse.paragraphs.map((paragraph, p_index) => (
-            <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container} >
-              {/* 2024-04-23 considering: move the map function for ParagraphContent here and create a new component for each individual words */}
-              {/* 2024-04-24 I wonder if ParagraphContent is necessary here, if not I'd like to delete this component and move the map function under ParagraphContent over here to reduce code */}
+            <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
               <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive}/>
             </div>
           ))
