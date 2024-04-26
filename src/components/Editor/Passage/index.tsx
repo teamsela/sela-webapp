@@ -18,7 +18,7 @@ const zoomLevelMap : ZoomLevel = {
   10: { fontSize: "text-3xl",  verseNumMr: "mr-2" },
 }
 
-const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, colorFill, colorPanelActive  } : { 
+const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, colorFill, colorPanelActive, zoomLevel  } : { 
   isHebrew: boolean;
   zoomLevel: number;
   verseNumber: number;
@@ -43,6 +43,7 @@ const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, col
           colorPanelActive={colorPanelActive}
           word={word}
           index={index}
+          zoomLevel={zoomLevel}
         />
     )
     )
@@ -50,7 +51,7 @@ const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, col
 };
 
 const Word = ({
-  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index
+  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index, zoomLevel
 }: {
   isHebrew: boolean;
   paragraphIndex: number;
@@ -64,6 +65,7 @@ const Word = ({
   colorPanelActive: boolean;
   word: object;
   index: number;
+  zoomLevel: number;
 }) => {
 
   const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
@@ -132,7 +134,7 @@ const Passage = ({
         chapter.verses.map((verse) => (
           verse.paragraphs.map((paragraph, p_index) => (
             <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-              <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive}/>
+              <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive} zoomLevel={zoomLevel}/>
             </div>
           ))
         ))
