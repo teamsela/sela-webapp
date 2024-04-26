@@ -5,9 +5,14 @@ function GetBlockTextSize(zoomLevel: number) : string {
   let blockTextSize : string;
 
   switch (zoomLevel) {
-    case -1:
-    case 0:
-    case 1:
+    case 0: {
+      blockTextSize = "text-5xs";
+      break;
+    }
+    case 1: {
+      blockTextSize = "text-4xs";
+      break;
+    }
     case 2: {
       blockTextSize = "text-3xs";
       break;
@@ -60,11 +65,11 @@ const ParagraphContent = ({ isHebrew, zoomLevel, verseNumber, content } : {
   content: HebWord[];
 }) => {
 
-  const hebVerseNumberFontSize : string = GetBlockTextSize(isHebrew ? zoomLevel-2 : zoomLevel-1);
+  const verseNumFontSize : string = GetBlockTextSize(isHebrew && zoomLevel >= 2 ? zoomLevel-2 : zoomLevel-1);
 
   const verseNumStyles = {
     container: {
-      className: `font-features sups ${hebVerseNumberFontSize} ${isHebrew ? "w-" + Math.floor(zoomLevel/3) + " ml-2" : "w-0.5 mr-" + Math.ceil(zoomLevel/5)}`
+      className: `font-features sups ${verseNumFontSize} ${isHebrew ? "w-" + Math.floor(zoomLevel/3) + " ml-2" : "w-1 mr-" + Math.ceil(zoomLevel/5)}`
     }
   }  
   return (
