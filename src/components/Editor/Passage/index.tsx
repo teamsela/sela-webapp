@@ -18,38 +18,6 @@ const zoomLevelMap : ZoomLevel = {
   10: { fontSize: "text-3xl",  verseNumMr: "mr-2" },
 }
 
-const ParagraphContent = ({  isHebrew, paragraphIndex, verseNumber, content, colorFill, colorPanelActive, zoomLevel  } : { 
-  isHebrew: boolean;
-  zoomLevel: number;
-  verseNumber: number;
-  content: HebWord[];
-  colorFill: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
-  colorPanelActive: boolean;
-}) => {
-
-  return (
-    content.map((word, index) => (
-
-        <Word 
-          isHebrew={isHebrew}
-          paragraphIndex={paragraphIndex}
-          verseNumber={verseNumber}
-          colorFill={colorFill}
-          colorPanelActive={colorPanelActive}
-          word={word}
-          index={index}
-          zoomLevel={zoomLevel}
-        />
-    )
-    )
-  )
-};
-
 const Word = ({
   isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index, zoomLevel
 }: {
@@ -134,7 +102,22 @@ const Passage = ({
         chapter.verses.map((verse) => (
           verse.paragraphs.map((paragraph, p_index) => (
             <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-              <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive} zoomLevel={zoomLevel}/>
+              {/* <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive} zoomLevel={zoomLevel}/> */}
+              {
+                paragraph.words.map((word, index) => (
+                    <Word 
+                      isHebrew={isHebrew}
+                      paragraphIndex={p_index}
+                      verseNumber={verse.id}
+                      colorFill={colorFill}
+                      colorPanelActive={colorPanelActive}
+                      word={word}
+                      index={index}
+                      zoomLevel={zoomLevel}
+                    />
+                  )
+                )
+              }
             </div>
           ))
         ))
