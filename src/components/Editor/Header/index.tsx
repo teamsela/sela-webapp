@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { FaBible } from "react-icons/fa";
 
 import { StudyData } from '@/lib/data';
 
@@ -33,11 +34,14 @@ const Header = ({
               alt="Logo"
             />
           </Link>
-          <div className="text-primary  font-bold ml-5">
+          <div className="text-primary font-bold ml-6 pr-6">
             <Title study={study} />
           </div>
-          <div className="flex items-center gap-2 sm:gap-4 ">
-            <h4 className="text-black text-title-sm dark:text-white"> --Psalm {study.passage}</h4>
+        </div>
+        <div className="flex items-center w-1/4">
+          <div className="flex items-center gap-2 sm:gap-4 px-4">
+            <FaBible fontSize="1.5em" />
+            <h4 className="text-black text-title-sm dark:text-white">Psalm {study.passage}</h4>
           </div>
         </div>
 

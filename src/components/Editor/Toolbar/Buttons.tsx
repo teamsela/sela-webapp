@@ -72,7 +72,7 @@ export const ZoomInBtn = ({
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={ () => (zoomLevel < 7) && setZoomLevel(zoomLevel + 1) } >
+        onClick={ () => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1) } >
         <LuZoomIn fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">

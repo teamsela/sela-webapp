@@ -1,5 +1,64 @@
 import { HebWord, PassageData } from '@/lib/data';
 
+function GetBlockTextSize(zoomLevel: number) : string {
+  
+  let blockTextSize : string;
+
+  switch (zoomLevel) {
+    case -1:
+    case 0: {
+      blockTextSize = "text-5xs";
+      break;
+    }
+    case 1: {
+      blockTextSize = "text-4xs";
+      break;
+    }
+    case 2: {
+      blockTextSize = "text-3xs";
+      break;
+    }
+    case 3: {
+      blockTextSize = "text-2xs";
+      break;
+    }
+    case 4: {
+      blockTextSize = "text-xs";
+      break;
+    }
+    case 5: {
+      blockTextSize = "text-sm";
+      break;
+    }
+    case 6: {
+      blockTextSize = "text-base";
+      break;
+    }
+    case 7: {
+      blockTextSize = "text-lg";
+      break;
+    }
+    case 8: {
+      blockTextSize = "text-xl";
+      break;
+    }
+    case 9: {
+      blockTextSize = "text-2xl";
+      break;
+    }
+    case 10: {
+      blockTextSize = "text-3xl";
+      break;
+    }    
+    default: {
+      blockTextSize = "text-base";
+      break;
+    }
+  }
+
+  return blockTextSize;
+}
+
 const ParagraphContent = ({ isHebrew, paragraphIndex, verseNumber, content } : { 
   isHebrew: boolean;
   paragraphIndex: number;
@@ -24,46 +83,9 @@ const Passage = ({
     zoomLevel: number;
   }) => {
 
-  let blockTextSize : string;
-
-  switch (zoomLevel) {
-    case 1: {
-      blockTextSize = "text-3xs";
-      break;
-    }
-    case 2: {
-      blockTextSize = "text-2xs";
-      break;
-    }
-    case 3: {
-      blockTextSize = "text-xs";
-      break;
-    }
-    case 4: {
-      blockTextSize = "text-sm";
-      break;
-    }
-    case 5: {
-      blockTextSize = "text-base";
-      break;
-    }
-    case 6: {
-      blockTextSize = "text-lg";
-      break;
-    }
-    case 7: {
-      blockTextSize = "text-2xl";
-      break;
-    }
-    default: {
-      blockTextSize = "text-base";
-      break;
-    }
-  }
-
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${blockTextSize}`
+      className: `flex gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${GetBlockTextSize(zoomLevel)}`
     }
   }
 
