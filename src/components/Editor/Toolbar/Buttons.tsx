@@ -3,7 +3,7 @@
 import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
 import { SketchPicker } from 'react-color'
-import React, { useState } from 'react';
+import React from 'react';
 
 export const UndoBtn = () => {
 
@@ -95,7 +95,7 @@ interface ColorProps {
   };
   setColor: (arg: object) => void;
   colorPanelActive:boolean;
-  setColorPanelActive: (arg: object) => void;
+  setColorPanelActive: (arg: boolean) => void;
 }
 
 export const ColorFillBtn: React.FC<ColorProps> = ({
@@ -111,8 +111,6 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
     setColorPanelActive(prevState => !prevState);
   }
   const handleChange = (color) => {
-    console.log('change')
-    console.log(color.rgb);
     setColor(color.rgb);
   }
 

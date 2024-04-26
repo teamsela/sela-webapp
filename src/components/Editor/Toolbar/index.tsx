@@ -1,8 +1,12 @@
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn } from "./Buttons";
+import { useState, useEffect } from "react";
 
 const Toolbar = ({
   zoomLevel,
   setZoomLevel,
+  selectedWords,
+  setSelectedWords,
+  //color functions
   colorPanelActive, 
   setColorPanelActive,
   colorFill,
@@ -10,15 +14,24 @@ const Toolbar = ({
 }: {
   zoomLevel: number;
   setZoomLevel: (arg: number) => void;
+  selectedWords: number[];
+  setSelectedWords: (arg: []) => void;
+  //color functions
   colorPanelActive: boolean, 
-  setColorPanelActive: (arg: object) => void,
+  setColorPanelActive: (arg: boolean) => void,
   colorFill: {
     r: number;
     g: number;
     b: number;
     a: number;
   };
-  setColorFill: (arg: object) => void;
+  setColorFill: (arg: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  }) => void;
+  //TBD: border color, text color...
 } ) => {
   
   //2024-04-24 plan:
@@ -31,6 +44,22 @@ const Toolbar = ({
   //if at least one useState for colour button is active, set colorPanelActive as positive
   //if not, set to negative
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
+
+  const clearSelection = () => {
+    setSelectedWords([]);
+  }
+  console.log("rerender")
+
+  const [allowClearAll, setAllowClearAll] = useState(false);
+
+  useEffect(() => {
+    if(selectedWords.length > 0){
+      setAllowClearAll(true);
+    }
+    else{
+      setAllowClearAll(false);
+    }
+  },[selectedWords]);
 
   return (
     <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
@@ -51,11 +80,15 @@ const Toolbar = ({
       <MoveLeftBtn />
       <MoveRightBtn />
 
-      <div style={{position:"absolute",bottom:"-100%",left:"30%", padding:"0.25rem 0.75rem", background:"white",borderRadius:"0.5rem"}}>
-        <button>Clear All</button>
+      <div 
+      //need debug, Toolbar not re-rendering to reflect this
+        className={ allowClearAll ? "absolute -bottom-12 left-55 px-2 py-1 bg-white rounded-sm" : "hidden"}
+      >
+        <button onClick={clearSelection}>Clear All</button>
       </div>
     </div>
   );
 };
+
 
 export default Toolbar;

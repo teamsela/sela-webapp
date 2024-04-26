@@ -24,17 +24,22 @@ const Editor = ({
     const [borderColor, setBorderColor] = useState( { r:150, g:150, b:150, a:1 } )
     const [textColor, setTextColor] = useState( { r:150, g:150, b:150, a:1 } )
 
+    const [selectedWords, setSelectedWords] = useState([]);
+
     return (
         <>
         <Header study={study} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
         <Toolbar 
           zoomLevel={zoomLevel} 
           setZoomLevel={setZoomLevel}
-          
+          //color functions
           colorPanelActive={colorPanelActive}
           setColorPanelActive={setColorPanelActive}
           colorFill={colorFill}
           setColorFill={setColorFill}
+          //set selected word array
+          selectedWords={selectedWords}
+          setSelectedWords={setSelectedWords}
         />
         <main>
           <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-8">
@@ -44,6 +49,8 @@ const Editor = ({
                 zoomLevel={zoomLevel} 
                 colorFill={colorFill}
                 colorPanelActive={colorPanelActive}
+                selectedWords={selectedWords}
+                setSelectedWords={setSelectedWords}
               />
           </div>
         </main>

@@ -1,5 +1,5 @@
 import { HebWord, PassageData } from '@/lib/data';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMr: string };
@@ -19,21 +19,26 @@ const zoomLevelMap : ZoomLevel = {
 }
 
 const Word = ({
-  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index, zoomLevel
+  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index, zoomLevel, selectedWords, setSelectedWords
 }: {
   isHebrew: boolean;
   paragraphIndex: number;
   verseNumber: number;
+  zoomLevel: number;
   colorFill: {
     r: number;
     g: number;
     b: number;
     a: number;
   };
+  //TBD: borderColor, textColor...
+  //
+  selectedWords: number[];
+  setSelectedWords: (arg: []) => void;
   colorPanelActive: boolean;
+  //
   word: object;
   index: number;
-  zoomLevel: number;
 }) => {
 
   const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
@@ -43,8 +48,22 @@ const Word = ({
     setColorFillLocal(colorFill);
   }
 
+  useEffect(() => {
+    if(!selectedWords.includes(word.id) && selected){
+      setSelected(false);
+    }
+  });
+
   const handleClick = () => {
     setSelected(prevState => !prevState);
+    if(!selected){
+      selectedWords.push(word.id);
+      setSelectedWords(selectedWords);
+    }
+    else{
+      selectedWords.splice(selectedWords.indexOf(word.id), 1);
+      setSelectedWords(selectedWords);
+    }
   }
 
   const verseNumStyles = {
@@ -75,7 +94,7 @@ const Word = ({
 
 
 const Passage = ({ 
-    content, isHebrew, zoomLevel, colorFill, colorPanelActive
+    content, isHebrew, zoomLevel, colorFill, colorPanelActive, selectedWords, setSelectedWords
   }: {
     content: PassageData;
     isHebrew: boolean;
@@ -86,6 +105,9 @@ const Passage = ({
       b: number;
       a: number;
     };
+    //borderColor, textColor...
+    selectedWords: number[];
+    setSelectedWords: (arg: []) => void;
     colorPanelActive: boolean;
   }) => {
 
@@ -114,6 +136,8 @@ const Passage = ({
                       word={word}
                       index={index}
                       zoomLevel={zoomLevel}
+                      selectedWords={selectedWords}
+                      setSelectedWords={setSelectedWords}
                     />
                   )
                 )
