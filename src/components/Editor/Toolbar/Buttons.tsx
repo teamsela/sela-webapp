@@ -110,7 +110,6 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
   setColorPanelActive,
 }) => {
   
-  // const [colorPanelActive, setColorPanelActive] = useState(false);
   const handleClick = () => {
     console.log("Color Fill Clicked")
     setColorPanelActive((prevState:any) => !prevState);

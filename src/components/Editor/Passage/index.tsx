@@ -123,7 +123,6 @@ const Passage = ({
         chapter.verses.map((verse) => (
           verse.paragraphs.map((paragraph, p_index) => (
             <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-              {/* <ParagraphContent isHebrew={isHebrew} paragraphIndex={p_index} verseNumber={verse.id} content={paragraph.words} colorFill={colorFill} colorPanelActive={colorPanelActive} zoomLevel={zoomLevel}/> */}
               {
                 paragraph.words.map((word, index) => (
                     <Word 
