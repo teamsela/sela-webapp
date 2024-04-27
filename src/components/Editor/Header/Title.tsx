@@ -61,7 +61,7 @@ const Title = ({ study }:{
               className="text-title-sm"
               type="text"
               value={title}
-              size={title.length}
+              size={MAX_TITLE_LENGTH}
               onChange={handleInputChange}
               autoFocus
               onBlur={handleSaveClick}
