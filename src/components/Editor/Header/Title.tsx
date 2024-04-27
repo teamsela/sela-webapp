@@ -11,7 +11,7 @@ const Title = ({ study }:{
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
     const titleRef = useRef<HTMLDivElement>(null);
-    const MAX_TITLE_LENGTH = 48;
+    const MAX_TITLE_LENGTH = 32;
   
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

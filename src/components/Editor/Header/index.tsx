@@ -25,7 +25,7 @@ const Header = ({
   return (
     <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
-        <div className="flex items-center w-1/2">
+        <div className="flex items-center w-1/3">
           <Link className="block flex-shrink-0" href="/">
             <Image
               width={46}
@@ -45,9 +45,9 @@ const Header = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 2xsm:gap-7 w-1/2 justify-end">
+        <div className="flex items-center gap-2 2xsm:gap-6 w-1/2 justify-end">
           <ul className="flex items-center gap-2 2xsm:gap-4">
-            <div className="hidden sm:block mr-5">
+            <div className="hidden sm:block mr-4">
               <Tabs />
             </div>
             <LanguageSwitcher isHebrew={isHebrew} setLangToHebrew={setLangToHebrew} />
