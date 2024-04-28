@@ -10,8 +10,9 @@ const Title = ({ study }:{
 }) => {
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
+
     const titleRef = useRef<HTMLDivElement>(null);
-    const MAX_TITLE_LENGTH = 32;
+    const MAX_TITLE_LENGTH = 40;
   
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -61,7 +62,7 @@ const Title = ({ study }:{
               className="text-title-sm"
               type="text"
               value={title}
-              size={MAX_TITLE_LENGTH}
+              size={Math.floor(window.innerWidth/50)}
               onChange={handleInputChange}
               autoFocus
               onBlur={handleSaveClick}

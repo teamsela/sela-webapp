@@ -10,10 +10,10 @@ const Tabs: React.FC = () => {
   const inactiveClasses = "bg-gray dark:bg-meta-4 text-black dark:text-white font-medium";
 
   return (
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-2">
         <Link
           href="#"
-          className={`rounded-md px-4 py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base lg:px-6 ${
+          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
             openTab === 1 ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(1)}
@@ -22,7 +22,7 @@ const Tabs: React.FC = () => {
         </Link>
         <Link
           href="#"
-          className={`rounded-md px-4 py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base lg:px-6 ${
+          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
             openTab === 2 ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(2)}
@@ -31,7 +31,7 @@ const Tabs: React.FC = () => {
         </Link>
         <Link
           href="#"
-          className={`rounded-md px-4 py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base lg:px-6 ${
+          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
             openTab === 3 ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(3)}
@@ -40,7 +40,7 @@ const Tabs: React.FC = () => {
         </Link>
         <Link
           href="#"
-          className={`rounded-md px-4 py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base lg:px-6 ${
+          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
             openTab === 4 ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(4)}
