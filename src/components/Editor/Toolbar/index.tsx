@@ -1,29 +1,16 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, /*BorderColorBtn, TextColorBtn,*/ MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
 import { useState, useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 
 const Toolbar = ({
   setZoomLevel,
-  selectedWords,
-  setSelectedWords,
   //color functions
-  colorPanelActive, 
-  setColorPanelActive,
-  colorFill,
+  setColorPickerOpened,
   setColorFill,
 }: {
   setZoomLevel: (arg: number) => void;
-  selectedWords: number[];
-  setSelectedWords: (arg: []) => void;
   //color functions
-  colorPanelActive: boolean, 
-  setColorPanelActive: (arg: boolean) => void,
-  colorFill: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
+  setColorPickerOpened: (arg: boolean) => void,
   setColorFill: (arg: {
     r: number;
     g: number;
@@ -44,10 +31,10 @@ const Toolbar = ({
   //if not, set to negative
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
 
-  const clearSelection = () => {
-    console.log("Clear selection");
-    setSelectedWords([]);
-  }
+  // const clearSelection = () => {
+  //   console.log("Clear selection");
+  //   setSelectedWords([]);
+  // }
 
   const { ctxZoomLevel } = useContext(FormatContext);
 
@@ -62,7 +49,7 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn color={colorFill} setColor={setColorFill} colorPanelActive={colorPanelActive} setColorPanelActive={setColorPanelActive}/>
+      <ColorFillBtn setColor={setColorFill} setColorPickerOpened={setColorPickerOpened}/>
       {/* TBD: realize border and text color */}
       {/* <BorderColorBtn /> */}
       {/* <TextColorBtn /> */}

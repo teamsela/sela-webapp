@@ -1,11 +1,12 @@
+import { useContext } from 'react';
+import { FormatContext } from '../index';
 
 const LanguageSwitcher = ({ 
-  isHebrew,
   setLangToHebrew
 } : {
-  isHebrew: boolean;
   setLangToHebrew: (arg: boolean) => void;
 }) => {
+  const { ctxIsHebrew } = useContext(FormatContext);
 
   return (
     <div>
@@ -19,19 +20,19 @@ const LanguageSwitcher = ({
             id="toggleLang"
             className="sr-only"
             onChange={() => {
-              setLangToHebrew(!isHebrew);
+              setLangToHebrew(!ctxIsHebrew);
             }}
           />
           <div className="block h-10 w-18 lg:w-26 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
           <div
             className={`dot absolute left-1 top-1 flex h-8 w-8 lg:w-12 items-center justify-center rounded-full bg-white transition font-semibold ${
-              isHebrew && "!right-1 !translate-x-full"
+              ctxIsHebrew && "!right-1 !translate-x-full"
             }`}
           >
-            <span className={`hidden ${isHebrew && "!block"}`}>
+            <span className={`hidden ${ctxIsHebrew && "!block"}`}>
             עִב
             </span>
-            <span className={`${isHebrew && "hidden"}`}>
+            <span className={`${ctxIsHebrew && "hidden"}`}>
             En
             </span>
           </div>

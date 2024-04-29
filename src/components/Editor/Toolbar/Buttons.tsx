@@ -1,13 +1,13 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { MdBorderColor, MdFormatColorText } from "react-icons/md";
 import { BiSolidColorFill } from "react-icons/bi";
-import { AiOutlineClear } from "react-icons/ai";
+import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 
-import { SketchPicker } from 'react-color'
-import React, { useContext } from 'react';
+import { SwatchesPicker } from 'react-color'
+import React, { useEffect, useState, useContext } from 'react';
 import { FormatContext } from '../index';
 
 export const UndoBtn = () => {
@@ -57,7 +57,7 @@ export const ZoomOutBtn = ({
       <button 
         className="hover:text-primary"
         onClick={ () => (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1) } >
-        <LuZoomOut fontSize="1.5em" />
+        <AiOutlineMinusCircle fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
@@ -80,7 +80,7 @@ export const ZoomInBtn = ({
       <button 
         className="hover:text-primary"
         onClick={ () => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1) } >
-        <LuZoomIn fontSize="1.5em" />
+        <AiOutlinePlusCircle fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
@@ -108,18 +108,24 @@ interface ColorProps {
   setColorPanelActive: (arg: any) => void;
 }
 
-export const ColorFillBtn: React.FC<ColorProps> = ({
-  color,
+export const ColorFillBtn = ({
   setColor,
-  colorPanelActive,
-  setColorPanelActive,
+  setColorPickerOpened,
+} : {
+  setColor: (arg: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  }) => void;
+  setColorPickerOpened: (arg: any) => void;  
 }) => {
 
-  const { ctxHasSelectedWords } = useContext(FormatContext)
-  
+  const { ctxHasSelectedWords, ctxColorPickerOpened, ctxColorFill  } = useContext(FormatContext);
+
   const handleClick = () => {
     if (ctxHasSelectedWords)
-      setColorPanelActive((prevState:any) => !prevState);
+      setColorPickerOpened((prevState:any) => !prevState);
   }
   const handleChange = (color:any) => {
     setColor(color.rgb);
@@ -136,8 +142,12 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
           style={
             { 
               width: "100%",
-              height:"0.25rem",
-              background:`rgba(${color.r},${color.g},${color.b},${color.a})`,
+              height: "0.25rem",
+              background:`rgba(
+                ${ctxHasSelectedWords ? ctxColorFill.r : 0},
+                ${ctxHasSelectedWords ? ctxColorFill.g : 0},
+                ${ctxHasSelectedWords ? ctxColorFill.b : 0},
+                ${ctxHasSelectedWords ? ctxColorFill.a : 0})`,
               marginTop:"0.05rem",
             }
           }
@@ -146,10 +156,10 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
       </button>
       
       {
-        colorPanelActive && (
+        ctxColorPickerOpened && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SketchPicker color={color} onChange={handleChange} />
+              <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
             </div>
           </div>
         )
@@ -158,6 +168,7 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
   );
 };
 
+/*
 export const BorderColorBtn: React.FC<ColorProps> = ({
   color,
   setColor
@@ -189,7 +200,7 @@ export const TextColorBtn: React.FC<ColorProps> = ({
     </div>
   );
 };
-
+*/
 
 export const ClearFormatBtn = () => {
 

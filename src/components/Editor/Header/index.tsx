@@ -15,11 +15,9 @@ import Title from "./Title";
 
 const Header = ({
   study,
-  isHebrew,
   setLangToHebrew
 }: {
   study: StudyData;
-  isHebrew: boolean;
   setLangToHebrew: (arg: boolean) => void;
 }) => {
   return (
@@ -50,7 +48,7 @@ const Header = ({
             <div className="hidden sm:block mr-2">
               <Tabs />
             </div>
-            <LanguageSwitcher isHebrew={isHebrew} setLangToHebrew={setLangToHebrew} />
+            <LanguageSwitcher setLangToHebrew={setLangToHebrew} />
             {/* <!-- Dark Mode Toggler --> */}
             {/*<DarkModeSwitcher />*/}
             {/* <!-- Dark Mode Toggler --> */}

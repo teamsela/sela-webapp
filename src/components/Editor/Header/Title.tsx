@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
 import { updateStudyName } from '@/lib/actions';
 import { StudyData } from '@/lib/data';
 
@@ -14,6 +14,11 @@ const Title = ({ study }:{
     const titleRef = useRef<HTMLDivElement>(null);
     const MAX_TITLE_LENGTH = 40;
   
+    const handleSaveClick = useCallback(() => {
+      setIsEditing(false);
+      updateStudyName(study.id, title);
+    }, [study.id, title]);
+        
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
           // when clicked outside of the text box save the change
@@ -31,16 +36,12 @@ const Title = ({ study }:{
         return () => {
           document.removeEventListener('mousedown', handleClickOutside);
         };
-      }, [isEditing, title]);
+      }, [isEditing, title, handleSaveClick]);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
       setTitle(event.target.value);
     };
-  
-    const handleSaveClick = async () => {
-      setIsEditing(false);
-      updateStudyName(study.id, title);
-    };
+
   
     const handleEditClick = () => {
       setIsEditing(true);

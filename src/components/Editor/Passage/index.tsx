@@ -1,4 +1,4 @@
-import { PassageData } from '@/lib/data';
+import { HebWord, PassageData } from '@/lib/data';
 import { useState, useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 
@@ -20,57 +20,42 @@ const zoomLevelMap : ZoomLevel = {
 }
 
 const Word = ({
-  isHebrew, paragraphIndex, verseNumber, colorFill, colorPanelActive, word, index, zoomLevel, selectedWords, setSelectedWords
+  verseNumber, hebWord, index
 }: {
-  isHebrew: boolean;
-  paragraphIndex: number;
   verseNumber: number;
-  zoomLevel: number;
-  colorFill: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
-  //TBD: borderColor, textColor...
-  //
-  selectedWords: number[];
-  setSelectedWords: (arg: number[]) => void;
-  colorPanelActive: boolean;
-  //
-  word: any;
+  hebWord: HebWord;
   index: number;
 }) => {
 
-  const { ctxSetHasSelectedWords } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill } = useContext(FormatContext)
 
-  const [colorFillLocal,setColorFillLocal] = useState({r:0, g:0, b:0, a:0});
+  const [colorFillLocal, setColorFillLocal] = useState({r:255, g:255, b:255, a:4});
   const [selected, setSelected] = useState(false);
 
-  if (colorFillLocal != colorFill && selected && colorPanelActive) {
-    setColorFillLocal(colorFill);
+  if (colorFillLocal != ctxColorFill && selected && ctxColorPickerOpened) {
+    setColorFillLocal(ctxColorFill);
   }
 
   useEffect(() => {
-    if (!selectedWords.includes(word.id) && selected) {
+    if (!ctxSelectedWords.includes(hebWord.id) && selected) {
       setSelected(false);
     }
-  },[selectedWords]);
+  },[ctxSelectedWords, hebWord.id, selected]);
 
   const handleClick = () => {
     setSelected(prevState => !prevState);
-    (!selected) ? selectedWords.push(word.id) : selectedWords.splice(selectedWords.indexOf(word.id), 1);
-    setSelectedWords(selectedWords);
-    ctxSetHasSelectedWords(selectedWords.length > 0);
+    (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
+    ctxSetSelectedWords(ctxSelectedWords);
+    ctxSetHasSelectedWords(ctxSelectedWords.length > 0);
   }
 
   const verseNumStyles = {
-      className: `font-features sups w-1 ${isHebrew ? zoomLevelMap[zoomLevel].verseNumMl : zoomLevelMap[zoomLevel].verseNumMr}`
+      className: `font-features sups w-1 ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMl : zoomLevelMap[ctxZoomLevel].verseNumMr}`
   } 
 
   return (
     <div 
-      key={word.id}
+      key={hebWord.id}
       className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-black" : "rounded border" }
       style={
         { 
@@ -82,7 +67,7 @@ const Word = ({
         onClick={handleClick}
       >
         {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : "" }
-        {!isHebrew ? word.gloss : word.wlcWord}
+        {!ctxIsHebrew ? hebWord.gloss : hebWord.wlcWord}
       </span>
     </div>
   );
@@ -91,27 +76,17 @@ const Word = ({
 
 
 const Passage = ({ 
-    content, isHebrew, colorFill, colorPanelActive, selectedWords, setSelectedWords
+    content
   }: {
     content: PassageData;
-    isHebrew: boolean;
-    colorFill: {
-      r: number;
-      g: number;
-      b: number;
-      a: number;
-    };
     //borderColor, textColor...
-    selectedWords: number[];
-    setSelectedWords: (arg: number[]) => void;
-    colorPanelActive: boolean;
   }) => {
 
-  const { ctxZoomLevel } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew } = useContext(FormatContext)
 
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${isHebrew ? "hbFont " : ""}${zoomLevelMap[ctxZoomLevel].fontSize}`
+      className: `flex gap-2 mb-2 ${ctxIsHebrew ? "hbFont " : ""}${zoomLevelMap[ctxZoomLevel].fontSize}`
     }
   }
 
@@ -126,16 +101,9 @@ const Passage = ({
                 paragraph.words.map((word, index) => (
                     <Word 
                       key={word.id} 
-                      isHebrew={isHebrew}
-                      paragraphIndex={p_index}
                       verseNumber={verse.id}
-                      colorFill={colorFill}
-                      colorPanelActive={colorPanelActive}
-                      word={word}
+                      hebWord={word}
                       index={index}
-                      zoomLevel={ctxZoomLevel}
-                      selectedWords={selectedWords}
-                      setSelectedWords={setSelectedWords}
                     />
                   )
                 )
