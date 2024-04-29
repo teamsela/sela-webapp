@@ -2,8 +2,13 @@
 
 import { LuUndo2, LuRedo2, LuZoomIn, LuZoomOut, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineTextIncrease, MdOutlineTextDecrease, MdFormatColorFill, MdBorderColor, MdFormatColorText, MdOutlineDehaze, MdOutlineMenu, MdOutlineSort, MdOutlineAddRoad } from "react-icons/md";
+import { BiSolidColorFill } from "react-icons/bi";
+import { AiOutlineClear } from "react-icons/ai";
+import { TbArrowAutofitContent } from "react-icons/tb";
+
 import { SketchPicker } from 'react-color'
-import React from 'react';
+import React, { useContext } from 'react';
+import { FormatContext } from '../index';
 
 export const UndoBtn = () => {
 
@@ -51,7 +56,7 @@ export const ZoomOutBtn = ({
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={ () => (zoomLevel > 1) && setZoomLevel(zoomLevel - 1) } >
+        onClick={ () => (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1) } >
         <LuZoomOut fontSize="1.5em" />
       </button>
       <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
@@ -109,10 +114,12 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
   colorPanelActive,
   setColorPanelActive,
 }) => {
+
+  const { ctxHasSelectedWords } = useContext(FormatContext)
   
   const handleClick = () => {
-    console.log("Color Fill Clicked")
-    setColorPanelActive((prevState:any) => !prevState);
+    if (ctxHasSelectedWords)
+      setColorPanelActive((prevState:any) => !prevState);
   }
   const handleChange = (color:any) => {
     setColor(color.rgb);
@@ -123,7 +130,7 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
       <button 
         className="hover:text-primary"
         onClick={handleClick} >
-        <MdFormatColorFill fillOpacity="0.4" fontSize="1.4em" />
+        <BiSolidColorFill fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
           style={
@@ -131,7 +138,7 @@ export const ColorFillBtn: React.FC<ColorProps> = ({
               width: "100%",
               height:"0.25rem",
               background:`rgba(${color.r},${color.g},${color.b},${color.a})`,
-              marginTop:"0.15rem",
+              marginTop:"0.05rem",
             }
           }
         >
@@ -173,12 +180,32 @@ export const TextColorBtn: React.FC<ColorProps> = ({
 }) => {
 
   return (
-    <div className="flex flex-col items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
         onClick={() => console.log("Text Color Clicked")} >
         <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
       </button>
+    </div>
+  );
+};
+
+
+export const ClearFormatBtn = () => {
+
+  const { ctxHasSelectedWords } = useContext(FormatContext)
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => { console.log("Clear Format") }} >
+        <AiOutlineClear fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+      </button>
+      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
+        Clear format
+      </div>
     </div>
   );
 };
@@ -250,3 +277,21 @@ export const MoveRightBtn = () => {
     </div>
   );
 };
+
+export const UniformWidthBtn = () => {
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("Uniform Width Clicked")} >
+        <TbArrowAutofitContent opacity="0.4" fontSize="1.5em" />
+      </button>
+      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
+        Uniform block size
+      </div>      
+    </div>
+  );
+};
+

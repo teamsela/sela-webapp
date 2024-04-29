@@ -6,7 +6,15 @@ import Passage from "./Passage";
 
 import { StudyData, PassageData } from '@/lib/data';
 
-import { useState } from "react";
+import { useState, createContext } from "react";
+
+const DEFAULT_ZOOM_LEVEL : number = 5;
+
+export const FormatContext = createContext({ 
+  ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
+  ctxHasSelectedWords: false,
+  ctxSetHasSelectedWords: (arg: boolean) => {},
+});
 
 const Editor = ({ 
     study, content
@@ -15,7 +23,7 @@ const Editor = ({
     content: PassageData;
   }) => {
     const [isHebrew, setHebrew] = useState(false);
-    const [zoomLevel, setZoomLevel] = useState(5);
+    const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
 
     const [colorPanelActive, setColorPanelActive] = useState(false);
     
@@ -26,34 +34,46 @@ const Editor = ({
 
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
 
+    const [hasSelectedWords, setHasSelectedWords] = useState(false);
+
+    const formatContextValue = {
+      ctxZoomLevel: zoomLevel,
+      ctxHasSelectedWords: hasSelectedWords,
+      ctxSetHasSelectedWords: setHasSelectedWords
+    }
+
+    const passageDivStyle = {
+      className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap ${(isHebrew) ? "" : " mr-8"}`
+    }
+
     return (
         <>
         <Header study={study} isHebrew={isHebrew} setLangToHebrew={setHebrew} />
-        <Toolbar 
-          zoomLevel={zoomLevel} 
-          setZoomLevel={setZoomLevel}
-          //color functions
-          colorPanelActive={colorPanelActive}
-          setColorPanelActive={setColorPanelActive}
-          colorFill={colorFill}
-          setColorFill={setColorFill}
-          //set selected word array
-          selectedWords={selectedWords}
-          setSelectedWords={setSelectedWords}
-        />
-        <main>
-          <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-8">
-            <Passage 
+        <FormatContext.Provider value={formatContextValue}>
+          <Toolbar 
+            setZoomLevel={setZoomLevel}
+            //color functions
+            colorPanelActive={colorPanelActive}
+            setColorPanelActive={setColorPanelActive}
+            colorFill={colorFill}
+            setColorFill={setColorFill}
+            //set selected word array
+            selectedWords={selectedWords}
+            setSelectedWords={setSelectedWords}
+          />
+          <main>
+            <div {...passageDivStyle}>
+              <Passage 
                 content={content} 
                 isHebrew={isHebrew} 
-                zoomLevel={zoomLevel} 
                 colorFill={colorFill}
                 colorPanelActive={colorPanelActive}
                 selectedWords={selectedWords}
                 setSelectedWords={setSelectedWords}
               />
-          </div>
-        </main>
+            </div>
+          </main>
+        </FormatContext.Provider>
         </>
       );
 

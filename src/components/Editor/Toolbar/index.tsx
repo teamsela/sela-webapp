@@ -1,8 +1,8 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn } from "./Buttons";
-import { useState, useEffect } from "react";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
+import { useState, useEffect, useContext } from "react";
+import { FormatContext } from '../index';
 
 const Toolbar = ({
-  zoomLevel,
   setZoomLevel,
   selectedWords,
   setSelectedWords,
@@ -12,7 +12,6 @@ const Toolbar = ({
   colorFill,
   setColorFill,
 }: {
-  zoomLevel: number;
   setZoomLevel: (arg: number) => void;
   selectedWords: number[];
   setSelectedWords: (arg: []) => void;
@@ -46,47 +45,33 @@ const Toolbar = ({
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
 
   const clearSelection = () => {
+    console.log("Clear selection");
     setSelectedWords([]);
   }
-  console.log("rerender")
 
-  const [allowClearAll, setAllowClearAll] = useState(false);
-
-  useEffect(() => {
-    if(selectedWords.length > 0){
-      setAllowClearAll(true);
-    }
-    else{
-      setAllowClearAll(false);
-    }
-  },[selectedWords]);
+  const { ctxZoomLevel } = useContext(FormatContext);
 
   return (
     <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
       <UndoBtn />
       <RedoBtn />
-      <ZoomOutBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
+      <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
       <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
         <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
-        {zoomLevel}
+        {ctxZoomLevel}
         </span>
       </div>
-      <ZoomInBtn zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
+      <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
       <ColorFillBtn color={colorFill} setColor={setColorFill} colorPanelActive={colorPanelActive} setColorPanelActive={setColorPanelActive}/>
       {/* TBD: realize border and text color */}
       {/* <BorderColorBtn /> */}
       {/* <TextColorBtn /> */}
+      <ClearFormatBtn />
       <MoveUpBtn />
       <MoveDownBtn />
       <MoveLeftBtn />
       <MoveRightBtn />
-
-      <div 
-      //need debug, Toolbar not re-rendering to reflect this
-        className={ allowClearAll ? "absolute -bottom-12 left-55 px-2 py-1 bg-white rounded-sm" : "hidden"}
-      >
-        <button onClick={clearSelection}>Clear All</button>
-      </div>
+      <UniformWidthBtn />
     </div>
   );
 };
