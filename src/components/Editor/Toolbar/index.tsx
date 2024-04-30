@@ -1,5 +1,5 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, /*BorderColorBtn, TextColorBtn,*/ MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
-import { useState, useEffect, useContext } from "react";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, /*TextColorBtn,*/ MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
+import { useState, useEffect, useContext, useRef } from "react";
 import { FormatContext } from '../index';
 
 const Toolbar = ({
@@ -7,11 +7,18 @@ const Toolbar = ({
   //color functions
   setColorPickerOpened,
   setColorFill,
+  setBorderColor,
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
   setColorPickerOpened: (arg: boolean) => void,
   setColorFill: (arg: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  }) => void;
+  setBorderColor: (arg: {
     r: number;
     g: number;
     b: number;
@@ -34,7 +41,19 @@ const Toolbar = ({
   //if at least one useState for colour button is active, set colorPanelActive as positive
   //if not, set to negative
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
+  
+  // const prevVariables = useRef({ fillColorActive, borderColorActive, textColorActive });
+  useEffect(() => {
+    if(fillColorActive || borderColorActive || textColorActive)
+      setColorPickerOpened(true);
+  }, [fillColorActive,borderColorActive,textColorActive])
 
+  const handlePickers = (activeVariable: string) => {
+    setFillColorActive(activeVariable === 'fillColorActive');
+    setBorderColorActive(activeVariable === 'borderColorActive');
+    setTextColorActive(activeVariable === 'textColorActive');
+  };
+  
   // const clearSelection = () => {
   //   console.log("Clear selection");
   //   setSelectedWords([]);
@@ -53,9 +72,9 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn setColor={setColorFill} setColorPickerOpened={setColorPickerOpened}/>
+      <ColorFillBtn setColor={setColorFill} thisPickerActive={fillColorActive} setThisPickerActive={setFillColorActive} handlePickers={handlePickers} />
       {/* TBD: realize border and text color */}
-      {/* <BorderColorBtn /> */}
+      <BorderColorBtn setColor={setBorderColor} thisPickerActive={borderColorActive} setThisPickerActive={setBorderColorActive} handlePickers={handlePickers} />
       {/* <TextColorBtn /> */}
       <ClearFormatBtn />
       <MoveUpBtn />

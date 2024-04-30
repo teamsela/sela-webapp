@@ -19,7 +19,8 @@ export const FormatContext = createContext({
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
   ctxColorPickerOpened: false,
-  ctxColorFill: {} as { r: number, g: number, b: number, a: number }
+  ctxColorFill: {} as { r: number, g: number, b: number, a: number },
+  ctxBorderColor: {} as { r: number, g: number, b: number, a: number },
 });
 
 const Editor = ({ 
@@ -50,7 +51,8 @@ const Editor = ({
       ctxHasSelectedWords: hasSelectedWords,
       ctxSetHasSelectedWords: setHasSelectedWords,
       ctxColorPickerOpened: colorPickerOpened,
-      ctxColorFill: colorFill
+      ctxColorFill: colorFill,
+      ctxBorderColor: borderColor,
     }
 
     const passageDivStyle = {
@@ -66,6 +68,7 @@ const Editor = ({
             //color functions
             setColorPickerOpened={setColorPickerOpened}
             setColorFill={setColorFill}
+            setBorderColor={setBorderColor}
           />
           <main>
             <div {...passageDivStyle}>

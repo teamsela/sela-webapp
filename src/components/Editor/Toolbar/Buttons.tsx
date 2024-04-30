@@ -91,42 +91,38 @@ export const ZoomInBtn = ({
 };
 
 
-interface ColorProps {
-  color: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
+interface PickerProps {
   setColor: (arg: {
     r: number;
     g: number;
     b: number;
     a: number;
   }) => void;
-  colorPanelActive:boolean;
-  setColorPanelActive: (arg: any) => void;
+  thisPickerActive: boolean;
+  setThisPickerActive: (arg: any) => void; 
+  handlePickers: (arg: string) => void;
 }
 
-export const ColorFillBtn = ({
+export const ColorFillBtn: React.FC<PickerProps> = ({
   setColor,
-  setColorPickerOpened,
-} : {
-  setColor: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
-  setColorPickerOpened: (arg: any) => void;  
+  thisPickerActive,
+  setThisPickerActive,
+  handlePickers,
 }) => {
 
-  const { ctxHasSelectedWords, ctxColorPickerOpened, ctxColorFill  } = useContext(FormatContext);
+  const { ctxHasSelectedWords, ctxColorFill  } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords)
-      setColorPickerOpened((prevState:any) => !prevState);
+    if (ctxHasSelectedWords){
+      setThisPickerActive((prevState:any) => !prevState);
+    }
   }
+
+  useEffect(() => {
+    if(thisPickerActive)
+      handlePickers('fillColorActive');
+  }, [thisPickerActive])
+
   const handleChange = (color:any) => {
     setColor(color.rgb);
   }
@@ -156,7 +152,7 @@ export const ColorFillBtn = ({
       </button>
       
       {
-        ctxColorPickerOpened && (
+        thisPickerActive && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -168,39 +164,83 @@ export const ColorFillBtn = ({
   );
 };
 
-/*
-export const BorderColorBtn: React.FC<ColorProps> = ({
-  color,
-  setColor
+
+export const BorderColorBtn: React.FC<PickerProps> = ({
+  setColor,
+  thisPickerActive,
+  setThisPickerActive,
+  handlePickers,
 }) => {
+
+  const { ctxHasSelectedWords, ctxBorderColor  } = useContext(FormatContext);
+
+  const handleClick = () => {
+    if (ctxHasSelectedWords){
+      setThisPickerActive((prevState:any) => !prevState);
+    }
+  }
+
+  useEffect(() => {
+    if(thisPickerActive)
+      handlePickers('borderColorActive');
+  }, [thisPickerActive])
+
+  const handleChange = (color:any) => {
+    setColor(color.rgb);
+  }
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Border Color Clicked")} >
-        <MdBorderColor fillOpacity="0.4" fontSize="1.4em" />
+        onClick={handleClick} >
+        <MdBorderColor fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <div
+          //using embbed style for the color display for now, may move to tailwind after some research
+          style={
+            { 
+              width: "100%",
+              height: "0.25rem",
+              background:`rgba(
+                ${ctxHasSelectedWords ? ctxBorderColor.r : 0},
+                ${ctxHasSelectedWords ? ctxBorderColor.g : 0},
+                ${ctxHasSelectedWords ? ctxBorderColor.b : 0},
+                ${ctxHasSelectedWords ? ctxBorderColor.a : 0})`,
+              marginTop:"0.05rem",
+            }
+          }
+        >
+        </div>
       </button>
+      {
+        thisPickerActive && (
+          <div className="relative z-10">
+            <div className="absolute top-6 -left-6">
+              <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };
 
-export const TextColorBtn: React.FC<ColorProps> = ({
-  color,
-  setColor
-}) => {
+// export const TextColorBtn: React.FC<ColorProps> = ({
+//   color,
+//   setColor
+// }) => {
 
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Text Color Clicked")} >
-        <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
-      </button>
-    </div>
-  );
-};
-*/
+//   return (
+//     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
+//       <button 
+//         className="hover:text-primary"
+//         onClick={() => console.log("Text Color Clicked")} >
+//         <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
+//       </button>
+//     </div>
+//   );
+// };
+
 
 export const ClearFormatBtn = () => {
 
