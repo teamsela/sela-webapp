@@ -22,6 +22,10 @@ const Toolbar = ({
   
   //2024-04-24 plan:
   //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
+  const [fillColorActive, setFillColorActive] = useState(false);
+  const [borderColorActive, setBorderColorActive] = useState(false);
+  const [textColorActive, setTextColorActive] = useState(false);
+  
   //pass the set state function to each colour button component
   //when clicked, their state will be fliped
   //if one become active, deactivate all others
