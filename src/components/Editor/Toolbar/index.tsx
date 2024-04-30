@@ -27,6 +27,8 @@ const Toolbar = ({
   //TBD: border color, text color...
 } ) => {
   
+  const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
+
   //2024-04-24 plan:
   //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
   const [fillColorActive, setFillColorActive] = useState(false);
@@ -46,8 +48,11 @@ const Toolbar = ({
   useEffect(() => {
     if(fillColorActive || borderColorActive || textColorActive)
       setColorPickerOpened(true);
-  }, [fillColorActive,borderColorActive,textColorActive])
+    if(!ctxHasSelectedWords)
+      handlePickers('none');
+  }, [fillColorActive, borderColorActive, textColorActive, ctxHasSelectedWords])
 
+  //to make sure only one picker is active at a time
   const handlePickers = (activeVariable: string) => {
     setFillColorActive(activeVariable === 'fillColorActive');
     setBorderColorActive(activeVariable === 'borderColorActive');
@@ -59,7 +64,6 @@ const Toolbar = ({
   //   setSelectedWords([]);
   // }
 
-  const { ctxZoomLevel } = useContext(FormatContext);
 
   return (
     <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>

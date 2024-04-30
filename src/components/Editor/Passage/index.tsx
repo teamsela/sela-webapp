@@ -27,13 +27,21 @@ const Word = ({
   index: number;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState({r:255, g:255, b:255, a:4});
+  const [borderColorLocal, setBorderColorLocal] = useState({r:30, g:30, b:30, a:4})
   const [selected, setSelected] = useState(false);
 
-  if (colorFillLocal != ctxColorFill && selected && ctxColorPickerOpened) {
-    setColorFillLocal(ctxColorFill);
+  if(ctxColorPickerOpened){
+    if(selected){
+      if (colorFillLocal != ctxColorFill){
+        setColorFillLocal(ctxColorFill);
+      }
+      if (borderColorLocal != ctxBorderColor) {
+        setBorderColorLocal(ctxBorderColor);
+      }
+    }
   }
 
   useEffect(() => {
@@ -60,6 +68,7 @@ const Word = ({
       style={
         { 
           background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
+          border: `1px solid rgba(${borderColorLocal.r},${borderColorLocal.g},${borderColorLocal.b},${borderColorLocal.a})`
         }
     }>
       <span
