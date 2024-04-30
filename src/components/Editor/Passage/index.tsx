@@ -88,7 +88,6 @@ const Passage = ({
     content
   }: {
     content: PassageData;
-    //borderColor, textColor...
   }) => {
 
   const { ctxZoomLevel, ctxIsHebrew } = useContext(FormatContext)

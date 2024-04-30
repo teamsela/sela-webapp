@@ -44,7 +44,6 @@ const Toolbar = ({
   //if not, set to negative
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
   
-  // const prevVariables = useRef({ fillColorActive, borderColorActive, textColorActive });
   useEffect(() => {
     if(fillColorActive || borderColorActive || textColorActive)
       setColorPickerOpened(true);
