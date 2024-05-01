@@ -33,9 +33,9 @@ const Word = ({
   const [borderColorLocal, setBorderColorLocal] = useState({r:30, g:30, b:30, a:4})
   const [selected, setSelected] = useState(false);
 
-  if(ctxColorPickerOpened){
-    if(selected){
-      if (colorFillLocal != ctxColorFill){
+  if (ctxColorPickerOpened) {
+    if (selected) {
+      if (colorFillLocal != ctxColorFill) {
         setColorFillLocal(ctxColorFill);
       }
       if (borderColorLocal != ctxBorderColor) {

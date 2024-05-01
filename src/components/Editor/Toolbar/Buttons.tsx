@@ -9,6 +9,7 @@ import { TbArrowAutofitContent } from "react-icons/tb";
 import { SwatchesPicker } from 'react-color'
 import React, { useEffect, useState, useContext } from 'react';
 import { FormatContext } from '../index';
+import { MdOutlineModeEdit } from "react-icons/md";
 
 export const UndoBtn = () => {
 
@@ -91,7 +92,7 @@ export const ZoomInBtn = ({
 };
 
 
-interface PickerProps {
+interface ColorPickerProps {
   setColor: (arg: {
     r: number;
     g: number;
@@ -103,7 +104,7 @@ interface PickerProps {
   handlePickers: (arg: string) => void;
 }
 
-export const ColorFillBtn: React.FC<PickerProps> = ({
+export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColor,
   thisPickerActive,
   setThisPickerActive,
@@ -113,13 +114,13 @@ export const ColorFillBtn: React.FC<PickerProps> = ({
   const { ctxHasSelectedWords, ctxColorFill  } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords){
+    if (ctxHasSelectedWords) {
       setThisPickerActive((prevState:any) => !prevState);
     }
   }
 
   useEffect(() => {
-    if(thisPickerActive)
+    if (thisPickerActive)
       handlePickers('fillColorActive');
   }, [thisPickerActive])
 
@@ -165,7 +166,7 @@ export const ColorFillBtn: React.FC<PickerProps> = ({
 };
 
 
-export const BorderColorBtn: React.FC<PickerProps> = ({
+export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColor,
   thisPickerActive,
   setThisPickerActive,
@@ -194,7 +195,7 @@ export const BorderColorBtn: React.FC<PickerProps> = ({
       <button 
         className="hover:text-primary"
         onClick={handleClick} >
-        <MdBorderColor fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <MdOutlineModeEdit fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
           style={
@@ -225,7 +226,7 @@ export const BorderColorBtn: React.FC<PickerProps> = ({
   );
 };
 
-// export const TextColorBtn: React.FC<ColorProps> = ({
+// export const TextColorBtn: React.FC<ColorPickerProps> = ({
 //   color,
 //   setColor
 // }) => {
