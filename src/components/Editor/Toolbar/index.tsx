@@ -27,7 +27,7 @@ const Toolbar = ({
   //TBD: border color, text color...
 } ) => {
   
-  const { ctxZoomLevel, ctxHasSelectedWords, ctxColorPickerOpened, ctxActiveColorType } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxHasSelectedWords, ctxActiveColorType } = useContext(FormatContext);
 
   //2024-04-24 plan:
   //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here

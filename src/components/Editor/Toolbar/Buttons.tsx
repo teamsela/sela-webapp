@@ -113,12 +113,17 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
   const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
 
+
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      
-      setColorPickerOpened(ctxActiveColorType.colorFill);
-      if (ctxColorPickerOpened != ctxActiveColorType.none)
+      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.colorFill)) {
+        setLocalColorPickerOpened(true);
+        setColorPickerOpened(ctxActiveColorType.colorFill);
+      }
+      else {
+        setLocalColorPickerOpened(false);
         setColorPickerOpened(ctxActiveColorType.none);
+      }
     }
   }
 
@@ -171,11 +176,18 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
 
   const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
+  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
+
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      setColorPickerOpened(ctxActiveColorType.borderColor);
-      if (ctxColorPickerOpened != ctxActiveColorType.none)
+      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.borderColor)) {
+        setLocalColorPickerOpened(true);
+        setColorPickerOpened(ctxActiveColorType.borderColor);
+      }
+      else {
+        setLocalColorPickerOpened(false);
         setColorPickerOpened(ctxActiveColorType.none);
+      }
     }
   }
 
