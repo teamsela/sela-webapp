@@ -11,6 +11,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { FormatContext } from '../index';
 import { MdOutlineModeEdit } from "react-icons/md";
 
+
+
 export const UndoBtn = () => {
 
   return (
@@ -99,30 +101,23 @@ interface ColorPickerProps {
     b: number;
     a: number;
   }) => void;
-  thisPickerActive: boolean;
-  setThisPickerActive: (arg: any) => void; 
-  handlePickers: (arg: string) => void;
+  setColorPickerOpened: (arg: number) => void,
 }
 
 export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColor,
-  thisPickerActive,
-  setThisPickerActive,
-  handlePickers,
+  setColorPickerOpened
 }) => {
 
-  const { ctxHasSelectedWords, ctxColorFill  } = useContext(FormatContext);
+  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      setThisPickerActive((prevState:any) => !prevState);
+      setColorPickerOpened(ctxActiveColorType.colorFill);
+      if (ctxColorPickerOpened != ctxActiveColorType.none)
+        setColorPickerOpened(ctxActiveColorType.none);
     }
   }
-
-  useEffect(() => {
-    if (thisPickerActive)
-      handlePickers('fillColorActive');
-  }, [thisPickerActive])
 
   const handleChange = (color:any) => {
     setColor(color.rgb);
@@ -153,7 +148,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       </button>
       
       {
-        thisPickerActive && (
+        ctxColorPickerOpened === ctxActiveColorType.colorFill && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -168,23 +163,18 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
 export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColor,
-  thisPickerActive,
-  setThisPickerActive,
-  handlePickers,
+  setColorPickerOpened
 }) => {
 
-  const { ctxHasSelectedWords, ctxBorderColor  } = useContext(FormatContext);
+  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords){
-      setThisPickerActive((prevState:any) => !prevState);
+    if (ctxHasSelectedWords) {
+      setColorPickerOpened(ctxActiveColorType.borderColor);
+      if (ctxColorPickerOpened != ctxActiveColorType.none)
+        setColorPickerOpened(ctxActiveColorType.none);
     }
   }
-
-  useEffect(() => {
-    if(thisPickerActive)
-      handlePickers('borderColorActive');
-  }, [thisPickerActive])
 
   const handleChange = (color:any) => {
     setColor(color.rgb);
@@ -214,7 +204,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
         </div>
       </button>
       {
-        thisPickerActive && (
+        ctxColorPickerOpened === ctxActiveColorType.borderColor && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />

@@ -11,6 +11,13 @@ import { useState, createContext } from "react";
 const DEFAULT_ZOOM_LEVEL : number = 5;
 const DEFAULT_COLOR_FILL = { r:255, g:255, b:255, a:1 };
 
+enum ActiveColorType {
+  none,
+  colorFill,
+  borderColor,
+  textColor,
+}
+
 export const FormatContext = createContext({ 
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
   ctxIsHebrew: false,
@@ -18,9 +25,10 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: number[]) => {},
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
-  ctxColorPickerOpened: false,
+  ctxColorPickerOpened: {} as number,
   ctxColorFill: {} as { r: number, g: number, b: number, a: number },
   ctxBorderColor: {} as { r: number, g: number, b: number, a: number },
+  ctxActiveColorType: ActiveColorType,
 });
 
 const Editor = ({ 
@@ -35,7 +43,7 @@ const Editor = ({
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
 
-    const [colorPickerOpened, setColorPickerOpened] = useState(false);
+    const [colorPickerOpened, setColorPickerOpened] = useState(0);
 
     const [colorFill, setColorFill] = useState( DEFAULT_COLOR_FILL )
     //todo: assign border and text color to their corresponding buttons in Buttons.tsx
@@ -53,6 +61,7 @@ const Editor = ({
       ctxColorPickerOpened: colorPickerOpened,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
+      ctxActiveColorType: ActiveColorType,
     }
 
     const passageDivStyle = {

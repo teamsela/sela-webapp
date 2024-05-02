@@ -11,7 +11,7 @@ const Toolbar = ({
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
-  setColorPickerOpened: (arg: boolean) => void,
+  setColorPickerOpened: (arg: number) => void,
   setColorFill: (arg: {
     r: number;
     g: number;
@@ -27,13 +27,10 @@ const Toolbar = ({
   //TBD: border color, text color...
 } ) => {
   
-  const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxHasSelectedWords, ctxColorPickerOpened, ctxActiveColorType } = useContext(FormatContext);
 
   //2024-04-24 plan:
   //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
-  const [fillColorActive, setFillColorActive] = useState(false);
-  const [borderColorActive, setBorderColorActive] = useState(false);
-  const [textColorActive, setTextColorActive] = useState(false);
   
   //pass the set state function to each colour button component
   //when clicked, their state will be fliped
@@ -45,19 +42,18 @@ const Toolbar = ({
   // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
   
   useEffect(() => {
-    if (fillColorActive || borderColorActive || textColorActive)
-      setColorPickerOpened(true);
     if (!ctxHasSelectedWords)
-      handlePickers('none');
-  }, [fillColorActive, borderColorActive, textColorActive, ctxHasSelectedWords])
+      setColorPickerOpened(ctxActiveColorType.none);
+  }, [ctxHasSelectedWords])
 
   //to make sure only one picker is active at a time
-  const handlePickers = (activeVariable: string) => {
-    setFillColorActive(activeVariable === 'fillColorActive');
-    setBorderColorActive(activeVariable === 'borderColorActive');
-    setTextColorActive(activeVariable === 'textColorActive');
-  };
+  // const handlePickers = (activeVariable: string) => {
+  //   setFillColorActive(activeVariable === 'fillColorActive');
+  //   setBorderColorActive(activeVariable === 'borderColorActive');
+  //   setTextColorActive(activeVariable === 'textColorActive');
+  // };
   
+
   // const clearSelection = () => {
   //   console.log("Clear selection");
   //   setSelectedWords([]);
@@ -75,9 +71,9 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn setColor={setColorFill} thisPickerActive={fillColorActive} setThisPickerActive={setFillColorActive} handlePickers={handlePickers} />
+      <ColorFillBtn setColor={setColorFill} setColorPickerOpened={setColorPickerOpened}/>
       {/* TBD: realize border and text color */}
-      <BorderColorBtn setColor={setBorderColor} thisPickerActive={borderColorActive} setThisPickerActive={setBorderColorActive} handlePickers={handlePickers} />
+      <BorderColorBtn setColor={setBorderColor} setColorPickerOpened={setColorPickerOpened}/>
       {/* <TextColorBtn /> */}
       <ClearFormatBtn />
       <MoveUpBtn />
