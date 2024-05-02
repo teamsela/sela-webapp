@@ -111,8 +111,11 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
   const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
 
+  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
+
   const handleClick = () => {
     if (ctxHasSelectedWords) {
+      
       setColorPickerOpened(ctxActiveColorType.colorFill);
       if (ctxColorPickerOpened != ctxActiveColorType.none)
         setColorPickerOpened(ctxActiveColorType.none);
