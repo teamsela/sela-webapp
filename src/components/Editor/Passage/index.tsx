@@ -29,8 +29,8 @@ const Word = ({
 
   const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor, ctxActiveColorType } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState({r:255, g:255, b:255, a:4});
-  const [borderColorLocal, setBorderColorLocal] = useState({r:30, g:30, b:30, a:4})
+  const [colorFillLocal, setColorFillLocal] = useState("#FFFFFF");
+  const [borderColorLocal, setBorderColorLocal] = useState("#656565")
   const [selected, setSelected] = useState(false);
 
   if (ctxColorPickerOpened != ctxActiveColorType.none) {
@@ -67,8 +67,8 @@ const Word = ({
       className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-black" : "rounded border" }
       style={
         { 
-          background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
-          border: `1px solid rgba(${borderColorLocal.r},${borderColorLocal.g},${borderColorLocal.b},${borderColorLocal.a})`
+          background: `${colorFillLocal}`, 
+          border: `1px solid ${borderColorLocal}`
         }
     }>
       <span

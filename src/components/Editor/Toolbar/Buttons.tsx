@@ -95,12 +95,7 @@ export const ZoomInBtn = ({
 
 
 interface ColorPickerProps {
-  setColor: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
+  setColor: (arg: string) => void;
   setColorPickerOpened: (arg: number) => void,
 }
 
@@ -128,7 +123,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   }
 
   const handleChange = (color:any) => {
-    setColor(color.rgb);
+    setColor(color.hex);
   }
 
   return (
@@ -143,11 +138,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
             { 
               width: "100%",
               height: "0.25rem",
-              background:`rgba(
-                ${ctxHasSelectedWords ? ctxColorFill.r : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.g : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.b : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.a : 0})`,
+              background:`${ctxHasSelectedWords ? ctxColorFill : '#FFFFFF'}`,
               marginTop:"0.05rem",
             }
           }
@@ -192,7 +183,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   }
 
   const handleChange = (color:any) => {
-    setColor(color.rgb);
+    setColor(color.hex);
   }
 
   return (
@@ -207,11 +198,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
             { 
               width: "100%",
               height: "0.25rem",
-              background:`rgba(
-                ${ctxHasSelectedWords ? ctxBorderColor.r : 0},
-                ${ctxHasSelectedWords ? ctxBorderColor.g : 0},
-                ${ctxHasSelectedWords ? ctxBorderColor.b : 0},
-                ${ctxHasSelectedWords ? ctxBorderColor.a : 0})`,
+              background:`${ctxHasSelectedWords ? ctxBorderColor : '#FFFFFF'}`,
               marginTop:"0.05rem",
             }
           }

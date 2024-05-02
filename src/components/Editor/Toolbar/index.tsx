@@ -12,18 +12,8 @@ const Toolbar = ({
   setZoomLevel: (arg: number) => void;
   //color functions
   setColorPickerOpened: (arg: number) => void,
-  setColorFill: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
-  setBorderColor: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
+  setColorFill: (arg: string) => void;
+  setBorderColor: (arg: string) => void;
   //TBD: border color, text color...
 } ) => {
   
