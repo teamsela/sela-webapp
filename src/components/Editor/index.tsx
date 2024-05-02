@@ -43,7 +43,7 @@ const Editor = ({
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
 
-    const [colorPickerOpened, setColorPickerOpened] = useState(0);
+    const [colorPickerOpened, setColorPickerOpened] = useState(ActiveColorType.none);
 
     const [colorFill, setColorFill] = useState( DEFAULT_COLOR_FILL )
     //todo: assign border and text color to their corresponding buttons in Buttons.tsx
