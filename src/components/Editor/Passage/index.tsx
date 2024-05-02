@@ -27,13 +27,21 @@ const Word = ({
   index: number;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor, ctxActiveColorType } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState({r:255, g:255, b:255, a:4});
+  const [colorFillLocal, setColorFillLocal] = useState("#FFFFFF");
+  const [borderColorLocal, setBorderColorLocal] = useState("#656565")
   const [selected, setSelected] = useState(false);
 
-  if (colorFillLocal != ctxColorFill && selected && ctxColorPickerOpened) {
-    setColorFillLocal(ctxColorFill);
+  if (ctxColorPickerOpened != ctxActiveColorType.none) {
+    if (selected) {
+      if (colorFillLocal != ctxColorFill) {
+        setColorFillLocal(ctxColorFill);
+      }
+      if (borderColorLocal != ctxBorderColor) {
+        setBorderColorLocal(ctxBorderColor);
+      }
+    }
   }
 
   useEffect(() => {
@@ -59,7 +67,8 @@ const Word = ({
       className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-black" : "rounded border" }
       style={
         { 
-          background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
+          background: `${colorFillLocal}`, 
+          border: `1px solid ${borderColorLocal}`
         }
     }>
       <span
@@ -79,7 +88,6 @@ const Passage = ({
     content
   }: {
     content: PassageData;
-    //borderColor, textColor...
   }) => {
 
   const { ctxZoomLevel, ctxIsHebrew } = useContext(FormatContext)

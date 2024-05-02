@@ -9,6 +9,9 @@ import { TbArrowAutofitContent } from "react-icons/tb";
 import { SwatchesPicker } from 'react-color'
 import React, { useEffect, useState, useContext } from 'react';
 import { FormatContext } from '../index';
+import { MdOutlineModeEdit } from "react-icons/md";
+
+
 
 export const UndoBtn = () => {
 
@@ -91,44 +94,36 @@ export const ZoomInBtn = ({
 };
 
 
-interface ColorProps {
-  color: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
-  setColor: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
-  colorPanelActive:boolean;
-  setColorPanelActive: (arg: any) => void;
+interface ColorPickerProps {
+  setColor: (arg: string) => void;
+  setColorPickerOpened: (arg: number) => void,
 }
 
-export const ColorFillBtn = ({
+export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColor,
-  setColorPickerOpened,
-} : {
-  setColor: (arg: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  }) => void;
-  setColorPickerOpened: (arg: any) => void;  
+  setColorPickerOpened
 }) => {
 
-  const { ctxHasSelectedWords, ctxColorPickerOpened, ctxColorFill  } = useContext(FormatContext);
+  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
+
+  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
+
 
   const handleClick = () => {
-    if (ctxHasSelectedWords)
-      setColorPickerOpened((prevState:any) => !prevState);
+    if (ctxHasSelectedWords) {
+      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.colorFill)) {
+        setLocalColorPickerOpened(true);
+        setColorPickerOpened(ctxActiveColorType.colorFill);
+      }
+      else {
+        setLocalColorPickerOpened(false);
+        setColorPickerOpened(ctxActiveColorType.none);
+      }
+    }
   }
+
   const handleChange = (color:any) => {
-    setColor(color.rgb);
+    setColor(color.hex);
   }
 
   return (
@@ -143,11 +138,7 @@ export const ColorFillBtn = ({
             { 
               width: "100%",
               height: "0.25rem",
-              background:`rgba(
-                ${ctxHasSelectedWords ? ctxColorFill.r : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.g : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.b : 0},
-                ${ctxHasSelectedWords ? ctxColorFill.a : 0})`,
+              background:`${ctxHasSelectedWords ? ctxColorFill : '#FFFFFF'}`,
               marginTop:"0.05rem",
             }
           }
@@ -156,7 +147,7 @@ export const ColorFillBtn = ({
       </button>
       
       {
-        ctxColorPickerOpened && (
+        ctxColorPickerOpened === ctxActiveColorType.colorFill && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -168,39 +159,81 @@ export const ColorFillBtn = ({
   );
 };
 
-/*
-export const BorderColorBtn: React.FC<ColorProps> = ({
-  color,
-  setColor
+
+export const BorderColorBtn: React.FC<ColorPickerProps> = ({
+  setColor,
+  setColorPickerOpened
 }) => {
+
+  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
+
+  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
+
+  const handleClick = () => {
+    if (ctxHasSelectedWords) {
+      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.borderColor)) {
+        setLocalColorPickerOpened(true);
+        setColorPickerOpened(ctxActiveColorType.borderColor);
+      }
+      else {
+        setLocalColorPickerOpened(false);
+        setColorPickerOpened(ctxActiveColorType.none);
+      }
+    }
+  }
+
+  const handleChange = (color:any) => {
+    setColor(color.hex);
+  }
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Border Color Clicked")} >
-        <MdBorderColor fillOpacity="0.4" fontSize="1.4em" />
+        onClick={handleClick} >
+        <MdOutlineModeEdit fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <div
+          //using embbed style for the color display for now, may move to tailwind after some research
+          style={
+            { 
+              width: "100%",
+              height: "0.25rem",
+              background:`${ctxHasSelectedWords ? ctxBorderColor : '#FFFFFF'}`,
+              marginTop:"0.05rem",
+            }
+          }
+        >
+        </div>
       </button>
+      {
+        ctxColorPickerOpened === ctxActiveColorType.borderColor && (
+          <div className="relative z-10">
+            <div className="absolute top-6 -left-6">
+              <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };
 
-export const TextColorBtn: React.FC<ColorProps> = ({
-  color,
-  setColor
-}) => {
+// export const TextColorBtn: React.FC<ColorPickerProps> = ({
+//   color,
+//   setColor
+// }) => {
 
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Text Color Clicked")} >
-        <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
-      </button>
-    </div>
-  );
-};
-*/
+//   return (
+//     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
+//       <button 
+//         className="hover:text-primary"
+//         onClick={() => console.log("Text Color Clicked")} >
+//         <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
+//       </button>
+//     </div>
+//   );
+// };
+
 
 export const ClearFormatBtn = () => {
 

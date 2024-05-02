@@ -9,7 +9,14 @@ import { StudyData, PassageData } from '@/lib/data';
 import { useState, createContext } from "react";
 
 const DEFAULT_ZOOM_LEVEL : number = 5;
-const DEFAULT_COLOR_FILL = { r:255, g:255, b:255, a:1 };
+const DEFAULT_COLOR_FILL = "#FFFFFF";
+
+enum ActiveColorType {
+  none,
+  colorFill,
+  borderColor,
+  textColor,
+}
 
 export const FormatContext = createContext({ 
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
@@ -18,8 +25,10 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: number[]) => {},
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
-  ctxColorPickerOpened: false,
-  ctxColorFill: {} as { r: number, g: number, b: number, a: number }
+  ctxColorPickerOpened: {} as number,
+  ctxColorFill: "" as string,
+  ctxBorderColor: "" as string,
+  ctxActiveColorType: ActiveColorType,
 });
 
 const Editor = ({ 
@@ -34,12 +43,12 @@ const Editor = ({
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
 
-    const [colorPickerOpened, setColorPickerOpened] = useState(false);
+    const [colorPickerOpened, setColorPickerOpened] = useState(ActiveColorType.none);
 
     const [colorFill, setColorFill] = useState( DEFAULT_COLOR_FILL )
     //todo: assign border and text color to their corresponding buttons in Buttons.tsx
-    const [borderColor, setBorderColor] = useState( { r:150, g:150, b:150, a:1 } )
-    const [textColor, setTextColor] = useState( { r:150, g:150, b:150, a:1 } )
+    const [borderColor, setBorderColor] = useState( "#656565" )
+    const [textColor, setTextColor] = useState( "#000000" )
 
 
     const formatContextValue = {
@@ -50,7 +59,9 @@ const Editor = ({
       ctxHasSelectedWords: hasSelectedWords,
       ctxSetHasSelectedWords: setHasSelectedWords,
       ctxColorPickerOpened: colorPickerOpened,
-      ctxColorFill: colorFill
+      ctxColorFill: colorFill,
+      ctxBorderColor: borderColor,
+      ctxActiveColorType: ActiveColorType,
     }
 
     const passageDivStyle = {
@@ -66,6 +77,7 @@ const Editor = ({
             //color functions
             setColorPickerOpened={setColorPickerOpened}
             setColorFill={setColorFill}
+            setBorderColor={setBorderColor}
           />
           <main>
             <div {...passageDivStyle}>
