@@ -12,6 +12,7 @@ import React, { useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps } from "@/lib/types";
+import { updateColor } from "@/lib/actions";
 
 const ToolTip = ({ text } : { text: string }) => {
   return (
@@ -97,7 +98,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxColorAction, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
@@ -107,6 +108,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
   const handleChange = (color:any) => {
     setColor(color.hex);
+    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.colorFill, color.hex);
   }
 
   return (
@@ -148,7 +150,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxColorAction, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
@@ -158,6 +160,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
 
   const handleChange = (color:any) => {
     setColor(color.hex);
+    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.borderColor, color.hex);
   }
 
   return (
@@ -197,7 +200,7 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxColorAction, ctxHasSelectedWords, ctxTextColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
@@ -207,6 +210,7 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
 
   const handleChange = (color:any) => {
     setColor(color.hex);
+    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.textColor, color.hex);
   }
 
   return (
@@ -248,7 +252,7 @@ export const ClearFormatBtn = ({resetColorFill, resetBorderColor, resetTextColor
   setColorAction: (arg: number) => void,
 })  => {
 
-  const { ctxHasSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxHasSelectedWords, ctxSelectedWords } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
@@ -256,6 +260,7 @@ export const ClearFormatBtn = ({resetColorFill, resetBorderColor, resetTextColor
       resetColorFill(DEFAULT_COLOR_FILL);
       resetBorderColor(DEFAULT_BORDER_COLOR);
       resetTextColor(DEFAULT_TEXT_COLOR);
+      updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
     }
   }
 

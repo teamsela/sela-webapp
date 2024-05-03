@@ -1,5 +1,7 @@
 'use server';
 
+//const util = require('util')
+
 import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -9,6 +11,7 @@ import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, HebWord } from './data';
+import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -115,6 +118,56 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   revalidatePath('/');   
 }
 
+export async function updateColor(studyId: string, selectedWords: number[], actionType: ColorActionType, newColor: string | null) {
+  "use server";
+
+  let operations: any = [];
+
+  let fieldsToUpdate: {};
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      fieldsToUpdate = { colorFill: newColor };
+      break;
+    case ColorActionType.borderColor:
+      fieldsToUpdate = { borderColor: newColor };
+      break;
+    case ColorActionType.textColor:
+      fieldsToUpdate = { textColor: newColor };
+      break;
+    case ColorActionType.resetColor:
+      fieldsToUpdate = {
+        colorFill: null,
+        borderColor: null,
+        textColor: null
+      }
+      break;
+    default:
+      break;
+  }
+
+  selectedWords.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, ...fieldsToUpdate },
+        upsert: true,
+      },
+    })
+  })
+  //console.log(util.inspect(operations, {showHidden: false, depth: null, colors: true}))
+
+  const xataClient = getXataClient();
+  let result : any;
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update color for study:' + studyId + ', result: ' + result };
+  }
+}
+
+
 export async function deleteStudy(studyId: string) {
 
   const xataClient = getXataClient();
@@ -159,7 +212,18 @@ export async function fetchPassageContent(studyId: string) {
           const passageInfo = parsePassageInfo(study.passage);
           // fetch all words from xata by start/end chapter and verse
           if (passageInfo instanceof Error === false)
-          {               
+          {
+              const colorStyling = await xataClient.db.styling
+                .filter({studyId: study.id})
+                .select(['hebId', 'colorFill', 'borderColor', 'textColor'])
+                .sort("hebId", "asc")
+                .getMany();
+              
+              const colorStylingMap = new Map();
+              colorStyling.forEach((obj) => {
+                colorStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor });
+              });
+
               const passageContent = await xataClient.db.heb_bible
                   .filter("chapter", ge(passageInfo.startChapter))
                   .filter("chapter", le(passageInfo.endChapter))
@@ -203,6 +267,14 @@ export async function fetchPassageContent(studyId: string) {
                   if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker) {
                       currentVerseData.paragraphs.push({words: []});
                       currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
+                  }
+
+                  const currentColorStyling = colorStylingMap.get(hebWord.id);
+
+                  if (currentColorStyling !== undefined) {
+                    (currentColorStyling.colorFill !== null) && (hebWord.colorFill = currentColorStyling.colorFill);
+                    (currentColorStyling.borderColor !== null) && (hebWord.borderColor = currentColorStyling.borderColor);
+                    (currentColorStyling.textColor !== null) && (hebWord.textColor = currentColorStyling.textColor);
                   }
 
                   currentParagraphData.words.push(hebWord);

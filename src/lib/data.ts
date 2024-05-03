@@ -12,6 +12,9 @@ export type HebWord = {
     strongNumber: number;
     wlcWord: string;
     gloss: string;
+    colorFill: string;
+    borderColor: string;
+    textColor: string;
 }
 
 export type ChapterData = {

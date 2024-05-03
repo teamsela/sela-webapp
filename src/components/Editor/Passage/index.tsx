@@ -30,9 +30,9 @@ const Word = ({
 
   const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none) {

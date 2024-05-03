@@ -13,7 +13,8 @@ export const DEFAULT_COLOR_FILL = "#FFFFFF";
 export const DEFAULT_BORDER_COLOR = "#656565";
 export const DEFAULT_TEXT_COLOR = "#656565";
 
-export const FormatContext = createContext({ 
+export const FormatContext = createContext({
+  ctxStudyId: "",
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
   ctxIsHebrew: false,
   ctxSelectedWords: [] as number[],
@@ -45,6 +46,7 @@ const Editor = ({
     const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
 
     const formatContextValue = {
+      ctxStudyId: study.id,
       ctxZoomLevel: zoomLevel,
       ctxIsHebrew: isHebrew,
       ctxSelectedWords: selectedWords,
@@ -65,7 +67,7 @@ const Editor = ({
         <>
         <FormatContext.Provider value={formatContextValue}>
           <Header study={study} setLangToHebrew={setHebrew} />
-          <Toolbar 
+          <Toolbar
             setZoomLevel={setZoomLevel}
             //color functions
             setColorAction={setColorAction}
