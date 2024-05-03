@@ -5,9 +5,10 @@ import { MdOutlineModeEdit } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
+import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
 import { SwatchesPicker } from 'react-color'
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps } from "@/lib/types";
@@ -270,6 +271,48 @@ export const ClearFormatBtn = ({resetColorFill, resetBorderColor, resetTextColor
   );
 };
 
+export const UniformWidthBtn = () => {
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("Uniform Width Clicked")} >
+        <TbArrowAutofitContent opacity="0.4" fontSize="1.5em" />
+      </button>
+      <ToolTip text="Uniform block size" />
+    </div>
+  );
+};
+
+export const NewStropheBtn = () => {
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("New Strophe Clicked")} >
+        <CgArrowsBreakeV opacity="0.4" fontSize="1.5em" />
+      </button>
+      <ToolTip text="New strophe" />
+    </div>
+  );
+};
+
+export const NewStanzaBtn = () => {
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("New Stanza Clicked")} >
+        <CgArrowsBreakeH opacity="0.4" fontSize="1.5em" />
+      </button>
+      <ToolTip text="New stanza" />
+    </div>
+  );
+};
+
 export const MoveUpBtn = () => {
 
   return (
@@ -298,45 +341,30 @@ export const MoveDownBtn = () => {
   );
 };
 
-export const MoveLeftBtn = () => {
+export const AddIndentBtn = () => {
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Move Down Clicked")} >
-        <LuArrowLeftToLine opacity="0.4" fontSize="1.5em" />
+        onClick={() => console.log("Add Indent Clicked")} >
+        <CgFormatIndentIncrease opacity="0.4" fontSize="1.5em" />
       </button>
-      <ToolTip text="Move left" />
+      <ToolTip text="Add indent" />
     </div>
   );
 };
 
-export const MoveRightBtn = () => {
+export const RemoveIndentBtn = () => {
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Move Down Clicked")} >
-        <LuArrowRightToLine opacity="0.4" fontSize="1.5em" />
+        onClick={() => console.log("Remove Indent Clicked")} >
+        <CgFormatIndentDecrease opacity="0.4" fontSize="1.5em" />
       </button>
-      <ToolTip text="Move right" />
+      <ToolTip text="Remove indent" />
     </div>
   );
 };
-
-export const UniformWidthBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Uniform Width Clicked")} >
-        <TbArrowAutofitContent opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="Uniform block size" />
-    </div>
-  );
-};
-

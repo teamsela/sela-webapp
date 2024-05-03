@@ -74,6 +74,10 @@ const config: Config = {
         "3xs": ["8px", "10px"],
         "2xs": ["10px", "12px"],
       },
+      gridTemplateColumns: {
+        // 16 column grid
+        '16': 'repeat(16, minmax(0, 1fr))',
+      },
       spacing: {
         4.5: "1.125rem",
         5.5: "1.375rem",

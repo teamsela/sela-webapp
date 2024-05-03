@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, AddIndentBtn, RemoveIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -20,40 +20,14 @@ const Toolbar = ({
 } ) => {
   
   const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
-
-  //2024-04-24 plan:
-  //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
-  
-  //pass the set state function to each colour button component
-  //when clicked, their state will be fliped
-  //if one become active, deactivate all others
-
-  //for setColorPanelActive: dont pass the function to each colour button component
-  //if at least one useState for colour button is active, set colorPanelActive as positive
-  //if not, set to negative
-  // - setColorPanelActive is used by Passage/index.tsx to determine whether it should apply the new colour to word boxes
   
   useEffect(() => {
     if (!ctxHasSelectedWords)
       setColorAction(ColorActionType.none);
   }, [ctxHasSelectedWords])
 
-  //to make sure only one picker is active at a time
-  // const handlePickers = (activeVariable: string) => {
-  //   setFillColorActive(activeVariable === 'fillColorActive');
-  //   setBorderColorActive(activeVariable === 'borderColorActive');
-  //   setTextColorActive(activeVariable === 'textColorActive');
-  // };
-  
-
-  // const clearSelection = () => {
-  //   console.log("Clear selection");
-  //   setSelectedWords([]);
-  // }
-
-
   return (
-    <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-12 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
+    <div className="mx-auto mb-5 mt-4 grid max-w-180 bg-white grid-cols-16 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
       <UndoBtn />
       <RedoBtn />
       <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
@@ -67,11 +41,13 @@ const Toolbar = ({
       <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
       <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
       <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
+      <UniformWidthBtn />
+      <NewStropheBtn />
+      <NewStanzaBtn />
+      <AddIndentBtn />
+      <RemoveIndentBtn />
       <MoveUpBtn />
       <MoveDownBtn />
-      <MoveLeftBtn />
-      <MoveRightBtn />
-      <UniformWidthBtn />
     </div>
   );
 };
