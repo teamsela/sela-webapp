@@ -1,22 +1,17 @@
 'use client';
 
+import { useState, createContext } from "react";
+
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
-
+import { ActiveColorType } from "@/lib/types";
 import { StudyData, PassageData } from '@/lib/data';
-
-import { useState, createContext } from "react";
 
 const DEFAULT_ZOOM_LEVEL : number = 5;
 const DEFAULT_COLOR_FILL = "#FFFFFF";
-
-enum ActiveColorType {
-  none,
-  colorFill,
-  borderColor,
-  textColor,
-}
+const DEFAULT_BORDER_COLOR = "#656565";
+const DEFAULT_TEXT_COLOR = "#000000";
 
 export const FormatContext = createContext({ 
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
@@ -28,7 +23,6 @@ export const FormatContext = createContext({
   ctxColorPickerOpened: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
-  ctxActiveColorType: ActiveColorType,
 });
 
 const Editor = ({ 
@@ -45,11 +39,9 @@ const Editor = ({
 
     const [colorPickerOpened, setColorPickerOpened] = useState(ActiveColorType.none);
 
-    const [colorFill, setColorFill] = useState( DEFAULT_COLOR_FILL )
-    //todo: assign border and text color to their corresponding buttons in Buttons.tsx
-    const [borderColor, setBorderColor] = useState( "#656565" )
-    const [textColor, setTextColor] = useState( "#000000" )
-
+    const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
+    const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
+    const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
 
     const formatContextValue = {
       ctxZoomLevel: zoomLevel,
@@ -61,7 +53,6 @@ const Editor = ({
       ctxColorPickerOpened: colorPickerOpened,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
-      ctxActiveColorType: ActiveColorType,
     }
 
     const passageDivStyle = {

@@ -1,17 +1,25 @@
 "use client";
 
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdBorderColor, MdFormatColorText } from "react-icons/md";
+import { MdOutlineModeEdit, MdFormatColorText } from "react-icons/md";
 import { BiSolidColorFill } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useEffect, useState, useContext } from 'react';
+
 import { FormatContext } from '../index';
-import { MdOutlineModeEdit } from "react-icons/md";
+import { ActiveColorType, ColorPickerProps } from "@/lib/types";
 
-
+const ToolTip = ({ text } : { text: string }) => {
+  return (
+    <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+    <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
+      {text}
+    </div>
+  )
+} 
 
 export const UndoBtn = () => {
 
@@ -22,10 +30,7 @@ export const UndoBtn = () => {
         onClick={() => console.log("Undo Clicked")} >
         <LuUndo2 fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-       Undo
-      </div>
+      <ToolTip text="Undo" />
     </div>
   );
 };
@@ -39,10 +44,7 @@ export const RedoBtn = () => {
         onClick={() => console.log("Redo Clicked")} >
         <LuRedo2 fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-       Redo
-      </div>
+      <ToolTip text="Redo" />
     </div>
   );
 };
@@ -62,10 +64,7 @@ export const ZoomOutBtn = ({
         onClick={ () => (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1) } >
         <AiOutlineMinusCircle fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Zoom out
-      </div>      
+      <ToolTip text="Zoom out" />
     </div>
   );
 };
@@ -85,40 +84,23 @@ export const ZoomInBtn = ({
         onClick={ () => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1) } >
         <AiOutlinePlusCircle fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Zoom in
-      </div>
+      <ToolTip text="Zoom in" />
     </div>
   );
 };
 
 
-interface ColorPickerProps {
-  setColor: (arg: string) => void;
-  setColorPickerOpened: (arg: number) => void,
-}
 
 export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColor,
   setColorPickerOpened
 }) => {
 
-  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
-
-  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
-
+  const { ctxColorPickerOpened, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.colorFill)) {
-        setLocalColorPickerOpened(true);
-        setColorPickerOpened(ctxActiveColorType.colorFill);
-      }
-      else {
-        setLocalColorPickerOpened(false);
-        setColorPickerOpened(ctxActiveColorType.none);
-      }
+      setColorPickerOpened((ctxColorPickerOpened != ActiveColorType.colorFill) ? ActiveColorType.colorFill : ActiveColorType.none);
     }
   }
 
@@ -145,9 +127,9 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
         >
         </div>
       </button>
-      
+
       {
-        ctxColorPickerOpened === ctxActiveColorType.colorFill && (
+        ctxColorPickerOpened === ActiveColorType.colorFill && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -165,20 +147,11 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColorPickerOpened
 }) => {
 
-  const { ctxColorPickerOpened, ctxActiveColorType, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
-
-  const [localColorPickerOpened, setLocalColorPickerOpened] = useState(false);
+  const { ctxColorPickerOpened, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      if (!localColorPickerOpened || (localColorPickerOpened && ctxColorPickerOpened != ctxActiveColorType.borderColor)) {
-        setLocalColorPickerOpened(true);
-        setColorPickerOpened(ctxActiveColorType.borderColor);
-      }
-      else {
-        setLocalColorPickerOpened(false);
-        setColorPickerOpened(ctxActiveColorType.none);
-      }
+      setColorPickerOpened((ctxColorPickerOpened != ActiveColorType.borderColor) ? ActiveColorType.borderColor : ActiveColorType.none);
     }
   }
 
@@ -206,7 +179,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
         </div>
       </button>
       {
-        ctxColorPickerOpened === ctxActiveColorType.borderColor && (
+        ctxColorPickerOpened === ActiveColorType.borderColor && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
@@ -246,10 +219,7 @@ export const ClearFormatBtn = () => {
         onClick={() => { console.log("Clear Format") }} >
         <AiOutlineClear fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Clear format
-      </div>
+      <ToolTip text="Clear format" />
     </div>
   );
 };
@@ -263,10 +233,7 @@ export const MoveUpBtn = () => {
         onClick={() => console.log("Move Up Clicked")} >
         <LuArrowUpToLine opacity="0.4" fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Move up
-      </div>      
+      <ToolTip text="Move up" /> 
     </div>
   );
 };
@@ -280,10 +247,7 @@ export const MoveDownBtn = () => {
         onClick={() => console.log("Move Down Clicked")} >
         <LuArrowDownToLine opacity="0.4" fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Move down
-      </div>      
+      <ToolTip text="Move down" />    
     </div>
   );
 };
@@ -297,10 +261,7 @@ export const MoveLeftBtn = () => {
         onClick={() => console.log("Move Down Clicked")} >
         <LuArrowLeftToLine opacity="0.4" fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Move left
-      </div>
+      <ToolTip text="Move left" />
     </div>
   );
 };
@@ -314,10 +275,7 @@ export const MoveRightBtn = () => {
         onClick={() => console.log("Move Down Clicked")} >
         <LuArrowRightToLine opacity="0.4" fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Move right
-      </div>
+      <ToolTip text="Move right" />
     </div>
   );
 };
@@ -331,10 +289,7 @@ export const UniformWidthBtn = () => {
         onClick={() => console.log("Uniform Width Clicked")} >
         <TbArrowAutofitContent opacity="0.4" fontSize="1.5em" />
       </button>
-      <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-        Uniform block size
-      </div>      
+      <ToolTip text="Uniform block size" />
     </div>
   );
 };

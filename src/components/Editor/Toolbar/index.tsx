@@ -1,6 +1,7 @@
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, /*TextColorBtn,*/ MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
-import { useState, useEffect, useContext, useRef } from "react";
+import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
+import { ActiveColorType } from "@/lib/types";
 
 const Toolbar = ({
   setZoomLevel,
@@ -17,7 +18,7 @@ const Toolbar = ({
   //TBD: border color, text color...
 } ) => {
   
-  const { ctxZoomLevel, ctxHasSelectedWords, ctxActiveColorType } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
 
   //2024-04-24 plan:
   //add a useState for each colour button (fill, border, text) to determine whether those pickers are clicked & active here
@@ -33,7 +34,7 @@ const Toolbar = ({
   
   useEffect(() => {
     if (!ctxHasSelectedWords)
-      setColorPickerOpened(ctxActiveColorType.none);
+      setColorPickerOpened(ActiveColorType.none);
   }, [ctxHasSelectedWords])
 
   //to make sure only one picker is active at a time

@@ -1,6 +1,7 @@
 import { HebWord, PassageData } from '@/lib/data';
 import { useState, useEffect, useContext } from "react";
 import { FormatContext } from '../index';
+import { ActiveColorType } from "@/lib/types";
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string };
@@ -27,13 +28,13 @@ const Word = ({
   index: number;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor, ctxActiveColorType } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState("#FFFFFF");
   const [borderColorLocal, setBorderColorLocal] = useState("#656565")
   const [selected, setSelected] = useState(false);
 
-  if (ctxColorPickerOpened != ctxActiveColorType.none) {
+  if (ctxColorPickerOpened != ActiveColorType.none) {
     if (selected) {
       if (colorFillLocal != ctxColorFill) {
         setColorFillLocal(ctxColorFill);
@@ -64,11 +65,11 @@ const Word = ({
   return (
     <div 
       key={hebWord.id}
-      className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-black" : "rounded border" }
+      className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-[#FFC300]" : "rounded border" }
       style={
         { 
           background: `${colorFillLocal}`, 
-          border: `1px solid ${borderColorLocal}`
+          border: `2px solid ${borderColorLocal}`
         }
     }>
       <span
