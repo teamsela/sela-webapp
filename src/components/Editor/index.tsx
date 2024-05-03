@@ -5,13 +5,13 @@ import { useState, createContext } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
-import { ActiveColorType } from "@/lib/types";
+import { ColorActionType } from "@/lib/types";
 import { StudyData, PassageData } from '@/lib/data';
 
-const DEFAULT_ZOOM_LEVEL : number = 5;
-const DEFAULT_COLOR_FILL = "#FFFFFF";
-const DEFAULT_BORDER_COLOR = "#656565";
-const DEFAULT_TEXT_COLOR = "#000000";
+export const DEFAULT_ZOOM_LEVEL : number = 5;
+export const DEFAULT_COLOR_FILL = "#FFFFFF";
+export const DEFAULT_BORDER_COLOR = "#656565";
+export const DEFAULT_TEXT_COLOR = "#656565";
 
 export const FormatContext = createContext({ 
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
@@ -20,9 +20,10 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: number[]) => {},
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
-  ctxColorPickerOpened: {} as number,
+  ctxColorAction: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
+  ctxTextColor: "" as string
 });
 
 const Editor = ({ 
@@ -37,7 +38,7 @@ const Editor = ({
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
 
-    const [colorPickerOpened, setColorPickerOpened] = useState(ActiveColorType.none);
+    const [colorAction, setColorAction] = useState(ColorActionType.none);
 
     const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
     const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
@@ -50,9 +51,10 @@ const Editor = ({
       ctxSetSelectedWords: setSelectedWords,
       ctxHasSelectedWords: hasSelectedWords,
       ctxSetHasSelectedWords: setHasSelectedWords,
-      ctxColorPickerOpened: colorPickerOpened,
+      ctxColorAction: colorAction,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
+      ctxTextColor: textColor
     }
 
     const passageDivStyle = {
@@ -66,9 +68,10 @@ const Editor = ({
           <Toolbar 
             setZoomLevel={setZoomLevel}
             //color functions
-            setColorPickerOpened={setColorPickerOpened}
+            setColorAction={setColorAction}
             setColorFill={setColorFill}
             setBorderColor={setBorderColor}
+            setTextColor={setTextColor}
           />
           <main>
             <div {...passageDivStyle}>

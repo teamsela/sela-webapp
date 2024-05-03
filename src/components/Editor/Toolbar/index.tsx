@@ -1,21 +1,22 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, /*TextColorBtn,*/ MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, MoveLeftBtn, MoveRightBtn, ClearFormatBtn, UniformWidthBtn } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
-import { ActiveColorType } from "@/lib/types";
+import { ColorActionType } from "@/lib/types";
 
 const Toolbar = ({
   setZoomLevel,
   //color functions
-  setColorPickerOpened,
+  setColorAction,
   setColorFill,
   setBorderColor,
+  setTextColor
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
-  setColorPickerOpened: (arg: number) => void,
+  setColorAction: (arg: number) => void,
   setColorFill: (arg: string) => void;
   setBorderColor: (arg: string) => void;
-  //TBD: border color, text color...
+  setTextColor: (arg: string) => void;
 } ) => {
   
   const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
@@ -34,7 +35,7 @@ const Toolbar = ({
   
   useEffect(() => {
     if (!ctxHasSelectedWords)
-      setColorPickerOpened(ActiveColorType.none);
+      setColorAction(ColorActionType.none);
   }, [ctxHasSelectedWords])
 
   //to make sure only one picker is active at a time
@@ -62,11 +63,10 @@ const Toolbar = ({
         </span>
       </div>
       <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-      <ColorFillBtn setColor={setColorFill} setColorPickerOpened={setColorPickerOpened}/>
-      {/* TBD: realize border and text color */}
-      <BorderColorBtn setColor={setBorderColor} setColorPickerOpened={setColorPickerOpened}/>
-      {/* <TextColorBtn /> */}
-      <ClearFormatBtn />
+      <ColorFillBtn setColor={setColorFill} setColorAction={setColorAction}/>
+      <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
+      <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
+      <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
       <MoveUpBtn />
       <MoveDownBtn />
       <MoveLeftBtn />

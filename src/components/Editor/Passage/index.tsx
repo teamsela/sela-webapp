@@ -1,7 +1,7 @@
 import { HebWord, PassageData } from '@/lib/data';
 import { useState, useEffect, useContext } from "react";
-import { FormatContext } from '../index';
-import { ActiveColorType } from "@/lib/types";
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { ColorActionType } from "@/lib/types";
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string };
@@ -28,19 +28,28 @@ const Word = ({
   index: number;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorPickerOpened, ctxColorFill, ctxBorderColor } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState("#FFFFFF");
-  const [borderColorLocal, setBorderColorLocal] = useState("#656565")
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
-  if (ctxColorPickerOpened != ActiveColorType.none) {
+  if (ctxColorAction != ColorActionType.none) {
     if (selected) {
-      if (colorFillLocal != ctxColorFill) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxColorFill) {
         setColorFillLocal(ctxColorFill);
       }
-      if (borderColorLocal != ctxBorderColor) {
+      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxBorderColor) {
         setBorderColorLocal(ctxBorderColor);
+      }
+      else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxTextColor) {
+        setTextColorLocal(ctxTextColor);
+      }
+      else if (ctxColorAction === ColorActionType.resetColor) {
+        (colorFillLocal != ctxColorFill) && setColorFillLocal(ctxColorFill);
+        (borderColorLocal != ctxBorderColor) && setBorderColorLocal(ctxBorderColor);
+        (textColorLocal != ctxTextColor) && setTextColorLocal(ctxTextColor);
       }
     }
   }
@@ -69,7 +78,8 @@ const Word = ({
       style={
         { 
           background: `${colorFillLocal}`, 
-          border: `2px solid ${borderColorLocal}`
+          border: `2px solid ${borderColorLocal}`,
+          color: `${textColorLocal}`
         }
     }>
       <span

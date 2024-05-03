@@ -1,16 +1,16 @@
 "use client";
 
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineModeEdit, MdFormatColorText } from "react-icons/md";
-import { BiSolidColorFill } from "react-icons/bi";
+import { MdOutlineModeEdit } from "react-icons/md";
+import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useEffect, useState, useContext } from 'react';
 
-import { FormatContext } from '../index';
-import { ActiveColorType, ColorPickerProps } from "@/lib/types";
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { ColorActionType, ColorPickerProps } from "@/lib/types";
 
 const ToolTip = ({ text } : { text: string }) => {
   return (
@@ -93,14 +93,14 @@ export const ZoomInBtn = ({
 
 export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColor,
-  setColorPickerOpened
+  setColorAction
 }) => {
 
-  const { ctxColorPickerOpened, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
+  const { ctxColorAction, ctxHasSelectedWords, ctxColorFill } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      setColorPickerOpened((ctxColorPickerOpened != ActiveColorType.colorFill) ? ActiveColorType.colorFill : ActiveColorType.none);
+      setColorAction((ctxColorAction != ColorActionType.colorFill) ? ColorActionType.colorFill : ColorActionType.none);
     }
   }
 
@@ -129,7 +129,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       </button>
 
       {
-        ctxColorPickerOpened === ActiveColorType.colorFill && (
+        ctxColorAction === ColorActionType.colorFill && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -144,14 +144,14 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
 export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColor,
-  setColorPickerOpened
+  setColorAction
 }) => {
 
-  const { ctxColorPickerOpened, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
+  const { ctxColorAction, ctxHasSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxHasSelectedWords) {
-      setColorPickerOpened((ctxColorPickerOpened != ActiveColorType.borderColor) ? ActiveColorType.borderColor : ActiveColorType.none);
+      setColorAction((ctxColorAction != ColorActionType.borderColor) ? ColorActionType.borderColor : ColorActionType.none);
     }
   }
 
@@ -179,7 +179,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
         </div>
       </button>
       {
-        ctxColorPickerOpened === ActiveColorType.borderColor && (
+        ctxColorAction === ColorActionType.borderColor && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
@@ -191,32 +191,78 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   );
 };
 
-// export const TextColorBtn: React.FC<ColorPickerProps> = ({
-//   color,
-//   setColor
-// }) => {
+export const TextColorBtn: React.FC<ColorPickerProps> = ({
+  setColor,
+  setColorAction
+}) => {
 
-//   return (
-//     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-//       <button 
-//         className="hover:text-primary"
-//         onClick={() => console.log("Text Color Clicked")} >
-//         <MdFormatColorText fillOpacity="0.4" fontSize="1.4em" />
-//       </button>
-//     </div>
-//   );
-// };
+  const { ctxColorAction, ctxHasSelectedWords, ctxTextColor } = useContext(FormatContext);
 
+  const handleClick = () => {
+    if (ctxHasSelectedWords) {
+      setColorAction((ctxColorAction != ColorActionType.textColor) ? ColorActionType.textColor : ColorActionType.none);
+    }
+  }
 
-export const ClearFormatBtn = () => {
+  const handleChange = (color:any) => {
+    setColor(color.hex);
+  }
 
-  const { ctxHasSelectedWords } = useContext(FormatContext)
+  return (
+    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={handleClick} >
+        <BiFont fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.5em" />
+        <div
+          //using embbed style for the color display for now, may move to tailwind after some research
+          style={
+            { 
+              width: "100%",
+              height: "0.25rem",
+              background:`${ctxHasSelectedWords ? ctxTextColor : '#FFFFFF'}`,
+              marginTop:"0.05rem",
+            }
+          }
+        >
+        </div>
+      </button>
+      {
+        ctxColorAction === ColorActionType.textColor && (
+          <div className="relative z-10">
+            <div className="absolute top-6 -left-6">
+              <SwatchesPicker color={ctxTextColor} onChange={handleChange} />
+            </div>
+          </div>
+        )
+      }
+    </div>
+  );
+};
+
+export const ClearFormatBtn = ({resetColorFill, resetBorderColor, resetTextColor, setColorAction} : {
+  resetColorFill: (arg: string) => void;
+  resetBorderColor: (arg: string) => void;
+  resetTextColor: (arg: string) => void;
+  setColorAction: (arg: number) => void,
+})  => {
+
+  const { ctxHasSelectedWords } = useContext(FormatContext);
+
+  const handleClick = () => {
+    if (ctxHasSelectedWords) {
+      setColorAction(ColorActionType.resetColor);
+      resetColorFill(DEFAULT_COLOR_FILL);
+      resetBorderColor(DEFAULT_BORDER_COLOR);
+      resetTextColor(DEFAULT_TEXT_COLOR);
+    }
+  }
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => { console.log("Clear Format") }} >
+        onClick={handleClick} >
         <AiOutlineClear fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
       </button>
       <ToolTip text="Clear format" />
