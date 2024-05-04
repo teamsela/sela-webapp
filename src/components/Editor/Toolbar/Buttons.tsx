@@ -279,19 +279,21 @@ export const ClearFormatBtn = ({resetColorFill, resetBorderColor, resetTextColor
 export const UniformWidthBtn = ({setUniformWidth} : {
   setUniformWidth: (arg: boolean) => void,
 }) => {
-  const { uniformSize } = useContext(FormatContext);
+  const { ctxUniformWidth } = useContext(FormatContext);
 
   const handleClick = () => {
-    setUniformWidth(!uniformSize);
+    setUniformWidth(!ctxUniformWidth);
   }
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
         onClick={handleClick} >
-        <TbArrowAutofitContent opacity="0.4" fontSize="1.5em" />
+        <TbArrowAutofitContent fontSize="1.5em" />
       </button>
-      <ToolTip text="Uniform block size" />
+      {
+        ctxUniformWidth ? (<ToolTip text="Disable uniform width" />) : (<ToolTip text="Enable uniform width" />)
+      }
     </div>
   );
 };
