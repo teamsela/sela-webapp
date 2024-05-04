@@ -75,8 +75,8 @@ const Editor = ({
             setBorderColor={setBorderColor}
             setTextColor={setTextColor}
           />
-          <main>
-            <div {...passageDivStyle}>
+          <main className="flex">
+            <div className="mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-x-auto whitespace-nowrap mr-8" {...passageDivStyle}>
               <Passage content={content} />
             </div>
           </main>

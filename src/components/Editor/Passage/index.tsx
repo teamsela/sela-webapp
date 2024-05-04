@@ -4,6 +4,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 
 type ZoomLevel = {
+<<<<<<< HEAD
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string };
 }
 const zoomLevelMap : ZoomLevel = {
@@ -18,6 +19,22 @@ const zoomLevelMap : ZoomLevel = {
   8:  { fontSize: "text-2xl",  verseNumMl: "ml-4",   verseNumMr: "mr-2.5" },
   9:  { fontSize: "text-3xl",  verseNumMl: "ml-5",   verseNumMr: "mr-3" },
   10: { fontSize: "text-4xl",  verseNumMl: "ml-6",   verseNumMr: "mr-4" },
+=======
+  [level: number]: { fontSize: string, verseNumMr: string, width: string, height: string };
+}
+const zoomLevelMap : ZoomLevel = {
+  0:  { fontSize: "text-4xs",  verseNumMr: "mr-0.5", width: "w-15", height: "h-5"},
+  1:  { fontSize: "text-4xs",  verseNumMr: "mr-0.5", width: "w-15", height: "h-5"},
+  2:  { fontSize: "text-3xs",  verseNumMr: "mr-0.5", width: "w-20", height: "h-10"},
+  3:  { fontSize: "text-2xs",  verseNumMr: "mr-0.5", width: "w-25", height: "h-10"},
+  4:  { fontSize: "text-xs",   verseNumMr: "mr-0.5", width: "w-30", height: "h-10"},
+  5:  { fontSize: "text-sm",   verseNumMr: "mr-1", width: "w-35", height: "h-10"},
+  6:  { fontSize: "text-base", verseNumMr: "mr-1", width: "w-40", height: "h-12" },
+  7:  { fontSize: "text-lg",   verseNumMr: "mr-1", width: "w-45", height: "h-15" },
+  8:  { fontSize: "text-xl",   verseNumMr: "mr-1", width: "w-50", height: "h-15" },
+  9:  { fontSize: "text-2xl",  verseNumMr: "mr-2", width: "w-55", height: "h-15" },
+  10: { fontSize: "text-3xl",  verseNumMr: "mr-2", width: "w-60", height: "h-15"},
+>>>>>>> d379ac7 (added uniform width and height)
 }
 
 const Word = ({
@@ -72,6 +89,7 @@ const Word = ({
   } 
 
   return (
+<<<<<<< HEAD
     <div 
       key={hebWord.id}
       className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-[#FFC300]" : "rounded border" }
@@ -80,6 +98,17 @@ const Word = ({
           background: `${colorFillLocal}`, 
           border: `2px solid ${borderColorLocal}`,
           color: `${textColorLocal}`
+=======
+    <div key={word.id} className={ selected ? "border-2 border-black" : "" }>
+      <span
+        className={`flex items-center text-wrap justify-center rounded border select-none px-2 py-1 text-center hover:opacity-60  
+        ${zoomLevelMap[zoomLevel].width} ${zoomLevelMap[zoomLevel].height}`} 
+        onClick={handleClick}
+        style={
+            { 
+              background:`rgba(${colorFillLocal.r},${colorFillLocal.g},${colorFillLocal.b},${colorFillLocal.a})`, 
+            }
+>>>>>>> d379ac7 (added uniform width and height)
         }
     }>
       <span
