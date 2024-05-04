@@ -79,7 +79,7 @@ const Editor = ({
             setTextColor={setTextColor}
             setUniformWidth={setUniformTextSize}
           />
-          <main className="flex">
+          <main>
             <div {...passageDivStyle}>
               <Passage content={content} />
             </div>
