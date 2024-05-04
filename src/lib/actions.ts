@@ -165,6 +165,8 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   } catch (error) {
     return { message: 'Database Error: Failed to update color for study:' + studyId + ', result: ' + result };
   }
+
+  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
 
@@ -213,10 +215,6 @@ export async function fetchPassageContent(studyId: string) {
           // fetch all words from xata by start/end chapter and verse
           if (passageInfo instanceof Error === false)
           {
-              // Add noStore() here to prevent the response from being cached.
-              // This is equivalent to in fetch(..., {cache: 'no-store'}).
-              noStore();
-
               const colorStyling = await xataClient.db.styling
                 .filter({studyId: study.id})
                 .select(['hebId', 'colorFill', 'borderColor', 'textColor'])
