@@ -24,7 +24,8 @@ export const FormatContext = createContext({
   ctxColorAction: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
-  ctxTextColor: "" as string
+  ctxTextColor: "" as string,
+  uniformSize: true
 });
 
 const Editor = ({ 
@@ -44,6 +45,7 @@ const Editor = ({
     const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
     const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
     const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
+    const [uniformTextSize, setUniformTextSize] = useState(true);
 
     const formatContextValue = {
       ctxStudyId: study.id,
@@ -56,7 +58,8 @@ const Editor = ({
       ctxColorAction: colorAction,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
-      ctxTextColor: textColor
+      ctxTextColor: textColor,
+      uniformSize: uniformTextSize
     }
 
     const passageDivStyle = {
@@ -74,6 +77,7 @@ const Editor = ({
             setColorFill={setColorFill}
             setBorderColor={setBorderColor}
             setTextColor={setTextColor}
+            setUniformWidth={setUniformTextSize}
           />
           <main>
             <div {...passageDivStyle}>

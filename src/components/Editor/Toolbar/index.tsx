@@ -9,7 +9,8 @@ const Toolbar = ({
   setColorAction,
   setColorFill,
   setBorderColor,
-  setTextColor
+  setTextColor,
+  setUniformWidth
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -17,6 +18,7 @@ const Toolbar = ({
   setColorFill: (arg: string) => void;
   setBorderColor: (arg: string) => void;
   setTextColor: (arg: string) => void;
+  setUniformWidth: (arg: boolean) => void;
 } ) => {
   
   const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
@@ -41,7 +43,7 @@ const Toolbar = ({
       <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
       <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
       <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
-      <UniformWidthBtn />
+      <UniformWidthBtn setUniformWidth={setUniformWidth}/>
       <NewStropheBtn />
       <NewStanzaBtn />
       <AddIndentBtn />
