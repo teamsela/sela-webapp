@@ -14,10 +14,10 @@ const zoomLevelMap: ZoomLevel = {
   4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-24", height: "h-9" },
   5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10" },
   6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11" },
-  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-7", width: "w-36", height: "h-12" },
-  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-8", width: "w-40", height: "h-13" },
-  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-9.5", width: "w-48", height: "h-16" },
-  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-11", width: "w-60", height: "h-20" },
+  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12" },
+  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13" },
+  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16" },
+  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20" },
 }
 
 const MAX_CHARS_IN_ROW = 7;
@@ -70,7 +70,7 @@ const Word = ({
   }
 
   const verseNumStyles = {
-    className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 left-0 sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
+    className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0':'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
   }
 
   let fontSize = zoomLevelMap[ctxZoomLevel].fontSize;
