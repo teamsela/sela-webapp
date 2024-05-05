@@ -6,18 +6,18 @@ import { ColorActionType } from "@/lib/types";
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string };
 }
-const zoomLevelMap : ZoomLevel = {
-  0:  { fontSize: "text-4xs",  verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-11", height: "h-4"  },
-  1:  { fontSize: "text-3xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4",   width: "w-13", height: "h-5"  },
-  2:  { fontSize: "text-2xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-17", height: "h-7"  },
-  3:  { fontSize: "text-xs",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5",   width: "w-20", height: "h-8"  },
-  4:  { fontSize: "text-sm",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-24", height: "h-9"  },
-  5:  { fontSize: "text-base", verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-20", hbHeight: "h-6",   width: "w-28", height: "h-10" },
-  6:  { fontSize: "text-lg",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11" },
-  7:  { fontSize: "text-xl",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-30", hbHeight: "h-7",   width: "w-36", height: "h-12" },
-  8:  { fontSize: "text-2xl",  verseNumMl: "ml-4",   verseNumMr: "mr-1",   hbWidth: "w-32", hbHeight: "h-8",   width: "w-40", height: "h-13" },
-  9:  { fontSize: "text-3xl",  verseNumMl: "ml-5",   verseNumMr: "mr-2",   hbWidth: "w-36", hbHeight: "h-9.5", width: "w-48", height: "h-16" },
-  10: { fontSize: "text-4xl",  verseNumMl: "ml-6",   verseNumMr: "mr-2",   hbWidth: "w-40", hbHeight: "h-11",  width: "w-60", height: "h-20" },
+const zoomLevelMap: ZoomLevel = {
+  0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-11", height: "h-4", },
+  1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-13", height: "h-5" },
+  2: { fontSize: "text-2xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-17", height: "h-7" },
+  3: { fontSize: "text-xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5", width: "w-20", height: "h-8" },
+  4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-24", height: "h-9" },
+  5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10" },
+  6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11" },
+  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12" },
+  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13" },
+  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16" },
+  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20" },
 }
 
 const MAX_CHARS_IN_ROW = 7;
@@ -60,7 +60,7 @@ const Word = ({
     if (!ctxSelectedWords.includes(hebWord.id) && selected) {
       setSelected(false);
     }
-  },[ctxSelectedWords, hebWord.id, selected]);
+  }, [ctxSelectedWords, hebWord.id, selected]);
 
   const handleClick = () => {
     setSelected(prevState => !prevState);
@@ -70,13 +70,12 @@ const Word = ({
   }
 
   const verseNumStyles = {
-    className: `font-features sups w-1 ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMl : zoomLevelMap[ctxZoomLevel].verseNumMr}`
-  } 
+    className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0':'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
+  }
 
   let fontSize = zoomLevelMap[ctxZoomLevel].fontSize;
 
-  if (ctxUniformWidth && !ctxIsHebrew)
-  {
+  if (ctxUniformWidth && !ctxIsHebrew) {
     let numOfRows = 1, rowSize = MAX_CHARS_IN_ROW;
     let stringsInHebWord = hebWord.gloss.split(" ");
     (stringsInHebWord.length > 1) && stringsInHebWord.forEach((word) => {
@@ -100,24 +99,28 @@ const Word = ({
   const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
 
   return (
-    <div 
+    <div
       key={hebWord.id}
-      className={ selected ? "rounded border outline outline-offset-1 outline-2 outline-[#FFC300]" : "rounded border" }
+      className={selected ? "rounded border outline outline-offset-1 outline-2 outline-[#FFC300]" : "rounded border"}
       style={
-        { 
-          background: `${colorFillLocal}`, 
+        {
+          background: `${colorFillLocal}`,
           border: `2px solid ${borderColorLocal}`,
           color: `${textColorLocal}`
         }
-    }>
+      }>
       <span
-        className={`flex items-center justify-center select-none px-2 py-1 text-center hover:opacity-60 leading-none 
-        ${fontSize}
-        ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+        className="flex"
         onClick={handleClick}
       >
-        {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : "" }
-        {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+        {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : ""}
+        <span
+          className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none 
+        ${fontSize}
+        ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+        >
+          {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+        </span>
       </span>
     </div>
   );
@@ -125,43 +128,43 @@ const Word = ({
 }
 
 
-const Passage = ({ 
-    content
-  }: {
-    content: PassageData;
-  }) => {
+const Passage = ({
+  content
+}: {
+  content: PassageData;
+}) => {
 
   const { ctxIsHebrew } = useContext(FormatContext)
 
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${ctxIsHebrew ? "hbFont " : ""}`
+      className: `flex gap-2 mb-2`
     }
   }
 
   return (
     <div>
-    {
-      content.chapters.map((chapter) => (
-        chapter.verses.map((verse) => (
-          verse.paragraphs.map((paragraph, p_index) => (
-            <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-              {
-                paragraph.words.map((word, index) => (
-                    <Word 
-                      key={word.id} 
+      {
+        content.chapters.map((chapter) => (
+          chapter.verses.map((verse) => (
+            verse.paragraphs.map((paragraph, p_index) => (
+              <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
+                {
+                  paragraph.words.map((word, index) => (
+                    <Word
+                      key={word.id}
                       verseNumber={verse.id}
                       hebWord={word}
                       index={index}
                     />
                   )
-                )
-              }
-            </div>
+                  )
+                }
+              </div>
+            ))
           ))
         ))
-      ))
-    }
+      }
     </div>
   );
 };
