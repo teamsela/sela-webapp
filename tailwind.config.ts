@@ -70,6 +70,7 @@ const config: Config = {
         "title-md2": ["26px", "30px"],
         "title-sm": ["20px", "26px"],
         "title-xsm": ["18px", "24px"],
+        "6xs": ["3px", "4px"],
         "5xs": ["4px", "6px"],
         "4xs": ["6px", "8px"],
         "3xs": ["8px", "10px"],
