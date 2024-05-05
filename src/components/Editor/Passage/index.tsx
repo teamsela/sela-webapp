@@ -7,7 +7,7 @@ type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string };
 }
 const zoomLevelMap : ZoomLevel = {
-  0:  { fontSize: "text-4xs",  verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-10", height: "h-4"  },
+  0:  { fontSize: "text-4xs",  verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-11", height: "h-4"  },
   1:  { fontSize: "text-3xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4",   width: "w-13", height: "h-5"  },
   2:  { fontSize: "text-2xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-17", height: "h-7"  },
   3:  { fontSize: "text-xs",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5",   width: "w-20", height: "h-8"  },
@@ -19,6 +19,8 @@ const zoomLevelMap : ZoomLevel = {
   9:  { fontSize: "text-3xl",  verseNumMl: "ml-5",   verseNumMr: "mr-2",   hbWidth: "w-36", hbHeight: "h-9.5", width: "w-48", height: "h-16" },
   10: { fontSize: "text-4xl",  verseNumMl: "ml-6",   verseNumMr: "mr-2",   hbWidth: "w-40", hbHeight: "h-11",  width: "w-60", height: "h-20" },
 }
+
+const MAX_CHARS_IN_ROW = 7;
 
 const Word = ({
   verseNumber, hebWord, index
@@ -75,18 +77,18 @@ const Word = ({
 
   if (ctxUniformWidth && !ctxIsHebrew)
   {
-    let numOfRows = 1, rowSize = 7;
+    let numOfRows = 1, rowSize = MAX_CHARS_IN_ROW;
     let stringsInHebWord = hebWord.gloss.split(" ");
     (stringsInHebWord.length > 1) && stringsInHebWord.forEach((word) => {
-      console.log("rowSize: ", rowSize);
+      //console.log("rowSize: ", rowSize);
       if (rowSize - word.length <= 0) {
         numOfRows++;
-        rowSize = 7;
+        rowSize = MAX_CHARS_IN_ROW;
       }
       rowSize = rowSize - word.length;
     });
     (rowSize < 0) && numOfRows++;
-    console.log("gloss: ", hebWord.gloss, "rowSize: ", rowSize, "numOfRows: ", numOfRows);
+    //console.log("gloss: ", hebWord.gloss, "rowSize: ", rowSize, "numOfRows: ", numOfRows);
     if (hebWord.gloss.length > 14 && numOfRows > 2) {
       fontSize = (ctxZoomLevel > 0) ? zoomLevelMap[ctxZoomLevel-1].fontSize : "text-5xs";
     }
