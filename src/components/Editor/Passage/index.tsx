@@ -4,20 +4,20 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 
 type ZoomLevel = {
-  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, width: string, height: string };
+  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string };
 }
 const zoomLevelMap : ZoomLevel = {
-  0:  { fontSize: "text-4xs",  verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", width: "w-15", height: "h-5"},
-  1:  { fontSize: "text-3xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", width: "w-15", height: "h-10"},
-  2:  { fontSize: "text-2xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", width: "w-20", height: "h-10"},
-  3:  { fontSize: "text-xs",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", width: "w-25", height: "h-12"},
-  4:  { fontSize: "text-sm",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", width: "w-30", height: "h-15"},
-  5:  { fontSize: "text-base", verseNumMl: "ml-3",   verseNumMr: "mr-1",   width: "w-35", height: "h-15"},
-  6:  { fontSize: "text-lg",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   width: "w-40", height: "h-15" },
-  7:  { fontSize: "text-xl",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   width: "w-45", height: "h-15" },
-  8:  { fontSize: "text-2xl",  verseNumMl: "ml-4",   verseNumMr: "mr-1",   width: "w-50", height: "h-15" },
-  9:  { fontSize: "text-3xl",  verseNumMl: "ml-5",   verseNumMr: "mr-2",   width: "w-60", height: "h-20" },
-  10: { fontSize: "text-4xl",  verseNumMl: "ml-6",   verseNumMr: "mr-2",   width: "w-70", height: "h-20"},
+  0:  { fontSize: "text-4xs",  verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-10", height: "h-4"  },
+  1:  { fontSize: "text-3xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4",   width: "w-13", height: "h-5"  },
+  2:  { fontSize: "text-2xs",  verseNumMl: "ml-1",   verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-17", height: "h-7"  },
+  3:  { fontSize: "text-xs",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5",   width: "w-20", height: "h-8"  },
+  4:  { fontSize: "text-sm",   verseNumMl: "ml-2",   verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-24", height: "h-9"  },
+  5:  { fontSize: "text-base", verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-20", hbHeight: "h-6",   width: "w-28", height: "h-10" },
+  6:  { fontSize: "text-lg",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11" },
+  7:  { fontSize: "text-xl",   verseNumMl: "ml-3",   verseNumMr: "mr-1",   hbWidth: "w-30", hbHeight: "h-7",   width: "w-36", height: "h-12" },
+  8:  { fontSize: "text-2xl",  verseNumMl: "ml-4",   verseNumMr: "mr-1",   hbWidth: "w-32", hbHeight: "h-8",   width: "w-40", height: "h-13" },
+  9:  { fontSize: "text-3xl",  verseNumMl: "ml-5",   verseNumMr: "mr-2",   hbWidth: "w-36", hbHeight: "h-9.5", width: "w-48", height: "h-16" },
+  10: { fontSize: "text-4xl",  verseNumMl: "ml-6",   verseNumMr: "mr-2",   hbWidth: "w-40", hbHeight: "h-11",  width: "w-60", height: "h-20" },
 }
 
 const Word = ({
@@ -68,8 +68,32 @@ const Word = ({
   }
 
   const verseNumStyles = {
-      className: `font-features sups w-1 ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMl : zoomLevelMap[ctxZoomLevel].verseNumMr}`
+    className: `font-features sups w-1 ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMl : zoomLevelMap[ctxZoomLevel].verseNumMr}`
   } 
+
+  let fontSize = zoomLevelMap[ctxZoomLevel].fontSize;
+
+  if (ctxUniformWidth && !ctxIsHebrew)
+  {
+    let numOfRows = 1, rowSize = 7;
+    let stringsInHebWord = hebWord.gloss.split(" ");
+    (stringsInHebWord.length > 1) && stringsInHebWord.forEach((word) => {
+      console.log("rowSize: ", rowSize);
+      if (rowSize - word.length <= 0) {
+        numOfRows++;
+        rowSize = 7;
+      }
+      rowSize = rowSize - word.length;
+    });
+    (rowSize < 0) && numOfRows++;
+    console.log("gloss: ", hebWord.gloss, "rowSize: ", rowSize, "numOfRows: ", numOfRows);
+    if (hebWord.gloss.length > 14 && numOfRows > 2) {
+      fontSize = (ctxZoomLevel > 0) ? zoomLevelMap[ctxZoomLevel-1].fontSize : "text-5xs";
+    }
+  }
+
+  const hebBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].hbWidth} ${zoomLevelMap[ctxZoomLevel].hbHeight}`;
+  const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
 
   return (
     <div 
@@ -83,12 +107,13 @@ const Word = ({
         }
     }>
       <span
-        className={`flex items-center justify-center select-none px-2 py-1 text-center hover:opacity-60 
-        ${ctxUniformWidth ? `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap` : ""}`}
+        className={`flex items-center justify-center select-none px-2 py-1 text-center hover:opacity-60 leading-none 
+        ${fontSize}
+        ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
         onClick={handleClick}
       >
         {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : "" }
-        {!ctxIsHebrew ? hebWord.gloss : hebWord.wlcWord}
+        {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
       </span>
     </div>
   );
@@ -102,11 +127,11 @@ const Passage = ({
     content: PassageData;
   }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew } = useContext(FormatContext)
+  const { ctxIsHebrew } = useContext(FormatContext)
 
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${ctxIsHebrew ? "hbFont " : ""}${zoomLevelMap[ctxZoomLevel].fontSize}`
+      className: `flex gap-2 mb-2 ${ctxIsHebrew ? "hbFont " : ""}`
     }
   }
 

@@ -247,7 +247,7 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.verse = word.verse || 0;
                   hebWord.strongNumber = word.strongNumber || 0;
                   hebWord.wlcWord = word.wlcWord || "";
-                  hebWord.gloss = word.gloss || "";
+                  hebWord.gloss = word.gloss?.trim() || "";
 
                   let currentChapterData = passageData.chapters[currentChapterIdx];
                   if (currentChapterData === undefined || currentChapterData.id != hebWord.chapter) {
