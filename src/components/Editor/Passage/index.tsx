@@ -89,8 +89,10 @@ const Word = ({
     });
     (rowSize < 0) && numOfRows++;
     //console.log("gloss: ", hebWord.gloss, "rowSize: ", rowSize, "numOfRows: ", numOfRows);
-    if (hebWord.gloss.length > 14 && numOfRows > 2) {
+    if (hebWord.gloss.length > MAX_CHARS_IN_ROW * 2 && numOfRows > 2) {
       fontSize = (ctxZoomLevel > 0) ? zoomLevelMap[ctxZoomLevel-1].fontSize : "text-5xs";
+      if (hebWord.gloss.length > MAX_CHARS_IN_ROW * 3)
+        fontSize = (ctxZoomLevel > 1) ? zoomLevelMap[ctxZoomLevel-2].fontSize : "text-6xs";
     }
   }
 
