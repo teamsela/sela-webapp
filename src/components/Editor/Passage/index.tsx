@@ -136,7 +136,7 @@ const Passage = ({
 
   const styles = {
     container: {
-      className: `flex gap-2 mb-2 ${ctxIsHebrew ? "hbFont " : ""}`
+      className: `flex gap-2 mb-2`
     }
   }
 
