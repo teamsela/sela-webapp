@@ -298,6 +298,38 @@ export const UniformWidthBtn = ({setUniformWidth} : {
   );
 };
 
+export const LeftIndentBtn = () => {
+
+  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth } = useContext(FormatContext);
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("Add Indent Clicked")} >
+        <CgFormatIndentIncrease fillOpacity={ctxUniformWidth && ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.5em" />
+      </button>
+      <ToolTip text={ctxIsHebrew ? "Remove Ident" : "Add indent"} />
+    </div>
+  );
+};
+
+export const RightIndentBtn = () => {
+
+  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth } = useContext(FormatContext);
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+      <button 
+        className="hover:text-primary"
+        onClick={() => console.log("Remove Indent Clicked")} >
+        <CgFormatIndentDecrease fillOpacity={ctxUniformWidth && ctxHasSelectedWords ? "1" : "0.4"}  fontSize="1.5em" />
+      </button>
+      <ToolTip text={ctxIsHebrew ? "Add Ident" : "Remove indent"} />
+    </div>
+  );
+};
+
 export const NewStropheBtn = () => {
 
   return (
@@ -315,7 +347,7 @@ export const NewStropheBtn = () => {
 export const NewStanzaBtn = () => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
         onClick={() => console.log("New Stanza Clicked")} >
@@ -354,30 +386,3 @@ export const MoveDownBtn = () => {
   );
 };
 
-export const AddIndentBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Add Indent Clicked")} >
-        <CgFormatIndentIncrease opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="Add indent" />
-    </div>
-  );
-};
-
-export const RemoveIndentBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button 
-        className="hover:text-primary"
-        onClick={() => console.log("Remove Indent Clicked")} >
-        <CgFormatIndentDecrease opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="Remove indent" />
-    </div>
-  );
-};

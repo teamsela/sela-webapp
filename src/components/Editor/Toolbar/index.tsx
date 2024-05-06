@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, AddIndentBtn, RemoveIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -45,10 +45,10 @@ const Toolbar = ({
         <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
         <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
         <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+        <LeftIndentBtn />
+        <RightIndentBtn />
         <NewStropheBtn />
         <NewStanzaBtn />
-        <AddIndentBtn />
-        <RemoveIndentBtn />
         <MoveUpBtn />
         <MoveDownBtn />
       </div>
