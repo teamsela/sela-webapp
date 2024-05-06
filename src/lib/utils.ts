@@ -198,3 +198,51 @@ export function parsePassageInfo(inputString: string) : PassageInfo | Error {
 
   return result;
 }
+
+function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
+  // Measure the width of the text
+  const metrics = context.measureText(text);
+  
+  // Return the width
+  return metrics.width;
+}
+
+// Function to break a string into lines under a fixed width constraint
+export function wrapText(
+  text: string,
+  context: CanvasRenderingContext2D,
+  maxWidth: number
+): number {
+  
+  // Split the text by spaces to form words
+  const words = text.split(/[\s-]+/);
+  let lineCount : number = 0;
+  let currentLine = '';
+  
+  // Iterate over words
+  for (const word of words) {
+    const testLine = currentLine + (currentLine === '' ? '' : ' ') + word;
+    
+    // Measure the width of the test line
+    const testLineWidth = measureStringWidth(context, testLine);    
+
+    // Check if the test line width is within the max width constraint
+    if (testLineWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      // If the test line is too wide, add the current line to the lines array
+      lineCount++;
+
+      // Start a new line with the current word
+      currentLine = word;
+    }
+  }
+  
+  // Add the last line
+  if (currentLine) {
+    lineCount++;
+    (measureStringWidth(context, currentLine) >= maxWidth) && lineCount++;
+  }
+  
+  return lineCount;
+}
