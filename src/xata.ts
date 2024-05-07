@@ -36,7 +36,17 @@ const tables = [
     ],
   },
   {
-    name: "Discovery_xata_q1_q2",
+    name: "styling",
+    columns: [
+      { name: "studyId", type: "link", link: { table: "study" } },
+      { name: "colorFill", type: "string" },
+      { name: "borderColor", type: "string" },
+      { name: "textColor", type: "string" },
+      { name: "hebId", type: "int", notNull: true, defaultValue: "0" },
+    ],
+  },
+  {
+    name: "heb_bible_bsb",
     columns: [
       { name: "hebId", type: "int" },
       { name: "book", type: "string" },
@@ -50,18 +60,8 @@ const tables = [
       { name: "WLCsort", type: "int" },
       { name: "poetryMarker", type: "bool" },
       { name: "paragraphMarker", type: "bool" },
-      { name: "q1", type: "bool" },
-      { name: "q2", type: "bool" },
-    ],
-  },
-  {
-    name: "styling",
-    columns: [
-      { name: "studyId", type: "link", link: { table: "study" } },
-      { name: "colorFill", type: "string" },
-      { name: "borderColor", type: "string" },
-      { name: "textColor", type: "string" },
-      { name: "hebId", type: "int", notNull: true, defaultValue: "0" },
+      { name: "verseBreak", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
     ],
   },
 ] as const;
@@ -75,17 +75,17 @@ export type StudyRecord = Study & XataRecord;
 export type HebBible = InferredTypes["heb_bible"];
 export type HebBibleRecord = HebBible & XataRecord;
 
-export type DiscoveryXataQ1Q2 = InferredTypes["Discovery_xata_q1_q2"];
-export type DiscoveryXataQ1Q2Record = DiscoveryXataQ1Q2 & XataRecord;
-
 export type Styling = InferredTypes["styling"];
 export type StylingRecord = Styling & XataRecord;
+
+export type HebBibleBsb = InferredTypes["heb_bible_bsb"];
+export type HebBibleBsbRecord = HebBibleBsb & XataRecord;
 
 export type DatabaseSchema = {
   study: StudyRecord;
   heb_bible: HebBibleRecord;
-  Discovery_xata_q1_q2: DiscoveryXataQ1Q2Record;
   styling: StylingRecord;
+  heb_bible_bsb: HebBibleBsbRecord;
 };
 
 const DatabaseClient = buildClient();

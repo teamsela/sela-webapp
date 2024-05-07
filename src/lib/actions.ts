@@ -226,7 +226,7 @@ export async function fetchPassageContent(studyId: string) {
                 colorStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor });
               });
 
-              const passageContent = await xataClient.db.heb_bible
+              const passageContent = await xataClient.db.heb_bible_bsb
                   .filter("chapter", ge(passageInfo.startChapter))
                   .filter("chapter", le(passageInfo.endChapter))
                   .filter("verse", ge(passageInfo.startVerse))
@@ -266,7 +266,7 @@ export async function fetchPassageContent(studyId: string) {
                   }
 
                   let currentParagraphData = currentVerseData.paragraphs[currentParagraphIdx];
-                  if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker) {
+                  if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker || word.verseBreak) {
                       currentVerseData.paragraphs.push({words: []});
                       currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
                   }
