@@ -29,7 +29,7 @@ const WordBlock = ({
   index: number;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetHasSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, cxtIndentWord } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetHasSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -66,6 +66,7 @@ const WordBlock = ({
     setSelected(prevState => !prevState);
     (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
     ctxSetSelectedWords(ctxSelectedWords);
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
     ctxSetHasSelectedWords(ctxSelectedWords.length > 0);
   }
 
@@ -105,7 +106,7 @@ const WordBlock = ({
     <div
       key={hebWord.id}
       className={`mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      ${ctxUniformWidth && cxtIndentWord.includes(hebWord.id) ? indentStyle : ''}`}
+      ${ctxUniformWidth && ctxIndentWord.includes(hebWord.id) ? indentStyle : ''}`}
       style={
         {
           background: `${colorFillLocal}`,
@@ -117,7 +118,7 @@ const WordBlock = ({
         className="flex"
         onClick={handleClick}
       >
-        {<sup {...verseNumStyles}>{index === 0 ? verseNumber : ""}</sup>}
+        {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
         <span
           className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
@@ -152,15 +153,13 @@ const Passage = ({
             verse.paragraphs.map((paragraph, p_index) => (
               <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
                 {
-                  paragraph.words.map((word, index) => {
-                    console.log();
-                    return (<WordBlock
+                  paragraph.words.map((word, index) => (
+                    <WordBlock
                       key={word.id}
                       verseNumber={verse.id}
                       hebWord={word}
                       index={index}
                     />)
-                  }
                   )
                 }
               </div>

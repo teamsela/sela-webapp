@@ -19,6 +19,8 @@ export const FormatContext = createContext({
   ctxIsHebrew: false,
   ctxSelectedWords: [] as number[],
   ctxSetSelectedWords: (arg: number[]) => {},
+  ctxNumSelectedWords: {} as number,
+  ctxSetNumSelectedWords: (arg: number) =>{},
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
   ctxColorAction: {} as number,
@@ -26,8 +28,8 @@ export const FormatContext = createContext({
   ctxBorderColor: "" as string,
   ctxTextColor: "" as string,
   ctxUniformWidth: false,
-  cxtIndentWord: [] as number[],
-  cxtSetIndentWord: (arg: number[]) => {},
+  ctxIndentWord: [] as number[],
+  ctxSetIndentWord: (arg: number[]) => {},
 });
 
 const Editor = ({ 
@@ -41,6 +43,7 @@ const Editor = ({
 
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
+    const [numSelectedWords, setNumSelectedWords] = useState(0);
 
     const [colorAction, setColorAction] = useState(ColorActionType.none);
 
@@ -56,6 +59,8 @@ const Editor = ({
       ctxIsHebrew: isHebrew,
       ctxSelectedWords: selectedWords,
       ctxSetSelectedWords: setSelectedWords,
+      ctxNumSelectedWords: numSelectedWords,
+      ctxSetNumSelectedWords: setNumSelectedWords,
       ctxHasSelectedWords: hasSelectedWords,
       ctxSetHasSelectedWords: setHasSelectedWords,
       ctxColorAction: colorAction,
@@ -63,8 +68,8 @@ const Editor = ({
       ctxBorderColor: borderColor,
       ctxTextColor: textColor,
       ctxUniformWidth: uniformWidth,
-      cxtIndentWord: indentWord,
-      cxtSetIndentWord: setIndentWord
+      ctxIndentWord: indentWord,
+      ctxSetIndentWord: setIndentWord
     }
 
     const passageDivStyle = {
