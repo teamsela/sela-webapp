@@ -300,13 +300,19 @@ export const UniformWidthBtn = ({setUniformWidth} : {
 
 export const LeftIndentBtn = () => {
 
-  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth } = useContext(FormatContext);
-
+  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth, ctxSelectedWords, cxtIndentWord, cxtSetIndentWord } = useContext(FormatContext);
+  const handleClick = () =>{
+    console.log(`Add Indent Clicked ${ctxSelectedWords}`);
+    if(ctxHasSelectedWords && ctxUniformWidth){
+      cxtSetIndentWord(Array.from(new Set(cxtIndentWord.concat(ctxSelectedWords))));
+      console.log(cxtIndentWord);
+    }
+  }
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Add Indent Clicked")} >
+        onClick={handleClick} >
         <CgFormatIndentIncrease fillOpacity={ctxUniformWidth && ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.5em" />
       </button>
       <ToolTip text={ctxIsHebrew ? "Remove Ident" : "Add indent"} />
@@ -316,13 +322,16 @@ export const LeftIndentBtn = () => {
 
 export const RightIndentBtn = () => {
 
-  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth } = useContext(FormatContext);
-
+  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth, ctxSelectedWords, cxtIndentWord, cxtSetIndentWord } = useContext(FormatContext);
+  const handleClick = () => {
+    console.log("Remove Indent Clicked");
+    cxtSetIndentWord(cxtIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+  }
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
       <button 
         className="hover:text-primary"
-        onClick={() => console.log("Remove Indent Clicked")} >
+        onClick={handleClick} >
         <CgFormatIndentDecrease fillOpacity={ctxUniformWidth && ctxHasSelectedWords ? "1" : "0.4"}  fontSize="1.5em" />
       </button>
       <ToolTip text={ctxIsHebrew ? "Add Ident" : "Remove indent"} />

@@ -25,7 +25,9 @@ export const FormatContext = createContext({
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
   ctxTextColor: "" as string,
-  ctxUniformWidth: false
+  ctxUniformWidth: false,
+  cxtIndentWord: [] as number[],
+  cxtSetIndentWord: (arg: number[]) => {},
 });
 
 const Editor = ({ 
@@ -46,6 +48,7 @@ const Editor = ({
     const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
     const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
     const [uniformWidth, setUniformWidth] = useState(false);
+    const [indentWord, setIndentWord] = useState<number[]>([]);
 
     const formatContextValue = {
       ctxStudyId: study.id,
@@ -59,7 +62,9 @@ const Editor = ({
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
       ctxTextColor: textColor,
-      ctxUniformWidth: uniformWidth
+      ctxUniformWidth: uniformWidth,
+      cxtIndentWord: indentWord,
+      cxtSetIndentWord: setIndentWord
     }
 
     const passageDivStyle = {
@@ -78,6 +83,7 @@ const Editor = ({
             setBorderColor={setBorderColor}
             setTextColor={setTextColor}
             setUniformWidth={setUniformWidth}
+            setIndentWord={setIndentWord}
           />
           <main>
             <div {...passageDivStyle}>
