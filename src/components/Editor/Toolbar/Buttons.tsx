@@ -304,8 +304,13 @@ export const LeftIndentBtn = () => {
   const handleClick = () =>{
     console.log(`Add Indent Clicked ${ctxSelectedWords}`);
     if(ctxHasSelectedWords && ctxUniformWidth){
-      cxtSetIndentWord(Array.from(new Set(cxtIndentWord.concat(ctxSelectedWords))));
-      console.log(cxtIndentWord);
+      if(ctxIsHebrew){
+        cxtSetIndentWord(cxtIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+      }
+      else{
+        cxtSetIndentWord(Array.from(new Set(cxtIndentWord.concat(ctxSelectedWords))));
+        console.log(cxtIndentWord);
+      }
     }
   }
   return (
@@ -325,7 +330,13 @@ export const RightIndentBtn = () => {
   const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth, ctxSelectedWords, cxtIndentWord, cxtSetIndentWord } = useContext(FormatContext);
   const handleClick = () => {
     console.log("Remove Indent Clicked");
-    cxtSetIndentWord(cxtIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+    if(ctxIsHebrew){
+      cxtSetIndentWord(Array.from(new Set(cxtIndentWord.concat(ctxSelectedWords))));
+      console.log(cxtIndentWord);
+    }
+    else{
+      cxtSetIndentWord(cxtIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+    }
   }
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
