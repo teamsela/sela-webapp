@@ -19,13 +19,17 @@ export const FormatContext = createContext({
   ctxIsHebrew: false,
   ctxSelectedWords: [] as number[],
   ctxSetSelectedWords: (arg: number[]) => {},
+  ctxNumSelectedWords: {} as number,
+  ctxSetNumSelectedWords: (arg: number) =>{},
   ctxHasSelectedWords: false,
   ctxSetHasSelectedWords: (arg: boolean) => {},
   ctxColorAction: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
   ctxTextColor: "" as string,
-  ctxUniformWidth: false
+  ctxUniformWidth: false,
+  ctxIndentWord: [] as number[],
+  ctxSetIndentWord: (arg: number[]) => {},
 });
 
 const Editor = ({ 
@@ -39,6 +43,7 @@ const Editor = ({
 
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
     const [hasSelectedWords, setHasSelectedWords] = useState(false);
+    const [numSelectedWords, setNumSelectedWords] = useState(0);
 
     const [colorAction, setColorAction] = useState(ColorActionType.none);
 
@@ -46,6 +51,7 @@ const Editor = ({
     const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
     const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
     const [uniformWidth, setUniformWidth] = useState(false);
+    const [indentWord, setIndentWord] = useState<number[]>([]);
 
     const formatContextValue = {
       ctxStudyId: study.id,
@@ -53,13 +59,17 @@ const Editor = ({
       ctxIsHebrew: isHebrew,
       ctxSelectedWords: selectedWords,
       ctxSetSelectedWords: setSelectedWords,
+      ctxNumSelectedWords: numSelectedWords,
+      ctxSetNumSelectedWords: setNumSelectedWords,
       ctxHasSelectedWords: hasSelectedWords,
       ctxSetHasSelectedWords: setHasSelectedWords,
       ctxColorAction: colorAction,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,
       ctxTextColor: textColor,
-      ctxUniformWidth: uniformWidth
+      ctxUniformWidth: uniformWidth,
+      ctxIndentWord: indentWord,
+      ctxSetIndentWord: setIndentWord
     }
 
     const passageDivStyle = {
@@ -78,6 +88,7 @@ const Editor = ({
             setBorderColor={setBorderColor}
             setTextColor={setTextColor}
             setUniformWidth={setUniformWidth}
+            setIndentWord={setIndentWord}
           />
           <main>
             <div {...passageDivStyle}>

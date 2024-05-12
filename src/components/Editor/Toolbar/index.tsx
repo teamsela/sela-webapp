@@ -10,7 +10,8 @@ const Toolbar = ({
   setColorFill,
   setBorderColor,
   setTextColor,
-  setUniformWidth
+  setUniformWidth,
+  setIndentWord
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -19,6 +20,7 @@ const Toolbar = ({
   setBorderColor: (arg: string) => void;
   setTextColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
+  setIndentWord: (arg: number[]) => void
 } ) => {
   
   const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
