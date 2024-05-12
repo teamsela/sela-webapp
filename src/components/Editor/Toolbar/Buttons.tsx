@@ -98,10 +98,10 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords) {
+    if (ctxNumSelectedWords > 0) {
       setColorAction((ctxColorAction != ColorActionType.colorFill) ? ColorActionType.colorFill : ColorActionType.none);
     }
   }
@@ -116,14 +116,14 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       <button
         className="hover:text-primary"
         onClick={handleClick} >
-        <BiSolidColorFill fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <BiSolidColorFill fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
           style={
             {
               width: "100%",
               height: "0.25rem",
-              background: `${ctxHasSelectedWords ? ctxColorFill : '#FFFFFF'}`,
+              background: `${ctxNumSelectedWords > 0 ? ctxColorFill : '#FFFFFF'}`,
               marginTop: "0.05rem",
             }
           }
@@ -150,10 +150,10 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords) {
+    if (ctxNumSelectedWords > 0) {
       setColorAction((ctxColorAction != ColorActionType.borderColor) ? ColorActionType.borderColor : ColorActionType.none);
     }
   }
@@ -168,14 +168,14 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
       <button
         className="hover:text-primary"
         onClick={handleClick} >
-        <MdOutlineModeEdit fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <MdOutlineModeEdit fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
           style={
             {
               width: "100%",
               height: "0.25rem",
-              background: `${ctxHasSelectedWords ? ctxBorderColor : '#FFFFFF'}`,
+              background: `${ctxNumSelectedWords > 0 ? ctxBorderColor : '#FFFFFF'}`,
               marginTop: "0.05rem",
             }
           }
@@ -200,10 +200,10 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxHasSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords) {
+    if (ctxNumSelectedWords > 0) {
       setColorAction((ctxColorAction != ColorActionType.textColor) ? ColorActionType.textColor : ColorActionType.none);
     }
   }
@@ -218,14 +218,14 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
       <button
         className="hover:text-primary"
         onClick={handleClick} >
-        <BiFont fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.5em" />
+        <BiFont fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.5em" />
         <div
           //using embbed style for the color display for now, may move to tailwind after some research
           style={
             {
               width: "100%",
               height: "0.25rem",
-              background: `${ctxHasSelectedWords ? ctxTextColor : '#FFFFFF'}`,
+              background: `${ctxNumSelectedWords > 0 ? ctxTextColor : '#FFFFFF'}`,
               marginTop: "0.05rem",
             }
           }
@@ -252,10 +252,10 @@ export const ClearFormatBtn = ({ resetColorFill, resetBorderColor, resetTextColo
   setColorAction: (arg: number) => void,
 }) => {
 
-  const { ctxStudyId, ctxHasSelectedWords, ctxSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords) {
+    if (ctxNumSelectedWords > 0) {
       setColorAction(ColorActionType.resetColor);
       resetColorFill(DEFAULT_COLOR_FILL);
       resetBorderColor(DEFAULT_BORDER_COLOR);
@@ -269,7 +269,7 @@ export const ClearFormatBtn = ({ resetColorFill, resetBorderColor, resetTextColo
       <button
         className="hover:text-primary"
         onClick={handleClick} >
-        <AiOutlineClear fillOpacity={ctxHasSelectedWords ? "1" : "0.4"} fontSize="1.4em" />
+        <AiOutlineClear fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
       </button>
       <ToolTip text="Clear format" />
     </div>
@@ -300,22 +300,22 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
 
 export const LeftIndentBtn = () => {
 
-  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
-  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && ctxHasSelectedWords && (ctxNumSelectedWords === 1));
+  const { ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
     console.log(ctxNumSelectedWords)
     setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxHasSelectedWords, ctxNumSelectedWords]);
+  }, [ctxUniformWidth, ctxNumSelectedWords]);
 
   const handleClick = () => {
-    if (ctxHasSelectedWords && ctxUniformWidth && ctxSelectedWords.length == 1) {
+    if (ctxUniformWidth && ctxSelectedWords.length == 1) {
       if (ctxIsHebrew) {
         ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
       }
       else {
         ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
       }
-      let newButtonCondition = ctxUniformWidth && ctxHasSelectedWords && (ctxSelectedWords.length === 1);
+      let newButtonCondition = ctxUniformWidth && (ctxSelectedWords.length === 1);
       setButtonCondition(newButtonCondition);
     }
   }
@@ -332,11 +332,11 @@ export const LeftIndentBtn = () => {
 };
 
 export const RightIndentBtn = () => {
-  const { ctxIsHebrew, ctxHasSelectedWords, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
-  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && ctxHasSelectedWords && (ctxNumSelectedWords === 1));
+  const { ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
     setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxHasSelectedWords, ctxNumSelectedWords]);
+  }, [ctxUniformWidth, ctxNumSelectedWords]);
 
   const handleClick = () => {
     if (ctxIsHebrew) {

@@ -21,8 +21,6 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: number[]) => {},
   ctxNumSelectedWords: {} as number,
   ctxSetNumSelectedWords: (arg: number) =>{},
-  ctxHasSelectedWords: false,
-  ctxSetHasSelectedWords: (arg: boolean) => {},
   ctxColorAction: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
@@ -42,7 +40,6 @@ const Editor = ({
     const [isHebrew, setHebrew] = useState(false);
 
     const [selectedWords, setSelectedWords] = useState<number[]>([]);
-    const [hasSelectedWords, setHasSelectedWords] = useState(false);
     const [numSelectedWords, setNumSelectedWords] = useState(0);
 
     const [colorAction, setColorAction] = useState(ColorActionType.none);
@@ -61,8 +58,6 @@ const Editor = ({
       ctxSetSelectedWords: setSelectedWords,
       ctxNumSelectedWords: numSelectedWords,
       ctxSetNumSelectedWords: setNumSelectedWords,
-      ctxHasSelectedWords: hasSelectedWords,
-      ctxSetHasSelectedWords: setHasSelectedWords,
       ctxColorAction: colorAction,
       ctxColorFill: colorFill,
       ctxBorderColor: borderColor,

@@ -23,12 +23,12 @@ const Toolbar = ({
   setIndentWord: (arg: number[]) => void
 } ) => {
   
-  const { ctxZoomLevel, ctxHasSelectedWords } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxNumSelectedWords } = useContext(FormatContext);
   
   useEffect(() => {
-    if (!ctxHasSelectedWords)
+    if (ctxNumSelectedWords > 0)
       setColorAction(ColorActionType.none);
-  }, [ctxHasSelectedWords])
+  }, [ctxNumSelectedWords])
 
   return (
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
