@@ -23,7 +23,7 @@ const Header = ({
   return (
     <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-8">
-        <div className="flex items-center 2xl:w-2/5 w-1/4">
+        <div className="flex items-center 2xl:w-2/5 w-1/3">
           <Link className="block flex-shrink-0" href="/">
             <Image
               width={46}
@@ -36,18 +36,18 @@ const Header = ({
             <Title study={study} />
           </div>
         </div>
-        <div className="flex items-center justify-center w-1/4 2xl:w-1/5 2xl:justify-center ">
+        <div className="flex items-center justify-center w-1/3 2xl:w-1/5 2xl:justify-center ">
           <div className="flex items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
             <h4 className="text-black text-title-sm dark:text-white">Psalm {study.passage}</h4>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 2xsm:gap-6 2xl:w-2/5 w-1/2 justify-end">
+        <div className="flex items-center gap-2 2xsm:gap-6 2xl:w-2/5 w-1/3 justify-end">
           <ul className="flex items-center gap-2 2xsm:gap-4">
-            <div className="hidden sm:block mr-2">
-              <Tabs />
-            </div>
+            {/*<div className="hidden sm:block mr-2">*/}
+            {/* <Tabs /> */}  
+            {/*</div>*/}
             <LanguageSwitcher setLangToHebrew={setLangToHebrew} />
             {/* <!-- Dark Mode Toggler --> */}
             {/*<DarkModeSwitcher />*/}
