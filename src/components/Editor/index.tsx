@@ -10,7 +10,7 @@ import { StudyData, PassageData } from '@/lib/data';
 
 export const DEFAULT_ZOOM_LEVEL : number = 5;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
-export const DEFAULT_BORDER_COLOR = "#656565";
+export const DEFAULT_BORDER_COLOR = "#D9D9D9";
 export const DEFAULT_TEXT_COLOR = "#656565";
 
 export const FormatContext = createContext({
