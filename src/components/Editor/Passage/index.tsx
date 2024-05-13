@@ -22,11 +22,11 @@ const zoomLevelMap: ZoomLevel = {
 }
 
 const WordBlock = ({
-  verseNumber, hebWord, index
+  verseNumber, hebWord, showVerseNum
 }: {
   verseNumber: number;
   hebWord: HebWord;
-  index: number;
+  showVerseNum: boolean;
 }) => {
 
   const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
@@ -117,7 +117,7 @@ const WordBlock = ({
         className="flex"
         onClick={handleClick}
       >
-        {index === 0 ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+        {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
         <span
           className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
@@ -152,12 +152,12 @@ const Passage = ({
             verse.paragraphs.map((paragraph, p_index) => (
               <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
                 {
-                  paragraph.words.map((word, index) => (
+                  paragraph.words.map((word, w_index) => (
                     <WordBlock
                       key={word.id}
                       verseNumber={verse.id}
                       hebWord={word}
-                      index={index}
+                      showVerseNum={p_index === 0 && w_index === 0}
                     />)
                   )
                 }
