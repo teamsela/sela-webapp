@@ -169,6 +169,29 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
+export async function updateIndented(studyId: string, selectedWords: number[], indented: boolean) {
+  "use server";
+
+  let operations: any = [];
+  const xataClient = getXataClient();
+
+  selectedWords.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, indented: indented },
+        upsert: true,
+      },
+    })
+  })
+  let result : any;
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
+  }
+}
 
 export async function deleteStudy(studyId: string) {
 
@@ -217,13 +240,12 @@ export async function fetchPassageContent(studyId: string) {
           {
               const colorStyling = await xataClient.db.styling
                 .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor'])
+                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'indented'])
                 .sort("hebId", "asc")
                 .getMany();
-              
               const colorStylingMap = new Map();
               colorStyling.forEach((obj) => {
-                colorStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor });
+                colorStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, indented: obj.indented });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -272,11 +294,11 @@ export async function fetchPassageContent(studyId: string) {
                   }
 
                   const currentColorStyling = colorStylingMap.get(hebWord.id);
-
                   if (currentColorStyling !== undefined) {
                     (currentColorStyling.colorFill !== null) && (hebWord.colorFill = currentColorStyling.colorFill);
                     (currentColorStyling.borderColor !== null) && (hebWord.borderColor = currentColorStyling.borderColor);
                     (currentColorStyling.textColor !== null) && (hebWord.textColor = currentColorStyling.textColor);
+                    (currentColorStyling.indented !== null) && (hebWord.indented = currentColorStyling.indented);
                   }
 
                   currentParagraphData.words.push(hebWord);

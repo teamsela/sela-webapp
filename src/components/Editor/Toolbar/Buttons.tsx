@@ -12,7 +12,8 @@ import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps } from "@/lib/types";
-import { updateColor } from "@/lib/actions";
+import { updateColor, updateIndented } from "@/lib/actions";
+import { updateBranchMetadata } from "@xata.io/client";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -300,7 +301,7 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
 
 export const LeftIndentBtn = () => {
 
-  const { ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
     console.log(ctxNumSelectedWords)
@@ -311,9 +312,11 @@ export const LeftIndentBtn = () => {
     if (ctxUniformWidth && ctxSelectedWords.length == 1) {
       if (ctxIsHebrew) {
         ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+        updateIndented(ctxStudyId, ctxSelectedWords, false);
       }
       else {
         ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
+        updateIndented(ctxStudyId, ctxSelectedWords, true);
       }
       let newButtonCondition = ctxUniformWidth && (ctxSelectedWords.length === 1);
       setButtonCondition(newButtonCondition);
@@ -332,7 +335,7 @@ export const LeftIndentBtn = () => {
 };
 
 export const RightIndentBtn = () => {
-  const { ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
     setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
@@ -341,9 +344,12 @@ export const RightIndentBtn = () => {
   const handleClick = () => {
     if (ctxIsHebrew) {
       ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
+      updateIndented(ctxStudyId, ctxSelectedWords, true);
     }
     else {
       ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
+      updateIndented(ctxStudyId, ctxSelectedWords, false);
+
     }
   }
   return (
