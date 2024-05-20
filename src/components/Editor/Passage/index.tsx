@@ -59,7 +59,7 @@ const WordBlock = ({
     if (!ctxSelectedWords.includes(hebWord.id) && selected) {
       setSelected(false);
     }
-  }, [ctxSelectedWords, hebWord.id, selected]);
+  }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
 
 
   const handleClick = () => {
@@ -105,7 +105,7 @@ const WordBlock = ({
     <div
       key={hebWord.id}
       className={`mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      ${ctxUniformWidth && ctxIndentWord.includes(hebWord.id) ? indentStyle : ''}`}
+      ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
       style={
         {
           background: `${colorFillLocal}`,

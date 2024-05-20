@@ -43,6 +43,7 @@ const tables = [
       { name: "borderColor", type: "string" },
       { name: "textColor", type: "string" },
       { name: "hebId", type: "int", notNull: true, defaultValue: "0" },
+      { name: "indented", type: "boolean", defaultValue: false },
     ],
   },
   {

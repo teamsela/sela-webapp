@@ -15,6 +15,7 @@ export type HebWord = {
     colorFill: string;
     borderColor: string;
     textColor: string;
+    indented: boolean;
 }
 
 export type ChapterData = {

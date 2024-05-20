@@ -169,6 +169,29 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
+export async function updateIndented(studyId: string, selectedWords: number[], indented: boolean) {
+  "use server";
+
+  let operations: any = [];
+  const xataClient = getXataClient();
+
+  selectedWords.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, indented: indented },
+        upsert: true,
+      },
+    })
+  })
+  let result : any;
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
+  }
+}
 
 export async function deleteStudy(studyId: string) {
 
@@ -215,15 +238,14 @@ export async function fetchPassageContent(studyId: string) {
           // fetch all words from xata by start/end chapter and verse
           if (passageInfo instanceof Error === false)
           {
-              const colorStyling = await xataClient.db.styling
+              const styling = await xataClient.db.styling
                 .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor'])
+                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'indented'])
                 .sort("hebId", "asc")
                 .getMany();
-              
-              const colorStylingMap = new Map();
-              colorStyling.forEach((obj) => {
-                colorStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor });
+              const stylingMap = new Map();
+              styling.forEach((obj) => {
+                stylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, indented: obj.indented });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -271,12 +293,12 @@ export async function fetchPassageContent(studyId: string) {
                       currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
                   }
 
-                  const currentColorStyling = colorStylingMap.get(hebWord.id);
-
-                  if (currentColorStyling !== undefined) {
-                    (currentColorStyling.colorFill !== null) && (hebWord.colorFill = currentColorStyling.colorFill);
-                    (currentColorStyling.borderColor !== null) && (hebWord.borderColor = currentColorStyling.borderColor);
-                    (currentColorStyling.textColor !== null) && (hebWord.textColor = currentColorStyling.textColor);
+                  const currentStyling = stylingMap.get(hebWord.id);
+                  if (currentStyling !== undefined) {
+                    (currentStyling.colorFill !== null) && (hebWord.colorFill = currentStyling.colorFill);
+                    (currentStyling.borderColor !== null) && (hebWord.borderColor = currentStyling.borderColor);
+                    (currentStyling.textColor !== null) && (hebWord.textColor = currentStyling.textColor);
+                    (currentStyling.indented !== null) && (hebWord.indented = currentStyling.indented);
                   }
 
                   currentParagraphData.words.push(hebWord);
