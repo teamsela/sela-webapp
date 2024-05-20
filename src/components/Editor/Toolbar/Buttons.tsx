@@ -13,7 +13,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps } from "@/lib/types";
 import { updateColor, updateIndented } from "@/lib/actions";
-import { updateBranchMetadata } from "@xata.io/client";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
