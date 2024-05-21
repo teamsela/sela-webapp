@@ -186,11 +186,12 @@ const Passage = ({
     if (!isDragging) return;
     setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     console.log( window.scrollY)
+    updateSelectedWords();
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    updateSelectedWords();
+    
   };
 
   const updateSelectedWords = useCallback(() => {
