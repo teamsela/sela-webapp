@@ -59,6 +59,20 @@ const WordBlock = ({
     }
   }
 
+  // useEffect(() => {
+  //   if (!ctxSelectedWords.includes(hebWord.id) && selected) {
+  //     setSelected(false);
+  //   }
+  // }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
+
+
+  // const handleClick = () => {
+  //   setSelected(prevState => !prevState);
+  //   (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
+  //   ctxSetSelectedWords(ctxSelectedWords);
+  //   ctxSetNumSelectedWords(ctxSelectedWords.length);
+  // }
+
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
     ctxSetNumSelectedWords(ctxSelectedWords.length);
@@ -239,6 +253,7 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
+      console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
