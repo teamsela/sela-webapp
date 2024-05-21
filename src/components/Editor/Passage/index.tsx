@@ -1,5 +1,5 @@
 import { HebWord, PassageData } from '@/lib/data';
-import { useState, useEffect, useContext } from "react";
+import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
@@ -103,8 +103,9 @@ const WordBlock = ({
 
   return (
     <div
+      id={hebWord.id.toString()}
       key={hebWord.id}
-      className={`mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
+      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
       ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
       style={
         {
@@ -144,8 +145,112 @@ const Passage = ({
     }
   }
 
+  const { ctxSelectedWords, ctxSetSelectedWords, } = useContext(FormatContext)
+
+  //drag-to-select module
+  ///////////////////////////
+  ///////////////////////////
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
+  const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
+    setSelectionEnd(null);
+  };
+
+  const handleMouseMove = (event: MouseEvent) => {
+    if (!isDragging) return;
+    setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    updateSelectedWords();
+  };
+
+  const updateSelectedWords = useCallback(() => {
+    if (!selectionStart || !selectionEnd || !containerRef.current) return;
+
+    // Get all elements with the class 'word-block' inside the container
+    const rects = containerRef.current.querySelectorAll('.wordBlock');
+    const newSelectedWords:number[] = [];
+
+    rects.forEach(rect => {
+      const rectBounds = rect.getBoundingClientRect();
+      const adjustedBounds = {
+        top: rectBounds.top + window.scrollY,
+        bottom: rectBounds.bottom + window.scrollY,
+        left: rectBounds.left + window.scrollX,
+        right: rectBounds.right + window.scrollX,
+      };
+
+      // Check if the element is within the selection box
+      if (
+        adjustedBounds.left < Math.max(selectionStart.x, selectionEnd.x) &&
+        adjustedBounds.right > Math.min(selectionStart.x, selectionEnd.x) &&
+        adjustedBounds.top < Math.max(selectionStart.y, selectionEnd.y) &&
+        adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
+      ) {
+        const wordId = rect.getAttribute('id');
+        console.log(wordId);
+        if (wordId) {
+          newSelectedWords.push(Number(wordId));
+        }
+      }
+    });
+
+    // Update selected words
+    ctxSelectedWords.push(newSelectedWords);
+    ctxSetSelectedWords(ctxSelectedWords)
+  }, [selectionStart, selectionEnd, ctxSelectedWords]);
+
+  const getSelectionBoxStyle = () => {
+    if (!selectionStart || !selectionEnd) return {};
+
+    // const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
+    // const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
+    // const width = Math.abs(selectionStart.x - selectionEnd.x);
+    // const height = Math.abs(selectionStart.y - selectionEnd.y);
+    
+    const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
+    const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
+    const width = Math.abs(selectionStart.x - selectionEnd.x);
+    const height = Math.abs(selectionStart.y - selectionEnd.y);
+
+    return {
+      left,
+      top,
+      width,
+      height,
+      position: 'absolute',
+      backgroundColor: 'rgba(0, 0, 255, 0.2)',
+      border: '1px solid blue',
+      pointerEvents: 'none',
+    };
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+  ///////////////////////////
+  ///////////////////////////
+
   return (
-    <div>
+    <div
+      onMouseDown={handleMouseDown}
+      ref={containerRef}
+      style={{ position: 'relative', userSelect: 'none' }}
+    >
       {
         content.chapters.map((chapter) => (
           chapter.verses.map((verse) => (
@@ -166,6 +271,7 @@ const Passage = ({
           ))
         ))
       }
+      {/* {isDragging && <div style={getSelectionBoxStyle()} />} */}
     </div>
   );
 };
