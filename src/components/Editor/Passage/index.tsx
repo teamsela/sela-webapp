@@ -185,18 +185,20 @@ const Passage = ({
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging) return;
     setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
+    console.log( window.scrollY)
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    // updateSelectedWords();
+    updateSelectedWords();
   };
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
+    
     // Get all elements with the class 'word-block' inside the container
     const rects = containerRef.current.querySelectorAll('.wordBlock');
-    // const newSelectedWords:number[] = [];
+
     rects.forEach(rect => {
       const rectBounds = rect.getBoundingClientRect();
       const adjustedBounds = {
@@ -228,17 +230,10 @@ const Passage = ({
 
   const getSelectionBoxStyle = () => {
     if (!selectionStart || !selectionEnd) return {};
-
-    // const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
-    // const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
-    // const width = Math.abs(selectionStart.x - selectionEnd.x);
-    // const height = Math.abs(selectionStart.y - selectionEnd.y);
-    
     const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
     const width = Math.abs(selectionStart.x - selectionEnd.x);
     const height = Math.abs(selectionStart.y - selectionEnd.y);
-
     return {
       left,
       top,
@@ -250,6 +245,11 @@ const Passage = ({
       pointerEvents: 'none',
     };
   };
+
+  // const handleScroll = () => {
+  //   console.log(window.scrollY); // Check if window.scrollY is correct
+  // };
+  // window.addEventListener('scroll', handleScroll);
 
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
@@ -266,7 +266,7 @@ const Passage = ({
     <div
       onMouseDown={handleMouseDown}
       ref={containerRef}
-      style={{ position: 'relative', userSelect: 'none' }}
+      style={{ userSelect: 'none' }}
     >
       {
         content.chapters.map((chapter) => (
@@ -288,7 +288,7 @@ const Passage = ({
           ))
         ))
       }
-      {/* {isDragging && <div style={getSelectionBoxStyle()} />} */}
+      {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
   );
 };
