@@ -196,17 +196,23 @@ const Passage = ({
         adjustedBounds.top < Math.max(selectionStart.y, selectionEnd.y) &&
         adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
       ) {
-        const wordId = rect.getAttribute('id');
-        console.log(wordId);
-        if (wordId) {
-          newSelectedWords.push(Number(wordId));
+        const wordId = Number(rect.getAttribute('id'));
+        // if (wordId) {
+        //   newSelectedWords.push(Number(wordId));
+        // }
+        if (!ctxSelectedWords.includes(wordId)) {
+          const newArray = [...ctxSelectedWords, wordId];
+          // ctxSelectedWords.push(parseInt(item.element))
+          ctxSetSelectedWords(newArray);
         }
+        console.log(ctxSelectedWords)
+        console.log(wordId);
       }
     });
 
     // Update selected words
-    ctxSelectedWords.push(newSelectedWords);
-    ctxSetSelectedWords(ctxSelectedWords)
+    // ctxSelectedWords.push(newSelectedWords);
+    // ctxSetSelectedWords(ctxSelectedWords)
   }, [selectionStart, selectionEnd, ctxSelectedWords]);
 
   const getSelectionBoxStyle = () => {
