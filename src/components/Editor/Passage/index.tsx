@@ -131,26 +131,25 @@ const WordBlock = ({
     );
   };
   return (
-    <div className='flex'>
-      {ctxUniformWidth && hebWord.numIndent > 0&& renderIndents(hebWord.numIndent)}
-      <div
-        key={hebWord.id}
-        className={`mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      `}
-        style={
-          {
-            background: `${colorFillLocal}`,
-            border: `2px solid ${borderColorLocal}`,
-            color: `${textColorLocal}`,
-          }
-        }>
+    <div
+      id={hebWord.id.toString()}
+      key={hebWord.id}
+      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
+      ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
+      style={
+        {
+          background: `${colorFillLocal}`,
+          border: `2px solid ${borderColorLocal}`,
+          color: `${textColorLocal}`,
+        }
+      }>
+      <span
+        className="flex"
+        onClick={handleClick}
+      >
+        {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
         <span
-          className="flex"
-          onClick={handleClick}
-        >
-          {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
-          <span
-            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
+          className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
           data-clickType = "wordBlock"
