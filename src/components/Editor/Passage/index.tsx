@@ -55,19 +55,38 @@ const WordBlock = ({
     }
   }
 
+  // useEffect(() => {
+  //   if (!ctxSelectedWords.includes(hebWord.id) && selected) {
+  //     setSelected(false);
+  //   }
+  // }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
+
+
+  // const handleClick = () => {
+  //   setSelected(prevState => !prevState);
+  //   (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
+  //   ctxSetSelectedWords(ctxSelectedWords);
+  //   ctxSetNumSelectedWords(ctxSelectedWords.length);
+  // }
+
   useEffect(() => {
+    setSelected(ctxSelectedWords.includes(hebWord.id));
     if (!ctxSelectedWords.includes(hebWord.id) && selected) {
       setSelected(false);
     }
+    console.log("useEffect fires");
   }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
-
-
+  
+  
   const handleClick = () => {
-    setSelected(prevState => !prevState);
-    (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
-    ctxSetSelectedWords(ctxSelectedWords);
-    ctxSetNumSelectedWords(ctxSelectedWords.length);
-  }
+    const updatedSelectedWords = ctxSelectedWords.includes(hebWord.id)
+      ? ctxSelectedWords.filter(wordId => wordId !== hebWord.id)
+      : [...ctxSelectedWords, hebWord.id];
+
+  ctxSetSelectedWords(updatedSelectedWords);
+  ctxSetNumSelectedWords(ctxSelectedWords.length);
+}
+
 
   const verseNumStyles = {
     className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
@@ -170,16 +189,14 @@ const Passage = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    updateSelectedWords();
+    // updateSelectedWords();
   };
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
-
     // Get all elements with the class 'word-block' inside the container
     const rects = containerRef.current.querySelectorAll('.wordBlock');
-    const newSelectedWords:number[] = [];
-
+    // const newSelectedWords:number[] = [];
     rects.forEach(rect => {
       const rectBounds = rect.getBoundingClientRect();
       const adjustedBounds = {
@@ -188,6 +205,7 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
+      console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
@@ -197,12 +215,8 @@ const Passage = ({
         adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
       ) {
         const wordId = Number(rect.getAttribute('id'));
-        // if (wordId) {
-        //   newSelectedWords.push(Number(wordId));
-        // }
         if (!ctxSelectedWords.includes(wordId)) {
           const newArray = [...ctxSelectedWords, wordId];
-          // ctxSelectedWords.push(parseInt(item.element))
           ctxSetSelectedWords(newArray);
         }
         console.log(ctxSelectedWords)
@@ -210,9 +224,6 @@ const Passage = ({
       }
     });
 
-    // Update selected words
-    // ctxSelectedWords.push(newSelectedWords);
-    // ctxSetSelectedWords(ctxSelectedWords)
   }, [selectionStart, selectionEnd, ctxSelectedWords]);
 
   const getSelectionBoxStyle = () => {
