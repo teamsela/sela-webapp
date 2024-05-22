@@ -70,6 +70,7 @@ const WordBlock = ({
 
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
     // if (!ctxSelectedWords.includes(hebWord.id) && selected) {
     //   setSelected(false);
     // }
