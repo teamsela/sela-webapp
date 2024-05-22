@@ -65,7 +65,6 @@ const WordBlock = ({
   //   }
   // }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
 
-
   // const handleClick = () => {
   //   setSelected(prevState => !prevState);
   //   (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
