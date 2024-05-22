@@ -61,7 +61,6 @@ const WordBlock = ({
   //   }
   // }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
 
-
   // const handleClick = () => {
   //   setSelected(prevState => !prevState);
   //   (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
@@ -71,21 +70,24 @@ const WordBlock = ({
 
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
-    if (!ctxSelectedWords.includes(hebWord.id) && selected) {
-      setSelected(false);
-    }
+    // if (!ctxSelectedWords.includes(hebWord.id) && selected) {
+    //   setSelected(false);
+    // }
     console.log("useEffect fires");
+
   }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
   
-  
   const handleClick = () => {
-    const updatedSelectedWords = ctxSelectedWords.includes(hebWord.id)
-      ? ctxSelectedWords.filter(wordId => wordId !== hebWord.id)
-      : [...ctxSelectedWords, hebWord.id];
+    // setSelected(ctxSelectedWords.includes(hebWord.id));
+    // const updatedSelectedWords = ctxSelectedWords.includes(hebWord.id)
+    //   ? ctxSelectedWords.filter(wordId => wordId !== hebWord.id)
+    //   : [...ctxSelectedWords, hebWord.id];
 
-  ctxSetSelectedWords(updatedSelectedWords);
-  ctxSetNumSelectedWords(ctxSelectedWords.length);
-}
+    setSelected(prevState => !prevState);
+    (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
+    ctxSetSelectedWords(ctxSelectedWords);
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
+  }
 
 
   const verseNumStyles = {
@@ -164,7 +166,7 @@ const Passage = ({
     }
   }
 
-  const { ctxSelectedWords, ctxSetSelectedWords, } = useContext(FormatContext)
+  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords } = useContext(FormatContext)
 
   //drag-to-select module
   ///////////////////////////
@@ -221,6 +223,7 @@ const Passage = ({
         if (!ctxSelectedWords.includes(wordId)) {
           const newArray = [...ctxSelectedWords, wordId];
           ctxSetSelectedWords(newArray);
+          ctxSetNumSelectedWords(ctxSelectedWords.length);
         }
         console.log(ctxSelectedWords)
         console.log(wordId);
