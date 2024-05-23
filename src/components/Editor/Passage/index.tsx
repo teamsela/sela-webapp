@@ -55,35 +55,13 @@ const WordBlock = ({
     }
   }
 
-  // useEffect(() => {
-  //   if (!ctxSelectedWords.includes(hebWord.id) && selected) {
-  //     setSelected(false);
-  //   }
-  // }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
-
-  // const handleClick = () => {
-  //   setSelected(prevState => !prevState);
-  //   (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
-  //   ctxSetSelectedWords(ctxSelectedWords);
-  //   ctxSetNumSelectedWords(ctxSelectedWords.length);
-  // }
-
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
     ctxSetNumSelectedWords(ctxSelectedWords.length);
-    // if (!ctxSelectedWords.includes(hebWord.id) && selected) {
-    //   setSelected(false);
-    // }
     console.log("useEffect fires");
-
   }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
   
   const handleClick = () => {
-    // setSelected(ctxSelectedWords.includes(hebWord.id));
-    // const updatedSelectedWords = ctxSelectedWords.includes(hebWord.id)
-    //   ? ctxSelectedWords.filter(wordId => wordId !== hebWord.id)
-    //   : [...ctxSelectedWords, hebWord.id];
-
     setSelected(prevState => !prevState);
     (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
     ctxSetSelectedWords(ctxSelectedWords);
