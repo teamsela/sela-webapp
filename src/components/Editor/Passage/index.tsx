@@ -259,12 +259,16 @@ const Passage = ({
   ///////////////////////////
   ///////////////////////////
 
+  const passageContentStyle = {
+    className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+  }
+
   return (
     <div
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ userSelect: 'none' }}
-      onScroll={handleScroll}
+      {...passageContentStyle}
     >
       {
         content.chapters.map((chapter) => (

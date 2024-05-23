@@ -67,8 +67,11 @@ const Editor = ({
       ctxSetIndentWord: setIndentWord
     }
 
+    // const passageDivStyle = {
+    //   className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-auto whitespace-nowrap ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+    // }
     const passageDivStyle = {
-      className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 overflow-auto whitespace-nowrap ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+      className: `pt-4 overflow-auto whitespace-nowrap ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
     }
 
     return (
