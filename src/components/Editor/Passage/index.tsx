@@ -177,10 +177,6 @@ const Passage = ({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
-
-  // const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
-
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
@@ -197,14 +193,6 @@ const Passage = ({
   const handleMouseUp = () => {
     setIsDragging(false);
   };
-
-  const handleScroll = () => {
-    setScrollPosition({
-      x: window.scrollX,
-      y: window.scrollY,
-    });
-    console.log('handlescroll, y=' + window.scrollX)
-  }
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
@@ -260,20 +248,12 @@ const Passage = ({
     };
   };
 
-  // const handleScroll = () => {
-  //   console.log(window.scrollY); // Check if window.scrollY is correct
-  // };
-  // window.addEventListener('scroll', handleScroll);
-
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-    // document.addEventListener("scroll", handleScroll, {passive: true});
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      // document.removeEventListener("scroll", handleScroll);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
   ///////////////////////////
