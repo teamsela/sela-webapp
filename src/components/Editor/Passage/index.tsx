@@ -177,6 +177,8 @@ const Passage = ({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
+
   // const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -194,13 +196,20 @@ const Passage = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    
   };
+
+  const handleScroll = () => {
+    setScrollPosition({
+      x: window.scrollX,
+      y: window.scrollY,
+    });
+    console.log('handlescroll, y=' + window.scrollX)
+  }
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
     
-    // Get all elements with the class 'word-block' inside the container
+    // Get all elements with the class 'wordBlock' inside the container
     const rects = containerRef.current.querySelectorAll('.wordBlock');
 
     rects.forEach(rect => {
@@ -233,7 +242,7 @@ const Passage = ({
 
   }, [selectionStart, selectionEnd, ctxSelectedWords]);
 
-  const getSelectionBoxStyle = () => {
+  const getSelectionBoxStyle = ():React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
     const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
@@ -244,7 +253,7 @@ const Passage = ({
       top,
       width,
       height,
-      position: 'absolute',
+      position: 'fixed',
       backgroundColor: 'rgba(0, 0, 255, 0.2)',
       border: '1px solid blue',
       pointerEvents: 'none',
@@ -259,9 +268,12 @@ const Passage = ({
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    // document.addEventListener("scroll", handleScroll, {passive: true});
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      // document.removeEventListener("scroll", handleScroll);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
   ///////////////////////////
@@ -272,6 +284,7 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ userSelect: 'none' }}
+      onScroll={handleScroll}
     >
       {
         content.chapters.map((chapter) => (
