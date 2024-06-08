@@ -15,7 +15,7 @@ export default async function PublicTable({
 }) {
 
   // fetch all studies from xata
-  const studies = await xataClient.db.study.filter({ public: true }).getMany();
+  const studies = await xataClient.db.study.filter({ public: true }).getAll();
 
   // extract the ids from owner column and add them into a set
   const uniqueIds = new Set<string>();

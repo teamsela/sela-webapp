@@ -18,7 +18,7 @@ export default async function RecentTable({
   const user = await currentUser();
 
   const xataClient = getXataClient();
-  const studies = await xataClient.db.study.filter({ owner: user?.id }).getMany();
+  const studies = await xataClient.db.study.filter({ owner: user?.id }).getAll();
 
   return (
     <>

@@ -242,7 +242,7 @@ export async function fetchPassageContent(studyId: string) {
                 .filter({studyId: study.id})
                 .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'indented'])
                 .sort("hebId", "asc")
-                .getMany();
+                .getAll();
               const stylingMap = new Map();
               styling.forEach((obj) => {
                 stylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, indented: obj.indented });

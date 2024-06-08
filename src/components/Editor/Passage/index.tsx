@@ -19,6 +19,8 @@ const zoomLevelMap: ZoomLevel = {
   8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13", fontInPx: "24px", maxWidthPx: 148, indent: "ml-46", hebIndent: "mr-38" },
   9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16", fontInPx: "30px", maxWidthPx: 163, indent: "ml-55", hebIndent: "mr-43" },
   10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20", fontInPx: "36px", maxWidthPx: 218, indent: "ml-67", hebIndent: "mr-47" },
+  11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
+  12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
 }
 
 const WordBlock = ({
@@ -73,7 +75,7 @@ const WordBlock = ({
     className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
   }
 
-  let fontSize = zoomLevelMap[ctxZoomLevel].fontSize;
+  let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel+2 : ctxZoomLevel].fontSize;
 
   if (ctxUniformWidth && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
