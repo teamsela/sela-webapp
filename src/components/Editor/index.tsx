@@ -31,10 +31,11 @@ export const FormatContext = createContext({
 });
 
 const Editor = ({ 
-    study, content
+    study, content, isEditMode
   }: {
     study: StudyData;
     content: PassageData;
+    isEditMode: boolean;
   }) => {
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
     const [isHebrew, setHebrew] = useState(false);
@@ -75,16 +76,18 @@ const Editor = ({
         <>
         <FormatContext.Provider value={formatContextValue}>
           <Header study={study} setLangToHebrew={setHebrew} />
-          <Toolbar
-            setZoomLevel={setZoomLevel}
-            //color functions
-            setColorAction={setColorAction}
-            setColorFill={setColorFill}
-            setBorderColor={setBorderColor}
-            setTextColor={setTextColor}
-            setUniformWidth={setUniformWidth}
-            setIndentWord={setIndentWord}
-          />
+          { isEditMode && 
+            <Toolbar
+              setZoomLevel={setZoomLevel}
+              //color functions
+              setColorAction={setColorAction}
+              setColorFill={setColorFill}
+              setBorderColor={setBorderColor}
+              setTextColor={setTextColor}
+              setUniformWidth={setUniformWidth}
+              setIndentWord={setIndentWord}
+            />
+          }
           <main>
             <div {...passageDivStyle}>
               <Passage content={content} />
