@@ -123,6 +123,7 @@ const WordBlock = ({
           className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+          data-clickType = "wordBlock"
         >
           {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
         </span>
@@ -153,12 +154,21 @@ const Passage = ({
   const [isDragging, setIsDragging] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
+  const [clickToDeSelect, setClickToDeSelect] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
+
+    //click to de-select
+    //if clicked on wordBlock, set status so de-select everything doesnt fire
+    //to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
+    const target = event.target as HTMLElement;
+    const clickedTarget = target.getAttribute('data-clickType');
+    clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+    
   };
 
   const handleMouseMove = (event: MouseEvent) => {
@@ -170,6 +180,13 @@ const Passage = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    //click to de-select
+    //if selectionEnd is null it means the mouse didnt move at all
+    //otherwise it means it is a drag
+    if (!selectionEnd && clickToDeSelect) {
+      ctxSetSelectedWords([]);
+      ctxSetNumSelectedWords(ctxSelectedWords.length);    
+    }
   };
 
   const updateSelectedWords = useCallback(() => {
