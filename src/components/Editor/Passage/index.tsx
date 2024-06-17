@@ -60,10 +60,12 @@ const WordBlock = ({
   }
 
   useEffect(() => {
-    setSelected(ctxSelectedWords.includes(hebWord.id));
-    ctxSetNumSelectedWords(ctxSelectedWords.length);
-  }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
-  
+    if (!ctxSelectedWords.includes(hebWord.id) && selected) {
+      setSelected(false);
+    }
+  }, [ctxSelectedWords, hebWord.id, selected, hebWord.numIndent]);
+
+
   const handleClick = () => {
     setSelected(prevState => !prevState);
     (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
@@ -130,12 +132,12 @@ const WordBlock = ({
       </div>
     );
   };
+  
   return (
     <div
       id={hebWord.id.toString()}
       key={hebWord.id}
-      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
+      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
