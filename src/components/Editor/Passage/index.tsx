@@ -5,23 +5,42 @@ import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 
 type ZoomLevel = {
-  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number, indent: string, hebIndent: string };
+  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
+}
+type IndentLevel = {
+  [level: number]: { indentOne: string, indentTwo: string, indentThree: string, hebIndentOne: string, hebIndentTwo: string, hebIndentThree: string }
 }
 const zoomLevelMap: ZoomLevel = {
-  0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38, indent: "ml-17.5", hebIndent: "mr-15.5" },
-  1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54, indent: "ml-21.5", hebIndent: "mr-17.5" },
-  2: { fontSize: "text-2xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-19", height: "h-7", fontInPx: "10px", maxWidthPx: 63, indent: "ml-24.5", hebIndent: "mr-19.5" },
-  3: { fontSize: "text-xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5", width: "w-22", height: "h-8", fontInPx: "12px", maxWidthPx: 72, indent: "ml-27.5", hebIndent: "mr-21.5" },
-  4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-25", height: "h-9", fontInPx: "14px", maxWidthPx: 84, indent: "ml-30.5", hebIndent: "mr-23.5" },
-  5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10", fontInPx: "16px", maxWidthPx: 96, indent: "ml-34", hebIndent: "mr-26" },
-  6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11", fontInPx: "18px", maxWidthPx: 114, indent: "ml-38", hebIndent: "mr-30" },
-  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12", fontInPx: "20px", maxWidthPx: 136, indent: "ml-42", hebIndent: "mr-36" },
-  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13", fontInPx: "24px", maxWidthPx: 148, indent: "ml-46", hebIndent: "mr-38" },
-  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16", fontInPx: "30px", maxWidthPx: 163, indent: "ml-55", hebIndent: "mr-43" },
-  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20", fontInPx: "36px", maxWidthPx: 218, indent: "ml-67", hebIndent: "mr-47" },
-  11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
-  12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
+  0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38 },
+  1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54 },
+  2: { fontSize: "text-2xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-19", height: "h-7", fontInPx: "10px", maxWidthPx: 63 },
+  3: { fontSize: "text-xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5", width: "w-22", height: "h-8", fontInPx: "12px", maxWidthPx: 72 },
+  4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-25", height: "h-9", fontInPx: "14px", maxWidthPx: 84 },
+  5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10", fontInPx: "16px", maxWidthPx: 96 },
+  6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11", fontInPx: "18px", maxWidthPx: 114 },
+  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12", fontInPx: "20px", maxWidthPx: 136 },
+  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13", fontInPx: "24px", maxWidthPx: 148 },
+  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16", fontInPx: "30px", maxWidthPx: 163 },
+  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20", fontInPx: "36px", maxWidthPx: 218 },
+  11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
+  12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
+
+const indentLevelMap: IndentLevel = {
+  0: { indentOne: "ml-17.5", indentTwo: "ml-35", indentThree: "ml-52.5", hebIndentOne: "mr-15.5", hebIndentTwo: "mr-31", hebIndentThree: "mr-46.5" },
+  1: { indentOne: "ml-21.5", indentTwo: "ml-43", indentThree: "ml-64.5", hebIndentOne: "mr-17.5", hebIndentTwo: "mr-35", hebIndentThree: "mr-52.5" },
+  2: { indentOne: "ml-24.5", indentTwo: "ml-49", indentThree: "ml-73.5", hebIndentOne: "mr-19.5", hebIndentTwo: "mr-39", hebIndentThree: "mr-58.5" },
+  3: { indentOne: "ml-27.5", indentTwo: "ml-55", indentThree: "ml-82.5", hebIndentOne: "mr-21.5", hebIndentTwo: "mr-43", hebIndentThree: "mr-64.5" },
+  4: { indentOne: "ml-30.5", indentTwo: "ml-61", indentThree: "ml-91.5", hebIndentOne: "mr-23.5", hebIndentTwo: "mr-47", hebIndentThree: "mr-70.5" },
+  5: { indentOne: "ml-34", indentTwo: "ml-68", indentThree: "ml-102", hebIndentOne: "mr-26", hebIndentTwo: "mr-52", hebIndentThree: "mr-78" },
+  6: { indentOne: "ml-38", indentTwo: "ml-76", indentThree: "ml-114", hebIndentOne: "mr-30", hebIndentTwo: "mr-60", hebIndentThree: "mr-90" },
+  7: { indentOne: "ml-42", indentTwo: "ml-84", indentThree: "ml-126", hebIndentOne: "mr-36", hebIndentTwo: "mr-72", hebIndentThree: "mr-108" },
+  8: { indentOne: "ml-46", indentTwo: "ml-92", indentThree: "ml-138", hebIndentOne: "mr-38", hebIndentTwo: "mr-76", hebIndentThree: "mr-114" },
+  9: { indentOne: "ml-55", indentTwo: "ml-110", indentThree: "ml-165", hebIndentOne: "mr-43", hebIndentTwo: "mr-86", hebIndentThree: "mr-129" },
+  10: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-47", hebIndentTwo: "mr-94", hebIndentThree: "mr-141" },
+  11: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-52", hebIndentTwo: "mr-104", hebIndentThree: "mr-156" },
+  12: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-52", hebIndentTwo: "mr-104", hebIndentThree: "mr-156" },
+};
 
 const WordBlock = ({
   verseNumber, hebWord, showVerseNum
@@ -31,7 +50,7 @@ const WordBlock = ({
   showVerseNum: boolean;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -74,7 +93,7 @@ const WordBlock = ({
     className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
   }
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel+2 : ctxZoomLevel].fontSize;
+  let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel + 2 : ctxZoomLevel].fontSize;
 
   if (ctxUniformWidth && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
@@ -99,9 +118,20 @@ const WordBlock = ({
 
   const hebBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].hbWidth} ${zoomLevelMap[ctxZoomLevel].hbHeight}`;
   const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
-  const indentStyle = ctxIsHebrew ?  `${zoomLevelMap[ctxZoomLevel].hebIndent}` : `${zoomLevelMap[ctxZoomLevel].indent}`;
+  const indentStyle = findIndentLevel(hebWord.numIndent);
 
-
+  function findIndentLevel(numIndent: number) {
+    if (numIndent == 1) {
+      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentOne : indentLevelMap[ctxZoomLevel].indentOne;
+    }
+    if (numIndent == 2) {
+      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentTwo : indentLevelMap[ctxZoomLevel].indentTwo;
+    }
+    if (numIndent == 3) {
+      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentThree : indentLevelMap[ctxZoomLevel].indentThree;
+    }
+    return "";
+  }
   return (
     <div
       id={hebWord.id.toString()}

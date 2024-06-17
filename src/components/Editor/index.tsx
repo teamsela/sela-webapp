@@ -28,6 +28,7 @@ export const FormatContext = createContext({
   ctxUniformWidth: false,
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => {},
+  ctxContent: {} as PassageData
 });
 
 const Editor = ({ 
@@ -64,7 +65,8 @@ const Editor = ({
       ctxTextColor: textColor,
       ctxUniformWidth: uniformWidth,
       ctxIndentWord: indentWord,
-      ctxSetIndentWord: setIndentWord
+      ctxSetIndentWord: setIndentWord,
+      ctxContent: content,
     }
 
     const passageDivStyle = {
