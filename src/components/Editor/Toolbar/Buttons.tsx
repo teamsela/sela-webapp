@@ -309,6 +309,7 @@ export const LeftIndentBtn = () => {
 
   const handleClick = () => {
     let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
+    console.log(numIndent)
     if (ctxUniformWidth && ctxSelectedWords.length == 1) {
       if (ctxIsHebrew) {
         ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
@@ -320,6 +321,7 @@ export const LeftIndentBtn = () => {
       else {
         ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
         if (numIndent < 3) {
+          console.log("add indent");
           updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
           setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
         }
@@ -382,7 +384,7 @@ function getNumIndentById(chapters: any[], id: number) {
       for (let paragraph of verse.paragraphs) {
         for (let word of paragraph.words) {
           if (word.id === id) {
-            return word.numIndent;
+            return word.numIndent == undefined ? 0 : word.numIndent;
           }
         }
       }
