@@ -76,18 +76,17 @@ const Editor = ({
         <>
         <FormatContext.Provider value={formatContextValue}>
           <Header study={study} setLangToHebrew={setHebrew} />
-          { isEditMode && 
-            <Toolbar
-              setZoomLevel={setZoomLevel}
-              //color functions
-              setColorAction={setColorAction}
-              setColorFill={setColorFill}
-              setBorderColor={setBorderColor}
-              setTextColor={setTextColor}
-              setUniformWidth={setUniformWidth}
-              setIndentWord={setIndentWord}
-            />
-          }
+          <Toolbar
+            setZoomLevel={setZoomLevel}
+            //color functions
+            setColorAction={setColorAction}
+            setColorFill={setColorFill}
+            setBorderColor={setBorderColor}
+            setTextColor={setTextColor}
+            setUniformWidth={setUniformWidth}
+            setIndentWord={setIndentWord}
+            showEditButtons = {isEditMode}
+          />
           <main>
             <div {...passageDivStyle}>
               <Passage content={content} />

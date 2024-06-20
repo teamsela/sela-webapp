@@ -11,7 +11,8 @@ const Toolbar = ({
   setBorderColor,
   setTextColor,
   setUniformWidth,
-  setIndentWord
+  setIndentWord,
+  showEditButtons
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -20,7 +21,8 @@ const Toolbar = ({
   setBorderColor: (arg: string) => void;
   setTextColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
-  setIndentWord: (arg: number[]) => void
+  setIndentWord: (arg: number[]) => void;
+  showEditButtons: boolean
 } ) => {
   
   const { ctxZoomLevel, ctxNumSelectedWords } = useContext(FormatContext);
@@ -32,7 +34,7 @@ const Toolbar = ({
 
   return (
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="mx-auto my-2 grid max-w-180 bg-white grid-cols-16 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
+      <div className={`mx-auto my-2 grid max-w-180 bg-white ${showEditButtons ? "grid-cols-16" : "grid-cols-12"} rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]`} style={{position:"relative"}}>
         <UndoBtn />
         <RedoBtn />
         <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
@@ -42,10 +44,16 @@ const Toolbar = ({
           </span>
         </div>
         <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-        <ColorFillBtn setColor={setColorFill} setColorAction={setColorAction}/>
-        <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
-        <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
-        <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
+        {showEditButtons &&
+          <div className = "col-span-4">
+            <div className="grid grid-cols-4">
+              <ColorFillBtn setColor={setColorFill} setColorAction={setColorAction}/>
+              <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
+              <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
+              <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
+            </div>
+          </div>
+        }
         <UniformWidthBtn setUniformWidth={setUniformWidth}/>
         <LeftIndentBtn />
         <RightIndentBtn />
