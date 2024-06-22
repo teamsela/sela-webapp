@@ -30,11 +30,13 @@ export const FormatContext = createContext({
   ctxSetIndentWord: (arg: number[]) => {},
 });
 
+/* TODO: Rename Editor because we are supporting view only mode */
 const Editor = ({ 
-    study, content
+    study, content, inViewMode
   }: {
     study: StudyData;
     content: PassageData;
+    inViewMode: boolean;
   }) => {
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
     const [isHebrew, setHebrew] = useState(false);
@@ -84,6 +86,7 @@ const Editor = ({
             setTextColor={setTextColor}
             setUniformWidth={setUniformWidth}
             setIndentWord={setIndentWord}
+            inViewMode={inViewMode}
           />
           <main>
             <div {...passageDivStyle}>

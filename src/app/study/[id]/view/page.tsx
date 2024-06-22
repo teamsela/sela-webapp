@@ -28,23 +28,12 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
     fetchPassageContent(studyId)
   ]);
 
-  if (!study) {
+  if (!study || (thisUser?.id != study.owner && !study.public)) {
     notFound();
   }
 
-  /*
-    Authorization check
-    Only the owner has write access to this study. Users will be redirected to the view page if the study is public. 
-  */
-  if (thisUser?.id != study.owner) {
-    if (!study.public) {
-      notFound();
-    }
-    return redirect(`/study/${params.id}/view`);
-  }
-
   return (
-      <Editor study={study} content={passageContent} inViewMode={false}/>
+    <Editor study={study} content={passageContent} inViewMode={true}/>
   );
 
 }
