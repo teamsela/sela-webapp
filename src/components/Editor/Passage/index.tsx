@@ -58,7 +58,6 @@ const WordBlock = ({
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
     ctxSetNumSelectedWords(ctxSelectedWords.length);
-    console.log("useEffect fires");
   }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
   
   const handleClick = () => {
@@ -163,8 +162,8 @@ const Passage = ({
     setSelectionEnd(null);
 
     //click to de-select
-    //if clicked on wordBlock, set status so de-select everything doesnt fire
-    //to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
+    //if clicked on wordBlock, set status here so de-select function doesnt fire
+    //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
     clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
@@ -173,8 +172,15 @@ const Passage = ({
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging) return;
-    setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
-    console.log( window.scrollY)
+    if (!selectionStart) return;
+    // filter out small accidental drags when user clicks
+    /////////
+    const distance = Math.sqrt( Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2) );
+    if (distance > 6) 
+      setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
+    else 
+      setSelectionEnd(null);
+    /////////
     updateSelectedWords();
   };
 
@@ -203,7 +209,6 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
-      console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
@@ -218,8 +223,6 @@ const Passage = ({
           ctxSetSelectedWords(newArray);
           ctxSetNumSelectedWords(ctxSelectedWords.length);
         }
-        console.log(ctxSelectedWords)
-        console.log(wordId);
       }
     });
 
