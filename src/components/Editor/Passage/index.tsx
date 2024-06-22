@@ -7,9 +7,7 @@ import { wrapText } from "@/lib/utils";
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
 }
-type IndentLevel = {
-  [level: number]: { indentOne: string, indentTwo: string, indentThree: string, hebIndentOne: string, hebIndentTwo: string, hebIndentThree: string }
-}
+
 const zoomLevelMap: ZoomLevel = {
   0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38 },
   1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54 },
@@ -26,21 +24,6 @@ const zoomLevelMap: ZoomLevel = {
   12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
 
-const indentLevelMap: IndentLevel = {
-  0: { indentOne: "ml-17.5", indentTwo: "ml-35", indentThree: "ml-52.5", hebIndentOne: "mr-15.5", hebIndentTwo: "mr-31", hebIndentThree: "mr-46.5" },
-  1: { indentOne: "ml-21.5", indentTwo: "ml-43", indentThree: "ml-64.5", hebIndentOne: "mr-17.5", hebIndentTwo: "mr-35", hebIndentThree: "mr-52.5" },
-  2: { indentOne: "ml-24.5", indentTwo: "ml-49", indentThree: "ml-73.5", hebIndentOne: "mr-19.5", hebIndentTwo: "mr-39", hebIndentThree: "mr-58.5" },
-  3: { indentOne: "ml-27.5", indentTwo: "ml-55", indentThree: "ml-82.5", hebIndentOne: "mr-21.5", hebIndentTwo: "mr-43", hebIndentThree: "mr-64.5" },
-  4: { indentOne: "ml-30.5", indentTwo: "ml-61", indentThree: "ml-91.5", hebIndentOne: "mr-23.5", hebIndentTwo: "mr-47", hebIndentThree: "mr-70" },
-  5: { indentOne: "ml-34", indentTwo: "ml-68", indentThree: "ml-102", hebIndentOne: "mr-26", hebIndentTwo: "mr-52", hebIndentThree: "mr-78" },
-  6: { indentOne: "ml-38", indentTwo: "ml-76", indentThree: "ml-114", hebIndentOne: "mr-30", hebIndentTwo: "mr-60", hebIndentThree: "mr-90" },
-  7: { indentOne: "ml-42", indentTwo: "ml-84", indentThree: "ml-126", hebIndentOne: "mr-36", hebIndentTwo: "mr-72", hebIndentThree: "mr-105" },
-  8: { indentOne: "ml-46", indentTwo: "ml-92", indentThree: "ml-138", hebIndentOne: "mr-38", hebIndentTwo: "mr-76", hebIndentThree: "mr-114" },
-  9: { indentOne: "ml-55", indentTwo: "ml-110", indentThree: "ml-165", hebIndentOne: "mr-43", hebIndentTwo: "mr-86", hebIndentThree: "mr-129" },
-  10: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-47", hebIndentTwo: "mr-94", hebIndentThree: "mr-138" },
-  11: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-52", hebIndentTwo: "mr-104", hebIndentThree: "mr-156" },
-  12: { indentOne: "ml-67", indentTwo: "ml-134", indentThree: "ml-201", hebIndentOne: "mr-52", hebIndentTwo: "mr-104", hebIndentThree: "mr-156" },
-};
 
 const WordBlock = ({
   verseNumber, hebWord, showVerseNum
@@ -118,40 +101,56 @@ const WordBlock = ({
 
   const hebBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].hbWidth} ${zoomLevelMap[ctxZoomLevel].hbHeight}`;
   const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
-  const indentStyle = findIndentLevel(hebWord.numIndent);
 
-  function findIndentLevel(numIndent: number) {
-    if (numIndent == 1) {
-      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentOne : indentLevelMap[ctxZoomLevel].indentOne;
-    }
-    if (numIndent == 2) {
-      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentTwo : indentLevelMap[ctxZoomLevel].indentTwo;
-    }
-    if (numIndent == 3) {
-      return ctxIsHebrew ? indentLevelMap[ctxZoomLevel].hebIndentThree : indentLevelMap[ctxZoomLevel].indentThree;
-    }
-    return "";
-  }
+  const renderIndents = (times: number) => {
+    return (
+      <div className="flex">
+        {[...Array(times)].map((_, i) => (
+          <div
+          key={i}
+          className={`mx-1 rounded border'}
+        `}
+          style={
+            {
+              border: `2px solid transparent`,
+            }
+          }>
+          <span
+            className="flex"
+          >
+            {<sup {...verseNumStyles}></sup>}
+            <span
+              className={`flex select-none px-2 py-1 items-center justify-center text-center leading-none
+            ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+            >
+            </span>
+          </span>
+        </div>
+        ))}
+      </div>
+    );
+  };
   return (
-    <div
-      id={hebWord.id.toString()}
-      key={hebWord.id}
-      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
-      style={
-        {
-          background: `${colorFillLocal}`,
-          border: `2px solid ${borderColorLocal}`,
-          color: `${textColorLocal}`,
-        }
-      }>
-      <span
-        className="flex"
-        onClick={handleClick}
-      >
-        {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+    <div className='flex'>
+      {ctxUniformWidth && hebWord.numIndent > 0&& renderIndents(hebWord.numIndent)}
+      <div
+        key={hebWord.id}
+        className={`mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
+      `}
+        style={
+          {
+            background: `${colorFillLocal}`,
+            border: `2px solid ${borderColorLocal}`,
+            color: `${textColorLocal}`,
+          }
+        }>
         <span
-          className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
+          className="flex"
+          onClick={handleClick}
+        >
+          {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+          <span
+            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
           data-clickType = "wordBlock"
