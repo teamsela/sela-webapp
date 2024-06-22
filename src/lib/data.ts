@@ -3,6 +3,7 @@ export interface StudyData {
     name: string;
     owner: string;
     passage: string;
+    public: boolean;
 }
 
 export type HebWord = {
