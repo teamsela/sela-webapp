@@ -460,46 +460,4 @@ export const MoveDownBtn = () => {
     </div>
   );
 };
-<<<<<<< HEAD
-=======
 
-
-//not needed at the moment
-/////////
-/////////
-// export const DeselectAllBtn = () => {
-  
-//   const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxIsHebrew } = useContext(FormatContext);
-
-//   const handleClick = () => {
-//     console.log("Deselect All Clicked")
-//     ctxSetSelectedWords([]);
-//     ctxSetNumSelectedWords(ctxSelectedWords.length);
-//   }
-
-<<<<<<< HEAD
-  return(
-    <div className={`flex flex-col group inline-block items-center justify-center xsm:flex-row absolute ${ctxIsHebrew ? '-right-30' : '-left-30'} top-0.5 mx-auto bg-white rounded-md border border-stroke shadow-1 dark:border-strokedark dark:bg-[#37404F]`}>
-      <button
-        className="hover:text-primary px-2 py-2"
-        onClick={handleClick} >
-        <p>Deselect All</p>
-      </button>
-      <ToolTip text="Deselect All" />
-    </div>    
-  )
-}
->>>>>>> 4c0fea8 (deselect all button online)
-=======
-//   return(
-//     <div className={`flex flex-col group inline-block items-center justify-center xsm:flex-row absolute ${ctxIsHebrew ? '-right-30' : '-left-30'} top-0.5 mx-auto bg-white rounded-md border border-stroke shadow-1 dark:border-strokedark dark:bg-[#37404F]`}>
-//       <button
-//         className="hover:text-primary px-2 py-2"
-//         onClick={handleClick} >
-//         <p>Deselect All</p>
-//       </button>
-//       <ToolTip text="Deselect All" />
-//     </div>    
-//   )
-// }
->>>>>>> f6bbc38 (click outside of the box to de-select feature online,)
