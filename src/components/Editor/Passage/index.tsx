@@ -7,7 +7,6 @@ import { wrapText } from "@/lib/utils";
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
 }
-
 const zoomLevelMap: ZoomLevel = {
   0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38 },
   1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54 },
@@ -24,7 +23,6 @@ const zoomLevelMap: ZoomLevel = {
   12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
 
-
 const WordBlock = ({
   verseNumber, hebWord, showVerseNum
 }: {
@@ -33,7 +31,7 @@ const WordBlock = ({
   showVerseNum: boolean;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -60,11 +58,9 @@ const WordBlock = ({
   }
 
   useEffect(() => {
-    if (!ctxSelectedWords.includes(hebWord.id) && selected) {
-      setSelected(false);
-    }
+    setSelected(ctxSelectedWords.includes(hebWord.id));
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
   }, [ctxSelectedWords, hebWord.id, selected, hebWord.numIndent]);
-
 
   const handleClick = () => {
     setSelected(prevState => !prevState);
@@ -109,56 +105,59 @@ const WordBlock = ({
       <div className="flex">
         {[...Array(times)].map((_, i) => (
           <div
-          key={i}
-          className={`mx-1 rounded border'}
+            key={i}
+            className={`mx-1 rounded border'}
         `}
-          style={
-            {
-              border: `2px solid transparent`,
-            }
-          }>
-          <span
-            className="flex"
-          >
-            {<sup {...verseNumStyles}></sup>}
+            style={
+              {
+                border: `2px solid transparent`,
+              }
+            }>
             <span
-              className={`flex select-none px-2 py-1 items-center justify-center text-center leading-none
-            ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              className="flex"
             >
+              {<sup {...verseNumStyles}></sup>}
+              <span
+                className={`flex select-none px-2 py-1 items-center justify-center text-center leading-none
+            ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              >
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
         ))}
       </div>
     );
   };
-  
+
   return (
-    <div
-      id={hebWord.id.toString()}
-      key={hebWord.id}
-      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
-      style={
-        {
-          background: `${colorFillLocal}`,
-          border: `2px solid ${borderColorLocal}`,
-          color: `${textColorLocal}`,
-        }
-      }>
-      <span
-        className="flex"
-        onClick={handleClick}
-      >
-        {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+    <div className="flex">
+      {ctxUniformWidth && hebWord.numIndent > 0 && renderIndents(hebWord.numIndent)}
+      <div
+        id={hebWord.id.toString()}
+        key={hebWord.id}
+        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+        style={
+          {
+            background: `${colorFillLocal}`,
+            border: `2px solid ${borderColorLocal}`,
+            color: `${textColorLocal}`,
+          }
+        }>
         <span
-          className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
+          className="flex"
+          onClick={handleClick}
+        >
+          {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+          <span
+            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-          data-clickType = "wordBlock"
-        >
-          {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+            data-clickType="wordBlock"
+          >
+            {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+          </span>
         </span>
-      </span>
+      </div>
     </div>
   );
 
@@ -199,7 +198,7 @@ const Passage = ({
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
     clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-    
+
   };
 
   const handleMouseMove = (event: MouseEvent) => {
@@ -207,10 +206,10 @@ const Passage = ({
     if (!selectionStart) return;
     // filter out small accidental drags when user clicks
     /////////
-    const distance = Math.sqrt( Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2) );
-    if (distance > 6) 
+    const distance = Math.sqrt(Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2));
+    if (distance > 6)
       setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
-    else 
+    else
       setSelectionEnd(null);
     /////////
     updateSelectedWords();
@@ -223,13 +222,13 @@ const Passage = ({
     //otherwise it means it is a drag
     if (!selectionEnd && clickToDeSelect) {
       ctxSetSelectedWords([]);
-      ctxSetNumSelectedWords(ctxSelectedWords.length);    
+      ctxSetNumSelectedWords(ctxSelectedWords.length);
     }
   };
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
-    
+
     // Get all elements with the class 'wordBlock' inside the container
     const rects = containerRef.current.querySelectorAll('.wordBlock');
 
@@ -261,7 +260,7 @@ const Passage = ({
 
   }, [selectionStart, selectionEnd, ctxSelectedWords]);
 
-  const getSelectionBoxStyle = ():React.CSSProperties => {
+  const getSelectionBoxStyle = (): React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
     const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
