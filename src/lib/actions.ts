@@ -45,6 +45,7 @@ export async function fetchStudyById(studyId: string) {
           name: study?.name || "",
           owner: study?.owner || "",
           passage: study?.passage || "",
+          public: study?.public || false
       };
 
       return result;

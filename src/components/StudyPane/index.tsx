@@ -31,11 +31,12 @@ export const FormatContext = createContext({
   ctxContent: {} as PassageData
 });
 
-const Editor = ({ 
-    study, content
+const StudyPane = ({ 
+    study, content, inViewMode
   }: {
     study: StudyData;
     content: PassageData;
+    inViewMode: boolean;
   }) => {
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
     const [isHebrew, setHebrew] = useState(false);
@@ -86,6 +87,7 @@ const Editor = ({
             setTextColor={setTextColor}
             setUniformWidth={setUniformWidth}
             setIndentWord={setIndentWord}
+            inViewMode={inViewMode}
           />
           <main>
             <div {...passageDivStyle}>
@@ -98,5 +100,5 @@ const Editor = ({
 
   };
   
-  export default Editor;
+  export default StudyPane;
 
