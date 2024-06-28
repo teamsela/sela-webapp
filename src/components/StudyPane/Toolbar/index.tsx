@@ -35,6 +35,7 @@ const Toolbar = ({
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
+<<<<<<< HEAD:src/components/StudyPane/Toolbar/index.tsx
     <div className="mx-auto my-2 max-w-180 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
     { // only show zoom in/out buttons in view only mode
       inViewMode
@@ -48,6 +49,9 @@ const Toolbar = ({
         <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
       </div>)
       : (<div className="grid grid-cols-16">
+=======
+      <div className="mx-auto my-2 grid max-w-180 bg-white grid-cols-16 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
+>>>>>>> main:src/components/Editor/Toolbar/index.tsx
         {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
         <UndoBtn />
         <RedoBtn />
@@ -69,10 +73,16 @@ const Toolbar = ({
         <NewStanzaBtn />
         <MoveUpBtn />
         <MoveDownBtn />
+<<<<<<< HEAD:src/components/StudyPane/Toolbar/index.tsx
       </div>)
     }
   </div>
   </div>
+=======
+      </div>
+
+    </div>
+>>>>>>> main:src/components/Editor/Toolbar/index.tsx
   );
 };
 

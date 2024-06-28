@@ -170,7 +170,7 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
-export async function updateIndented(studyId: string, selectedWords: number[], indented: boolean) {
+export async function updateIndented(studyId: string, selectedWords: number[], numIndent: number) {
   "use server";
 
   let operations: any = [];
@@ -181,7 +181,7 @@ export async function updateIndented(studyId: string, selectedWords: number[], i
       update: {
         table: "styling" as const,
         id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, indented: indented },
+        fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
         upsert: true,
       },
     })
@@ -241,12 +241,12 @@ export async function fetchPassageContent(studyId: string) {
           {
               const styling = await xataClient.db.styling
                 .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'indented'])
+                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'indented', 'numIndent'])
                 .sort("hebId", "asc")
                 .getAll();
               const stylingMap = new Map();
               styling.forEach((obj) => {
-                stylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, indented: obj.indented });
+                stylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, indented: obj.indented, numIndent: obj.numIndent });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -299,7 +299,7 @@ export async function fetchPassageContent(studyId: string) {
                     (currentStyling.colorFill !== null) && (hebWord.colorFill = currentStyling.colorFill);
                     (currentStyling.borderColor !== null) && (hebWord.borderColor = currentStyling.borderColor);
                     (currentStyling.textColor !== null) && (hebWord.textColor = currentStyling.textColor);
-                    (currentStyling.indented !== null) && (hebWord.indented = currentStyling.indented);
+                    (currentStyling.numIndent !== null) && (hebWord.numIndent = currentStyling.numIndent);
                   }
 
                   currentParagraphData.words.push(hebWord);
