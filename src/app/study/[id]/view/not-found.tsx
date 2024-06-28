@@ -1,11 +1,10 @@
 import Link from 'next/link';
-import { IconMoodSad } from '@tabler/icons-react';
- 
+import Image from 'next/image';
+
 export default function NotFound() {
-  /* TODO: add a beautiful artwork for not found page */
   return (
     <main className="flex h-full flex-col items-center justify-center gap-2">
-      <IconMoodSad className="w-10 text-gray-400" />
+      <Image src={"/images/not-found.svg"} width={400} height={400} alt="not-found" />
       <h2 className="text-xl font-semibold">404 Not Found</h2>
       <p>Could not find the requested study.</p>
       <Link
