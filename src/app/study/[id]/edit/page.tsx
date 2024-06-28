@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs';
 
 import { fetchStudyById, fetchPassageContent } from '@/lib/actions';
-import Editor from "@/components/Editor";
+import StudyPane from "@/components/StudyPane";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const studyId = "rec_" + params.id;
@@ -44,7 +44,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-      <Editor study={study} content={passageContent} inViewMode={false}/>
+      <StudyPane study={study} content={passageContent} inViewMode={false}/>
   );
 
 }

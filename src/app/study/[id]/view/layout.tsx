@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Loader from "@/components/common/Loader";
 
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Editor/Header";
+import Header from "@/components/StudyPane/Header";
 
 
 export default function Layout({ children }: { children: React.ReactNode }) {

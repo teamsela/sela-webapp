@@ -30,8 +30,7 @@ export const FormatContext = createContext({
   ctxSetIndentWord: (arg: number[]) => {},
 });
 
-/* TODO: Rename Editor because we are supporting view only mode */
-const Editor = ({ 
+const StudyPane = ({ 
     study, content, inViewMode
   }: {
     study: StudyData;
@@ -99,5 +98,5 @@ const Editor = ({
 
   };
   
-  export default Editor;
+  export default StudyPane;
 
