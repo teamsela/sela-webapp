@@ -33,6 +33,7 @@ const Toolbar = ({
   return (
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="mx-auto my-2 grid max-w-180 bg-white grid-cols-16 rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
+        {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
         <UndoBtn />
         <RedoBtn />
         <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
@@ -54,6 +55,7 @@ const Toolbar = ({
         <MoveUpBtn />
         <MoveDownBtn />
       </div>
+
     </div>
   );
 };

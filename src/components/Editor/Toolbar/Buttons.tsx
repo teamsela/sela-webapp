@@ -13,6 +13,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps } from "@/lib/types";
 import { updateColor, updateIndented } from "@/lib/actions";
+import { PassageData } from "@/lib/data";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -300,22 +301,28 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
 
 export const LeftIndentBtn = () => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
   const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
-    console.log(ctxNumSelectedWords)
     setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
   }, [ctxUniformWidth, ctxNumSelectedWords]);
 
   const handleClick = () => {
+    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
     if (ctxUniformWidth && ctxSelectedWords.length == 1) {
       if (ctxIsHebrew) {
         ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-        updateIndented(ctxStudyId, ctxSelectedWords, false);
+        if (numIndent > 0) {
+          updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
+          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
+        }
       }
       else {
         ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-        updateIndented(ctxStudyId, ctxSelectedWords, true);
+        if (numIndent < 3) {
+          updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
+          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
+        }
       }
       let newButtonCondition = ctxUniformWidth && (ctxSelectedWords.length === 1);
       setButtonCondition(newButtonCondition);
@@ -334,21 +341,27 @@ export const LeftIndentBtn = () => {
 };
 
 export const RightIndentBtn = () => {
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
   const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
     setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
   }, [ctxUniformWidth, ctxNumSelectedWords]);
 
   const handleClick = () => {
+    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
     if (ctxIsHebrew) {
       ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-      updateIndented(ctxStudyId, ctxSelectedWords, true);
+      if (numIndent < 3) {
+        updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
+        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
+      }
     }
     else {
       ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-      updateIndented(ctxStudyId, ctxSelectedWords, false);
-
+      if (numIndent > 0) {
+        updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
+        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
+      }
     }
   }
   return (
@@ -362,6 +375,35 @@ export const RightIndentBtn = () => {
     </div>
   );
 };
+
+function getNumIndentById(chapters: any[], id: number) {
+  for (let chapter of chapters) {
+    for (let verse of chapter.verses) {
+      for (let paragraph of verse.paragraphs) {
+        for (let word of paragraph.words) {
+          if (word.id === id) {
+            return word.numIndent == undefined ? 0 : word.numIndent;
+          }
+        }
+      }
+    }
+  }
+  return null; // If ID not found
+}
+
+function setNumIndentById(chapters: any[], id: number, numIndent: number) {
+  for (let chapter of chapters) {
+    for (let verse of chapter.verses) {
+      for (let paragraph of verse.paragraphs) {
+        for (let word of paragraph.words) {
+          if (word.id === id) {
+            word.numIndent = numIndent;
+          }
+        }
+      }
+    }
+  }
+}
 
 export const NewStropheBtn = () => {
 
@@ -418,3 +460,4 @@ export const MoveDownBtn = () => {
     </div>
   );
 };
+

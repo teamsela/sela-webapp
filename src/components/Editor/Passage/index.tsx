@@ -5,22 +5,22 @@ import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 
 type ZoomLevel = {
-  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number, indent: string, hebIndent: string };
+  [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
 }
 const zoomLevelMap: ZoomLevel = {
-  0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38, indent: "ml-17.5", hebIndent: "mr-15.5" },
-  1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54, indent: "ml-21.5", hebIndent: "mr-17.5" },
-  2: { fontSize: "text-2xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-19", height: "h-7", fontInPx: "10px", maxWidthPx: 63, indent: "ml-24.5", hebIndent: "mr-19.5" },
-  3: { fontSize: "text-xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5", width: "w-22", height: "h-8", fontInPx: "12px", maxWidthPx: 72, indent: "ml-27.5", hebIndent: "mr-21.5" },
-  4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-25", height: "h-9", fontInPx: "14px", maxWidthPx: 84, indent: "ml-30.5", hebIndent: "mr-23.5" },
-  5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10", fontInPx: "16px", maxWidthPx: 96, indent: "ml-34", hebIndent: "mr-26" },
-  6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11", fontInPx: "18px", maxWidthPx: 114, indent: "ml-38", hebIndent: "mr-30" },
-  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12", fontInPx: "20px", maxWidthPx: 136, indent: "ml-42", hebIndent: "mr-36" },
-  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13", fontInPx: "24px", maxWidthPx: 148, indent: "ml-46", hebIndent: "mr-38" },
-  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16", fontInPx: "30px", maxWidthPx: 163, indent: "ml-55", hebIndent: "mr-43" },
-  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20", fontInPx: "36px", maxWidthPx: 218, indent: "ml-67", hebIndent: "mr-47" },
-  11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
-  12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236, indent: "ml-67", hebIndent: "mr-52" },
+  0: { fontSize: "text-4xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-10", hbHeight: "h-3.5", width: "w-12", height: "h-4", fontInPx: "6px", maxWidthPx: 38 },
+  1: { fontSize: "text-3xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-12", hbHeight: "h-4", width: "w-16", height: "h-6", fontInPx: "8px", maxWidthPx: 54 },
+  2: { fontSize: "text-2xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-14", hbHeight: "h-4.5", width: "w-19", height: "h-7", fontInPx: "10px", maxWidthPx: 63 },
+  3: { fontSize: "text-xs", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-16", hbHeight: "h-5", width: "w-22", height: "h-8", fontInPx: "12px", maxWidthPx: 72 },
+  4: { fontSize: "text-sm", verseNumMl: "ml-0.5", verseNumMr: "mr-0.5", hbWidth: "w-18", hbHeight: "h-5.5", width: "w-25", height: "h-9", fontInPx: "14px", maxWidthPx: 84 },
+  5: { fontSize: "text-base", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-20", hbHeight: "h-6", width: "w-28", height: "h-10", fontInPx: "16px", maxWidthPx: 96 },
+  6: { fontSize: "text-lg", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-24", hbHeight: "h-6.5", width: "w-32", height: "h-11", fontInPx: "18px", maxWidthPx: 114 },
+  7: { fontSize: "text-xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-30", hbHeight: "h-8", width: "w-36", height: "h-12", fontInPx: "20px", maxWidthPx: 136 },
+  8: { fontSize: "text-2xl", verseNumMl: "ml-1", verseNumMr: "mr-1", hbWidth: "w-32", hbHeight: "h-10", width: "w-40", height: "h-13", fontInPx: "24px", maxWidthPx: 148 },
+  9: { fontSize: "text-3xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-36", hbHeight: "h-14", width: "w-48", height: "h-16", fontInPx: "30px", maxWidthPx: 163 },
+  10: { fontSize: "text-4xl", verseNumMl: "ml-2", verseNumMr: "mr-2", hbWidth: "w-40", hbHeight: "h-17", width: "w-60", height: "h-20", fontInPx: "36px", maxWidthPx: 218 },
+  11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
+  12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
 
 const WordBlock = ({
@@ -60,8 +60,8 @@ const WordBlock = ({
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(hebWord.id));
     ctxSetNumSelectedWords(ctxSelectedWords.length);
-  }, [ctxSelectedWords, hebWord.id, selected, hebWord.indented]);
-  
+  }, [ctxSelectedWords, hebWord.id, selected, hebWord.numIndent]);
+
   const handleClick = () => {
     setSelected(prevState => !prevState);
     (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
@@ -74,7 +74,7 @@ const WordBlock = ({
     className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
   }
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel+2 : ctxZoomLevel].fontSize;
+  let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel + 2 : ctxZoomLevel].fontSize;
 
   if (ctxUniformWidth && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
@@ -99,36 +99,65 @@ const WordBlock = ({
 
   const hebBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].hbWidth} ${zoomLevelMap[ctxZoomLevel].hbHeight}`;
   const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
-  const indentStyle = ctxIsHebrew ?  `${zoomLevelMap[ctxZoomLevel].hebIndent}` : `${zoomLevelMap[ctxZoomLevel].indent}`;
 
+  const renderIndents = (times: number) => {
+    return (
+      <div className="flex">
+        {[...Array(times)].map((_, i) => (
+          <div
+            key={i}
+            className={`mx-1 rounded border'}
+        `}
+            style={
+              {
+                border: `2px solid transparent`,
+              }
+            }>
+            <span
+              className="flex"
+            >
+              {<sup {...verseNumStyles}></sup>}
+              <span
+                className={`flex select-none px-2 py-1 items-center justify-center text-center leading-none
+            ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              >
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div
-      id={hebWord.id.toString()}
-      key={hebWord.id}
-      className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}
-      ${ctxUniformWidth && (ctxIndentWord.includes(hebWord.id) || hebWord.indented)? indentStyle : ''}`}
-      style={
-        {
-          background: `${colorFillLocal}`,
-          border: `2px solid ${borderColorLocal}`,
-          color: `${textColorLocal}`,
-        }
-      }>
-      <span
-        className="flex"
-        onClick={handleClick}
-      >
-        {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+    <div className="flex">
+      {ctxUniformWidth && hebWord.numIndent > 0 && renderIndents(hebWord.numIndent)}
+      <div
+        id={hebWord.id.toString()}
+        key={hebWord.id}
+        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+        style={
+          {
+            background: `${colorFillLocal}`,
+            border: `2px solid ${borderColorLocal}`,
+            color: `${textColorLocal}`,
+          }
+        }>
         <span
-          className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
+          className="flex"
+          onClick={handleClick}
+        >
+          {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+          <span
+            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-          data-clickType = "wordBlock"
-        >
-          {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+            data-clickType="wordBlock"
+          >
+            {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
+          </span>
         </span>
-      </span>
+      </div>
     </div>
   );
 
@@ -169,7 +198,7 @@ const Passage = ({
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
     clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-    
+
   };
 
   const handleMouseMove = (event: MouseEvent) => {
@@ -177,10 +206,10 @@ const Passage = ({
     if (!selectionStart) return;
     // filter out small accidental drags when user clicks
     /////////
-    const distance = Math.sqrt( Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2) );
-    if (distance > 6) 
+    const distance = Math.sqrt(Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2));
+    if (distance > 6)
       setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
-    else 
+    else
       setSelectionEnd(null);
     /////////
     updateSelectedWords();
@@ -193,13 +222,13 @@ const Passage = ({
     //otherwise it means it is a drag
     if (!selectionEnd && clickToDeSelect) {
       ctxSetSelectedWords([]);
-      ctxSetNumSelectedWords(ctxSelectedWords.length);    
+      ctxSetNumSelectedWords(ctxSelectedWords.length);
     }
   };
 
   const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
-    
+
     // Get all elements with the class 'wordBlock' inside the container
     const rects = containerRef.current.querySelectorAll('.wordBlock');
 
@@ -211,6 +240,7 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
+      console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
@@ -230,7 +260,7 @@ const Passage = ({
 
   }, [selectionStart, selectionEnd, ctxSelectedWords]);
 
-  const getSelectionBoxStyle = ():React.CSSProperties => {
+  const getSelectionBoxStyle = (): React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
     const left = Math.min(selectionStart.x, selectionEnd.x) - window.scrollX;
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
