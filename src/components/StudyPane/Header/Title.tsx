@@ -3,7 +3,7 @@
 import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
 import { updateStudyName } from '@/lib/actions';
 import { StudyData } from '@/lib/data';
-
+import { MAX_TITLE_LENGTH, truncateString } from "@/lib/utils";
 
 const Title = ({ study }:{
     study: StudyData,
@@ -12,7 +12,6 @@ const Title = ({ study }:{
     const [isEditing, setIsEditing] = useState(false);
 
     const titleRef = useRef<HTMLDivElement>(null);
-    const MAX_TITLE_LENGTH = 40;
   
     const handleSaveClick = useCallback(() => {
       setIsEditing(false);
@@ -46,14 +45,6 @@ const Title = ({ study }:{
     const handleEditClick = () => {
       setIsEditing(true);
     };
-
-    function truncateString(str: string, maxLength: number): string {
-      if (str.length <= maxLength) {
-          return str;
-      } else {
-          return str.slice(0, maxLength) + '...';
-      }
-  }
   
     return (
       <div ref={titleRef} className="block">
@@ -76,7 +67,7 @@ const Title = ({ study }:{
         )}
       </div>
     );
-  };
+};
   
-  export default Title;
+export default Title;
   

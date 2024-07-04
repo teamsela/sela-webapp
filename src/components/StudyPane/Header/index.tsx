@@ -11,14 +11,16 @@ import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
-
+import { MAX_TITLE_LENGTH, truncateString } from "@/lib/utils";
 
 const Header = ({
   study,
-  setLangToHebrew
+  setLangToHebrew,
+  inViewMode
 }: {
   study: StudyData;
   setLangToHebrew: (arg: boolean) => void;
+  inViewMode: boolean;
 }) => {
   return (
     <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
@@ -33,7 +35,11 @@ const Header = ({
             />
           </Link>
           <div className="text-primary font-bold ml-6 pr-6">
-            <Title study={study} />
+            {inViewMode 
+            ? (<div className="block">
+                <h1 className="text-title-sm" >{truncateString(study.name, MAX_TITLE_LENGTH)}</h1>
+              </div>) 
+            : <Title study={study} /> }
           </div>
         </div>
         <div className="flex items-center justify-center w-1/3 2xl:w-1/5 2xl:justify-center ">

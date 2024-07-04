@@ -77,7 +77,7 @@ const StudyPane = ({
     return (
         <>
         <FormatContext.Provider value={formatContextValue}>
-          <Header study={study} setLangToHebrew={setHebrew} />
+          <Header study={study} setLangToHebrew={setHebrew} inViewMode={inViewMode}/>
           <Toolbar
             setZoomLevel={setZoomLevel}
             //color functions
