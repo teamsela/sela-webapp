@@ -36,16 +36,17 @@ const Toolbar = ({
   return (
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
     <div className="mx-auto my-2 max-w-180 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
-    { // only show zoom in/out buttons in view only mode
+    { // only show zoom in/out & uniform width buttons in view only mode
       inViewMode
-      ? (<div className="grid grid-cols-3">
+      ? (<div className="grid grid-cols-4">
         <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
         <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-          <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
+          <span className="rounded-md border-[.5px] text-center border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
           {ctxZoomLevel}
           </span>
         </div>
         <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+        <UniformWidthBtn setUniformWidth={setUniformWidth}/>
       </div>)
       : (<div className="grid grid-cols-16">
         {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
