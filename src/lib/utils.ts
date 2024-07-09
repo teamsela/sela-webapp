@@ -246,13 +246,3 @@ export function wrapText(
   
   return lineCount;
 }
-
-export const MAX_TITLE_LENGTH = 40;
-
-export function truncateString(str: string, maxLength: number): string {
-  if (str.length <= maxLength) {
-      return str;
-  } else {
-      return str.slice(0, maxLength) + '...';
-  }
-}
