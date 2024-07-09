@@ -55,35 +55,27 @@ const Title = ({ study, inViewMode }:{
     }
   }
 
-  if (inViewMode) { // render static title
-    return (
-      <div className="block">
-        <h1 className="text-title-sm" >{truncateString(study.name, MAX_TITLE_LENGTH)}</h1>
-      </div>
-    );
-  } else {
-    return (
-      <div ref={titleRef} className="block">
-        {isEditing ? (
-          <div>
-            <input
-              className="text-title-sm"
-              type="text"
-              value={title}
-              size={Math.floor(window.innerWidth/50)}
-              onChange={handleInputChange}
-              autoFocus
-              onBlur={handleSaveClick}
-            />
-          </div>
-        ) : (
-          <div>
-            <h1 className="text-title-sm" onClick={handleEditClick}>{truncateString(title, MAX_TITLE_LENGTH)}</h1>
-          </div>
-        )}
-      </div>
-    );
-  }
+  return (
+    <div ref={titleRef} className="block">
+      {isEditing ? (
+        <div>
+          <input
+            className="text-title-sm"
+            type="text"
+            value={title}
+            size={Math.floor(window.innerWidth/50)}
+            onChange={handleInputChange}
+            autoFocus
+            onBlur={handleSaveClick}
+          />
+        </div>
+      ) : (
+        <div>
+          <h1 className="text-title-sm" onClick={inViewMode ? undefined : handleEditClick}>{truncateString(title, MAX_TITLE_LENGTH)}</h1>
+        </div>
+      )}
+    </div>
+  );
 };
   
   export default Title;
