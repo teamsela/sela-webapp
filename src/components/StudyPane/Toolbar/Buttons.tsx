@@ -101,6 +101,13 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 
   const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
 
+  //to make sure the colour picker turns off completely when user de-selects everything
+  useEffect(() => {
+    if (!(ctxNumSelectedWords > 0)) {
+      setColorAction(ColorActionType.none);
+    }
+  }, [ctxNumSelectedWords, ctxColorAction])
+
   const handleClick = () => {
     if (ctxNumSelectedWords > 0) {
       setColorAction((ctxColorAction != ColorActionType.colorFill) ? ColorActionType.colorFill : ColorActionType.none);
@@ -133,7 +140,7 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       </button>
 
       {
-        ctxColorAction === ColorActionType.colorFill && (
+        ctxColorAction === ColorActionType.colorFill && ctxNumSelectedWords > 0 && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
@@ -152,6 +159,13 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
 }) => {
 
   const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
+
+  //to make sure the colour picker turns off completely when user de-selects everything
+  useEffect(() => {
+    if (!(ctxNumSelectedWords > 0)) {
+      setColorAction(ColorActionType.none);
+    }
+  }, [ctxNumSelectedWords, ctxColorAction])
 
   const handleClick = () => {
     if (ctxNumSelectedWords > 0) {
@@ -184,7 +198,7 @@ export const BorderColorBtn: React.FC<ColorPickerProps> = ({
         </div>
       </button>
       {
-        ctxColorAction === ColorActionType.borderColor && (
+        ctxColorAction === ColorActionType.borderColor && ctxNumSelectedWords > 0 && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
@@ -202,6 +216,13 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
 }) => {
 
   const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
+
+  //to make sure the colour picker turns off completely when user de-selects everything
+  useEffect(() => {
+    if (!(ctxNumSelectedWords > 0)) {
+      setColorAction(ColorActionType.none);
+    }
+  }, [ctxNumSelectedWords, ctxColorAction])
 
   const handleClick = () => {
     if (ctxNumSelectedWords > 0) {
@@ -234,7 +255,7 @@ export const TextColorBtn: React.FC<ColorPickerProps> = ({
         </div>
       </button>
       {
-        ctxColorAction === ColorActionType.textColor && (
+        ctxColorAction === ColorActionType.textColor && ctxNumSelectedWords > 0 && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker color={ctxTextColor} onChange={handleChange} />
