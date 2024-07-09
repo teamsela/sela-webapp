@@ -5,8 +5,9 @@ import { updateStudyName } from '@/lib/actions';
 import { StudyData } from '@/lib/data';
 
 
-const Title = ({ study }:{
+const Title = ({ study, inViewMode }:{
     study: StudyData,
+    inViewMode: boolean
 }) => {
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
@@ -44,7 +45,7 @@ const Title = ({ study }:{
 
   
     const handleEditClick = () => {
-      setIsEditing(true);
+      !inViewMode && setIsEditing(true);
     };
 
     function truncateString(str: string, maxLength: number): string {
