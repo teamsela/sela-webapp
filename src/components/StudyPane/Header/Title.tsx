@@ -5,56 +5,63 @@ import { updateStudyName } from '@/lib/actions';
 import { StudyData } from '@/lib/data';
 
 
-const Title = ({ study }:{
-    study: StudyData,
+const Title = ({ study, inViewMode }:{
+  study: StudyData,
+  inViewMode: boolean
 }) => {
-    const [title, setTitle] = useState(study.name);
-    const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(study.name);
+  const [isEditing, setIsEditing] = useState(false);
 
-    const titleRef = useRef<HTMLDivElement>(null);
-    const MAX_TITLE_LENGTH = 40;
-  
-    const handleSaveClick = useCallback(() => {
-      setIsEditing(false);
-      updateStudyName(study.id, title);
-    }, [study.id, title]);
-        
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-          // when clicked outside of the text box save the change
-          if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
-              handleSaveClick();
-          }
-        };
-    
-        if (isEditing) {
-          document.addEventListener('mousedown', handleClickOutside);
-        } else {
-          document.removeEventListener('mousedown', handleClickOutside);
-        }
-    
-        return () => {
-          document.removeEventListener('mousedown', handleClickOutside);
-        };
-      }, [isEditing, title, handleSaveClick]);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const MAX_TITLE_LENGTH = 40;
 
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-      setTitle(event.target.value);
-    };
-
-  
-    const handleEditClick = () => {
-      setIsEditing(true);
-    };
-
-    function truncateString(str: string, maxLength: number): string {
-      if (str.length <= maxLength) {
-          return str;
-      } else {
-          return str.slice(0, maxLength) + '...';
+  const handleSaveClick = useCallback(() => {
+    setIsEditing(false);
+    updateStudyName(study.id, title);
+  }, [study.id, title]);
+      
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // when clicked outside of the text box save the change
+      if (titleRef.current && !titleRef.current.contains(event.target as Node)) {
+          handleSaveClick();
       }
+    };
+
+    if (isEditing) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, title, handleSaveClick]);
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value);
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  function truncateString(str: string, maxLength: number): string {
+    if (str.length <= maxLength) {
+        return str;
+    } else {
+        return str.slice(0, maxLength) + '...';
+    }
   }
-  
+
+  if (inViewMode) { // render static title
+    return (
+      <div className="block">
+        <h1 className="text-title-sm" >{truncateString(study.name, MAX_TITLE_LENGTH)}</h1>
+      </div>
+    );
+  } else {
     return (
       <div ref={titleRef} className="block">
         {isEditing ? (
@@ -76,7 +83,8 @@ const Title = ({ study }:{
         )}
       </div>
     );
-  };
+  }
+};
   
   export default Title;
   
