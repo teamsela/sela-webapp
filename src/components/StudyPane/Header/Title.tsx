@@ -7,7 +7,7 @@ import { FormatContext } from '../index';
 
 
 const Title = ({ study }:{
-    study: StudyData;
+    study: StudyData
 }) => {
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
