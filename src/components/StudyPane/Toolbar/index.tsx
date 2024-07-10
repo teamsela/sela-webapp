@@ -11,8 +11,7 @@ const Toolbar = ({
   setBorderColor,
   setTextColor,
   setUniformWidth,
-  setIndentWord,
-  inViewMode
+  setIndentWord
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -22,10 +21,9 @@ const Toolbar = ({
   setTextColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
   setIndentWord: (arg: number[]) => void;
-  inViewMode: boolean;
 } ) => {
   
-  const { ctxZoomLevel, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxNumSelectedWords, ctxInViewMode } = useContext(FormatContext);
   
   useEffect(() => {
     if (ctxNumSelectedWords > 0)
@@ -37,7 +35,7 @@ const Toolbar = ({
     <div className="sticky left-0 top-20 z-9999 flex w-full drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
     <div className="mx-auto my-2 max-w-180 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
     { // only show zoom in/out & uniform width buttons in view only mode
-      inViewMode
+      ctxInViewMode
       ? (<div className="grid grid-cols-4">
         <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
         <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
