@@ -28,7 +28,8 @@ export const FormatContext = createContext({
   ctxUniformWidth: false,
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => {},
-  ctxContent: {} as PassageData
+  ctxContent: {} as PassageData,
+  ctxInViewMode: false
 });
 
 const StudyPane = ({ 
@@ -68,6 +69,7 @@ const StudyPane = ({
       ctxIndentWord: indentWord,
       ctxSetIndentWord: setIndentWord,
       ctxContent: content,
+      ctxInViewMode: inViewMode
     }
 
     const passageDivStyle = {
@@ -87,7 +89,6 @@ const StudyPane = ({
             setTextColor={setTextColor}
             setUniformWidth={setUniformWidth}
             setIndentWord={setIndentWord}
-            inViewMode={inViewMode}
           />
           <main>
             <div {...passageDivStyle}>

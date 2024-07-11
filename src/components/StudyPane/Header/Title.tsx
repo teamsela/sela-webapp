@@ -1,16 +1,19 @@
 'use client';
 
-import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
+import { ChangeEvent, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { updateStudyName } from '@/lib/actions';
 import { StudyData } from '@/lib/data';
+import { FormatContext } from '../index';
 
 
 const Title = ({ study }:{
-    study: StudyData,
+    study: StudyData
 }) => {
     const [title, setTitle] = useState(study.name);
     const [isEditing, setIsEditing] = useState(false);
-
+    
+    const { ctxInViewMode } = useContext(FormatContext);
+  
     const titleRef = useRef<HTMLDivElement>(null);
     const MAX_TITLE_LENGTH = 40;
   
@@ -44,7 +47,7 @@ const Title = ({ study }:{
 
   
     const handleEditClick = () => {
-      setIsEditing(true);
+      !ctxInViewMode && setIsEditing(true);
     };
 
     function truncateString(str: string, maxLength: number): string {
