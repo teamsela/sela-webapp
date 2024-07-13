@@ -7,7 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign in | Sela Bible Poetry"
+  title: "Sela Bible Poetry"
   // other metadata
 };
 
