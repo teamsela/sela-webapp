@@ -11,15 +11,42 @@ import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
+import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
+import { useEffect } from "react";
 
 
 const Header = ({
   study,
-  setLangToHebrew
+  setLangToHebrew,
+  setStructureOpen,
+  setMotifOpen,
+  setSyntaxOpen,
+  setSoundsOpen,
+  setInfoPaneOpen,
+  setAllInfoPaneClose,
+  structureOpen,
+  motifOpen,
+  syntaxOpen,
+  soundsOpen,
+  infoPaneOpen,
 }: {
   study: StudyData;
   setLangToHebrew: (arg: boolean) => void;
+  setStructureOpen: (arg: boolean) => void;
+  setMotifOpen: (arg: boolean) => void;
+  setSyntaxOpen: (arg: boolean) => void;
+  setSoundsOpen: (arg: boolean) => void;
+  setInfoPaneOpen: (arg: boolean) => void;
+  setAllInfoPaneClose: () => void;
+  structureOpen: boolean;
+  motifOpen: boolean;
+  syntaxOpen: boolean;
+  soundsOpen: boolean;
+  infoPaneOpen: boolean;
 }) => {
+  useEffect(() => {
+    setInfoPaneOpen(structureOpen || motifOpen || syntaxOpen || soundsOpen);
+  }, [structureOpen, motifOpen, syntaxOpen, soundsOpen]);
   return (
     <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-8">
@@ -48,7 +75,11 @@ const Header = ({
             {/*<div className="hidden sm:block mr-2">*/}
             {/* <Tabs /> */}  
             {/*</div>*/}
-            <LanguageSwitcher setLangToHebrew={setLangToHebrew} />
+            <StructureBtn setStructureOpen={setStructureOpen}  structureOpen={structureOpen} setAllInfoPaneClose={setAllInfoPaneClose}/>
+            <MotifBtn setMotifOpen={setMotifOpen} motifOpen={motifOpen} setAllInfoPaneClose={setAllInfoPaneClose}/>
+            <SyntaxBtn setSyntaxOpen={setSyntaxOpen}  syntaxOpen={syntaxOpen} setAllInfoPaneClose={setAllInfoPaneClose}/>
+            <SoundsBtn setSoundsOpen={setSoundsOpen} soundsOpen={soundsOpen}setAllInfoPaneClose={setAllInfoPaneClose} />
+            <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
             {/* <!-- Dark Mode Toggler --> */}
             {/*<DarkModeSwitcher />*/}
             {/* <!-- Dark Mode Toggler --> */}
