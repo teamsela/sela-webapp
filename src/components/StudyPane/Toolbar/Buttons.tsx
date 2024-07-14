@@ -502,3 +502,102 @@ export const MoveDownBtn = () => {
   );
 };
 
+export const StructureBtn = ({
+  setAllInfoPaneClose,
+  setStructureOpen,
+  structureOpen,
+}: {
+  setAllInfoPaneClose: () => void;
+  setStructureOpen: (arg: boolean) => void;
+  structureOpen: boolean;
+}) => {
+
+  const handleClick = () =>{
+    setAllInfoPaneClose();
+    setStructureOpen(!structureOpen);
+  }
+  return (
+    <div>
+      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Structure
+      </button>
+      <ToolTip text="Structure" />
+    </div>
+  );
+};
+export const MotifBtn = ({
+  setMotifOpen,
+  setAllInfoPaneClose,
+  motifOpen,
+}: {
+  setAllInfoPaneClose: () => void;
+  setMotifOpen: (arg: boolean) => void;
+  motifOpen: boolean;
+}) => {
+  const handleClick = () =>{
+    setAllInfoPaneClose();
+    setMotifOpen(!motifOpen);
+    console.log("Motif clicked")
+  }
+  return (
+    <div>
+      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Motif
+      </button>
+      <ToolTip text="Motif" />
+    </div>
+  );
+};
+export const SyntaxBtn = ({
+  setSyntaxOpen,
+  setAllInfoPaneClose,
+  syntaxOpen,
+}: {
+  setAllInfoPaneClose: () => void;
+  setSyntaxOpen: (arg: boolean) => void;
+  syntaxOpen: boolean;
+}) => {
+  const handleClick = () =>{
+    setAllInfoPaneClose();
+    setSyntaxOpen(!syntaxOpen);
+    console.log("Syntax clicked")
+  }
+  return (
+    <div>
+      <button
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Syntax
+      </button>
+      <ToolTip text="Syntax" />
+    </div>
+  );
+};
+export const SoundsBtn = ({
+  setSoundsOpen,
+  setAllInfoPaneClose,
+  soundsOpen,
+}: {
+  setSoundsOpen: (arg: boolean) => void;
+  setAllInfoPaneClose: () => void;
+  soundsOpen: boolean;
+}) => {
+  const handleClick = () =>{
+    setAllInfoPaneClose();
+    setSoundsOpen(!soundsOpen);
+    console.log("Sounds clicked")
+  }
+  return (
+    <div>
+      <button
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Sounds
+      </button>
+      <ToolTip text="Sounds" />
+    </div>
+  );
+};
+
