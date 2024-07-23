@@ -3,6 +3,7 @@ import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
 import SearchBar from "@/components/Tables/Search";
+import Link from 'next/link';
 
 const xataClient = getXataClient();
 
@@ -33,9 +34,16 @@ export default async function PublicTable({
 
   const thisUser = await currentUser();
 
+  let searchedStudies = studies.toArray();
+  if (!!query) {
+    query = query.toLowerCase();
+    searchedStudies = studies.filter((study) => 
+      (study.name.toLowerCase().includes(query) || study.passage.toLowerCase().includes(query)));
+  } 
+
   return (
     <>
-    <SearchBar placeholder="Search study..." />
+    <SearchBar placeholder="Search study by name or passage..." />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
@@ -56,13 +64,15 @@ export default async function PublicTable({
             </tr>
           </thead>
           <tbody>
-            {studies.map((studyItem) => (
+            {searchedStudies.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black dark:text-white">
-                    {studyItem.name}
-                  </h5>
-                  <p className="text-sm">Psalm {studyItem.passage}</p>
+                  <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
+                    <h5 className="font-medium text-black dark:text-white">
+                      {studyItem.name}
+                    </h5>
+                  </Link>
+                  {/* <p className="text-sm">Psalm {studyItem.passage}</p> */}
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
@@ -74,7 +84,7 @@ export default async function PublicTable({
                     {studyItem.xata.updatedAt.toLocaleString()}
                   </p>
                 </td>
-                <td className="border-b border-[#eee] py-7 px-4 dark:border-strokedark flex items-center">
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
                   <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
                     <Image src={mp.get(studyItem.owner)?.imageUrl} width="40" height="40" alt="Avatar" />
                   </div>
