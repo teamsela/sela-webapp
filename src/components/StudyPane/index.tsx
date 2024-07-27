@@ -109,7 +109,7 @@ const StudyPane = ({
   }
 
   const passageDivStyle = {
-    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneOpen ? 'w-5/6' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneOpen ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
   }
 
   return (
@@ -145,7 +145,7 @@ const StudyPane = ({
             <Passage content={content}/>
           </div>
           {infoPaneOpen &&
-            <div className="fixed top-25 w-1/6 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
+            <div className="fixed top-25 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
               <InfoPane
                 infoPaneOpen={infoPaneOpen}
                 structureOpen={structureOpen}

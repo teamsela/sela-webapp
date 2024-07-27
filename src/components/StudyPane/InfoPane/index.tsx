@@ -28,7 +28,7 @@ const InfoPane = ({
     }
     return (
         <aside
-            className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneOpen ? 'mr-1/6' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`}
+            className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneOpen ? 'mr-1/4' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`}
         >
             <div className="relative flex flex-col h-full">
             <button
