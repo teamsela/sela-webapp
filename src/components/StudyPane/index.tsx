@@ -88,6 +88,7 @@ const StudyPane = ({
     setMotifOpen(false);
     setSyntaxOpen(false);
     setSoundsOpen(false);
+    setInfoPaneOpen(false);
   }
 
   const passageDivStyle = {

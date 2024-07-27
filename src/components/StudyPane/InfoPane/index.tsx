@@ -22,22 +22,28 @@ const InfoPane = ({
     useEffect(() => {
         console.log(infoPaneOpen)
     }, [infoPaneOpen]);
+    const handleClick = () => {
+        setAllInfoPaneClose();
+        console.log("Close clicked");
+    }
     return (
-
         <aside
             className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneOpen ? 'mr-1/6' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`}
         >
-            <div className="flex flex-col justify-between h-full">
+            <div className="relative flex flex-col h-full">
             <button
-                    className="absolute top-0 right-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300"
-                    onClick={setAllInfoPaneClose}
+                    className="absolute top-0 right-0 rounded-full "
+                    onClick={handleClick}
+                    style={{ zIndex: 1000 }} // Explicitly setting z-index for debugging
                 >
                     &#10005;
                 </button>
-                {structureOpen && <Structure/>}
-                {motifOpen && <Motif/>}
-                {syntaxOpen && <Syntax/>}
-                {soundsOpen && <Sounds/>}
+                <div className="flex">
+                    {structureOpen && <Structure />}
+                    {motifOpen && <Motif />}
+                    {syntaxOpen && <Syntax />}
+                    {soundsOpen && <Sounds />}
+                </div>
             </div>
         </aside>
     );
