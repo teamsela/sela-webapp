@@ -128,7 +128,7 @@ const StudyPane = ({
             <Passage content={content}/>
           </div>
           {infoPaneOpen &&
-            <div className="fixed top-25 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
+            <div className="fixed top-35 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
               <InfoPane
                 infoPaneOpen={infoPaneOpen}
                 structureOpen={structureOpen}
