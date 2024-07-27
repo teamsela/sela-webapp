@@ -518,7 +518,6 @@ export const MotifBtn = ({
   const handleClick = () =>{
     setAllInfoPaneClose();
     setMotifOpen(!motifOpen);
-    console.log("Motif clicked")
   }
   return (
     <div>
@@ -542,7 +541,6 @@ export const SyntaxBtn = ({
   const handleClick = () =>{
     setAllInfoPaneClose();
     setSyntaxOpen(!syntaxOpen);
-    console.log("Syntax clicked")
   }
   return (
     <div>
@@ -567,7 +565,6 @@ export const SoundsBtn = ({
   const handleClick = () =>{
     setAllInfoPaneClose();
     setSoundsOpen(!soundsOpen);
-    console.log("Sounds clicked")
   }
   return (
     <div>
