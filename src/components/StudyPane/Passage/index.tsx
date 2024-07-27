@@ -1,4 +1,4 @@
-import { HebWord, PassageData } from '@/lib/data';
+import { HebWord, PassageData, ParagraphData } from '@/lib/data';
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -22,6 +22,71 @@ const zoomLevelMap: ZoomLevel = {
   11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
   12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
+
+
+
+const StropheBlock = ({content}:
+  {content:PassageData
+     })=> {
+  let stropheMembersCount = 0;
+  let wordsArray:HebWord[] = [];
+  // count up the number of words, artificial 10 word apart divisions of strophes
+  content.chapters.map((chapter) => {
+    chapter.verses.map((verse) => {
+      verse.paragraphs.map((paragraph, p_index) => {
+        paragraph.words.map((word, w_index) => {
+          stropheMembersCount++
+          if (stropheMembersCount%10===0){
+            word.stropheDivision=true;
+            word.p_index=p_index;
+            word.w_index=w_index;
+            wordsArray.push(word);
+            
+          }
+          else{
+            word.w_index=w_index;
+            word.stropheDivision=false;
+            word.p_index=p_index;
+            wordsArray.push(word);
+          }
+        })
+      })
+    })
+  })
+
+  let stropheArray:HebWord[][][]=[];
+  let lineCollectionArray:HebWord[][]=[];
+  let lineDivisionArray:HebWord[]=[];
+  for(let i = 0; i<wordsArray.length; i++){
+    
+    let word = wordsArray[i];
+    if(i === 0 ){
+      lineDivisionArray.push(word) // add first word to new line
+    }
+    else if(word.stropheDivision===false){
+      if(word.w_index===0){ // evaluate when a new line is required
+        lineCollectionArray.push(lineDivisionArray); // add accumulated to a lineCollection
+        lineDivisionArray = []; // start new line
+        lineDivisionArray.push(word); 
+      }
+      else{ // if new line not required
+        lineDivisionArray.push(word);
+      }
+    }
+    else if(word.stropheDivision===true){
+      lineCollectionArray.push(lineDivisionArray); // add accumulated words into strophe
+      stropheArray.push(lineCollectionArray); // add accumulated lineCollections creating a new strophe unit
+      lineCollectionArray = []; // start a new lineCollection
+      lineDivisionArray=[]; // start new line
+      if(i !==0){
+        lineDivisionArray.push(word) // add to new line, if it has not been added i.e. i=0
+      }
+    }
+  }
+
+  return stropheArray;
+}
+
 
 const WordBlock = ({
   verseNumber, hebWord, showVerseNum
@@ -152,7 +217,7 @@ const WordBlock = ({
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-            data-clickType="wordBlock"
+            data-clicktype="wordBlock"
           >
             {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
           </span>
@@ -288,37 +353,59 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
   ///////////////////////////
   ///////////////////////////
-
   const passageContentStyle = {
     className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
   }
-
+  let stropheArray = undefined;
+  stropheArray = StropheBlock({content})
   return (
     <div
+      key={`passage`}
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ userSelect: 'none' }}
       {...passageContentStyle}
     >
       {
-        content.chapters.map((chapter) => (
-          chapter.verses.map((verse) => (
-            verse.paragraphs.map((paragraph, p_index) => (
-              <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-                {
-                  paragraph.words.map((word, w_index) => (
-                    <WordBlock
-                      key={word.id}
-                      verseNumber={verse.id}
-                      hebWord={word}
-                      showVerseNum={p_index === 0 && w_index === 0}
-                    />)
-                  )
-                }
+        stropheArray.map((strophe, s_index)=>{
+          return(
+            <div 
+              key={`strophe`+String(s_index)}
+              className={`${s_index % 2 === 0 ? 'bg-white' : 'bg-theme '} flex-column p-5 m-10`}
+            >
+              <div
+                key={`strophe`+String(s_index)+`Selector`}
+                className={`bg-black`}
+                onClick={(event)=>{console.log(`clicked Strophe `+String(s_index))}}
+              >
+                selectable element
               </div>
-            ))
-          ))
-        ))
+            {
+            strophe.map((line, l_index)=>{
+              return(
+                <div
+                  key={`line`+String(l_index)}
+                  className={`flex`}
+                >
+                {
+                line.map((word, word_index)=>{
+                  return(
+                    <WordBlock
+                      key={`word`+String(word_index)}
+                      verseNumber={word.verse}
+                      hebWord={word}
+                      showVerseNum={word.p_index === 0 && word.w_index === 0 && s_index==0}
+                    />
+                  )
+                })
+                }
+                </div>
+              )
+            })
+          }
+            </div>
+          )
+        })
       }
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
