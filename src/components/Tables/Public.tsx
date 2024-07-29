@@ -3,6 +3,7 @@ import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
 import SearchBar from "@/components/Tables/Search";
+import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
 
 const xataClient = getXataClient();
@@ -14,9 +15,29 @@ export default async function PublicTable({
   query: string;
   currentPage: number;
 }) {
-
+  // may make PAGINATION_SIZE editable by user later
+  const PAGINATION_SIZE = 5;
+  
   // fetch all studies from xata
-  const studies = await xataClient.db.study.filter({ public: true }).getAll();
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        {public: true},
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  const studies = search.records;
+  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
 
   // extract the ids from owner column and add them into a set
   const uniqueIds = new Set<string>();
@@ -33,13 +54,6 @@ export default async function PublicTable({
   }
 
   const thisUser = await currentUser();
-
-  let searchedStudies = studies.toArray();
-  if (!!query) {
-    query = query.toLowerCase();
-    searchedStudies = studies.filter((study) => 
-      (study.name.toLowerCase().includes(query) || study.passage.toLowerCase().includes(query)));
-  } 
 
   return (
     <>
@@ -64,7 +78,7 @@ export default async function PublicTable({
             </tr>
           </thead>
           <tbody>
-            {searchedStudies.map((studyItem) => (
+            {studies.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
@@ -72,7 +86,6 @@ export default async function PublicTable({
                       {studyItem.name}
                     </h5>
                   </Link>
-                  {/* <p className="text-sm">Psalm {studyItem.passage}</p> */}
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
@@ -97,6 +110,13 @@ export default async function PublicTable({
           </tbody>
         </table>
       </div>
+      {
+        totalPages > 0 
+          ? <Pagination totalPages={ totalPages } /> 
+          : (<div className="text-center py-5">
+            <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
+          </div>)
+      }
     </div>
     </>
   );
