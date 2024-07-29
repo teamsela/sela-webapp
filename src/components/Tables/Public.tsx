@@ -16,7 +16,7 @@ export default async function PublicTable({
   currentPage: number;
 }) {
   // may make PAGINATION_SIZE editable by user later
-  const PAGINATION_SIZE = 5;
+  const PAGINATION_SIZE = 10;
   
   // fetch all studies from xata
   const search = await xataClient.db.study.search("", {
