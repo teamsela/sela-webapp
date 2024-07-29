@@ -11,7 +11,7 @@ import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps } from "@/lib/types";
+import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
 import { updateColor, updateIndented } from "@/lib/actions";
 import { PassageData } from "@/lib/data";
 
@@ -478,6 +478,106 @@ export const MoveDownBtn = () => {
         <LuArrowDownToLine opacity="0.4" fontSize="1.5em" />
       </button>
       <ToolTip text="Move down" />
+    </div>
+  );
+};
+
+export const StructureBtn = ({
+  setInfoPaneAction,
+  infoPaneAction,
+}: {
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
+}) => {
+
+  const handleClick = () =>{
+    if(infoPaneAction != InfoPaneActionType.structure){
+      setInfoPaneAction(InfoPaneActionType.structure);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
+  }
+  return (
+    <div>
+      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Structure
+      </button>
+      <ToolTip text="Structure" />
+    </div>
+  );
+};
+export const MotifBtn = ({
+  setInfoPaneAction,
+  infoPaneAction,
+}: {
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
+}) => {
+  const handleClick = () =>{
+    if(infoPaneAction != InfoPaneActionType.motif){
+      setInfoPaneAction(InfoPaneActionType.motif);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
+  }
+  return (
+    <div>
+      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Motif
+      </button>
+      <ToolTip text="Motif" />
+    </div>
+  );
+};
+export const SyntaxBtn = ({
+  setInfoPaneAction,
+  infoPaneAction,
+}: {
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
+}) => {
+  const handleClick = () =>{
+    if(infoPaneAction != InfoPaneActionType.syntax){
+      setInfoPaneAction(InfoPaneActionType.syntax);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
+  }
+  return (
+    <div>
+      <button
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Syntax
+      </button>
+      <ToolTip text="Syntax" />
+    </div>
+  );
+};
+export const SoundsBtn = ({
+  setInfoPaneAction,
+  infoPaneAction,
+}: {
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
+}) => {
+  const handleClick = () =>{
+    if(infoPaneAction != InfoPaneActionType.sounds){
+      setInfoPaneAction(InfoPaneActionType.sounds);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
+  }
+  return (
+    <div>
+      <button
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={handleClick} >
+        Sounds
+      </button>
+      <ToolTip text="Sounds" />
     </div>
   );
 };

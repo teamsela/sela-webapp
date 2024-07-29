@@ -11,15 +11,25 @@ import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
+import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
+import { useEffect } from "react";
+import { InfoPaneActionType } from "@/lib/types";
 
 
 const Header = ({
   study,
-  setLangToHebrew
+  setLangToHebrew,
+  setInfoPaneAction,
+  infoPaneAction,
 }: {
   study: StudyData;
   setLangToHebrew: (arg: boolean) => void;
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
 }) => {
+  useEffect(() => {
+    setInfoPaneAction(infoPaneAction);
+  }, [infoPaneAction]);
   return (
     <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-8">
@@ -48,7 +58,11 @@ const Header = ({
             {/*<div className="hidden sm:block mr-2">*/}
             {/* <Tabs /> */}  
             {/*</div>*/}
-            <LanguageSwitcher setLangToHebrew={setLangToHebrew} />
+            <StructureBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
+            <MotifBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction}/>
+            <SyntaxBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
+            <SoundsBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
+            <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
             {/* <!-- Dark Mode Toggler --> */}
             {/*<DarkModeSwitcher />*/}
             {/* <!-- Dark Mode Toggler --> */}

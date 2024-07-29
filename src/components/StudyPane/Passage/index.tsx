@@ -3,6 +3,7 @@ import React, { useState, useRef, useCallback, useEffect, useContext } from 'rea
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
+import InfoPane from '../InfoPane';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -165,7 +166,7 @@ const WordBlock = ({
 
 
 const Passage = ({
-  content
+  content,
 }: {
   content: PassageData;
 }) => {
@@ -176,7 +177,7 @@ const Passage = ({
     }
   }
 
-  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords } = useContext(FormatContext)
+  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxIsHebrew } = useContext(FormatContext)
 
   //drag-to-select module
   ///////////////////////////
@@ -186,6 +187,7 @@ const Passage = ({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -240,7 +242,7 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
-      console.log(window.scrollY)
+      //console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
@@ -290,38 +292,41 @@ const Passage = ({
   ///////////////////////////
 
   const passageContentStyle = {
-    className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+    className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
 
   return (
-    <div
-      onMouseDown={handleMouseDown}
-      ref={containerRef}
-      style={{ userSelect: 'none' }}
-      {...passageContentStyle}
-    >
-      {
-        content.chapters.map((chapter) => (
-          chapter.verses.map((verse) => (
-            verse.paragraphs.map((paragraph, p_index) => (
-              <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-                {
-                  paragraph.words.map((word, w_index) => (
-                    <WordBlock
-                      key={word.id}
-                      verseNumber={verse.id}
-                      hebWord={word}
-                      showVerseNum={p_index === 0 && w_index === 0}
-                    />)
-                  )
-                }
-              </div>
+    <main className="flex">
+      <div
+        onMouseDown={handleMouseDown}
+        ref={containerRef}
+        style={{ userSelect: 'none' }}
+        {...passageContentStyle}
+
+      >
+        {
+          content.chapters.map((chapter) => (
+            chapter.verses.map((verse) => (
+              verse.paragraphs.map((paragraph, p_index) => (
+                <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
+                  {
+                    paragraph.words.map((word, w_index) => (
+                      <WordBlock
+                        key={word.id}
+                        verseNumber={verse.id}
+                        hebWord={word}
+                        showVerseNum={p_index === 0 && w_index === 0}
+                      />)
+                    )
+                  }
+                </div>
+              ))
             ))
           ))
-        ))
-      }
-      {isDragging && <div style={getSelectionBoxStyle()} />}
-    </div>
+        }
+        {isDragging && <div style={getSelectionBoxStyle()} />}
+      </div>
+    </main>
   );
 };
 
