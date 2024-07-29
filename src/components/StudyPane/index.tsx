@@ -5,7 +5,7 @@ import { useState, createContext } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType } from "@/lib/types";
 import { StudyData, PassageData, HebWord } from '@/lib/data';
 import Sidebar from "../Sidebar";
 import InfoPane from "./InfoPane";
@@ -65,11 +65,7 @@ const StudyPane = ({
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [createStudyOpen, setCreateStudyOpen] = useState(false)
-  const [structureOpen, setStructureOpen] = useState(false);
-  const [motifOpen, setMotifOpen] = useState(false);
-  const [syntaxOpen, setSyntaxOpen] = useState(false);
-  const [soundsOpen, setSoundsOpen] = useState(false);
-  const [infoPaneOpen, setInfoPaneOpen] = useState(structureOpen || motifOpen || syntaxOpen || soundsOpen);
+  const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
     const [newStropheEvent, setNewStropheEvent] = useState(false);
     const [wordArray, setWordArray] = useState<HebWord[]>([]);
@@ -100,16 +96,9 @@ const StudyPane = ({
       ctxSetStructuredWords: setStructuredWords,
   }
 
-  const setAllInfoPaneClose = () => {
-    setStructureOpen(false);
-    setMotifOpen(false);
-    setSyntaxOpen(false);
-    setSoundsOpen(false);
-    setInfoPaneOpen(false);
-  }
 
   const passageDivStyle = {
-    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneOpen ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
   }
 
   return (
@@ -118,17 +107,8 @@ const StudyPane = ({
         <Header
           study={study}
           setLangToHebrew={setHebrew}
-          setStructureOpen={setStructureOpen}
-          setMotifOpen={setMotifOpen}
-          setSyntaxOpen={setSyntaxOpen}
-          setSoundsOpen={setSoundsOpen}
-          setInfoPaneOpen={setInfoPaneOpen}
-          structureOpen={structureOpen}
-          motifOpen={motifOpen}
-          syntaxOpen={syntaxOpen}
-          soundsOpen={soundsOpen}
-          infoPaneOpen={infoPaneOpen}
-          setAllInfoPaneClose={setAllInfoPaneClose}
+          setInfoPaneAction={setInfoPaneAction}
+          infoPaneAction={infoPaneAction}
         />
         <Toolbar
           setZoomLevel={setZoomLevel}
@@ -144,15 +124,12 @@ const StudyPane = ({
           <div {...passageDivStyle}>
             <Passage content={content}/>
           </div>
-          {infoPaneOpen &&
+          {(infoPaneAction != InfoPaneActionType.none) &&
             <div className="fixed top-35 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
               <InfoPane
-                infoPaneOpen={infoPaneOpen}
-                structureOpen={structureOpen}
-                motifOpen={motifOpen}
-                syntaxOpen={syntaxOpen}
-                soundsOpen={soundsOpen}
-                setAllInfoPaneClose={setAllInfoPaneClose} />
+                infoPaneAction={infoPaneAction}
+                setInfoPaneAction={setInfoPaneAction}
+                 />
             </div>
           }
         </main>
