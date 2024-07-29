@@ -10,4 +10,12 @@ export interface ColorPickerProps {
     setColor: (arg: string) => void;
     setColorAction: (arg: number) => void,
 }
+
+export enum InfoPaneActionType {
+    none,
+    structure,
+    motif,
+    syntax,
+    sounds,
+}
   

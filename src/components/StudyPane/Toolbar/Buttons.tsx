@@ -11,7 +11,7 @@ import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps } from "@/lib/types";
+import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
 import { updateColor, updateIndented } from "@/lib/actions";
 import { PassageData } from "@/lib/data";
 
@@ -483,18 +483,19 @@ export const MoveDownBtn = () => {
 };
 
 export const StructureBtn = ({
-  setAllInfoPaneClose,
-  setStructureOpen,
-  structureOpen,
+  setInfoPaneAction,
+  infoPaneAction,
 }: {
-  setAllInfoPaneClose: () => void;
-  setStructureOpen: (arg: boolean) => void;
-  structureOpen: boolean;
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
 }) => {
 
   const handleClick = () =>{
-    setAllInfoPaneClose();
-    setStructureOpen(!structureOpen);
+    if(infoPaneAction != InfoPaneActionType.structure){
+      setInfoPaneAction(InfoPaneActionType.structure);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
   }
   return (
     <div>
@@ -507,17 +508,18 @@ export const StructureBtn = ({
   );
 };
 export const MotifBtn = ({
-  setMotifOpen,
-  setAllInfoPaneClose,
-  motifOpen,
+  setInfoPaneAction,
+  infoPaneAction,
 }: {
-  setAllInfoPaneClose: () => void;
-  setMotifOpen: (arg: boolean) => void;
-  motifOpen: boolean;
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
 }) => {
   const handleClick = () =>{
-    setAllInfoPaneClose();
-    setMotifOpen(!motifOpen);
+    if(infoPaneAction != InfoPaneActionType.motif){
+      setInfoPaneAction(InfoPaneActionType.motif);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
   }
   return (
     <div>
@@ -530,17 +532,18 @@ export const MotifBtn = ({
   );
 };
 export const SyntaxBtn = ({
-  setSyntaxOpen,
-  setAllInfoPaneClose,
-  syntaxOpen,
+  setInfoPaneAction,
+  infoPaneAction,
 }: {
-  setAllInfoPaneClose: () => void;
-  setSyntaxOpen: (arg: boolean) => void;
-  syntaxOpen: boolean;
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
 }) => {
   const handleClick = () =>{
-    setAllInfoPaneClose();
-    setSyntaxOpen(!syntaxOpen);
+    if(infoPaneAction != InfoPaneActionType.syntax){
+      setInfoPaneAction(InfoPaneActionType.syntax);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
   }
   return (
     <div>
@@ -554,17 +557,18 @@ export const SyntaxBtn = ({
   );
 };
 export const SoundsBtn = ({
-  setSoundsOpen,
-  setAllInfoPaneClose,
-  soundsOpen,
+  setInfoPaneAction,
+  infoPaneAction,
 }: {
-  setSoundsOpen: (arg: boolean) => void;
-  setAllInfoPaneClose: () => void;
-  soundsOpen: boolean;
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
 }) => {
   const handleClick = () =>{
-    setAllInfoPaneClose();
-    setSoundsOpen(!soundsOpen);
+    if(infoPaneAction != InfoPaneActionType.sounds){
+      setInfoPaneAction(InfoPaneActionType.sounds);
+    }else{
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
   }
   return (
     <div>

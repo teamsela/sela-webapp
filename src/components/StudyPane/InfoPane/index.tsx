@@ -3,32 +3,25 @@ import Structure from "./Structure";
 import Motif from "./Motif";
 import Syntax from "./Syntax";
 import Sounds from "./Sounds";
+import { InfoPaneActionType } from "@/lib/types";
 
 const InfoPane = ({
-    infoPaneOpen,
-    structureOpen,
-    motifOpen,
-    syntaxOpen,
-    soundsOpen,
-    setAllInfoPaneClose
+    infoPaneAction,
+    setInfoPaneAction
 }: {
-    infoPaneOpen: boolean;
-    structureOpen: boolean;
-    motifOpen: boolean;
-    syntaxOpen: boolean;
-    soundsOpen: boolean;
-    setAllInfoPaneClose: () => void;
+    infoPaneAction: InfoPaneActionType;
+    setInfoPaneAction: (arg: InfoPaneActionType) => void;
 }) => {
     useEffect(() => {
-        console.log(infoPaneOpen)
-    }, [infoPaneOpen]);
+        console.log(infoPaneAction)
+    }, [infoPaneAction]);
     const handleClick = () => {
-        setAllInfoPaneClose();
+        setInfoPaneAction(InfoPaneActionType.none)
         console.log("Close clicked");
     }
     return (
         <aside
-            className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneOpen ? 'mr-1/4' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-8 overflow-y-auto`}
+            className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneAction != InfoPaneActionType.none ? 'mr-1/4' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-8 overflow-y-auto`}
         >
             <div className="relative flex flex-col h-full">
             <button
@@ -39,10 +32,10 @@ const InfoPane = ({
                     &#10005;
                 </button>
                 <div className="flex">
-                    {structureOpen && <Structure />}
-                    {motifOpen && <Motif />}
-                    {syntaxOpen && <Syntax />}
-                    {soundsOpen && <Sounds />}
+                    {infoPaneAction == InfoPaneActionType.structure && <Structure />}
+                    {infoPaneAction == InfoPaneActionType.motif && <Motif />}
+                    {infoPaneAction == InfoPaneActionType.syntax && <Syntax />}
+                    {infoPaneAction == InfoPaneActionType.sounds && <Sounds />}
                 </div>
             </div>
         </aside>
