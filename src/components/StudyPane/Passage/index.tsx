@@ -41,7 +41,6 @@ const StropheBlock = ({content}:
             word.p_index=p_index;
             word.w_index=w_index;
             wordsArray.push(word);
-            
           }
           else{
             word.w_index=w_index;
@@ -241,7 +240,7 @@ const Passage = ({
     }
   }
 
-  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords } = useContext(FormatContext)
+  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent } = useContext(FormatContext)
 
   //drag-to-select module
   ///////////////////////////
@@ -351,6 +350,13 @@ const Passage = ({
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => { // for handling the strophe creation
+    if (ctxNewStropheEvent){
+      console.log("new strophe event logged");
+      ctxSetNewStropheEvent(false);
+    }
+  }, [ctxNewStropheEvent])
   ///////////////////////////
   ///////////////////////////
   const passageContentStyle = {
@@ -394,7 +400,7 @@ const Passage = ({
                       key={`word`+String(word_index)}
                       verseNumber={word.verse}
                       hebWord={word}
-                      showVerseNum={word.p_index === 0 && word.w_index === 0 && s_index==0}
+                      showVerseNum={word.p_index === 0 && word.w_index === 0}
                     />
                   )
                 })

@@ -29,7 +29,9 @@ export const FormatContext = createContext({
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => {},
   ctxContent: {} as PassageData,
-  ctxInViewMode: false
+  ctxInViewMode: false,
+  ctxNewStropheEvent: false,
+  ctxSetNewStropheEvent: (arg: boolean) => {}
 });
 
 const StudyPane = ({ 
@@ -52,6 +54,7 @@ const StudyPane = ({
     const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
     const [uniformWidth, setUniformWidth] = useState(false);
     const [indentWord, setIndentWord] = useState<number[]>([]);
+    const [newStropheEvent, setNewStropheEvent] = useState(false);
 
     const formatContextValue = {
       ctxStudyId: study.id,
@@ -69,7 +72,9 @@ const StudyPane = ({
       ctxIndentWord: indentWord,
       ctxSetIndentWord: setIndentWord,
       ctxContent: content,
-      ctxInViewMode: inViewMode
+      ctxInViewMode: inViewMode,
+      ctxNewStropheEvent: newStropheEvent,
+      ctxSetNewStropheEvent: setNewStropheEvent,
     }
 
     const passageDivStyle = {

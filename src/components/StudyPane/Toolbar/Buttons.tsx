@@ -427,13 +427,33 @@ function setNumIndentById(chapters: any[], id: number, numIndent: number) {
 }
 
 export const NewStropheBtn = () => {
+  const { ctxNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent} = useContext(FormatContext);
 
+  const enabledButton = ()=>{
+    if(ctxNumSelectedWords===1){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
+  const buttonEnabled = enabledButton();
+
+  const handleClick = () => {
+    if(buttonEnabled){
+      ctxSetNewStropheEvent(true);
+    }
+    else{
+      return;
+    }
+  }
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("New Strophe Clicked")} >
-        <CgArrowsBreakeV opacity="0.4" fontSize="1.5em" />
+        onClick={handleClick} >
+        <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
       </button>
       <ToolTip text="New strophe" />
     </div>
