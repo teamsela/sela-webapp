@@ -31,7 +31,9 @@ export const FormatContext = createContext({
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => { },
   ctxContent: {} as PassageData,
-  ctxInViewMode: false
+  ctxInViewMode: false,
+  ctxNewStropheEvent: false,
+  ctxSetNewStropheEvent: (arg: boolean) => {}
 });
 
 const StudyPane = ({
@@ -49,35 +51,38 @@ const StudyPane = ({
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
 
-  const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
-  const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
-  const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-  const [uniformWidth, setUniformWidth] = useState(false);
-  const [indentWord, setIndentWord] = useState<number[]>([]);
+    const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
+    const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
+    const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
+    const [uniformWidth, setUniformWidth] = useState(false);
+    const [indentWord, setIndentWord] = useState<number[]>([]);
+    const [newStropheEvent, setNewStropheEvent] = useState(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [createStudyOpen, setCreateStudyOpen] = useState(false)
-  const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [createStudyOpen, setCreateStudyOpen] = useState(false)
+    const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
+    const formatContextValue = {
+      ctxStudyId: study.id,
+      ctxZoomLevel: zoomLevel,
+      ctxIsHebrew: isHebrew,
+      ctxSelectedWords: selectedWords,
+      ctxSetSelectedWords: setSelectedWords,
+      ctxNumSelectedWords: numSelectedWords,
+      ctxSetNumSelectedWords: setNumSelectedWords,
+      ctxColorAction: colorAction,
+      ctxColorFill: colorFill,
+      ctxBorderColor: borderColor,
+      ctxTextColor: textColor,
+      ctxUniformWidth: uniformWidth,
+      ctxIndentWord: indentWord,
+      ctxSetIndentWord: setIndentWord,
+      ctxContent: content,
+      ctxInViewMode: inViewMode,
+      ctxNewStropheEvent: newStropheEvent,
+      ctxSetNewStropheEvent: setNewStropheEvent,
+    }
 
-  const formatContextValue = {
-    ctxStudyId: study.id,
-    ctxZoomLevel: zoomLevel,
-    ctxIsHebrew: isHebrew,
-    ctxSelectedWords: selectedWords,
-    ctxSetSelectedWords: setSelectedWords,
-    ctxNumSelectedWords: numSelectedWords,
-    ctxSetNumSelectedWords: setNumSelectedWords,
-    ctxColorAction: colorAction,
-    ctxColorFill: colorFill,
-    ctxBorderColor: borderColor,
-    ctxTextColor: textColor,
-    ctxUniformWidth: uniformWidth,
-    ctxIndentWord: indentWord,
-    ctxSetIndentWord: setIndentWord,
-    ctxContent: content,
-    ctxInViewMode: inViewMode
-  }
 
 
   const passageDivStyle = {
