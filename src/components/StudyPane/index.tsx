@@ -6,7 +6,7 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import { ColorActionType } from "@/lib/types";
-import { StudyData, PassageData } from '@/lib/data';
+import { StudyData, PassageData, HebWord } from '@/lib/data';
 
 export const DEFAULT_ZOOM_LEVEL : number = 5;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -31,7 +31,13 @@ export const FormatContext = createContext({
   ctxContent: {} as PassageData,
   ctxInViewMode: false,
   ctxNewStropheEvent: false,
-  ctxSetNewStropheEvent: (arg: boolean) => {}
+  ctxSetNewStropheEvent: (arg: boolean) => {},
+  ctxWordArray: [] as HebWord[],
+  ctxSetWordArray: (arg:HebWord[]) => {},
+  ctxStructuredWords: [] as HebWord[][][],
+  ctxSetStructuredWords: (arg:HebWord[][][]) => {},
+
+
 });
 
 const StudyPane = ({ 
@@ -55,6 +61,8 @@ const StudyPane = ({
     const [uniformWidth, setUniformWidth] = useState(false);
     const [indentWord, setIndentWord] = useState<number[]>([]);
     const [newStropheEvent, setNewStropheEvent] = useState(false);
+    const [wordArray, setWordArray] = useState<HebWord[]>([]);
+    const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
 
     const formatContextValue = {
       ctxStudyId: study.id,
@@ -75,6 +83,10 @@ const StudyPane = ({
       ctxInViewMode: inViewMode,
       ctxNewStropheEvent: newStropheEvent,
       ctxSetNewStropheEvent: setNewStropheEvent,
+      ctxWordArray: wordArray,
+      ctxSetWordArray: setWordArray,
+      ctxStructuredWords: structuredWords,
+      ctxSetStructuredWords: setStructuredWords,
     }
 
     const passageDivStyle = {

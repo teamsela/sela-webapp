@@ -23,66 +23,71 @@ const zoomLevelMap: ZoomLevel = {
   12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
 
+const newStropheAction = (wordArray:HebWord[], wordIdNumber:number):HebWord[] => {
+  for(let i = 0; i<wordArray.length; i++){
+    let word = wordArray[i];
+    if (wordIdNumber == word.id){
+      word.stropheDivision = true
+      break;
+    }
+  }
+  return wordArray;
+}
 
-
-const StropheBlock = ({content}:
-  {content:PassageData
-     })=> {
-  let stropheMembersCount = 0;
+const createWordArray = ({content}: {content:PassageData}):HebWord[] => {
   let wordsArray:HebWord[] = [];
   // count up the number of words, artificial 10 word apart divisions of strophes
   content.chapters.map((chapter) => {
     chapter.verses.map((verse) => {
       verse.paragraphs.map((paragraph, p_index) => {
         paragraph.words.map((word, w_index) => {
-          stropheMembersCount++
-          if (stropheMembersCount%10===0){
-            word.stropheDivision=true;
-            word.p_index=p_index;
-            word.w_index=w_index;
-            wordsArray.push(word);
-          }
-          else{
-            word.w_index=w_index;
-            word.stropheDivision=false;
-            word.p_index=p_index;
-            wordsArray.push(word);
-          }
+          word.p_index=p_index;
+          word.w_index=w_index;
+          wordsArray.push(word);
         })
       })
     })
   })
+  return wordsArray;
+}
 
+const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
   let stropheArray:HebWord[][][]=[];
   let lineCollectionArray:HebWord[][]=[];
   let lineDivisionArray:HebWord[]=[];
   for(let i = 0; i<wordsArray.length; i++){
-    
     let word = wordsArray[i];
-    if(i === 0 ){
-      lineDivisionArray.push(word) // add first word to new line
-    }
-    else if(word.stropheDivision===false){
-      if(word.w_index===0){ // evaluate when a new line is required
-        lineCollectionArray.push(lineDivisionArray); // add accumulated to a lineCollection
-        lineDivisionArray = []; // start new line
-        lineDivisionArray.push(word); 
-      }
-      else{ // if new line not required
-        lineDivisionArray.push(word);
-      }
+    if(i === 0) {
+      lineDivisionArray.push(word);
     }
     else if(word.stropheDivision===true){
-      lineCollectionArray.push(lineDivisionArray); // add accumulated words into strophe
-      stropheArray.push(lineCollectionArray); // add accumulated lineCollections creating a new strophe unit
-      lineCollectionArray = []; // start a new lineCollection
-      lineDivisionArray=[]; // start new line
-      if(i !==0){
-        lineDivisionArray.push(word) // add to new line, if it has not been added i.e. i=0
-      }
+      lineCollectionArray.push(lineDivisionArray);
+      stropheArray.push(lineCollectionArray);
+      lineCollectionArray = [];
+      lineDivisionArray = [];
+      lineDivisionArray.push(word);
     }
+    else if(word.stropheDivision===false || word.stropheDivision==undefined){
+      if(word.w_index===0){
+        lineCollectionArray.push(lineDivisionArray);
+        lineDivisionArray = [];
+        lineDivisionArray.push(word);
+      }
+      else{
+        lineDivisionArray.push(word);
+      }
+    } 
   }
+  lineCollectionArray.push(lineDivisionArray);
+  stropheArray.push(lineCollectionArray);
+  return stropheArray;
+}
 
+const StropheBlock = ({content}:{content:PassageData}):HebWord[][][]=> {
+  let wordsArray:HebWord[] = [];
+  wordsArray = createWordArray({content});
+  let stropheArray:HebWord[][][] = [];
+  stropheArray = createStropheData(wordsArray);
   return stropheArray;
 }
 
@@ -95,7 +100,11 @@ const WordBlock = ({
   showVerseNum: boolean;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, 
+    ctxSetSelectedWords, ctxSetNumSelectedWords, 
+    ctxColorAction, ctxColorFill, ctxBorderColor, 
+    ctxTextColor, ctxUniformWidth, ctxIndentWord, 
+     } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -240,7 +249,11 @@ const Passage = ({
     }
   }
 
-  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent } = useContext(FormatContext)
+  const { ctxSelectedWords, ctxSetSelectedWords, 
+    ctxSetNumSelectedWords, ctxNewStropheEvent, 
+    ctxSetNewStropheEvent, ctxWordArray, ctxSetWordArray, 
+    ctxStructuredWords, ctxSetStructuredWords,
+  } = useContext(FormatContext)
 
   //drag-to-select module
   ///////////////////////////
@@ -351,19 +364,38 @@ const Passage = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  useEffect(() => {
+
+  })
+
+
   useEffect(() => { // for handling the strophe creation
     if (ctxNewStropheEvent){
-      console.log("new strophe event logged");
+      let flatWordList:HebWord[] = createWordArray({content});
+      flatWordList = newStropheAction(flatWordList, ctxSelectedWords[0]);
+      let structuredWordList:HebWord[][][];
+      structuredWordList = createStropheData(flatWordList);
+      ctxSetStructuredWords(structuredWordList);
+      console.log(structuredWordList);
       ctxSetNewStropheEvent(false);
     }
-  }, [ctxNewStropheEvent])
+  }, [ctxNewStropheEvent, ]);
+
+  // useEffect(() => {
+
+  // }, [ctxStructuredWords])
+
+  useEffect(() => {
+    let stropheArray: HebWord[][][]|undefined = undefined;
+    stropheArray = StropheBlock({content});
+    ctxSetStructuredWords(stropheArray);
+  }, []);
   ///////////////////////////
   ///////////////////////////
   const passageContentStyle = {
     className: `mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
   }
-  let stropheArray = undefined;
-  stropheArray = StropheBlock({content})
+  
   return (
     <div
       key={`passage`}
@@ -373,7 +405,7 @@ const Passage = ({
       {...passageContentStyle}
     >
       {
-        stropheArray.map((strophe, s_index)=>{
+        ctxStructuredWords.map((strophe, s_index)=>{
           return(
             <div 
               key={`strophe`+String(s_index)}
@@ -381,7 +413,7 @@ const Passage = ({
             >
               <div
                 key={`strophe`+String(s_index)+`Selector`}
-                className={`bg-black`}
+                className={`bg-bodydark`}
                 onClick={(event)=>{console.log(`clicked Strophe `+String(s_index))}}
               >
                 selectable element
