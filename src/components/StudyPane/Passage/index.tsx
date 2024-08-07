@@ -361,6 +361,11 @@ const Passage = ({
   }, [ctxNewStropheEvent])
   ///////////////////////////
   ///////////////////////////
+
+  const handleParagraphClick = (index:string) => {
+    console.log(`strophe`+index)
+  }
+
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
@@ -380,6 +385,7 @@ const Passage = ({
             <div 
               key={`strophe`+String(s_index)}
               className={`${s_index % 2 === 0 ? 'bg-white' : 'bg-theme '} flex-column p-5 m-10`}
+              onClick={() => handleParagraphClick(String(s_index))}
             >
               <div
                 key={`strophe`+String(s_index)+`Selector`}
