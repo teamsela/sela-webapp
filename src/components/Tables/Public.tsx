@@ -3,6 +3,8 @@ import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
 import SearchBar from "@/components/Tables/Search";
+import Pagination from "@/components/Paginations/Pagination";
+import Link from 'next/link';
 
 const xataClient = getXataClient();
 
@@ -13,9 +15,29 @@ export default async function PublicTable({
   query: string;
   currentPage: number;
 }) {
-
+  // may make PAGINATION_SIZE editable by user later
+  const PAGINATION_SIZE = 10;
+  
   // fetch all studies from xata
-  const studies = await xataClient.db.study.filter({ public: true }).getAll();
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        {public: true},
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  const studies = search.records;
+  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
 
   // extract the ids from owner column and add them into a set
   const uniqueIds = new Set<string>();
@@ -35,7 +57,7 @@ export default async function PublicTable({
 
   return (
     <>
-    <SearchBar placeholder="Search study..." />
+    <SearchBar placeholder="Search study by name or passage..." />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
@@ -59,10 +81,11 @@ export default async function PublicTable({
             {studies.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <h5 className="font-medium text-black dark:text-white">
-                    {studyItem.name}
-                  </h5>
-                  <p className="text-sm">Psalm {studyItem.passage}</p>
+                  <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
+                    <h5 className="font-medium text-black dark:text-white">
+                      {studyItem.name}
+                    </h5>
+                  </Link>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
@@ -74,7 +97,7 @@ export default async function PublicTable({
                     {studyItem.xata.updatedAt.toLocaleString()}
                   </p>
                 </td>
-                <td className="border-b border-[#eee] py-7 px-4 dark:border-strokedark flex items-center">
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
                   <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
                     <Image src={mp.get(studyItem.owner)?.imageUrl} width="40" height="40" alt="Avatar" />
                   </div>
@@ -87,6 +110,13 @@ export default async function PublicTable({
           </tbody>
         </table>
       </div>
+      {
+        totalPages > 0 
+          ? <Pagination totalPages={ totalPages } /> 
+          : (<div className="text-center py-5">
+            <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
+          </div>)
+      }
     </div>
     </>
   );

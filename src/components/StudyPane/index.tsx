@@ -6,7 +6,7 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import { ColorActionType, InfoPaneActionType } from "@/lib/types";
-import { StudyData, PassageData } from '@/lib/data';
+import { StudyData, PassageData, HebWord } from '@/lib/data';
 import Sidebar from "../Sidebar";
 import InfoPane from "./InfoPane";
 
@@ -33,7 +33,13 @@ export const FormatContext = createContext({
   ctxContent: {} as PassageData,
   ctxInViewMode: false,
   ctxNewStropheEvent: false,
-  ctxSetNewStropheEvent: (arg: boolean) => {}
+  ctxSetNewStropheEvent: (arg: boolean) => {},
+  ctxWordArray: [] as HebWord[],
+  ctxSetWordArray: (arg:HebWord[]) => {},
+  ctxStructuredWords: [] as HebWord[][][],
+  ctxSetStructuredWords: (arg:HebWord[][][]) => {},
+
+
 });
 
 const StudyPane = ({
@@ -51,38 +57,44 @@ const StudyPane = ({
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
 
-    const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
-    const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
-    const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-    const [uniformWidth, setUniformWidth] = useState(false);
-    const [indentWord, setIndentWord] = useState<number[]>([]);
+  const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
+  const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
+  const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
+  const [uniformWidth, setUniformWidth] = useState(false);
+  const [indentWord, setIndentWord] = useState<number[]>([]);
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [createStudyOpen, setCreateStudyOpen] = useState(false)
+  const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
+
     const [newStropheEvent, setNewStropheEvent] = useState(false);
+    const [wordArray, setWordArray] = useState<HebWord[]>([]);
+    const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
 
-    const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [createStudyOpen, setCreateStudyOpen] = useState(false)
-    const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
-
-    const formatContextValue = {
-      ctxStudyId: study.id,
-      ctxZoomLevel: zoomLevel,
-      ctxIsHebrew: isHebrew,
-      ctxSelectedWords: selectedWords,
-      ctxSetSelectedWords: setSelectedWords,
-      ctxNumSelectedWords: numSelectedWords,
-      ctxSetNumSelectedWords: setNumSelectedWords,
-      ctxColorAction: colorAction,
-      ctxColorFill: colorFill,
-      ctxBorderColor: borderColor,
-      ctxTextColor: textColor,
-      ctxUniformWidth: uniformWidth,
-      ctxIndentWord: indentWord,
-      ctxSetIndentWord: setIndentWord,
-      ctxContent: content,
-      ctxInViewMode: inViewMode,
+  const formatContextValue = {
+    ctxStudyId: study.id,
+    ctxZoomLevel: zoomLevel,
+    ctxIsHebrew: isHebrew,
+    ctxSelectedWords: selectedWords,
+    ctxSetSelectedWords: setSelectedWords,
+    ctxNumSelectedWords: numSelectedWords,
+    ctxSetNumSelectedWords: setNumSelectedWords,
+    ctxColorAction: colorAction,
+    ctxColorFill: colorFill,
+    ctxBorderColor: borderColor,
+    ctxTextColor: textColor,
+    ctxUniformWidth: uniformWidth,
+    ctxIndentWord: indentWord,
+    ctxSetIndentWord: setIndentWord,
+    ctxContent: content,
+    ctxInViewMode: inViewMode,
       ctxNewStropheEvent: newStropheEvent,
       ctxSetNewStropheEvent: setNewStropheEvent,
-    }
-
+      ctxWordArray: wordArray,
+      ctxSetWordArray: setWordArray,
+      ctxStructuredWords: structuredWords,
+      ctxSetStructuredWords: setStructuredWords,
+  }
 
 
   const passageDivStyle = {

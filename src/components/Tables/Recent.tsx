@@ -7,6 +7,7 @@ import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
+import Pagination from "@/components/Paginations/Pagination";
 
 export default async function RecentTable({
   query,
@@ -15,14 +16,35 @@ export default async function RecentTable({
   query: string;
   currentPage: number;
 }) {
+  // may make PAGINATION_SIZE editable by user later
+  const PAGINATION_SIZE = 10;
+
   const user = await currentUser();
 
   const xataClient = getXataClient();
-  const studies = await xataClient.db.study.filter({ owner: user?.id }).getAll();
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        { owner: user?.id },
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  const studies = search.records;
+  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
 
   return (
     <>
-    <SearchBar placeholder="Search study..." />
+    <SearchBar placeholder="Search study by name or passage..." />
     <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
@@ -80,6 +102,13 @@ export default async function RecentTable({
           </tbody>
         </table>
       </div>
+      {
+        totalPages > 0 
+          ? <Pagination totalPages={ totalPages } /> 
+          : (<div className="text-center py-5">
+            <h2 className="text-xl"> No study found </h2>
+          </div>)
+      }
     </div>
     </>
   );
