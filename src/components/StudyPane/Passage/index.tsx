@@ -226,7 +226,7 @@ const WordBlock = ({
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-            data-clicktype="wordBlock"
+            data-clicktype="clickable"
           >
             {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
           </span>
@@ -235,6 +235,86 @@ const WordBlock = ({
     </div>
   );
 
+}
+
+
+const Paragraph = (
+  {strophe, s_index}:{
+    strophe: HebWord[][], s_index: number
+  }) => {
+
+  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, 
+  } = useContext(FormatContext)
+
+  const [selected, setSelected] = useState(false);
+
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+
+
+  if (ctxColorAction != ColorActionType.none) {
+    if (selected) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxColorFill) {
+        setColorFillLocal(ctxColorFill);
+      }
+    }
+  }
+
+  const handleParagraphClick = (index:string) => {
+    console.log(`strophe`+index);
+    setSelected(prevState => !prevState);
+    (!selected) ? ctxSelectedWords.push(s_index) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(s_index), 1);
+    ctxSetSelectedWords(ctxSelectedWords);
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
+  }
+
+  useEffect(() => {
+    setSelected(ctxSelectedWords.includes(s_index));
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
+  }, [ctxSelectedWords, s_index, selected]);
+
+  return(
+    <div 
+      key={`strophe`+String(s_index)}
+      className={`${s_index % 2 === 0 ? 'bg-white' : 'bg-theme '} flex-column p-5 m-10 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+      style={
+        {
+          background: `${colorFillLocal}`
+        }
+      }
+    >
+      <div
+        key={`strophe`+String(s_index)+`Selector`}
+        className={`bg-bodydark`}
+        onClick={() => handleParagraphClick(String(s_index))}
+        data-clickType={'clickable'}
+      >
+        selectable element
+      </div>
+    {
+    strophe.map((line, l_index)=>{
+      return(
+        <div
+          key={`line`+String(l_index)}
+          className={`flex`}
+        >
+        {
+        line.map((word, word_index)=>{
+          return(
+            <WordBlock
+              key={`word`+String(word_index)}
+              verseNumber={word.verse}
+              hebWord={word}
+              showVerseNum={word.p_index === 0 && word.w_index === 0}
+            />
+          )
+        })
+        }
+        </div>
+      )
+    })
+  }
+    </div>
+  )
 }
 
 
@@ -276,7 +356,7 @@ const Passage = ({
     //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
-    clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+    clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
 
   };
 
@@ -302,6 +382,7 @@ const Passage = ({
     if (!selectionEnd && clickToDeSelect) {
       ctxSetSelectedWords([]);
       ctxSetNumSelectedWords(ctxSelectedWords.length);
+      console.log('click to deselect')
     }
   };
 
@@ -366,11 +447,6 @@ const Passage = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  useEffect(() => {
-
-  })
-
-
   useEffect(() => { // for handling the strophe creation
     if (ctxNewStropheEvent){
       let flatWordList:HebWord[] = createWordArray({content});
@@ -392,20 +468,17 @@ const Passage = ({
     stropheArray = StropheBlock({content});
     ctxSetStructuredWords(stropheArray);
   }, []);
-  ///////////////////////////
-  ///////////////////////////
 
-  const handleParagraphClick = (index:string) => {
-    console.log(`strophe`+index)
-  }
+
+  ///////////////////////////
+  ///////////////////////////
 
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
-  
+
   return (
     <main>
-
     
     <div
       key={`passage`}
@@ -417,42 +490,10 @@ const Passage = ({
       {
         ctxStructuredWords.map((strophe, s_index)=>{
           return(
-            <div 
-              key={`strophe`+String(s_index)}
-              className={`${s_index % 2 === 0 ? 'bg-white' : 'bg-theme '} flex-column p-5 m-10`}
-              onClick={() => handleParagraphClick(String(s_index))}
-            >
-              <div
-                key={`strophe`+String(s_index)+`Selector`}
-                className={`bg-bodydark`}
-                onClick={(event)=>{console.log(`clicked Strophe `+String(s_index))}}
-              >
-                selectable element
-              </div>
-            {
-            strophe.map((line, l_index)=>{
-              return(
-                <div
-                  key={`line`+String(l_index)}
-                  className={`flex`}
-                >
-                {
-                line.map((word, word_index)=>{
-                  return(
-                    <WordBlock
-                      key={`word`+String(word_index)}
-                      verseNumber={word.verse}
-                      hebWord={word}
-                      showVerseNum={word.p_index === 0 && word.w_index === 0}
-                    />
-                  )
-                })
-                }
-                </div>
-              )
-            })
-          }
-            </div>
+            <Paragraph 
+              strophe={strophe}
+              s_index={s_index}
+            />
           )
         })
       }
