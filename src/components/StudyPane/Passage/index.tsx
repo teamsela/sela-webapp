@@ -283,7 +283,7 @@ const Paragraph = (
     >
       <button
         key={`strophe`+String(s_index)+`Selector`}
-        className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme`}
+        className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent`}
         onClick={() => handleParagraphClick(String(s_index))}
         data-clickType={'clickable'}
       >
@@ -301,12 +301,17 @@ const Paragraph = (
         {
         line.map((word, word_index)=>{
           return(
+            <div
+              className={`mt-1 mb-1`}
+            >
             <WordBlock
               key={`word`+String(word_index)}
               verseNumber={word.verse}
               hebWord={word}
               showVerseNum={word.p_index === 0 && word.w_index === 0}
             />
+            </div>
+            
           )
         })
         }
