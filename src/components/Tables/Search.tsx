@@ -21,7 +21,7 @@ const SearchBar = ({ placeholder } : { placeholder: string }) => {
       params.delete('query');
     }
     replace(`${pathname}?${params.toString()}`);
-  }, 300);
+  }, 500);
   
   return (
     <div className="sm:block">
