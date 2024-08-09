@@ -4,6 +4,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 import InfoPane from '../InfoPane';
+import { LuTextSelect } from "react-icons/lu";
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -37,7 +38,6 @@ const newStropheAction = (wordArray:HebWord[], wordIdNumber:number):HebWord[] =>
 
 const createWordArray = ({content}: {content:PassageData}):HebWord[] => {
   let wordsArray:HebWord[] = [];
-  // count up the number of words, artificial 10 word apart divisions of strophes
   content.chapters.map((chapter) => {
     chapter.verses.map((verse) => {
       verse.paragraphs.map((paragraph, p_index) => {
@@ -59,6 +59,7 @@ const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
   for(let i = 0; i<wordsArray.length; i++){
     let word = wordsArray[i];
     if(i === 0) {
+      word.stropheDivision=true;
       lineDivisionArray.push(word);
     }
     else if(word.stropheDivision===true){
@@ -84,9 +85,7 @@ const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
   return stropheArray;
 }
 
-const StropheBlock = ({content}:{content:PassageData}):HebWord[][][]=> {
-  let wordsArray:HebWord[] = [];
-  wordsArray = createWordArray({content});
+const StropheBlock = (wordsArray:HebWord[]):HebWord[][][]=> {
   let stropheArray:HebWord[][][] = [];
   stropheArray = createStropheData(wordsArray);
   return stropheArray;
@@ -275,21 +274,23 @@ const Paragraph = (
   return(
     <div 
       key={`strophe`+String(s_index)}
-      className={`${s_index % 2 === 0 ? 'bg-white' : 'bg-theme '} flex-column p-5 m-10 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+      className={`relative flex-column p-5 m-10 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`
         }
       }
     >
-      <div
+      <button
         key={`strophe`+String(s_index)+`Selector`}
-        className={`bg-bodydark`}
+        className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme`}
         onClick={() => handleParagraphClick(String(s_index))}
         data-clickType={'clickable'}
       >
-        selectable element
-      </div>
+        <LuTextSelect
+          style={{pointerEvents:'none'}}
+        />
+      </button>
     {
     strophe.map((line, l_index)=>{
       return(
@@ -343,6 +344,7 @@ const Passage = ({
   const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
+  const wordsListRef = useRef(createWordArray({content}));
   const containerRef = useRef<HTMLDivElement>(null);
   
 
@@ -449,29 +451,21 @@ const Passage = ({
 
   useEffect(() => { // for handling the strophe creation
     if (ctxNewStropheEvent){
-      let flatWordList:HebWord[] = createWordArray({content});
-      flatWordList = newStropheAction(flatWordList, ctxSelectedWords[0]);
+      let flatWordList:HebWord[] = [];
+      flatWordList = newStropheAction(wordsListRef.current, ctxSelectedWords[0]);
+      wordsListRef.current = flatWordList;
       let structuredWordList:HebWord[][][];
       structuredWordList = createStropheData(flatWordList);
       ctxSetStructuredWords(structuredWordList);
-      console.log(structuredWordList);
       ctxSetNewStropheEvent(false);
     }
   }, [ctxNewStropheEvent, ]);
 
-  // useEffect(() => {
-
-  // }, [ctxStructuredWords])
-
   useEffect(() => {
     let stropheArray: HebWord[][][]|undefined = undefined;
-    stropheArray = StropheBlock({content});
+    stropheArray = StropheBlock(wordsListRef.current);
     ctxSetStructuredWords(stropheArray);
   }, []);
-
-
-  ///////////////////////////
-  ///////////////////////////
 
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`

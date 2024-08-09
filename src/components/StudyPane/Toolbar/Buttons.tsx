@@ -461,6 +461,7 @@ export const NewStropheBtn = () => {
 
   return (
     <>
+    <div className="relative">
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
@@ -468,17 +469,7 @@ export const NewStropheBtn = () => {
         <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
         <ToolTip text="New strophe" />
       </button>
-      <div className="flex center">
-      <button
-        className="hover:text-primary"
-        onClick={handleOptionsClick}>
-      <RiArrowDropDownLine/>
-      </button>
-      </div>
     </div>
-    <div className="absolute">
-      {visibleOptions?<MergeStropheBtn></MergeStropheBtn>:<></>}
-      
     </div>
     </>
   );
