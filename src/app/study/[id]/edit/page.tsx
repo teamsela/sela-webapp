@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs';
 
-import { fetchStudyById, fetchPassageContent } from '@/lib/actions';
+import { fetchStudyById, fetchPassageContent, fetchPassageContentFlat } from '@/lib/actions';
 import StudyPane from "@/components/StudyPane";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -25,7 +25,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   const [thisUser, study, passageContent] = await Promise.all([
     currentUser(),
     fetchStudyById(studyId),
-    fetchPassageContent(studyId)
+    fetchPassageContent(studyId),
   ]);
 
   if (!study) {

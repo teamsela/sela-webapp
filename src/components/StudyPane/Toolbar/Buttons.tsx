@@ -5,7 +5,8 @@ import { MdOutlineModeEdit } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
-import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease, CgArrowsMergeAltV } from "react-icons/cg";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
@@ -427,18 +428,66 @@ function setNumIndentById(chapters: any[], id: number, numIndent: number) {
 }
 
 export const NewStropheBtn = () => {
+  const { ctxNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent} = useContext(FormatContext);
+
+  const [visibleOptions, setVisibleOptions] = useState(false);
+
+  const enabledButton = ()=>{
+    if(ctxNumSelectedWords===1){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
+  const buttonEnabled = enabledButton();
+
+  const handleClick = () => {
+    if(buttonEnabled){
+      ctxSetNewStropheEvent(true);
+      return;
+    }
+    else{
+      return;
+    }
+  }
+
+  const handleOptionsClick = () => {
+    setVisibleOptions(!visibleOptions);
+    return;
+  }
+
 
   return (
+    <>
+    <div className="relative">
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("New Strophe Clicked")} >
-        <CgArrowsBreakeV opacity="0.4" fontSize="1.5em" />
+        onClick={handleClick} >
+        <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+        <ToolTip text="New strophe" />
       </button>
-      <ToolTip text="New strophe" />
     </div>
+    </div>
+    </>
   );
 };
+
+export const MergeStropheBtn = () => {
+
+  return (
+    <div className="flex flex-col gropu relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={() => console.log("Merge Strophe Clicked")}>
+        <CgArrowsMergeAltV opacity="0.4" fontSize="1.5em" />
+      </button>
+      <ToolTip text="Merge strophe" />
+    </div>
+  )
+}
 
 export const NewStanzaBtn = () => {
 

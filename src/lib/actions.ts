@@ -272,15 +272,17 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.wlcWord = word.wlcWord || "";
                   hebWord.gloss = word.gloss?.trim() || "";
 
+                  
+
                   let currentChapterData = passageData.chapters[currentChapterIdx];
                   if (currentChapterData === undefined || currentChapterData.id != hebWord.chapter) {
                       passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
                       currentChapterData = passageData.chapters[++currentChapterIdx];
                       currentVerseIdx = -1;
                   }
-              
+                  
                   currentChapterData.numOfVerses = hebWord.verse;
-              
+                  
                   let currentVerseData = currentChapterData.verses[currentVerseIdx];
                   if (currentVerseData === undefined || currentVerseData.id != hebWord.verse) {
                       currentChapterData.verses.push({id: hebWord.verse, paragraphs: []});
@@ -313,3 +315,4 @@ export async function fetchPassageContent(studyId: string) {
       throw new Error('Failed to fetch passage content by study id.');        
   }
 }
+
