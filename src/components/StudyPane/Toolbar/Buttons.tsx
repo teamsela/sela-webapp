@@ -453,12 +453,6 @@ export const NewStropheBtn = () => {
     }
   }
 
-  const handleOptionsClick = () => {
-    setVisibleOptions(!visibleOptions);
-    return;
-  }
-
-
   return (
     <>
     <div className="relative">
@@ -476,13 +470,35 @@ export const NewStropheBtn = () => {
 };
 
 export const MergeStropheBtn = () => {
+  const { ctxNumSelectedWords, ctxSetMergeStropheEvent } = useContext(FormatContext);
+
+  const enabledButton = ()=>{
+    if(ctxNumSelectedWords===1){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
+  const buttonEnabled = enabledButton();
+
+  const handleClick = () => {
+    if(buttonEnabled){
+      ctxSetMergeStropheEvent(true);
+      return;
+    }
+    else{
+      return;
+    }
+  }
 
   return (
     <div className="flex flex-col gropu relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("Merge Strophe Clicked")}>
-        <CgArrowsMergeAltV opacity="0.4" fontSize="1.5em" />
+        onClick={handleClick}>
+        <CgArrowsMergeAltV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
       </button>
       <ToolTip text="Merge strophe" />
     </div>

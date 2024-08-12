@@ -1,10 +1,11 @@
-import { HebWord, PassageData, ParagraphData } from '@/lib/data';
+import { HebWord, PassageData } from '@/lib/data';
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 import InfoPane from '../InfoPane';
 import { LuTextSelect } from "react-icons/lu";
+import { createWordArray, newStropheAction, StropheBlock, createStropheData, mergeStropheAction } from './StropheFunctions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -24,73 +25,6 @@ const zoomLevelMap: ZoomLevel = {
   11: { fontSize: "text-5xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
   12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
-
-const newStropheAction = (wordArray:HebWord[], wordIdNumber:number):HebWord[] => {
-  for(let i = 0; i<wordArray.length; i++){
-    let word = wordArray[i];
-    if (wordIdNumber == word.id){
-      word.stropheDivision = true
-      break;
-    }
-  }
-  return wordArray;
-}
-
-const createWordArray = ({content}: {content:PassageData}):HebWord[] => {
-  let wordsArray:HebWord[] = [];
-  content.chapters.map((chapter) => {
-    chapter.verses.map((verse) => {
-      verse.paragraphs.map((paragraph, p_index) => {
-        paragraph.words.map((word, w_index) => {
-          word.p_index=p_index;
-          word.w_index=w_index;
-          wordsArray.push(word);
-        })
-      })
-    })
-  })
-  return wordsArray;
-}
-
-const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
-  let stropheArray:HebWord[][][]=[];
-  let lineCollectionArray:HebWord[][]=[];
-  let lineDivisionArray:HebWord[]=[];
-  for(let i = 0; i<wordsArray.length; i++){
-    let word = wordsArray[i];
-    if(i === 0) {
-      word.stropheDivision=true;
-      lineDivisionArray.push(word);
-    }
-    else if(word.stropheDivision===true){
-      lineCollectionArray.push(lineDivisionArray);
-      stropheArray.push(lineCollectionArray);
-      lineCollectionArray = [];
-      lineDivisionArray = [];
-      lineDivisionArray.push(word);
-    }
-    else if(word.stropheDivision===false || word.stropheDivision==undefined){
-      if(word.w_index===0){
-        lineCollectionArray.push(lineDivisionArray);
-        lineDivisionArray = [];
-        lineDivisionArray.push(word);
-      }
-      else{
-        lineDivisionArray.push(word);
-      }
-    } 
-  }
-  lineCollectionArray.push(lineDivisionArray);
-  stropheArray.push(lineCollectionArray);
-  return stropheArray;
-}
-
-const StropheBlock = (wordsArray:HebWord[]):HebWord[][][]=> {
-  let stropheArray:HebWord[][][] = [];
-  stropheArray = createStropheData(wordsArray);
-  return stropheArray;
-}
-
 
 const WordBlock = ({
   verseNumber, hebWord, showVerseNum
@@ -265,16 +199,17 @@ const Paragraph = (
     ctxSetSelectedWords(ctxSelectedWords);
     ctxSetNumSelectedWords(ctxSelectedWords.length);
   }
+  
 
   useEffect(() => {
     setSelected(ctxSelectedWords.includes(s_index));
     ctxSetNumSelectedWords(ctxSelectedWords.length);
-  }, [ctxSelectedWords, s_index, selected]);
+  }, [ctxSelectedWords]);
 
   return(
     <div 
       key={`strophe`+String(s_index)}
-      className={`relative flex-column p-5 m-10 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+      className={`relative flex-column p-5 m-5 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`
@@ -338,8 +273,8 @@ const Passage = ({
 
   const { ctxSelectedWords, ctxSetSelectedWords, 
     ctxSetNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxWordArray, ctxSetWordArray, 
-    ctxStructuredWords, ctxSetStructuredWords,
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,
+    ctxSetMergeStropheEvent, ctxMergeStropheEvent,
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -465,6 +400,16 @@ const Passage = ({
       ctxSetNewStropheEvent(false);
     }
   }, [ctxNewStropheEvent, ]);
+
+  useEffect(() => { // for handling merge strophe action
+    let flatWordList:HebWord[] = [];
+    flatWordList = mergeStropheAction(wordsListRef.current, ctxSelectedWords[0]);
+    wordsListRef.current = flatWordList;
+    let structuredWordList:HebWord[][][];
+    structuredWordList = createStropheData(flatWordList);
+    ctxSetStructuredWords(structuredWordList);
+    ctxSetMergeStropheEvent(false);
+  }, [ctxMergeStropheEvent]);
 
   useEffect(() => {
     let stropheArray: HebWord[][][]|undefined = undefined;
