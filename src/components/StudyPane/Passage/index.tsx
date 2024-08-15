@@ -238,6 +238,7 @@ const Paragraph = (
           return(
             <div
               className={`mt-1 mb-1`}
+              key={word_index}
             >
             <WordBlock
               key={`word`+String(word_index)}
@@ -437,6 +438,7 @@ const Passage = ({
             <Paragraph 
               strophe={strophe}
               s_index={s_index}
+              key={s_index}
             />
           )
         })
