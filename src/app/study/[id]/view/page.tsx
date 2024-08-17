@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 
   return {
-    title: studyName + " - Sela Bible Poetry",
+    title: studyName + " - Sela Bible Poetry"
   }
 }
 

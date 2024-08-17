@@ -170,7 +170,6 @@ const WordBlock = ({
 
 }
 
-
 const Paragraph = (
   {strophe, s_index}:{
     strophe: HebWord[][], s_index: number
@@ -400,16 +399,16 @@ const Passage = ({
       ctxSetStructuredWords(structuredWordList);
       ctxSetNewStropheEvent(false);
     }
-  }, [ctxNewStropheEvent, ]);
+  }, [ctxNewStropheEvent]);
 
   useEffect(() => { // for handling merge strophe action
     let flatWordList:HebWord[] = [];
-    flatWordList = mergeStropheAction(wordsListRef.current, ctxSelectedWords[0]);
+    flatWordList = mergeStropheAction(wordsListRef.current, ctxSelectedWords[0], ctxMergeStropheEvent);
     wordsListRef.current = flatWordList;
     let structuredWordList:HebWord[][][];
     structuredWordList = createStropheData(flatWordList);
     ctxSetStructuredWords(structuredWordList);
-    ctxSetMergeStropheEvent(false);
+    ctxSetMergeStropheEvent('');
   }, [ctxMergeStropheEvent]);
 
   useEffect(() => {

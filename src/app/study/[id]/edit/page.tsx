@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   }
 
   return {
-    title: studyName + " - Sela Bible Poetry",
+    title: studyName + " - Sela Bible Poetry"
   }
 }
 
@@ -25,7 +25,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   const [thisUser, study, passageContent] = await Promise.all([
     currentUser(),
     fetchStudyById(studyId),
-    fetchPassageContent(studyId),
+    fetchPassageContent(studyId)
   ]);
 
   if (!study) {
