@@ -474,15 +474,7 @@ export const MergeStropheBtnUp = () => {
 
   const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
 
-  const handleClick = () => {
-    if(enabledButton){
-      ctxSetMergeStropheEvent("up");
-      return;
-    }
-    else{
-      return;
-    }
-  }
+  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("up"))
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
@@ -500,15 +492,7 @@ export const MergeStropheBtnDown = () => {
 
   const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
 
-  const handleClick = () => {
-    if(enabledButton){
-      ctxSetMergeStropheEvent("down");
-      return;
-    }
-    else{
-      return;
-    }
-  }
+  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("down"))
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
