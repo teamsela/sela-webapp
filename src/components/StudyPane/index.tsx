@@ -40,8 +40,8 @@ export const FormatContext = createContext({
   ctxSetWordArray: (arg:HebWord[]) => {},
   ctxStructuredWords: [] as HebWord[][][],
   ctxSetStructuredWords: (arg:HebWord[][][]) => {},
-
-
+  ctxCurrentStrophe: 0 as number,
+  ctxSetCurrentStrophe: (arg:number) => {}
 });
 
 const StudyPane = ({
@@ -73,6 +73,7 @@ const StudyPane = ({
   const [wordArray, setWordArray] = useState<HebWord[]>([]);
   const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
   const [mergeStropheEvent, setMergeStropheEvent] = useState("");
+  const [currentStrophe, setCurrentStrophe] = useState(0);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -99,6 +100,8 @@ const StudyPane = ({
     ctxSetStructuredWords: setStructuredWords,
     ctxMergeStropheEvent: mergeStropheEvent,
     ctxSetMergeStropheEvent: setMergeStropheEvent,
+    ctxSetCurrentStrophe: setCurrentStrophe,
+    ctxCurrentStrophe: currentStrophe
   }
 
 

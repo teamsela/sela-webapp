@@ -470,18 +470,12 @@ export const NewStropheBtn = () => {
 };
 
 export const MergeStropheBtnUp = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords } = useContext(FormatContext);
+  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
 
-  const enabledButton = () => {
-    if (ctxNumSelectedWords===1 && ctxStructuredWords.length > 1) {
-      return true;
-    }
-  };
-
-  const buttonEnabled = enabledButton();
+  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
 
   const handleClick = () => {
-    if(buttonEnabled){
+    if(enabledButton){
       ctxSetMergeStropheEvent("up");
       return;
     }
@@ -495,25 +489,19 @@ export const MergeStropheBtnUp = () => {
       <button
         className="hover:text-primary"
         onClick={handleClick}>
-        <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+        <LuArrowUpWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
       </button>
       <ToolTip text="Merge strophe above" />
     </div>
   )
 }
 export const MergeStropheBtnDown = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords } = useContext(FormatContext);
+  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
 
-  const enabledButton = () => {
-    if (ctxNumSelectedWords===1 && ctxStructuredWords.length > 1) {
-      return true;
-    }
-  };
-
-  const buttonEnabled = enabledButton();
+  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
 
   const handleClick = () => {
-    if(buttonEnabled){
+    if(enabledButton){
       ctxSetMergeStropheEvent("down");
       return;
     }
@@ -527,7 +515,7 @@ export const MergeStropheBtnDown = () => {
       <button
         className="hover:text-primary"
         onClick={handleClick}>
-        <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+        <LuArrowDownWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
       </button>
       <ToolTip text="Merge to strophe below" />
     </div>

@@ -97,8 +97,22 @@ export const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
     return stropheArray;
   }
 
-  export const StropheBlock = (wordsArray:HebWord[]):HebWord[][][]=> {
+  export const stropheBlock = (wordsArray:HebWord[]):HebWord[][][]=> {
     let stropheArray:HebWord[][][] = [];
     stropheArray = createStropheData(wordsArray);
     return stropheArray;
+  }
+
+  export const findStropheNumberWithWordId = (wordArray:HebWord[], wordIdNumber:number): number => {
+    let stropheCount: number = 0;
+    for (let i = 0; i<wordArray.length; i++) {
+        let word = wordArray[i];
+        if (word.stropheDivision) {
+            stropheCount++;
+        }
+        if (wordIdNumber === word.id) {
+            return stropheCount;
+        }
+      }
+    return 0;
   }

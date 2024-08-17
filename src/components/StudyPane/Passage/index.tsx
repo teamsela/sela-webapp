@@ -5,7 +5,7 @@ import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 import InfoPane from '../InfoPane';
 import { LuTextSelect } from "react-icons/lu";
-import { createWordArray, newStropheAction, StropheBlock, createStropheData, mergeStropheAction } from './StropheFunctions';
+import { createWordArray, newStropheAction, stropheBlock, createStropheData, mergeStropheAction, findStropheNumberWithWordId } from './StropheFunctions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -36,7 +36,7 @@ const WordBlock = ({
 
   const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, 
     ctxSetSelectedWords, ctxSetNumSelectedWords, 
-    ctxColorAction, ctxColorFill, ctxBorderColor, 
+    ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, 
     ctxTextColor, ctxUniformWidth, ctxIndentWord, 
      } = useContext(FormatContext)
 
@@ -272,9 +272,9 @@ const Passage = ({
   }
 
   const { ctxSelectedWords, ctxSetSelectedWords, 
-    ctxSetNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
+    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
     ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,
-    ctxSetMergeStropheEvent, ctxMergeStropheEvent,
+    ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -412,8 +412,15 @@ const Passage = ({
   }, [ctxMergeStropheEvent]);
 
   useEffect(() => {
+    if (ctxNumSelectedWords === 1) {
+      let currentStrophe = findStropheNumberWithWordId(wordsListRef.current, ctxSelectedWords[0]);
+      ctxSetCurrentStrophe(currentStrophe);
+    }
+  }, [ctxNumSelectedWords])
+
+  useEffect(() => {
     let stropheArray: HebWord[][][]|undefined = undefined;
-    stropheArray = StropheBlock(wordsListRef.current);
+    stropheArray = stropheBlock(wordsListRef.current);
     ctxSetStructuredWords(stropheArray);
   }, []);
 
