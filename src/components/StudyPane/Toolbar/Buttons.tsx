@@ -1,11 +1,12 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpWideNarrow, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
@@ -427,18 +428,83 @@ function setNumIndentById(chapters: any[], id: number, numIndent: number) {
 }
 
 export const NewStropheBtn = () => {
+  const { ctxNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent} = useContext(FormatContext);
+
+  const [visibleOptions, setVisibleOptions] = useState(false);
+
+  const enabledButton = ()=>{
+    if(ctxNumSelectedWords===1){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
+  const buttonEnabled = enabledButton();
+
+  const handleClick = () => {
+    if(buttonEnabled){
+      ctxSetNewStropheEvent(true);
+      return;
+    }
+    else{
+      return;
+    }
+  }
+
+  return (
+    <>
+    <div className="relative">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={handleClick} >
+        <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+        <ToolTip text="New strophe" />
+      </button>
+    </div>
+    </div>
+    </>
+  );
+};
+
+export const MergeStropheBtnUp = () => {
+  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
+
+  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
+
+  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("up"))
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("New Strophe Clicked")} >
-        <CgArrowsBreakeV opacity="0.4" fontSize="1.5em" />
+        onClick={handleClick}>
+        <LuArrowUpWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
       </button>
-      <ToolTip text="New strophe" />
+      <ToolTip text="Merge strophe above" />
     </div>
-  );
-};
+  )
+}
+export const MergeStropheBtnDown = () => {
+  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
+
+  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
+
+  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("down"))
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={handleClick}>
+        <LuArrowDownWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
+      </button>
+      <ToolTip text="Merge to strophe below" />
+    </div>
+  )
+}
 
 export const NewStanzaBtn = () => {
 
@@ -491,9 +557,9 @@ export const StructureBtn = ({
 }) => {
 
   const handleClick = () =>{
-    if(infoPaneAction != InfoPaneActionType.structure){
+    if (infoPaneAction != InfoPaneActionType.structure) {
       setInfoPaneAction(InfoPaneActionType.structure);
-    }else{
+    } else {
       setInfoPaneAction(InfoPaneActionType.none);
     }
   }

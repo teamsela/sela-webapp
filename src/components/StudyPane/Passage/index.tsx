@@ -4,6 +4,8 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
 import InfoPane from '../InfoPane';
+import { LuTextSelect } from "react-icons/lu";
+import { createWordArray, newStropheAction, stropheBlock, createStropheData, mergeStropheAction, findStropheNumberWithWordId } from './StropheFunctions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -32,7 +34,11 @@ const WordBlock = ({
   showVerseNum: boolean;
 }) => {
 
-  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor, ctxUniformWidth, ctxIndentWord } = useContext(FormatContext)
+  const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, 
+    ctxSetSelectedWords, ctxSetNumSelectedWords, 
+    ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, 
+    ctxTextColor, ctxUniformWidth, ctxIndentWord, 
+     } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -153,7 +159,7 @@ const WordBlock = ({
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
           ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-            data-clickType="wordBlock"
+            data-clicktype="clickable"
           >
             {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
           </span>
@@ -162,6 +168,94 @@ const WordBlock = ({
     </div>
   );
 
+}
+
+const Paragraph = (
+  {strophe, s_index}:{
+    strophe: HebWord[][], s_index: number
+  }) => {
+
+  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, 
+  } = useContext(FormatContext)
+
+  const [selected, setSelected] = useState(false);
+
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+
+
+  if (ctxColorAction != ColorActionType.none) {
+    if (selected) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxColorFill) {
+        setColorFillLocal(ctxColorFill);
+      }
+    }
+  }
+
+  const handleParagraphClick = (index:string) => {
+    console.log(`strophe`+index);
+    setSelected(prevState => !prevState);
+    (!selected) ? ctxSelectedWords.push(s_index) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(s_index), 1);
+    ctxSetSelectedWords(ctxSelectedWords);
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
+  }
+  
+
+  useEffect(() => {
+    setSelected(ctxSelectedWords.includes(s_index));
+    ctxSetNumSelectedWords(ctxSelectedWords.length);
+  }, [ctxSelectedWords]);
+
+  return(
+    <div 
+      key={`strophe`+String(s_index)}
+      className={`relative flex-column p-5 m-5 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+      style={
+        {
+          background: `${colorFillLocal}`
+        }
+      }
+    >
+      <button
+        key={`strophe`+String(s_index)+`Selector`}
+        className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent`}
+        onClick={() => handleParagraphClick(String(s_index))}
+        data-clickType={'clickable'}
+      >
+        <LuTextSelect
+          style={{pointerEvents:'none'}}
+        />
+      </button>
+    {
+    strophe.map((line, l_index)=>{
+      return(
+        <div
+          key={`line`+String(l_index)}
+          className={`flex`}
+        >
+        {
+        line.map((word, word_index)=>{
+          return(
+            <div
+              className={`mt-1 mb-1`}
+              key={word_index}
+            >
+            <WordBlock
+              key={`word`+String(word_index)}
+              verseNumber={word.verse}
+              hebWord={word}
+              showVerseNum={word.p_index === 0 && word.w_index === 0}
+            />
+            </div>
+            
+          )
+        })
+        }
+        </div>
+      )
+    })
+  }
+    </div>
+  )
 }
 
 
@@ -177,7 +271,11 @@ const Passage = ({
     }
   }
 
-  const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxIsHebrew } = useContext(FormatContext)
+  const { ctxSelectedWords, ctxSetSelectedWords, 
+    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,
+    ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe
+  } = useContext(FormatContext)
 
   //drag-to-select module
   ///////////////////////////
@@ -186,6 +284,7 @@ const Passage = ({
   const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
+  const wordsListRef = useRef(createWordArray({content}));
   const containerRef = useRef<HTMLDivElement>(null);
   
 
@@ -199,7 +298,7 @@ const Passage = ({
     //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
-    clickedTarget == "wordBlock" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+    clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
 
   };
 
@@ -225,6 +324,7 @@ const Passage = ({
     if (!selectionEnd && clickToDeSelect) {
       ctxSetSelectedWords([]);
       ctxSetNumSelectedWords(ctxSelectedWords.length);
+      console.log('click to deselect')
     }
   };
 
@@ -288,44 +388,69 @@ const Passage = ({
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
-  ///////////////////////////
-  ///////////////////////////
+
+  useEffect(() => { // for handling the strophe creation
+    if (ctxNewStropheEvent){
+      let flatWordList:HebWord[] = [];
+      flatWordList = newStropheAction(wordsListRef.current, ctxSelectedWords[0]);
+      wordsListRef.current = flatWordList;
+      let structuredWordList:HebWord[][][];
+      structuredWordList = createStropheData(flatWordList);
+      ctxSetStructuredWords(structuredWordList);
+      ctxSetNewStropheEvent(false);
+    }
+  }, [ctxNewStropheEvent]);
+
+  useEffect(() => { // for handling merge strophe action
+    let flatWordList:HebWord[] = [];
+    flatWordList = mergeStropheAction(wordsListRef.current, ctxSelectedWords[0], ctxMergeStropheEvent);
+    wordsListRef.current = flatWordList;
+    let structuredWordList:HebWord[][][];
+    structuredWordList = createStropheData(flatWordList);
+    ctxSetStructuredWords(structuredWordList);
+    ctxSetMergeStropheEvent('');
+  }, [ctxMergeStropheEvent]);
+
+  useEffect(() => {
+    if (ctxNumSelectedWords === 1) {
+      let currentStrophe = findStropheNumberWithWordId(wordsListRef.current, ctxSelectedWords[0]);
+      ctxSetCurrentStrophe(currentStrophe);
+    }
+  }, [ctxNumSelectedWords])
+
+  useEffect(() => {
+    let stropheArray: HebWord[][][]|undefined = undefined;
+    stropheArray = stropheBlock(wordsListRef.current);
+    ctxSetStructuredWords(stropheArray);
+  }, []);
 
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
 
   return (
-    <main className="flex">
-      <div
-        onMouseDown={handleMouseDown}
-        ref={containerRef}
-        style={{ userSelect: 'none' }}
-        {...passageContentStyle}
-
-      >
-        {
-          content.chapters.map((chapter) => (
-            chapter.verses.map((verse) => (
-              verse.paragraphs.map((paragraph, p_index) => (
-                <div key={chapter.id + "." + verse.id + "-" + p_index} {...styles.container}>
-                  {
-                    paragraph.words.map((word, w_index) => (
-                      <WordBlock
-                        key={word.id}
-                        verseNumber={verse.id}
-                        hebWord={word}
-                        showVerseNum={p_index === 0 && w_index === 0}
-                      />)
-                    )
-                  }
-                </div>
-              ))
-            ))
-          ))
-        }
-        {isDragging && <div style={getSelectionBoxStyle()} />}
-      </div>
+    <main>
+    
+    <div
+      key={`passage`}
+      onMouseDown={handleMouseDown}
+      ref={containerRef}
+      style={{ userSelect: 'none' }}
+      {...passageContentStyle}
+    >
+      {
+        ctxStructuredWords.map((strophe, s_index)=>{
+          return(
+            <Paragraph 
+              strophe={strophe}
+              s_index={s_index}
+              key={s_index}
+            />
+          )
+        })
+      }
+      {isDragging && <div style={getSelectionBoxStyle()} />}
+    </div>
     </main>
   );
 };

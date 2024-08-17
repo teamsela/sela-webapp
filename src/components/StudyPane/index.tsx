@@ -6,7 +6,7 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import { ColorActionType, InfoPaneActionType } from "@/lib/types";
-import { StudyData, PassageData } from '@/lib/data';
+import { StudyData, PassageData, HebWord } from '@/lib/data';
 import Sidebar from "../Sidebar";
 import InfoPane from "./InfoPane";
 
@@ -31,7 +31,17 @@ export const FormatContext = createContext({
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => { },
   ctxContent: {} as PassageData,
-  ctxInViewMode: false
+  ctxInViewMode: false,
+  ctxNewStropheEvent: false,
+  ctxSetNewStropheEvent: (arg: boolean) => {},
+  ctxMergeStropheEvent: "" as string,
+  ctxSetMergeStropheEvent: (arg: string) => {},
+  ctxWordArray: [] as HebWord[],
+  ctxSetWordArray: (arg:HebWord[]) => {},
+  ctxStructuredWords: [] as HebWord[][][],
+  ctxSetStructuredWords: (arg:HebWord[][][]) => {},
+  ctxCurrentStrophe: 0 as number,
+  ctxSetCurrentStrophe: (arg:number) => {}
 });
 
 const StudyPane = ({
@@ -59,6 +69,11 @@ const StudyPane = ({
   const [createStudyOpen, setCreateStudyOpen] = useState(false)
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
+  const [newStropheEvent, setNewStropheEvent] = useState(false);
+  const [wordArray, setWordArray] = useState<HebWord[]>([]);
+  const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
+  const [mergeStropheEvent, setMergeStropheEvent] = useState("");
+  const [currentStrophe, setCurrentStrophe] = useState(0);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -76,7 +91,17 @@ const StudyPane = ({
     ctxIndentWord: indentWord,
     ctxSetIndentWord: setIndentWord,
     ctxContent: content,
-    ctxInViewMode: inViewMode
+    ctxInViewMode: inViewMode,
+    ctxNewStropheEvent: newStropheEvent,
+    ctxSetNewStropheEvent: setNewStropheEvent,
+    ctxWordArray: wordArray,
+    ctxSetWordArray: setWordArray,
+    ctxStructuredWords: structuredWords,
+    ctxSetStructuredWords: setStructuredWords,
+    ctxMergeStropheEvent: mergeStropheEvent,
+    ctxSetMergeStropheEvent: setMergeStropheEvent,
+    ctxSetCurrentStrophe: setCurrentStrophe,
+    ctxCurrentStrophe: currentStrophe
   }
 
 

@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, MergeStropheBtnUp, MergeStropheBtnDown, NewStanzaBtn } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -33,7 +33,7 @@ const Toolbar = ({
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="sticky left-0 top-20 mr-auto ml-auto z-9999 flex justify-center max-w-180 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
-    <div className="mx-auto my-2 max-w-180 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
+    <div className="mx-auto my-2 max-w-220 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
     { // only show zoom in/out & uniform width buttons in view only mode
       ctxInViewMode
       ? (<div className="grid grid-cols-4">
@@ -46,7 +46,7 @@ const Toolbar = ({
         <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
         <UniformWidthBtn setUniformWidth={setUniformWidth}/>
       </div>)
-      : (<div className="grid grid-cols-16">
+      : (<div className="flex">
         {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
         <UndoBtn />
         <RedoBtn />
@@ -65,6 +65,8 @@ const Toolbar = ({
         <LeftIndentBtn />
         <RightIndentBtn />
         <NewStropheBtn />
+        <MergeStropheBtnUp />
+        <MergeStropheBtnDown />
         <NewStanzaBtn />
         <MoveUpBtn />
         <MoveDownBtn />
