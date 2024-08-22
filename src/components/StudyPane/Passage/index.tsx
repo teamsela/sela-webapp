@@ -425,7 +425,7 @@ const Passage = ({
   }, []);
 
   const passageContentStyle = {
-    className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
+    className: `flex-1 transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
 
   return (
