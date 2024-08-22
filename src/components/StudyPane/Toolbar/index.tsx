@@ -33,7 +33,7 @@ const Toolbar = ({
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="sticky left-0 mr-auto ml-auto z-9999 flex justify-center w-full max-w-full">
-    <div className="mx-auto pl-11 max-w-220 bg-white py-2 w-full" style={{position:"relative"}}>
+    <div className="mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full" style={{position:"relative"}}>
     { // only show zoom in/out & uniform width buttons in view only mode
       ctxInViewMode
       ? (<div className="grid grid-cols-4">
@@ -48,15 +48,22 @@ const Toolbar = ({
       </div>)
       : (<div className="flex">
         {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
-        <UndoBtn />
-        <RedoBtn />
-        <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-        <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-          <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
-          {ctxZoomLevel}
-          </span>
+
+        <div className="flex flex-row group">
+          <UndoBtn />
+          <RedoBtn />
         </div>
-        <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+
+        <div className="flex flex-row group">
+          <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+          <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
+            <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
+            {ctxZoomLevel}
+            </span>
+          </div>
+          <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+        </div>
+
         <ColorFillBtn setColor={setColorFill} setColorAction={setColorAction}/>
         <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
         <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
