@@ -106,7 +106,7 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    className: `overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} }`
+    className: `overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : ""}}`
   }
 
   return (
