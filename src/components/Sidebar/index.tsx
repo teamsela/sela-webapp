@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { IconHome, IconHourglassEmpty, IconUsersGroup, IconPlus } from '@tabler/icons-react';
 import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
 
 import { UserButton } from '@clerk/nextjs';
@@ -12,11 +11,11 @@ import { UserButton } from '@clerk/nextjs';
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
-  createStudyOpen:boolean;
+  createStudyOpen: boolean;
   setCreateStudyOpen: (arg: boolean) => void;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, createStudyOpen, setCreateStudyOpen}: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProps) => {
   const pathname = usePathname();
 
   const trigger = useRef<any>(null);
