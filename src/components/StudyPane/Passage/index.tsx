@@ -3,7 +3,7 @@ import React, { useState, useRef, useCallback, useEffect, useContext } from 'rea
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText } from "@/lib/utils";
-import InfoPane from '../InfoPane';
+import EsvPopover from "./esvPopover";
 import { LuTextSelect } from "react-icons/lu";
 import { createWordArray, newStropheAction, stropheBlock, createStropheData, mergeStropheAction, findStropheNumberWithWordId } from './StropheFunctions';
 
@@ -37,8 +37,8 @@ const WordBlock = ({
   const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, 
     ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, 
-    ctxTextColor, ctxUniformWidth, ctxIndentWord, 
-     } = useContext(FormatContext)
+    ctxTextColor, ctxUniformWidth 
+  } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
@@ -154,7 +154,7 @@ const WordBlock = ({
           className="flex"
           onClick={handleClick}
         >
-          {showVerseNum ? <sup {...verseNumStyles}>{verseNumber}</sup> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+          {showVerseNum ? /*<sup {...verseNumStyles}>{verseNumber}</sup>*/<EsvPopover verseNumStyles={verseNumStyles} verseNumber={verseNumber} /> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
           ${fontSize}
@@ -390,7 +390,7 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => { // for handling the strophe creation
-    if (ctxNewStropheEvent){
+    if (ctxNewStropheEvent) {
       let flatWordList:HebWord[] = [];
       flatWordList = newStropheAction(wordsListRef.current, ctxSelectedWords[0]);
       wordsListRef.current = flatWordList;

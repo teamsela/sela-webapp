@@ -7,7 +7,6 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import { ColorActionType, InfoPaneActionType } from "@/lib/types";
 import { StudyData, PassageData, HebWord } from '@/lib/data';
-import Sidebar from "../Sidebar";
 import InfoPane from "./InfoPane";
 
 export const DEFAULT_ZOOM_LEVEL: number = 5;

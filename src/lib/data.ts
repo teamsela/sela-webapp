@@ -17,7 +17,7 @@ export type HebWord = {
     borderColor: string;
     textColor: string;
     numIndent: number;
-    stropheDivision?: boolean;
+    stropheDiv?: boolean;
     p_index?: number;
     w_index?: number;
 }
@@ -35,6 +35,7 @@ export type ParagraphData = {
 export type VerseData = {
     id: number;
     paragraphs: ParagraphData[];
+    esv: string;
 }
 
 export type PassageData = {

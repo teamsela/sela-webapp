@@ -4,7 +4,7 @@ export const newStropheAction = (wordArray:HebWord[], wordIdNumber:number):HebWo
     for (let i = 0; i<wordArray.length; i++) {
       let word = wordArray[i];
       if (wordIdNumber == word.id) {
-        word.stropheDivision = true
+        word.stropheDiv = true
         break;
       }
     }
@@ -17,15 +17,15 @@ export const mergeStropheAction = (wordArray:HebWord[], wordIdNumber:number, dir
   if (direction == 'up') {
     for (let i = 0; i<wordArray.length; i++) {
       let word = wordArray[i];
-      if (word.stropheDivision === true ) {
+      if (word.stropheDiv === true ) {
         previousDivision = word;
       }
       if (wordIdNumber == word.id) {
-        word.stropheDivision = false;
+        word.stropheDiv = false;
         if (previousDivision !== null) {
-          previousDivision.stropheDivision = false;
+          previousDivision.stropheDiv = false;
         }
-        wordArray[i+1].stropheDivision = true
+        wordArray[i+1].stropheDiv = true
         break;
       }
     }
@@ -33,15 +33,15 @@ export const mergeStropheAction = (wordArray:HebWord[], wordIdNumber:number, dir
   else if (direction == 'down') {
     for (let i = 0; i<wordArray.length; i++) {
       let word = wordArray[i];
-      if (word.stropheDivision === true ) {
+      if (word.stropheDiv === true ) {
         previousDivision = word;
       }
       if (wordIdNumber == word.id) {
-        word.stropheDivision = true;
+        word.stropheDiv = true;
         for (let j = i+1; wordArray.length - i+1; j++) {
           let nextWord = wordArray[j];
-          if (nextWord.stropheDivision === true) {
-              nextWord.stropheDivision = false;
+          if (nextWord.stropheDiv === true) {
+              nextWord.stropheDiv = false;
               break;
           }
         }
@@ -76,15 +76,15 @@ export const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
     for (let i = 0; i<wordsArray.length; i++) {
       let word = wordsArray[i];
       if (i === 0) {
-        word.stropheDivision=true;
+        word.stropheDiv=true;
       }
-      else if (word.stropheDivision===true) {
+      else if (word.stropheDiv===true) {
         lineCollectionArray.push(lineDivisionArray);
         stropheArray.push(lineCollectionArray);
         lineCollectionArray = [];
         lineDivisionArray = [];
       }
-      else if (word.stropheDivision===false || word.stropheDivision==undefined) {
+      else if (word.stropheDiv===false || word.stropheDiv==undefined) {
         if (word.w_index===0) {
           lineCollectionArray.push(lineDivisionArray);
           lineDivisionArray = [];
@@ -107,7 +107,7 @@ export const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
     let stropheCount: number = 0;
     for (let i = 0; i<wordArray.length; i++) {
       let word = wordArray[i];
-      if (word.stropheDivision) {
+      if (word.stropheDiv) {
           stropheCount++;
       }
       if (wordIdNumber === word.id) {
