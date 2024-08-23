@@ -428,30 +428,13 @@ function setNumIndentById(chapters: any[], id: number, numIndent: number) {
 }
 
 export const NewStropheBtn = () => {
-  const { ctxNumSelectedWords, ctxNewStropheEvent, ctxSetNewStropheEvent} = useContext(FormatContext);
+  const { ctxNumSelectedWords, ctxSetNewStropheEvent } = useContext(FormatContext);
 
   const [visibleOptions, setVisibleOptions] = useState(false);
 
-  const enabledButton = ()=>{
-    if(ctxNumSelectedWords===1){
-      return true;
-    }
-    else{
-      return false;
-    }
-  }
+  const buttonEnabled = (ctxNumSelectedWords===1);
 
-  const buttonEnabled = enabledButton();
-
-  const handleClick = () => {
-    if(buttonEnabled){
-      ctxSetNewStropheEvent(true);
-      return;
-    }
-    else{
-      return;
-    }
-  }
+  const handleClick = () => (buttonEnabled && ctxSetNewStropheEvent(true));
 
   return (
     <>
@@ -472,36 +455,36 @@ export const NewStropheBtn = () => {
 export const MergeStropheBtnUp = () => {
   const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
 
-  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
+  const buttonEnabled = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
 
-  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("up"))
+  const handleClick = () => ( buttonEnabled && ctxSetMergeStropheEvent("up"))
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={handleClick}>
-        <LuArrowUpWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
+        <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
       </button>
-      <ToolTip text="Merge strophe above" />
+      <ToolTip text="Merge with strophe above" />
     </div>
   )
 }
 export const MergeStropheBtnDown = () => {
   const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
 
-  const enabledButton = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
+  const buttonEnabled = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
 
-  const handleClick = () => ( enabledButton && ctxSetMergeStropheEvent("down"))
+  const handleClick = () => ( buttonEnabled && ctxSetMergeStropheEvent("down"))
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={handleClick}>
-        <LuArrowDownWideNarrow opacity={(enabledButton)?`1`:`0.4`} fontSize="1.5em" />
+        <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
       </button>
-      <ToolTip text="Merge to strophe below" />
+      <ToolTip text="Merge with strophe below" />
     </div>
   )
 }
