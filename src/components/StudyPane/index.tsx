@@ -119,7 +119,7 @@ const StudyPane = ({
           infoPaneAction={infoPaneAction}
         />
 
-        <main>
+        <main className="flex flex-row">
           <div {...passageDivStyle}>
 
             <Toolbar
@@ -136,7 +136,7 @@ const StudyPane = ({
             <Passage content={content}/>
           </div>
           {(infoPaneAction != InfoPaneActionType.none) &&
-            <div className="fixed top-19 w-1/4 border border-transparent right-0 h-full bg-white ">
+            <div className="fixed top-19 w-1/4 border border-transparent right-4 z-9990 h-full bg-white">
               <InfoPane
                 infoPaneAction={infoPaneAction}
                 setInfoPaneAction={setInfoPaneAction}
