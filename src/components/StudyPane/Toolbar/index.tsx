@@ -32,8 +32,8 @@ const Toolbar = ({
 
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
-    <div className="sticky left-0 mr-auto ml-auto z-9990 flex justify-center w-full max-w-full">
-    <div className="mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full" style={{position:"relative"}}>
+    <div className="sticky left-0 mr-auto ml-auto z-20 flex justify-center w-full max-w-full">
+    <div className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
     { // only show zoom in/out & uniform width buttons in view only mode
       ctxInViewMode
       ? (<div className="grid grid-cols-4">
