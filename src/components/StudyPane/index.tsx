@@ -106,7 +106,7 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    className: `overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : " "}`
+    className: `flex-1 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : " "}`
   }
 
   return (
@@ -136,7 +136,7 @@ const StudyPane = ({
             <Passage content={content}/>
           </div>
           {(infoPaneAction != InfoPaneActionType.none) &&
-            <div className="fixed top-19 w-1/4 border border-transparent right-4 z-9990 h-full bg-white">
+            <div className="relative top-0 w-1/4 border border-transparent right-0 z-9990 h-full bg-white">
               <InfoPane
                 infoPaneAction={infoPaneAction}
                 setInfoPaneAction={setInfoPaneAction}

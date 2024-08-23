@@ -23,7 +23,7 @@ const InfoPane = ({
         <aside
             className={`h-screen flex-col overflow-y-auto bg-white lg:static flex-1 transition-all duration-300 ${infoPaneAction != InfoPaneActionType.none ? 'mr-1/4' : 'w-full'}  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-8 overflow-y-auto border-l-2`} style={{borderColor: 'rgb(203 213 225)'}}
         >
-            <div className="relative flex flex-col h-full">
+            <div className="fixed w-1/5 flex flex-col h-full">
             <button
                     className="absolute top-0 right-0 rounded-full "
                     onClick={handleClick}
