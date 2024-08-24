@@ -105,7 +105,7 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+    className: `flex-1 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : " "}`
   }
 
   return (
@@ -117,22 +117,25 @@ const StudyPane = ({
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
         />
-        <Toolbar
-          setZoomLevel={setZoomLevel}
-          //color functions
-          setColorAction={setColorAction}
-          setColorFill={setColorFill}
-          setBorderColor={setBorderColor}
-          setTextColor={setTextColor}
-          setUniformWidth={setUniformWidth}
-          setIndentWord={setIndentWord}
-        />
-        <main>
+
+        <main className="flex flex-row">
           <div {...passageDivStyle}>
+
+            <Toolbar
+              setZoomLevel={setZoomLevel}
+              //color functions
+              setColorAction={setColorAction}
+              setColorFill={setColorFill}
+              setBorderColor={setBorderColor}
+              setTextColor={setTextColor}
+              setUniformWidth={setUniformWidth}
+              setIndentWord={setIndentWord}
+            />
+
             <Passage content={content}/>
           </div>
           {(infoPaneAction != InfoPaneActionType.none) &&
-            <div className="fixed top-35 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
+            <div className="relative top-0 w-1/4 border border-transparent right-0 z-30 h-full bg-white">
               <InfoPane
                 infoPaneAction={infoPaneAction}
                 setInfoPaneAction={setInfoPaneAction}

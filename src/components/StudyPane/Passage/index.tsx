@@ -425,7 +425,7 @@ const Passage = ({
   }, []);
 
   const passageContentStyle = {
-    className: `flex-1 transition-all duration-300  mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
+    className: `flex-1 transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
 
   return (
@@ -438,19 +438,22 @@ const Passage = ({
       style={{ userSelect: 'none' }}
       {...passageContentStyle}
     >
-      {
-        ctxStructuredWords.map((strophe, s_index)=>{
-          return(
-            <Paragraph 
-              strophe={strophe}
-              s_index={s_index}
-              key={s_index}
-            />
-          )
-        })
-      }
-      {isDragging && <div style={getSelectionBoxStyle()} />}
+      <div className='relative top-8 z-10'>
+        {
+          ctxStructuredWords.map((strophe, s_index)=>{
+            return(
+              <Paragraph 
+                strophe={strophe}
+                s_index={s_index}
+                key={s_index}
+              />
+            )
+          })
+        }
+        {isDragging && <div style={getSelectionBoxStyle()} />}
+      </div>
     </div>
+
     </main>
   );
 };
