@@ -18,26 +18,44 @@ export type HebWord = {
     textColor: string;
     numIndent: number;
     stropheDiv?: boolean;
+    showVerseNum: boolean;
     p_index?: number;
     w_index?: number;
 }
 
-export type ChapterData = {
-    id: number;
-    numOfVerses: number;
-    verses: VerseData[];
-}
 
-export type ParagraphData = {
+// export type ChapterData = {
+//     id: number;
+//     numOfVerses: number;
+//     verses: VerseData[];
+// }
+
+// export type ParagraphData = {
+//     words: HebWord[];
+// }
+
+// export type VerseData = {
+//     id: number;
+//     paragraphs: ParagraphData[];
+//     esv: string;
+// }
+
+
+export type LineData = {
+    id: number;
     words: HebWord[];
-}
-
-export type VerseData = {
-    id: number;
-    paragraphs: ParagraphData[];
     esv: string;
 }
 
+export type StropheData = {
+    id: number;
+    lines: LineData[];
+}
+
 export type PassageData = {
-    chapters: ChapterData[];
+    strophes: StropheData[];
+    startChapter: number;
+    startVerse: number;
+    endChapter: number;
+    endVerse: number;
 }

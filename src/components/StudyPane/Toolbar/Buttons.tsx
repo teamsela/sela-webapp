@@ -6,7 +6,6 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
-import { RiArrowDropDownLine } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
@@ -14,7 +13,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
 import { updateColor, updateIndented } from "@/lib/actions";
-import { PassageData } from "@/lib/data";
+import { PassageData, HebWord } from "@/lib/data";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -321,111 +320,56 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
   );
 };
 
-export const LeftIndentBtn = () => {
+export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxSelectedWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  useEffect(() => {
-    setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxNumSelectedWords]);
 
-  const handleClick = () => {
-    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
-    if (ctxUniformWidth && ctxSelectedWords.length == 1) {
-      if (ctxIsHebrew) {
-        ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-        if (numIndent > 0) {
-          updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
-          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
-        }
-      }
-      else {
-        ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-        if (numIndent < 3) {
-          updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
-          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
-        }
-      }
-      let newButtonCondition = ctxUniformWidth && (ctxSelectedWords.length === 1);
-      setButtonCondition(newButtonCondition);
-    }
+  if (ctxIsHebrew) {
+    leftIndent = !leftIndent;
   }
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <CgFormatIndentIncrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" />
-      </button>
-      <ToolTip text={ctxIsHebrew ? "Remove Ident" : "Add indent"} />
-    </div>
-  );
-};
 
-export const RightIndentBtn = () => {
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
-  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
-    setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxNumSelectedWords]);
+    ctxSetIndentNum((ctxSelectedHebWords.length === 1) ? ctxSelectedHebWords[0].numIndent : 0);
+    let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
+    setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1) && validIndent);
+  }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedHebWords, ctxIndentNum, ctxIsHebrew]);
 
   const handleClick = () => {
-    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
-    if (ctxIsHebrew) {
-      ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-      if (numIndent < 3) {
-        updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
-        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
+    if (!ctxUniformWidth || ctxSelectedHebWords.length === 0)
+      return;
+
+    let numIndent = ctxSelectedHebWords[0].numIndent;
+    if (!leftIndent) {
+      if (numIndent > 0) {
+        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, --ctxSelectedHebWords[0].numIndent);
+        setButtonCondition(ctxSelectedHebWords[0].numIndent > 0);
+        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
       }
     }
     else {
-      ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-      if (numIndent > 0) {
-        updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
-        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
+      if (numIndent < 3) {
+        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, ++ctxSelectedHebWords[0].numIndent);
+        setButtonCondition(ctxSelectedHebWords[0].numIndent < 3);
+        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
       }
     }
   }
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row ${!leftIndent && 'border-r border-stroke'}`}>
       <button
         className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <CgFormatIndentDecrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" />
+        {
+          (!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? 
+            <CgFormatIndentIncrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" /> :
+            <CgFormatIndentDecrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" />
+        }          
       </button>
-      <ToolTip text={ctxIsHebrew ? "Add Ident" : "Remove indent"} />
+      <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add Indent" : "Remove indent"} />
     </div>
   );
 };
-
-function getNumIndentById(chapters: any[], id: number) {
-  for (let chapter of chapters) {
-    for (let verse of chapter.verses) {
-      for (let paragraph of verse.paragraphs) {
-        for (let word of paragraph.words) {
-          if (word.id === id) {
-            return word.numIndent == undefined ? 0 : word.numIndent;
-          }
-        }
-      }
-    }
-  }
-  return null; // If ID not found
-}
-
-function setNumIndentById(chapters: any[], id: number, numIndent: number) {
-  for (let chapter of chapters) {
-    for (let verse of chapter.verses) {
-      for (let paragraph of verse.paragraphs) {
-        for (let word of paragraph.words) {
-          if (word.id === id) {
-            word.numIndent = numIndent;
-          }
-        }
-      }
-    }
-  }
-}
 
 export const NewStropheBtn = () => {
   const { ctxNumSelectedWords, ctxSetNewStropheEvent } = useContext(FormatContext);

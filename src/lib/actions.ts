@@ -7,7 +7,7 @@ import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
 import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
-import { parsePassageInfo } from './utils';
+import { parsePassageInfo, psalmBook } from './utils';
 import { StudyData, PassageData, HebWord } from './data';
 import { ColorActionType } from './types';
 
@@ -72,8 +72,6 @@ export async function updateStudyNameWithForm(
     };
   }
   const { studyName } = validatedFields.data;
-
-  console.log("Updating study id: " + id + " with new name (" + studyName + ")");
 
   const xataClient = getXataClient();
   try {
@@ -168,37 +166,47 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
-export async function updateIndented(studyId: string, selectedWords: number[], numIndent: number) {
+export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
   "use server";
 
-  let operations: any = [];
   const xataClient = getXataClient();
 
-  selectedWords.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
-        upsert: true,
-      },
-    })
-  })
   let result : any;
+
   try {
-    result = await xataClient.transactions.run(operations);
+    result = await xataClient.transactions.run([
+      {
+        update: {
+          table: "styling" as const,
+          id: studyId + "_" + hebId,
+          fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
+          upsert: true,
+        }
+      }
+    ]);
   } catch (error) {
     return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
   }
 }
 
-export async function updateStropheDiv(studyId: string, selectedWord: number, stropheDiv: boolean) {
+export async function updateStropheDiv(studyId: string, hebId: number, stropheDiv: boolean) {
   "use server";
 
   const xataClient = getXataClient();
 
+  let result : any;
+
   try {
-    await xataClient.db.styling.updateOrThrow({ id: studyId, hebId: selectedWord, stropheDiv: stropheDiv });
+    result = await xataClient.transactions.run([
+      {
+        update: {
+          table: "styling" as const,
+          id: studyId + "_" + hebId,
+          fields: { studyId: studyId, hebId: hebId, stropheDiv: stropheDiv },
+          upsert: true,
+        }
+      }
+    ]);
   } catch (error) {
     return { message: 'Database Error: Failed to update styling strophe division.' };
   }
@@ -241,14 +249,20 @@ export async function fetchPassageContent(studyId: string) {
       // fetch a study by id from xata
       const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
      
-      let passageData = { chapters: [] } as PassageData;
+      let passageData = { strophes: [], startChapter: 0, startVerse: 0, endChapter: 0, endVerse: 0 } as PassageData;
 
       if (study)
       {
           const passageInfo = parsePassageInfo(study.passage);
+
           // fetch all words from xata by start/end chapter and verse
           if (passageInfo instanceof Error === false)
           {
+              passageData.startChapter = passageInfo.startChapter;
+              passageData.startVerse = passageInfo.startVerse;
+              passageData.endChapter = passageInfo.endChapter;
+              passageData.endVerse = passageInfo.endVerse;
+
               const styling = await xataClient.db.styling
                 .filter({studyId: study.id})
                 .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'stropheDiv'])
@@ -268,9 +282,9 @@ export async function fetchPassageContent(studyId: string) {
               //    .select(["hebId", "chapter", "verse", "hebUnicode", "strongNumber", "gloss"])
                   .getAll();
           
-              let currentChapterIdx = -1;
-              let currentVerseIdx = -1;
-              let currentParagraphIdx = -1;
+              let currentStropheIdx = -1;
+              let currentLineIdx = -1;
+              let prevVerseNum = 0;
 
               passageContent.forEach(word => {
 
@@ -281,32 +295,8 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.strongNumber = word.strongNumber || 0;
                   hebWord.wlcWord = word.wlcWord || "";
                   hebWord.gloss = word.gloss?.trim() || "";
-
-                  let currentChapterData = passageData.chapters[currentChapterIdx];
-                  if (currentChapterData === undefined || currentChapterData.id != hebWord.chapter) {
-                      passageData.chapters.push({id: hebWord.chapter, numOfVerses: 0, verses: []});
-                      currentChapterData = passageData.chapters[++currentChapterIdx];
-                      currentVerseIdx = -1;
-                  }
-                  
-                  currentChapterData.numOfVerses = hebWord.verse;
-                  
-                  let currentVerseData = currentChapterData.verses[currentVerseIdx];
-                  if (currentVerseData === undefined || currentVerseData.id != hebWord.verse) {
-                      currentChapterData.verses.push({id: hebWord.verse, paragraphs: [], esv: ""})
-                      currentParagraphIdx = -1;
-                      currentVerseData = currentChapterData.verses[++currentVerseIdx];
-                      const esvPromise = fetchESVTranslation(hebWord.chapter, hebWord.verse);
-                      esvPromise.then((esvData) =>
-                        currentVerseData.esv = esvData
-                      )
-                  }
-
-                  let currentParagraphData = currentVerseData.paragraphs[currentParagraphIdx];
-                  if (currentParagraphData === undefined || word.paragraphMarker || word.poetryMarker || word.verseBreak) {
-                      currentVerseData.paragraphs.push({words: []});
-                      currentParagraphData = currentVerseData.paragraphs[++currentParagraphIdx];
-                  }
+                  hebWord.showVerseNum = false;
+                  hebWord.numIndent = 0;
 
                   const currentStyling = stylingMap.get(hebWord.id);
                   if (currentStyling !== undefined) {
@@ -317,7 +307,24 @@ export async function fetchPassageContent(studyId: string) {
                     (currentStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentStyling.stropheDiv);
                   }
 
-                  currentParagraphData.words.push(hebWord);
+                  let currentStropheData = passageData.strophes[currentStropheIdx];
+                  if (currentStropheData === undefined || (currentStyling !== undefined && currentStyling.stropheDiv)) {
+                      passageData.strophes.push({id: ++currentStropheIdx, lines: []});
+                      currentStropheData = passageData.strophes[currentStropheIdx];
+                      currentLineIdx = -1;
+                  }
+
+                  let currentLineData = currentStropheData.lines[currentLineIdx];
+                  if (currentLineData === undefined || word.paragraphMarker || word.poetryMarker || word.verseBreak) {
+                      currentStropheData.lines.push({id: ++currentLineIdx, words: [], esv: ""})
+                      currentLineData = currentStropheData.lines[currentLineIdx];
+                  }
+
+                  if (prevVerseNum !== hebWord.verse) {
+                      hebWord.showVerseNum = true;
+                  }
+                  currentLineData.words.push(hebWord);
+                  prevVerseNum = hebWord.verse;
               })
           }
       }
@@ -329,24 +336,23 @@ export async function fetchPassageContent(studyId: string) {
   }
 }
 
-export async function fetchESVTranslation(chapter: number, verse: number): Promise<string> {
+export async function fetchESVTranslation(chapter: number, verse: number) {
 
   const ESV_API_KEY = process.env.ESV_API_KEY;
+
   const esvApiEndpoint = new URL('https://api.esv.org/v3/passage/text/?');
-  esvApiEndpoint.searchParams.append('q', 'Psalm+' + chapter + ":" + verse);
+  esvApiEndpoint.searchParams.append('q', 'Psalm+' + chapter + ':' + verse);
   esvApiEndpoint.searchParams.append('include-headings', 'false');
   esvApiEndpoint.searchParams.append('include-footnotes', 'false');
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
   esvApiEndpoint.searchParams.append('include-short-copyright', 'true');
   esvApiEndpoint.searchParams.append('include-passage-references', 'false');
-  
   const response = await fetch(esvApiEndpoint, {
     headers: {
       'Authorization': 'Token ' + ESV_API_KEY
     },
-  });
+  })
+
   const data = await response.json();
-  //console.log("Fetching passage: Psalm " + chapter + ":" + verse);
-  //console.log(data.passages[0]);
   return data.passages[0];
 };

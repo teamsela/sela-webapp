@@ -53,9 +53,10 @@ export const mergeStropheAction = (wordArray:HebWord[], wordIdNumber:number, dir
     
 }
 
+/*
 export const createWordArray = ({content}: {content:PassageData}):HebWord[] => {
     let wordsArray:HebWord[] = [];
-    content.chapters.map((chapter) => {
+    content.strophes.map((chapter) => {
       chapter.verses.map((verse) => {
         verse.paragraphs.map((paragraph, p_index) => {
           paragraph.words.map((word, w_index) => {
@@ -68,7 +69,7 @@ export const createWordArray = ({content}: {content:PassageData}):HebWord[] => {
     })
     return wordsArray;
   }
-
+*/
 export const createStropheData = (wordsArray:HebWord[]):HebWord[][][] => {
     let stropheArray:HebWord[][][]=[];
     let lineCollectionArray:HebWord[][]=[];

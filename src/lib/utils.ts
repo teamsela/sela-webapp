@@ -1,3 +1,5 @@
+import { HebWord, PassageData } from "./data";
+
 type PsalmBook = {
     [key: number]: number;
 }
@@ -245,4 +247,17 @@ export function wrapText(
   }
   
   return lineCount;
+}
+
+export function getWordById(passage: PassageData, id: number) : HebWord | null {
+  for (let strophe of passage.strophes) {
+    for (let line of strophe.lines) {
+      for (let word of line.words) {
+        if (word.id === id) {
+          return word;
+        }
+      }
+    }
+  }
+  return null;
 }

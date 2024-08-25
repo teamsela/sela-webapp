@@ -5,9 +5,9 @@ import { useState, createContext } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
+import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType } from "@/lib/types";
 import { StudyData, PassageData, HebWord } from '@/lib/data';
-import InfoPane from "./InfoPane";
 
 export const DEFAULT_ZOOM_LEVEL: number = 5;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -18,25 +18,24 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
   ctxIsHebrew: false,
+  ctxSelectedHebWords: [] as HebWord[],
+  ctxSetSelectedHebWords: (arg: HebWord[]) => {},
   ctxSelectedWords: [] as number[],
   ctxSetSelectedWords: (arg: number[]) => { },
-  ctxNumSelectedWords: {} as number,
+  ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => { },
   ctxColorAction: {} as number,
   ctxColorFill: "" as string,
   ctxBorderColor: "" as string,
   ctxTextColor: "" as string,
   ctxUniformWidth: false,
-  ctxIndentWord: [] as number[],
-  ctxSetIndentWord: (arg: number[]) => { },
-  ctxContent: {} as PassageData,
+  ctxIndentNum: {} as number,
+  ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
   ctxNewStropheEvent: false,
   ctxSetNewStropheEvent: (arg: boolean) => {},
   ctxMergeStropheEvent: "" as string,
   ctxSetMergeStropheEvent: (arg: string) => {},
-  ctxWordArray: [] as HebWord[],
-  ctxSetWordArray: (arg:HebWord[]) => {},
   ctxStructuredWords: [] as HebWord[][][],
   ctxSetStructuredWords: (arg:HebWord[][][]) => {},
   ctxCurrentStrophe: 0 as number,
@@ -62,14 +61,12 @@ const StudyPane = ({
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
   const [uniformWidth, setUniformWidth] = useState(false);
-  const [indentWord, setIndentWord] = useState<number[]>([]);
+  const [indentNum, setIndentNum] = useState(0);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [createStudyOpen, setCreateStudyOpen] = useState(false)
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
   const [newStropheEvent, setNewStropheEvent] = useState(false);
-  const [wordArray, setWordArray] = useState<HebWord[]>([]);
+  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
   const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
   const [mergeStropheEvent, setMergeStropheEvent] = useState("");
   const [currentStrophe, setCurrentStrophe] = useState(0);
@@ -78,6 +75,8 @@ const StudyPane = ({
     ctxStudyId: study.id,
     ctxZoomLevel: zoomLevel,
     ctxIsHebrew: isHebrew,
+    ctxSelectedHebWords: selectedHebWords,
+    ctxSetSelectedHebWords: setSelectedHebWords,    
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords: setSelectedWords,
     ctxNumSelectedWords: numSelectedWords,
@@ -87,14 +86,11 @@ const StudyPane = ({
     ctxBorderColor: borderColor,
     ctxTextColor: textColor,
     ctxUniformWidth: uniformWidth,
-    ctxIndentWord: indentWord,
-    ctxSetIndentWord: setIndentWord,
-    ctxContent: content,
+    ctxIndentNum: indentNum,
+    ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxNewStropheEvent: newStropheEvent,
     ctxSetNewStropheEvent: setNewStropheEvent,
-    ctxWordArray: wordArray,
-    ctxSetWordArray: setWordArray,
     ctxStructuredWords: structuredWords,
     ctxSetStructuredWords: setStructuredWords,
     ctxMergeStropheEvent: mergeStropheEvent,
@@ -129,17 +125,17 @@ const StudyPane = ({
               setBorderColor={setBorderColor}
               setTextColor={setTextColor}
               setUniformWidth={setUniformWidth}
-              setIndentWord={setIndentWord}
             />
 
             <Passage content={content}/>
           </div>
-          {(infoPaneAction != InfoPaneActionType.none) &&
+          {
+            (infoPaneAction != InfoPaneActionType.none) &&
             <div className="relative top-0 w-1/4 border border-transparent right-0 z-30 h-full bg-white">
               <InfoPane
                 infoPaneAction={infoPaneAction}
                 setInfoPaneAction={setInfoPaneAction}
-                 />
+              />
             </div>
           }
         </main>

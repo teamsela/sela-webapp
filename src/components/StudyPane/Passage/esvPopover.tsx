@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
+import { fetchESVTranslation } from "@/lib/actions";
 
 const EsvPopover = ({
+    chapterNumber,
     verseNumber,
     verseNumStyles
   } : {
+    chapterNumber: number;
     verseNumber: number;
     verseNumStyles: { className: string }
   }) => {
 
   const [popoversOpen, setPopoversOpen] = useState(false);
+  const [esvData, setEsvData] = useState("");
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
@@ -45,7 +49,13 @@ const EsvPopover = ({
         <div className="relative inline-block">
           <button
             ref={trigger}
-            onClick={() => setPopoversOpen(!popoversOpen)}
+            onClick={() => {
+              const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+              esvContent.then((data) =>
+                setEsvData(data)
+              )
+              setPopoversOpen(!popoversOpen);
+            }}
             {...verseNumStyles}
           >
             {verseNumber}
@@ -54,17 +64,13 @@ const EsvPopover = ({
             ref={popovers}
             onFocus={() => setPopoversOpen(true)}
             onBlur={() => setPopoversOpen(false)}
-            className={`absolute left-full top-0 z-20 ml-3 w-max max-w-[640px] rounded bg-white drop-shadow-5 dark:bg-meta-4 ${
+            className={`absolute bottom-full left-1 z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
               popoversOpen === true ? "block" : "hidden"
             }`}
           >
-            <span className="absolute -left-1.5 top-4 -z-10 h-4 w-4 rotate-45 rounded-sm bg-white dark:bg-meta-4"></span>
-            <div className="px-5 py-4.5 text-center">
-              <p className="font-medium">
-                Lorem ipsum dolor sit amet, consect adipiscing elit. Mauris
-                facilisis congue exclamate justo nec facilisis.
-              </p>
-            </div>
+            <p className="text-sm text-white text-wrap">
+              {esvData}
+            </p>
           </div>
         </div>
       </div>

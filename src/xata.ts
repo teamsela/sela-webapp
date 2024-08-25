@@ -44,12 +44,8 @@ const tables = [
       { name: "textColor", type: "string" },
       { name: "hebId", type: "int", notNull: true, defaultValue: "0" },
       { name: "numIndent", type: "int", defaultValue: "0" },
-      {
-        name: "stropheDiv",
-        type: "bool",
-        notNull: true,
-        defaultValue: "false",
-      },
+      { name: "indented", type: "bool", defaultValue: "false" },
+      { name: "stropheDiv", type: "bool" },
     ],
   },
   {

@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, MergeStropheBtnUp, MergeStropheBtnDown, NewStanzaBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, IndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, MergeStropheBtnUp, MergeStropheBtnDown, NewStanzaBtn } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -10,8 +10,7 @@ const Toolbar = ({
   setColorFill,
   setBorderColor,
   setTextColor,
-  setUniformWidth,
-  setIndentWord
+  setUniformWidth
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -20,7 +19,6 @@ const Toolbar = ({
   setBorderColor: (arg: string) => void;
   setTextColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
-  setIndentWord: (arg: number[]) => void;
 } ) => {
   
   const { ctxZoomLevel, ctxNumSelectedWords, ctxInViewMode } = useContext(FormatContext);
@@ -69,8 +67,8 @@ const Toolbar = ({
         <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
         <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
         <UniformWidthBtn setUniformWidth={setUniformWidth}/>
-        <LeftIndentBtn />
-        <RightIndentBtn />
+        <IndentBtn leftIndent={true} />
+        <IndentBtn leftIndent={false} />
         <NewStropheBtn />
         <MergeStropheBtnUp />
         <MergeStropheBtnDown />
