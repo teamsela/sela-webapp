@@ -49,6 +49,8 @@ export type LineData = {
 
 export type StropheData = {
     id: number;
+    colorFill?: string;
+    borderColor?: string;    
     lines: LineData[];
 }
 

@@ -1,7 +1,8 @@
-import { HebWord, PassageData } from '@/lib/data';
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
-import { FormatContext } from '../index';
-import { getWordById } from '@/lib/utils';
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { getWordById, hasSameColor } from '@/lib/utils';
+import { HebWord, PassageData } from '@/lib/data';
+import { ColorActionType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
 //import { newStropheAction, stropheBlock, createStropheData, mergeStropheAction, findStropheNumberWithWordId } from './StropheFunctions';
 
@@ -19,7 +20,8 @@ const Passage = ({
 
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
     ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords, 
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe
   } = useContext(FormatContext)
 
@@ -108,11 +110,38 @@ const Passage = ({
             ctxSetSelectedHebWords(newArray2);
           }
           ctxSetNumSelectedWords(ctxSelectedWords.length);
+
         }
       }
     });
 
-  }, [selectionStart, selectionEnd, ctxSelectedWords]);
+    ctxSetColorFill(DEFAULT_COLOR_FILL);
+    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+    ctxSetTextColor(DEFAULT_TEXT_COLOR);
+
+    if (ctxSelectedHebWords.length >= 1) {
+      //console.log(ctxSelectedHebWords);
+      const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
+      if (lastSelectedWord) { 
+          hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill); 
+          hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
+          hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
+      }
+    }
+    // if (ctxSelectedWords.length === 1 && ctxSelectedHebWords[0]) {
+    //   if (hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill)) {
+    //     console.log("1. Updating color fill to" + ctxSelectedHebWords[0].colorFill);
+    //     ctxSetColorFill(ctxSelectedHebWords[0].colorFill);
+    //   }
+    //   //hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(borderColorLocal);
+    //   //hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(textColorLocal);
+    // }
+    // if (ctxSelectedHebWords.length === 1 || hasSameColor(ctxSelectedHebWords)) {
+    //   console.log(ctxSelectedHebWords);
+    //   (ctxSelectedHebWords[0]) && ctxSetColorFill(ctxSelectedHebWords[0].colorFill);
+    // }
+
+  }, [selectionStart, selectionEnd, ctxSelectedWords, ctxSelectedHebWords]);
 
   const getSelectionBoxStyle = (): React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
@@ -163,12 +192,12 @@ const Passage = ({
     ctxSetMergeStropheEvent('');
   }, [ctxMergeStropheEvent]);
 
-  useEffect(() => {
-    if (ctxNumSelectedWords === 1) {
-      //let currentStrophe = findStropheNumberWithWordId(wordsListRef.current, ctxSelectedWords[0]);
-      //ctxSetCurrentStrophe(currentStrophe);
-    }
-  }, [ctxNumSelectedWords])
+  // useEffect(() => {
+  //   if (ctxNumSelectedWords === 1) {
+  //     //let currentStrophe = findStropheNumberWithWordId(wordsListRef.current, ctxSelectedWords[0]);
+  //     //ctxSetCurrentStrophe(currentStrophe);
+  //   }
+  // }, [ctxNumSelectedWords])
 
   useEffect(() => {
     let stropheArray: HebWord[][][]|undefined = undefined;

@@ -2,8 +2,8 @@ import { HebWord } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
-import { wrapText } from "@/lib/utils";
-import EsvPopover from "./EsvPopover";
+import { wrapText, hasSameColor } from "@/lib/utils";
+import EsvPopover from './EsvPopover';
 
 type ZoomLevel = {
     [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -32,8 +32,9 @@ export const WordBlock = ({
   
     const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
-      ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxBorderColor, 
-      ctxTextColor, ctxUniformWidth 
+      ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxSetColorFill, 
+      ctxBorderColor, ctxSetBorderColor, ctxSelectedColor,
+      ctxTextColor, ctxSetTextColor, ctxUniformWidth 
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -43,19 +44,19 @@ export const WordBlock = ({
   
     if (ctxColorAction != ColorActionType.none) {
       if (selected) {
-        if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxColorFill) {
-          setColorFillLocal(ctxColorFill);
+        if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+          setColorFillLocal(ctxSelectedColor);
         }
-        else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxBorderColor) {
-          setBorderColorLocal(ctxBorderColor);
+        else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+          setBorderColorLocal(ctxSelectedColor);
         }
-        else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxTextColor) {
-          setTextColorLocal(ctxTextColor);
+        else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+          setTextColorLocal(ctxSelectedColor);
         }
         else if (ctxColorAction === ColorActionType.resetColor) {
-          (colorFillLocal != ctxColorFill) && setColorFillLocal(ctxColorFill);
-          (borderColorLocal != ctxBorderColor) && setBorderColorLocal(ctxBorderColor);
-          (textColorLocal != ctxTextColor) && setTextColorLocal(ctxTextColor);
+          (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
+          (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
+          (textColorLocal != DEFAULT_TEXT_COLOR) && setTextColorLocal(DEFAULT_TEXT_COLOR);
         }
       }
     }
@@ -73,6 +74,17 @@ export const WordBlock = ({
       (!selected) ? ctxSelectedHebWords.push(hebWord) : ctxSelectedHebWords.splice(ctxSelectedHebWords.indexOf(hebWord), 1);
       ctxSetSelectedHebWords(ctxSelectedHebWords);      
       ctxSetNumSelectedWords(ctxSelectedWords.length);
+      ctxSetColorFill(DEFAULT_COLOR_FILL);
+      ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+      ctxSetTextColor(DEFAULT_TEXT_COLOR);
+      if (ctxSelectedHebWords.length >= 1) {
+        const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
+        if (lastSelectedWord) { 
+            hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL); 
+            hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR);
+            hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR);
+        }
+      }
     }
   
   
@@ -125,7 +137,7 @@ export const WordBlock = ({
                 {<sup {...verseNumStyles}></sup>}
                 <span
                   className={`flex select-none px-2 py-1 items-center justify-center text-center leading-none
-              ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+                  ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
                 >
                 </span>
               </span>
@@ -153,11 +165,10 @@ export const WordBlock = ({
             className="flex"
             onClick={handleClick}
           >
-            {hebWord.showVerseNum ? /*<sup {...verseNumStyles}>{verseNumber}</sup>*/<EsvPopover verseNumStyles={verseNumStyles} chapterNumber={hebWord.chapter} verseNumber={hebWord.verse} /> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+            {hebWord.showVerseNum ? <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={hebWord.chapter} verseNumber={hebWord.verse} /> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
             <span
-              className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none
-            ${fontSize}
-            ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ${fontSize}
+              ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
               data-clicktype="clickable"
             >
               {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}

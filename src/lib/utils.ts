@@ -1,4 +1,5 @@
 import { HebWord, PassageData } from "./data";
+import { ColorActionType } from "./types";
 
 type PsalmBook = {
     [key: number]: number;
@@ -260,4 +261,46 @@ export function getWordById(passage: PassageData, id: number) : HebWord | null {
     }
   }
   return null;
+}
+
+export function hasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
+
+  if (words.length === 0) return true;
+
+  let previousColor : string = "";
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      previousColor = words[0].colorFill;
+      break;    
+    case ColorActionType.borderColor:
+      previousColor = words[0].borderColor;
+      break;    
+    case ColorActionType.textColor:
+      previousColor = words[0].textColor;
+      break;
+    default:
+      break;
+  }
+
+  for (let word of words) {
+      switch (actionType) {
+        case ColorActionType.colorFill:
+          if (word.colorFill != previousColor) { return false; }
+          previousColor = word.colorFill;
+          break;
+        case ColorActionType.borderColor:
+          if (word.borderColor != previousColor) { return false; }
+          previousColor = word.borderColor;
+          break;
+        case ColorActionType.textColor:
+          if (word.textColor != previousColor) { return false; }
+          previousColor = word.textColor;
+          break;
+        default:
+          break;
+      }
+  }
+
+  return true;
 }

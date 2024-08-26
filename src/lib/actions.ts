@@ -115,7 +115,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   revalidatePath('/');   
 }
 
-export async function updateColor(studyId: string, selectedWords: number[], actionType: ColorActionType, newColor: string | null) {
+export async function updateWordColor(studyId: string, selectedWords: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -160,7 +160,54 @@ export async function updateColor(studyId: string, selectedWords: number[], acti
   try {
     result = await xataClient.transactions.run(operations);
   } catch (error) {
-    return { message: 'Database Error: Failed to update color for study:' + studyId + ', result: ' + result };
+    return { message: 'Database Error: Failed to update word color for study:' + studyId + ', result: ' + result };
+  }
+
+  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
+}
+
+export async function updateStropheColor(studyId: string, selectedStrophes: number[], actionType: ColorActionType, newColor: string | null) {
+  "use server";
+
+  let operations: any = [];
+
+  let fieldsToUpdate: {};
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      fieldsToUpdate = { colorFill: newColor };
+      break;
+    case ColorActionType.borderColor:
+      fieldsToUpdate = { borderColor: newColor };
+      break;
+    case ColorActionType.resetColor:
+      fieldsToUpdate = {
+        colorFill: null,
+        borderColor: null,
+      }
+      break;
+    default:
+      break;
+  }
+
+  selectedStrophes.forEach((stropheId) => {
+    operations.push({
+      update: {
+        table: "stropheStyling" as const,
+        id: studyId + "_" + stropheId,
+        fields: { studyId: studyId, stropheId: stropheId, ...fieldsToUpdate },
+        upsert: true,
+      },
+    })
+  })
+  //console.log(util.inspect(operations, {showHidden: false, depth: null, colors: true}))
+
+  const xataClient = getXataClient();
+  let result : any;
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update strophe color for study:' + studyId + ', result: ' + result };
   }
 
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
@@ -263,14 +310,24 @@ export async function fetchPassageContent(studyId: string) {
               passageData.endChapter = passageInfo.endChapter;
               passageData.endVerse = passageInfo.endVerse;
 
-              const styling = await xataClient.db.styling
+              const wordStyling = await xataClient.db.styling
                 .filter({studyId: study.id})
                 .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'stropheDiv'])
                 .sort("hebId", "asc")
                 .getAll();
-              const stylingMap = new Map();
-              styling.forEach((obj) => {
-                stylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, stropheDiv: obj.stropheDiv });
+              const wordStylingMap = new Map();
+              wordStyling.forEach((obj) => {
+                wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, stropheDiv: obj.stropheDiv });
+              });
+
+              const stropheStyling = await xataClient.db.stropheStyling
+                .filter({studyId: study.id})
+                .select(['stropheId', 'colorFill', 'borderColor'])
+                .sort("stropheId", "asc")
+                .getAll();
+              const stropheStylingMap = new Map();
+              stropheStyling.forEach((obj) => {
+                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -298,19 +355,24 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.showVerseNum = false;
                   hebWord.numIndent = 0;
 
-                  const currentStyling = stylingMap.get(hebWord.id);
-                  if (currentStyling !== undefined) {
-                    (currentStyling.colorFill !== null) && (hebWord.colorFill = currentStyling.colorFill);
-                    (currentStyling.borderColor !== null) && (hebWord.borderColor = currentStyling.borderColor);
-                    (currentStyling.textColor !== null) && (hebWord.textColor = currentStyling.textColor);
-                    (currentStyling.numIndent !== null) && (hebWord.numIndent = currentStyling.numIndent);
-                    (currentStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentStyling.stropheDiv);
+                  const currentWordStyling = wordStylingMap.get(hebWord.id);
+                  if (currentWordStyling !== undefined) {
+                    (currentWordStyling.colorFill !== null) && (hebWord.colorFill = currentWordStyling.colorFill);
+                    (currentWordStyling.borderColor !== null) && (hebWord.borderColor = currentWordStyling.borderColor);
+                    (currentWordStyling.textColor !== null) && (hebWord.textColor = currentWordStyling.textColor);
+                    (currentWordStyling.numIndent !== null) && (hebWord.numIndent = currentWordStyling.numIndent);
+                    (currentWordStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentWordStyling.stropheDiv);
                   }
 
                   let currentStropheData = passageData.strophes[currentStropheIdx];
-                  if (currentStropheData === undefined || (currentStyling !== undefined && currentStyling.stropheDiv)) {
+                  if (currentStropheData === undefined || (hebWord.stropheDiv !== undefined && hebWord.stropheDiv)) {
                       passageData.strophes.push({id: ++currentStropheIdx, lines: []});
                       currentStropheData = passageData.strophes[currentStropheIdx];
+                      const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
+                      if (currentStropheStyling !== undefined) {
+                          (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
+                          (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
+                      }
                       currentLineIdx = -1;
                   }
 

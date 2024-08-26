@@ -21,13 +21,22 @@ export const FormatContext = createContext({
   ctxSelectedHebWords: [] as HebWord[],
   ctxSetSelectedHebWords: (arg: HebWord[]) => {},
   ctxSelectedWords: [] as number[],
-  ctxSetSelectedWords: (arg: number[]) => { },
+  ctxSetSelectedWords: (arg: number[]) => {},
   ctxNumSelectedWords: 0 as number,
-  ctxSetNumSelectedWords: (arg: number) => { },
+  ctxSetNumSelectedWords: (arg: number) => {},
+  ctxSelectedStrophes: [] as number[],  
+  ctxSetSelectedStrophes: (arg: number[]) => {},
+  ctxNumSelectedStrophes: 0 as number,
+  ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxColorAction: {} as number,
+  ctxSelectedColor: "" as string,
+  ctxSetSelectedColor: (arg: string) => {},
   ctxColorFill: "" as string,
+  ctxSetColorFill: (arg: string) => {},
   ctxBorderColor: "" as string,
+  ctxSetBorderColor: (arg: string) => {},
   ctxTextColor: "" as string,
+  ctxSetTextColor: (arg: string) => {},
   ctxUniformWidth: false,
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
@@ -54,8 +63,11 @@ const StudyPane = ({
 
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [numSelectedWords, setNumSelectedWords] = useState(0);
+  const [selectedStrophes, setSelectedStrophes] = useState<number[]>([]);
+  const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
+  const [selectedColor, setSelectedColor] = useState("");
 
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
@@ -81,10 +93,19 @@ const StudyPane = ({
     ctxSetSelectedWords: setSelectedWords,
     ctxNumSelectedWords: numSelectedWords,
     ctxSetNumSelectedWords: setNumSelectedWords,
+    ctxSelectedStrophes: selectedStrophes,
+    ctxSetSelectedStrophes: setSelectedStrophes,
+    ctxNumSelectedStrophes: numSelectedStrophes,
+    ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxColorAction: colorAction,
+    ctxSelectedColor: selectedColor,
+    ctxSetSelectedColor: setSelectedColor,
     ctxColorFill: colorFill,
+    ctxSetColorFill: setColorFill,
     ctxBorderColor: borderColor,
+    ctxSetBorderColor: setBorderColor,
     ctxTextColor: textColor,
+    ctxSetTextColor: setTextColor,
     ctxUniformWidth: uniformWidth,
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
@@ -121,9 +142,10 @@ const StudyPane = ({
               setZoomLevel={setZoomLevel}
               //color functions
               setColorAction={setColorAction}
-              setColorFill={setColorFill}
-              setBorderColor={setBorderColor}
-              setTextColor={setTextColor}
+              setSelectedColor={setSelectedColor}
+              //setColorFill={setColorFill}
+              //setBorderColor={setBorderColor}
+              //setTextColor={setTextColor}
               setUniformWidth={setUniformWidth}
             />
 

@@ -12,8 +12,7 @@ import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
-import { updateColor, updateIndented } from "@/lib/actions";
-import { PassageData, HebWord } from "@/lib/data";
+import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -92,46 +91,72 @@ export const ZoomInBtn = ({
   );
 };
 
-
-
-export const ColorFillBtn: React.FC<ColorPickerProps> = ({
-  setColor,
+export const ColorActionBtn: React.FC<ColorPickerProps> = ({
+  colorActionType,
+  setSelectedColor,
   setColorAction
 }) => {
+  const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes 
+  } = useContext(FormatContext);
 
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
+  const [buttonCondition, setButtonCondition] = useState(false);
+  const [displayColor, setDisplayColor] = useState("");
 
-  //to make sure the colour picker turns off completely when user de-selects everything
   useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxSelectedStrophes.length > 0);
+    setButtonCondition(hasSelectedItems);
+
+    // make sure the colour picker turns off completely when user de-selects everything
+    if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
+      setSelectedColor("");
     }
-  }, [ctxNumSelectedWords, ctxColorAction])
+    else {
+      (colorActionType === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
+      (colorActionType === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
+      (colorActionType === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+    }
+  }, [ctxNumSelectedWords, ctxSelectedStrophes])
 
   const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.colorFill) ? ColorActionType.colorFill : ColorActionType.none);
-    }
+    if (buttonCondition)
+      setColorAction((ctxColorAction != colorActionType) ? colorActionType : ColorActionType.none);
   }
 
   const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.colorFill, color.hex);
+    //console.log("Changing " + colorActionType + " color to " + color.hex);
+    setSelectedColor(color.hex);
+    setDisplayColor(color.hex);
+    if (ctxSelectedWords.length > 0) {
+      updateWordColor(ctxStudyId, ctxSelectedWords, colorActionType, color.hex);
+    }
+    if (ctxNumSelectedStrophes > 0) {
+      updateStropheColor(ctxStudyId, ctxSelectedStrophes, colorActionType, color.hex);
+    }
   }
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <BiSolidColorFill fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
+          {
+            (colorActionType === ColorActionType.colorFill) && <BiSolidColorFill fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.4em" />
+          }
+          {
+            (colorActionType === ColorActionType.borderColor) && <MdOutlineModeEdit fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.4em" />
+          }
+          {
+            (colorActionType === ColorActionType.textColor) && <BiFont fillOpacity={buttonCondition? "1" : "0.4"} fontSize="1.5em" />
+          }
         <div
-          //using embbed style for the color display for now, may move to tailwind after some research
+          // TODO: using embbed style for the color display for now, may move to tailwind after some research
           style={
             {
               width: "100%",
               height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxColorFill : '#FFFFFF'}`,
+              background: `${buttonCondition ? displayColor : '#FFFFFF'}`,
               marginTop: "0.05rem",
             }
           }
@@ -140,10 +165,10 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       </button>
 
       {
-        ctxColorAction === ColorActionType.colorFill && ctxNumSelectedWords > 0 && (
+        ctxColorAction === colorActionType && buttonCondition && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
+              <SwatchesPicker color={displayColor} onChange={handleChange} />
             </div>
           </div>
         )
@@ -153,145 +178,40 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 };
 
 
-export const BorderColorBtn: React.FC<ColorPickerProps> = ({
-  setColor,
-  setColorAction
-}) => {
+export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, 
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+  } = useContext(FormatContext);
 
-  //to make sure the colour picker turns off completely when user de-selects everything
+  const [buttonCondition, setButtonCondition] = useState(false);
+
   useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxSelectedStrophes.length > 0);
+    setButtonCondition(hasSelectedItems);
+
+    // make sure the colour picker turns off completely when user de-selects everything
+    if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
     }
-  }, [ctxNumSelectedWords, ctxColorAction])
+  }, [ctxNumSelectedWords, ctxSelectedStrophes])
 
   const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.borderColor) ? ColorActionType.borderColor : ColorActionType.none);
-    }
-  }
-
-  const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.borderColor, color.hex);
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        <MdOutlineModeEdit fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
-        <div
-          //using embbed style for the color display for now, may move to tailwind after some research
-          style={
-            {
-              width: "100%",
-              height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxBorderColor : '#FFFFFF'}`,
-              marginTop: "0.05rem",
-            }
-          }
-        >
-        </div>
-      </button>
-      {
-        ctxColorAction === ColorActionType.borderColor && ctxNumSelectedWords > 0 && (
-          <div className="relative z-10">
-            <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
-            </div>
-          </div>
-        )
-      }
-    </div>
-  );
-};
-
-export const TextColorBtn: React.FC<ColorPickerProps> = ({
-  setColor,
-  setColorAction
-}) => {
-
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
-
-  //to make sure the colour picker turns off completely when user de-selects everything
-  useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
-      setColorAction(ColorActionType.none);
-    }
-  }, [ctxNumSelectedWords, ctxColorAction])
-
-  const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.textColor) ? ColorActionType.textColor : ColorActionType.none);
-    }
-  }
-
-  const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.textColor, color.hex);
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        <BiFont fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.5em" />
-        <div
-          //using embbed style for the color display for now, may move to tailwind after some research
-          style={
-            {
-              width: "100%",
-              height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxTextColor : '#FFFFFF'}`,
-              marginTop: "0.05rem",
-            }
-          }
-        >
-        </div>
-      </button>
-      {
-        ctxColorAction === ColorActionType.textColor && ctxNumSelectedWords > 0 && (
-          <div className="relative z-10">
-            <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxTextColor} onChange={handleChange} />
-            </div>
-          </div>
-        )
-      }
-    </div>
-  );
-};
-
-export const ClearFormatBtn = ({ resetColorFill, resetBorderColor, resetTextColor, setColorAction }: {
-  resetColorFill: (arg: string) => void;
-  resetBorderColor: (arg: string) => void;
-  resetTextColor: (arg: string) => void;
-  setColorAction: (arg: number) => void,
-}) => {
-
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords } = useContext(FormatContext);
-
-  const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
+    if (buttonCondition) {
       setColorAction(ColorActionType.resetColor);
-      resetColorFill(DEFAULT_COLOR_FILL);
-      resetBorderColor(DEFAULT_BORDER_COLOR);
-      resetTextColor(DEFAULT_TEXT_COLOR);
-      updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+      ctxSetColorFill(DEFAULT_COLOR_FILL);
+      ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+      ctxSetTextColor(DEFAULT_TEXT_COLOR);
+      updateWordColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
     }
   }
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <AiOutlineClear fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
+        <AiOutlineClear fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.4em" />
       </button>
       <ToolTip text="Clear format" />
     </div>

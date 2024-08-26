@@ -1,9 +1,9 @@
-import { StropheData } from '@/lib/data';
-import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
-import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import React, { useState, useEffect, useContext } from 'react';
+import { LuTextSelect } from "react-icons/lu";
+import { DEFAULT_COLOR_FILL, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
-import { LuTextSelect } from "react-icons/lu";
+import { StropheData } from '@/lib/data';
 
 export const StropheBlock = ({
     strophe, id
@@ -11,14 +11,13 @@ export const StropheBlock = ({
     strophe: StropheData, id: number
   }) => {
   
-    const { ctxSelectedWords, ctxSetSelectedWords, 
-      ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, 
+    const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+      ctxSetNumSelectedWords, ctxColorAction, ctxColorFill, ctxSetColorFill
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
   
-    const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  
+    const [colorFillLocal, setColorFillLocal] = useState(strophe.colorFill || DEFAULT_COLOR_FILL);
   
     if (ctxColorAction != ColorActionType.none) {
       if (selected) {
@@ -28,23 +27,29 @@ export const StropheBlock = ({
       }
     }
   
-    const handleStropheBlockClick = (index:string) => {
-      console.log(`strophe`+index);
+    const handleStropheBlockClick = (index: number) => {
       setSelected(prevState => !prevState);
-      (!selected) ? ctxSelectedWords.push(id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(id), 1);
-      ctxSetSelectedWords(ctxSelectedWords);
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
+      //(!selected) ? ctxSelectedWords.push(id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(id), 1);
+      //ctxSetSelectedWords(ctxSelectedWords);
+      //ctxSetNumSelectedWords(ctxSelectedWords.length);
+      (!selected) ? ctxSelectedStrophes.push(id) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(id), 1);
+      ctxSetSelectedStrophes(ctxSelectedStrophes);
+      ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+      if (ctxSelectedStrophes.length === 1) {
+        ctxSetColorFill(colorFillLocal);
+      }
     }
     
   
     useEffect(() => {
-      setSelected(ctxSelectedWords.includes(id));
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
-    }, [ctxSelectedWords]);
+      setSelected(ctxSelectedStrophes.includes(id));
+      ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+      //ctxSetNumSelectedWords(ctxSelectedStrophes.length);
+    }, [ctxSelectedStrophes]);
   
     return(
       <div 
-        key={`strophe`+String(id)}
+        key={"strophe" + id}
         className={`relative flex-column p-5 m-5 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
         style={
           {
@@ -53,10 +58,10 @@ export const StropheBlock = ({
         }
       >
         <button
-          key={`strophe`+String(id)+`Selector`}
+          key={"strophe" + id + "Selector"}
           className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent`}
-          onClick={() => handleStropheBlockClick(String(id))}
-          data-clickType={'clickable'}
+          onClick={() => handleStropheBlockClick(id)}
+          data-clicktype={'clickable'}
         >
           <LuTextSelect
             style={{pointerEvents:'none'}}
@@ -66,7 +71,7 @@ export const StropheBlock = ({
           strophe.lines.map((line, lineId) => {
             return (
               <div
-                key={`line`+String(lineId)}
+                key={"line_" + lineId}
                 className={`flex`}
               >
               {
@@ -77,7 +82,7 @@ export const StropheBlock = ({
                       key={wordId}
                     >
                       <WordBlock
-                        key={`word`+String(wordId)}
+                        key={"word_" + wordId}
                         hebWord={word}
                       />
                     </div>           
