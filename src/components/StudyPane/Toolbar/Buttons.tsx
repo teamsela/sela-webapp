@@ -120,8 +120,10 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [ctxNumSelectedWords, ctxSelectedStrophes])
 
   const handleClick = () => {
-    if (buttonCondition)
+    if (buttonCondition) {
       setColorAction((ctxColorAction != colorActionType) ? colorActionType : ColorActionType.none);
+      setSelectedColor("");
+    }
   }
 
   const handleChange = (color: any) => {
