@@ -7,7 +7,7 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType } from "@/lib/types";
-import { StudyData, PassageData, HebWord } from '@/lib/data';
+import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
 
 export const DEFAULT_ZOOM_LEVEL: number = 5;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -24,8 +24,8 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: number[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
-  ctxSelectedStrophes: [] as number[],  
-  ctxSetSelectedStrophes: (arg: number[]) => {},
+  ctxSelectedStrophes: [] as StropheData[],  
+  ctxSetSelectedStrophes: (arg: StropheData[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxColorAction: {} as number,
@@ -63,7 +63,8 @@ const StudyPane = ({
 
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [numSelectedWords, setNumSelectedWords] = useState(0);
-  const [selectedStrophes, setSelectedStrophes] = useState<number[]>([]);
+  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
+  const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
@@ -78,7 +79,6 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
   const [newStropheEvent, setNewStropheEvent] = useState(false);
-  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
   const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
   const [mergeStropheEvent, setMergeStropheEvent] = useState("");
   const [currentStrophe, setCurrentStrophe] = useState(0);
@@ -143,9 +143,6 @@ const StudyPane = ({
               //color functions
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
-              //setColorFill={setColorFill}
-              //setBorderColor={setBorderColor}
-              //setTextColor={setTextColor}
               setUniformWidth={setUniformWidth}
             />
 

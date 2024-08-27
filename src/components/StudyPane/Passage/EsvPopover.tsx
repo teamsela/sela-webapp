@@ -12,7 +12,7 @@ const EsvPopover = ({
   }) => {
 
   const [popoversOpen, setPopoversOpen] = useState(false);
-  const [esvData, setEsvData] = useState("");
+  const [esvData, setEsvData] = useState("Loading...");
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
@@ -43,6 +43,13 @@ const EsvPopover = ({
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
+  useEffect(() => {
+    const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+    esvContent.then((data) =>
+      setEsvData(data)
+    )
+  }, []);
+
   return (
     <div>
       <div>
@@ -50,10 +57,6 @@ const EsvPopover = ({
           <button
             ref={trigger}
             onClick={() => {
-              const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
-              esvContent.then((data) =>
-                setEsvData(data)
-              )
               setPopoversOpen(!popoversOpen);
             }}
             {...verseNumStyles}

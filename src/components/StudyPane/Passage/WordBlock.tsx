@@ -2,7 +2,7 @@ import { HebWord } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
-import { wrapText, hasSameColor } from "@/lib/utils";
+import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
 type ZoomLevel = {
@@ -32,9 +32,8 @@ export const WordBlock = ({
   
     const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
-      ctxNumSelectedWords, ctxColorAction, ctxColorFill, ctxSetColorFill, 
-      ctxBorderColor, ctxSetBorderColor, ctxSelectedColor,
-      ctxTextColor, ctxSetTextColor, ctxUniformWidth 
+      ctxNumSelectedWords, ctxSelectedStrophes, ctxColorAction, ctxSelectedColor, 
+      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxUniformWidth 
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -68,21 +67,24 @@ export const WordBlock = ({
     }, [ctxSelectedWords, ctxSelectedHebWords, selected, hebWord.numIndent]);
   
     const handleClick = () => {
+      if (ctxSelectedStrophes.length > 0) return;
+
       setSelected(prevState => !prevState);
       (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
       ctxSetSelectedWords(ctxSelectedWords);
       (!selected) ? ctxSelectedHebWords.push(hebWord) : ctxSelectedHebWords.splice(ctxSelectedHebWords.indexOf(hebWord), 1);
       ctxSetSelectedHebWords(ctxSelectedHebWords);      
       ctxSetNumSelectedWords(ctxSelectedWords.length);
+
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
       ctxSetTextColor(DEFAULT_TEXT_COLOR);
       if (ctxSelectedHebWords.length >= 1) {
         const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
         if (lastSelectedWord) { 
-            hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL); 
-            hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR);
-            hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR);
+          wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL); 
+          wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR);
+          wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR);
         }
       }
     }

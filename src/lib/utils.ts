@@ -1,4 +1,4 @@
-import { HebWord, PassageData } from "./data";
+import { HebWord, PassageData, StropheData } from "./data";
 import { ColorActionType } from "./types";
 
 type PsalmBook = {
@@ -263,7 +263,7 @@ export function getWordById(passage: PassageData, id: number) : HebWord | null {
   return null;
 }
 
-export function hasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
+export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
 
   if (words.length === 0) return true;
 
@@ -296,6 +296,41 @@ export function hasSameColor(words: HebWord[], actionType: ColorActionType) : bo
         case ColorActionType.textColor:
           if (word.textColor != previousColor) { return false; }
           previousColor = word.textColor;
+          break;
+        default:
+          break;
+      }
+  }
+
+  return true;
+}
+
+export function strophesHasSameColor(strophes: StropheData[], actionType: ColorActionType) : boolean {
+
+  if (strophes.length === 0) return true;
+
+  let previousColor : any;
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      previousColor = strophes[0].colorFill;
+      break;    
+    case ColorActionType.borderColor:
+      previousColor = strophes[0].borderColor;
+      break;
+    default:
+      break;
+  }
+
+  for (let strophe of strophes) {
+      switch (actionType) {
+        case ColorActionType.colorFill:
+          if (strophe.colorFill != previousColor) { return false; }
+          previousColor = strophe.colorFill;
+          break;
+        case ColorActionType.borderColor:
+          if (strophe.borderColor != previousColor) { return false; }
+          previousColor = strophe.borderColor;
           break;
         default:
           break;

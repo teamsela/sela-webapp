@@ -103,8 +103,14 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   const [buttonCondition, setButtonCondition] = useState(false);
   const [displayColor, setDisplayColor] = useState("");
 
+  const refreshDisplayColor = () => {
+    (colorActionType === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
+    (colorActionType === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
+    (colorActionType === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+  }
+
   useEffect(() => {
-    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxSelectedStrophes.length > 0);
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorActionType != ColorActionType.textColor));
     setButtonCondition(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
@@ -113,11 +119,15 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       setSelectedColor("");
     }
     else {
-      (colorActionType === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
-      (colorActionType === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
-      (colorActionType === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+      refreshDisplayColor();
     }
-  }, [ctxNumSelectedWords, ctxSelectedStrophes])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
+
+  useEffect(() => {
+    if (ctxColorAction === ColorActionType.resetColor) {
+      refreshDisplayColor();
+    }
+  }, [ctxColorAction])
 
   const handleClick = () => {
     if (buttonCondition) {
@@ -182,29 +192,35 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
 export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, 
+  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, 
+    ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
   const [buttonCondition, setButtonCondition] = useState(false);
 
   useEffect(() => {
-    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxSelectedStrophes.length > 0);
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0);
     setButtonCondition(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
     if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
     }
-  }, [ctxNumSelectedWords, ctxSelectedStrophes])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
 
   const handleClick = () => {
     if (buttonCondition) {
       setColorAction(ColorActionType.resetColor);
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-      ctxSetTextColor(DEFAULT_TEXT_COLOR);
-      updateWordColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+      if (ctxSelectedWords.length > 0) {
+        ctxSetTextColor(DEFAULT_TEXT_COLOR);
+        updateWordColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+      }
+      if (ctxSelectedStrophes.length > 0) {
+        updateStropheColor(ctxStudyId, ctxSelectedStrophes, ColorActionType.resetColor, null);
+      }      
     }
   }
 

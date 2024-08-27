@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo, psalmBook } from './utils';
-import { StudyData, PassageData, HebWord } from './data';
+import { StudyData, PassageData, StropheData, HebWord } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -166,7 +166,7 @@ export async function updateWordColor(studyId: string, selectedWords: number[], 
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
-export async function updateStropheColor(studyId: string, selectedStrophes: number[], actionType: ColorActionType, newColor: string | null) {
+export async function updateStropheColor(studyId: string, selectedStrophes: StropheData[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -190,12 +190,12 @@ export async function updateStropheColor(studyId: string, selectedStrophes: numb
       break;
   }
 
-  selectedStrophes.forEach((stropheId) => {
+  selectedStrophes.forEach((strophe) => {
     operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + stropheId,
-        fields: { studyId: studyId, stropheId: stropheId, ...fieldsToUpdate },
+        id: studyId + "_" + strophe.id,
+        fields: { studyId: studyId, stropheId: strophe.id, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -409,12 +409,18 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
   esvApiEndpoint.searchParams.append('include-short-copyright', 'true');
   esvApiEndpoint.searchParams.append('include-passage-references', 'false');
-  const response = await fetch(esvApiEndpoint, {
-    headers: {
-      'Authorization': 'Token ' + ESV_API_KEY
-    },
-  })
 
-  const data = await response.json();
-  return data.passages[0];
+  try {
+    const response = await fetch(esvApiEndpoint, {
+      headers: {
+        'Authorization': 'Token ' + ESV_API_KEY
+      },
+    })
+  
+    const data = await response.json();
+    return data.passages[0];
+  } catch (error) {
+    console.log('Error fetching ESV passage text: ' + error);
+    throw new Error('Failed to fetch ESV passage text from ESV API endpoint.');
+  }
 };

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { getWordById, hasSameColor } from '@/lib/utils';
+import { getWordById, wordsHasSameColor } from '@/lib/utils';
 import { HebWord, PassageData } from '@/lib/data';
 import { ColorActionType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
@@ -12,15 +12,9 @@ const Passage = ({
   content: PassageData;
 }) => {
 
-  const styles = {
-    container: {
-      className: `flex mb-2`
-    }
-  }
-
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
     ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords, 
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe
   } = useContext(FormatContext)
@@ -37,6 +31,7 @@ const Passage = ({
   
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (ctxSelectedStrophes.length > 0) return;
     setIsDragging(true);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
@@ -53,6 +48,7 @@ const Passage = ({
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging) return;
     if (!selectionStart) return;
+    if (ctxSelectedStrophes.length > 0) return;
     // filter out small accidental drags when user clicks
     /////////
     const distance = Math.sqrt(Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2));
@@ -123,23 +119,11 @@ const Passage = ({
       //console.log(ctxSelectedHebWords);
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
       if (lastSelectedWord) { 
-          hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill); 
-          hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
-          hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill); 
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
       }
     }
-    // if (ctxSelectedWords.length === 1 && ctxSelectedHebWords[0]) {
-    //   if (hasSameColor(ctxSelectedHebWords, ColorActionType.colorFill)) {
-    //     console.log("1. Updating color fill to" + ctxSelectedHebWords[0].colorFill);
-    //     ctxSetColorFill(ctxSelectedHebWords[0].colorFill);
-    //   }
-    //   //hasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(borderColorLocal);
-    //   //hasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(textColorLocal);
-    // }
-    // if (ctxSelectedHebWords.length === 1 || hasSameColor(ctxSelectedHebWords)) {
-    //   console.log(ctxSelectedHebWords);
-    //   (ctxSelectedHebWords[0]) && ctxSetColorFill(ctxSelectedHebWords[0].colorFill);
-    // }
 
   }, [selectionStart, selectionEnd, ctxSelectedWords, ctxSelectedHebWords]);
 
