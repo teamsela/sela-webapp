@@ -18,9 +18,10 @@ export type HebWord = {
     textColor: string;
     numIndent: number;
     stropheDiv?: boolean;
+    lineBreak?: boolean;
     showVerseNum: boolean;
-    p_index?: number;
-    w_index?: number;
+    // p_index?: number;
+    // w_index?: number;
 }
 
 
@@ -42,22 +43,18 @@ export type HebWord = {
 
 
 export type LineData = {
-    id: number;
+    id: number; // line id
     words: HebWord[];
-    esv: string;
 }
 
 export type StropheData = {
-    id: number;
+    id: number; // strophe id
     colorFill?: string;
     borderColor?: string;    
     lines: LineData[];
 }
 
 export type PassageData = {
+    studyId: string; // study id
     strophes: StropheData[];
-    startChapter: number;
-    startVerse: number;
-    endChapter: number;
-    endVerse: number;
 }

@@ -2,9 +2,9 @@ import React, { useState, useRef, useCallback, useEffect, useContext } from 'rea
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
 import { HebWord, PassageData } from '@/lib/data';
-import { ColorActionType } from '@/lib/types';
+import { ColorActionType, StropheActionType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
-//import { newStropheAction, stropheBlock, createStropheData, mergeStropheAction, findStropheNumberWithWordId } from './StropheFunctions';
+import { handleStropheAction } from './StropheFunctions';
 
 const Passage = ({
   content,
@@ -13,10 +13,10 @@ const Passage = ({
 }) => {
 
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
-    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords, ctxSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe
+    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, /*ctxNewStropheEvent, 
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction
+    /*ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe*/
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -26,10 +26,10 @@ const Passage = ({
   const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
-  //const wordsListRef = useRef(createWordArray({content}));
   const containerRef = useRef<HTMLDivElement>(null);
-  
 
+  const [passageData, setPassageData] = useState<PassageData>(content);
+  
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     if (ctxSelectedStrophes.length > 0) return;
     setIsDragging(true);
@@ -154,6 +154,19 @@ const Passage = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  useEffect(() => {
+    if (ctxStropheAction === StropheActionType.new) {
+      console.log("Clicked new strophe");
+      if (ctxSelectedHebWords.length === 1) {
+        
+        const hey : any = handleStropheAction(passageData, ctxSelectedHebWords[0], StropheActionType.new);
+        console.log(hey);
+        setPassageData(hey);
+      }
+      ctxSetStropheAction(StropheActionType.none);
+    }
+  }, [ctxStropheAction]);
+  /*
   useEffect(() => { // for handling the strophe creation
     if (ctxNewStropheEvent) {
       let flatWordList:HebWord[] = [];
@@ -188,7 +201,7 @@ const Passage = ({
     //stropheArray = stropheBlock(wordsListRef.current);
     //ctxSetStructuredWords(stropheArray);
   }, []);
-
+*/
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }
@@ -205,7 +218,7 @@ const Passage = ({
       >
         <div className='relative top-8 z-10'>
           {
-            content.strophes.map((strophe, stropheId)=>{
+            passageData.strophes.map((strophe, stropheId)=>{
               return(
                 <StropheBlock 
                   strophe={strophe}

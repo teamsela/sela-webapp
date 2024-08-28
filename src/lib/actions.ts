@@ -236,24 +236,41 @@ export async function updateIndented(studyId: string, hebId: number, numIndent: 
   }
 }
 
-export async function updateStropheDiv(studyId: string, hebId: number, stropheDiv: boolean) {
+export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[], hebIdsToRemoveDiv: number[], ) {
   "use server";
 
   const xataClient = getXataClient();
 
   let result : any;
+  let operations: any = [];
+  let fieldsToUpdate: {};
+
+  hebIdsToAddDiv.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stropheDiv: true },
+        upsert: true,
+      }
+    })
+  })
+
+  hebIdsToRemoveDiv.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stropheDiv: false },
+        upsert: true,
+      }
+    })
+  })
 
   try {
-    result = await xataClient.transactions.run([
-      {
-        update: {
-          table: "styling" as const,
-          id: studyId + "_" + hebId,
-          fields: { studyId: studyId, hebId: hebId, stropheDiv: stropheDiv },
-          upsert: true,
-        }
-      }
-    ]);
+    
+    result = await xataClient.transactions.run(operations);
+    console.log(result)
   } catch (error) {
     return { message: 'Database Error: Failed to update styling strophe division.' };
   }
@@ -296,7 +313,7 @@ export async function fetchPassageContent(studyId: string) {
       // fetch a study by id from xata
       const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
      
-      let passageData = { strophes: [], startChapter: 0, startVerse: 0, endChapter: 0, endVerse: 0 } as PassageData;
+      let passageData = { studyId: studyId, strophes: [] } as PassageData;
 
       if (study)
       {
@@ -305,11 +322,6 @@ export async function fetchPassageContent(studyId: string) {
           // fetch all words from xata by start/end chapter and verse
           if (passageInfo instanceof Error === false)
           {
-              passageData.startChapter = passageInfo.startChapter;
-              passageData.startVerse = passageInfo.startVerse;
-              passageData.endChapter = passageInfo.endChapter;
-              passageData.endVerse = passageInfo.endVerse;
-
               const wordStyling = await xataClient.db.styling
                 .filter({studyId: study.id})
                 .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'stropheDiv'])
@@ -354,6 +366,7 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.gloss = word.gloss?.trim() || "";
                   hebWord.showVerseNum = false;
                   hebWord.numIndent = 0;
+                  hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
 
                   const currentWordStyling = wordStylingMap.get(hebWord.id);
                   if (currentWordStyling !== undefined) {
@@ -377,8 +390,8 @@ export async function fetchPassageContent(studyId: string) {
                   }
 
                   let currentLineData = currentStropheData.lines[currentLineIdx];
-                  if (currentLineData === undefined || word.paragraphMarker || word.poetryMarker || word.verseBreak) {
-                      currentStropheData.lines.push({id: ++currentLineIdx, words: [], esv: ""})
+                  if (currentLineData === undefined || hebWord.lineBreak) {
+                      currentStropheData.lines.push({id: ++currentLineIdx, words: []})
                       currentLineData = currentStropheData.lines[currentLineIdx];
                   }
 
@@ -418,9 +431,8 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
     })
   
     const data = await response.json();
-    return data.passages[0];
+    return Object.hasOwn(data, 'passages') ? data.passages[0] : "";
   } catch (error) {
-    console.log('Error fetching ESV passage text: ' + error);
-    throw new Error('Failed to fetch ESV passage text from ESV API endpoint.');
+    throw new Error('Failed to fetch passage text from ESV API endpoint (error ' + error);
   }
 };

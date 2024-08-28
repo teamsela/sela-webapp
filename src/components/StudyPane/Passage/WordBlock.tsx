@@ -41,22 +41,20 @@ export const WordBlock = ({
     const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
     const [selected, setSelected] = useState(false);
   
-    if (ctxColorAction != ColorActionType.none) {
-      if (selected) {
-        if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
-          setColorFillLocal(ctxSelectedColor);
-        }
-        else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
-          setBorderColorLocal(ctxSelectedColor);
-        }
-        else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
-          setTextColorLocal(ctxSelectedColor);
-        }
-        else if (ctxColorAction === ColorActionType.resetColor) {
-          (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
-          (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
-          (textColorLocal != DEFAULT_TEXT_COLOR) && setTextColorLocal(DEFAULT_TEXT_COLOR);
-        }
+    if (ctxColorAction != ColorActionType.none && selected) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+        setColorFillLocal(ctxSelectedColor);
+      }
+      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+        setBorderColorLocal(ctxSelectedColor);
+      }
+      else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+        setTextColorLocal(ctxSelectedColor);
+      }
+      else if (ctxColorAction === ColorActionType.resetColor) {
+        (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
+        (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
+        (textColorLocal != DEFAULT_TEXT_COLOR) && setTextColorLocal(DEFAULT_TEXT_COLOR);
       }
     }
   

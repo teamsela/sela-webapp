@@ -71,7 +71,7 @@ export const StropheBlock = ({
       >
         <button
           key={"strophe" + id + "Selector"}
-          className={`z-1 absolute bottom-0 right-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent`}
+          className={`z-1 absolute top-0 right-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent`}
           onClick={() => handleStropheBlockClick(id)}
           data-clicktype={'clickable'}
         >

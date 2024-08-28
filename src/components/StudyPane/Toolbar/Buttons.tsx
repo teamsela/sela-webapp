@@ -11,7 +11,7 @@ import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
+import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
 const ToolTip = ({ text }: { text: string }) => {
@@ -309,14 +309,16 @@ export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
   );
 };
 
-export const NewStropheBtn = () => {
-  const { ctxNumSelectedWords, ctxSetNewStropheEvent } = useContext(FormatContext);
+export const StropheBtn = () => {
 
-  const [visibleOptions, setVisibleOptions] = useState(false);
+}
+
+export const NewStropheBtn = () => {
+  const { ctxNumSelectedWords, ctxSetStropheAction /*ctxSetNewStropheEvent*/ } = useContext(FormatContext);
 
   const buttonEnabled = (ctxNumSelectedWords===1);
 
-  const handleClick = () => (buttonEnabled && ctxSetNewStropheEvent(true));
+  const handleClick = () => { buttonEnabled && ctxSetStropheAction(StropheActionType.new) };
 
   return (
     <>
@@ -335,11 +337,11 @@ export const NewStropheBtn = () => {
 };
 
 export const MergeStropheBtnUp = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
+  const { ctxNumSelectedWords, /*ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe*/ } = useContext(FormatContext);
 
-  const buttonEnabled = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1 )
+  const buttonEnabled = ( ctxNumSelectedWords===1 )
 
-  const handleClick = () => ( buttonEnabled && ctxSetMergeStropheEvent("up"))
+  const handleClick = () => { /*buttonEnabled && ctxSetMergeStropheEvent("up")*/ }
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
@@ -353,11 +355,11 @@ export const MergeStropheBtnUp = () => {
   )
 }
 export const MergeStropheBtnDown = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
+  const { ctxNumSelectedWords, /*ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe*/ } = useContext(FormatContext);
 
-  const buttonEnabled = ( ctxNumSelectedWords===1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length )
+  const buttonEnabled = ( ctxNumSelectedWords===1 /*&& ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length*/ )
 
-  const handleClick = () => ( buttonEnabled && ctxSetMergeStropheEvent("down"))
+  const handleClick = () => { /*buttonEnabled && ctxSetMergeStropheEvent("down")*/ }
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
