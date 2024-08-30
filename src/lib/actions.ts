@@ -270,7 +270,6 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
   try {
     
     result = await xataClient.transactions.run(operations);
-    console.log(result)
   } catch (error) {
     return { message: 'Database Error: Failed to update styling strophe division.' };
   }

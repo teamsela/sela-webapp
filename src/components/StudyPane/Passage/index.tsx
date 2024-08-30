@@ -155,53 +155,24 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
-    if (ctxStropheAction === StropheActionType.new) {
-      console.log("Clicked new strophe");
-      if (ctxSelectedHebWords.length === 1) {
-        
-        const hey : any = handleStropheAction(passageData, ctxSelectedHebWords[0], StropheActionType.new);
-        console.log(hey);
-        setPassageData(hey);
-      }
-      ctxSetStropheAction(StropheActionType.none);
+
+    let actionedContent : PassageData | null = null;
+
+    if (ctxStropheAction !== StropheActionType.none && ctxSelectedHebWords.length === 1) {
+      actionedContent = handleStropheAction(passageData, ctxSelectedHebWords[0], ctxStropheAction);
+      console.log(actionedContent);
     }
+
+    if (actionedContent !== null) {
+      setPassageData(actionedContent);
+      ctxSetSelectedWords([]);
+      ctxSetNumSelectedWords(ctxSelectedWords.length);
+      ctxSetSelectedHebWords([]);
+    } 
+    ctxSetStropheAction(StropheActionType.none);
+
   }, [ctxStropheAction]);
-  /*
-  useEffect(() => { // for handling the strophe creation
-    if (ctxNewStropheEvent) {
-      let flatWordList:HebWord[] = [];
-//      flatWordList = newStropheAction(wordsListRef.current, ctxSelectedWords[0]);
-//      wordsListRef.current = flatWordList;
-      let structuredWordList:HebWord[][][];
-    //  structuredWordList = createStropheData(flatWordList);
-//      ctxSetStructuredWords(structuredWordList);
-      ctxSetNewStropheEvent(false);
-    }
-  }, [ctxNewStropheEvent]);
 
-  useEffect(() => { // for handling merge strophe action
-    let flatWordList:HebWord[] = [];
-//    flatWordList = mergeStropheAction(wordsListRef.current, ctxSelectedWords[0], ctxMergeStropheEvent);
-//    wordsListRef.current = flatWordList;
-    let structuredWordList:HebWord[][][];
-  //  structuredWordList = createStropheData(flatWordList);
-//    ctxSetStructuredWords(structuredWordList);
-    ctxSetMergeStropheEvent('');
-  }, [ctxMergeStropheEvent]);
-
-  // useEffect(() => {
-  //   if (ctxNumSelectedWords === 1) {
-  //     //let currentStrophe = findStropheNumberWithWordId(wordsListRef.current, ctxSelectedWords[0]);
-  //     //ctxSetCurrentStrophe(currentStrophe);
-  //   }
-  // }, [ctxNumSelectedWords])
-
-  useEffect(() => {
-    let stropheArray: HebWord[][][]|undefined = undefined;
-    //stropheArray = stropheBlock(wordsListRef.current);
-    //ctxSetStructuredWords(stropheArray);
-  }, []);
-*/
   const passageContentStyle = {
     className: `flex-1 transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
   }

@@ -7,7 +7,7 @@ export enum ColorActionType {
 }
 
 export interface ColorPickerProps {
-    colorActionType: ColorActionType,
+    colorAction: ColorActionType,
     setSelectedColor: (arg: string) => void;
     setColorAction: (arg: number) => void,
 }

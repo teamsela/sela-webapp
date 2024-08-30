@@ -1,8 +1,8 @@
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, MoveUpBtn, MoveDownBtn, 
-  IndentBtn, UniformWidthBtn, NewStropheBtn, MergeStropheBtnUp, MergeStropheBtnDown, NewStanzaBtn } from "./Buttons";
+  IndentBtn, UniformWidthBtn, StropheActionBtn, NewStanzaBtn } from "./Buttons";
 import { useContext } from "react";
 import { FormatContext } from '../index';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, StropheActionType } from "@/lib/types";
 
 const Toolbar = ({
   setZoomLevel,
@@ -55,16 +55,16 @@ const Toolbar = ({
             <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
           </div>
 
-          <ColorActionBtn colorActionType={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-          <ColorActionBtn colorActionType={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-          <ColorActionBtn colorActionType={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
           <ClearFormatBtn setColorAction={setColorAction} />
           <UniformWidthBtn setUniformWidth={setUniformWidth}/>
           <IndentBtn leftIndent={true} />
           <IndentBtn leftIndent={false} />
-          <NewStropheBtn />
-          <MergeStropheBtnUp />
-          <MergeStropheBtnDown />
+          <StropheActionBtn stropheAction={StropheActionType.new} toolTip="New Strophe" />
+          <StropheActionBtn stropheAction={StropheActionType.mergeUp} toolTip="Merge with previous strophe" />
+          <StropheActionBtn stropheAction={StropheActionType.mergeDown} toolTip="Merge with next strophe" />
           <NewStanzaBtn />
           <MoveUpBtn />
           <MoveDownBtn />
