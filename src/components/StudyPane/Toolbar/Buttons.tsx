@@ -6,15 +6,13 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
-import { RiArrowDropDownLine } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps, InfoPaneActionType } from "@/lib/types";
-import { updateColor, updateIndented } from "@/lib/actions";
-import { PassageData } from "@/lib/data";
+import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
+import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
 const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -93,46 +91,84 @@ export const ZoomInBtn = ({
   );
 };
 
-
-
-export const ColorFillBtn: React.FC<ColorPickerProps> = ({
-  setColor,
+export const ColorActionBtn: React.FC<ColorPickerProps> = ({
+  colorAction,
+  setSelectedColor,
   setColorAction
 }) => {
+  const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes 
+  } = useContext(FormatContext);
 
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxColorFill } = useContext(FormatContext);
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+  const [displayColor, setDisplayColor] = useState("");
 
-  //to make sure the colour picker turns off completely when user de-selects everything
+  const refreshDisplayColor = () => {
+    (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
+    (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
+    (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+  }
+
   useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
+    setButtonEnabled(hasSelectedItems);
+
+    // make sure the colour picker turns off completely when user de-selects everything
+    if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
+      setSelectedColor("");
     }
-  }, [ctxNumSelectedWords, ctxColorAction])
+    else {
+      refreshDisplayColor();
+    }
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
+
+  useEffect(() => {
+    if (ctxColorAction === ColorActionType.resetColor) {
+      refreshDisplayColor();
+    }
+  }, [ctxColorAction])
 
   const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.colorFill) ? ColorActionType.colorFill : ColorActionType.none);
+    if (buttonEnabled) {
+      setColorAction((ctxColorAction != colorAction) ? colorAction : ColorActionType.none);
+      setSelectedColor("");
     }
   }
 
   const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.colorFill, color.hex);
+    //console.log("Changing " + colorActionType + " color to " + color.hex);
+    setSelectedColor(color.hex);
+    setDisplayColor(color.hex);
+    if (ctxSelectedWords.length > 0) {
+      updateWordColor(ctxStudyId, ctxSelectedWords, colorAction, color.hex);
+    }
+    if (ctxNumSelectedStrophes > 0) {
+      updateStropheColor(ctxStudyId, ctxSelectedStrophes, colorAction, color.hex);
+    }
   }
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <BiSolidColorFill fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
+          {
+            (colorAction === ColorActionType.colorFill) && <BiSolidColorFill fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+          }
+          {
+            (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+          }
+          {
+            (colorAction === ColorActionType.textColor) && <BiFont fillOpacity={buttonEnabled? "1" : "0.4"} fontSize="1.5em" />
+          }
         <div
-          //using embbed style for the color display for now, may move to tailwind after some research
+          // TODO: using embbed style for the color display for now, may move to tailwind after some research
           style={
             {
               width: "100%",
               height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxColorFill : '#FFFFFF'}`,
+              background: `${buttonEnabled ? displayColor : '#FFFFFF'}`,
               marginTop: "0.05rem",
             }
           }
@@ -141,10 +177,10 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
       </button>
 
       {
-        ctxColorAction === ColorActionType.colorFill && ctxNumSelectedWords > 0 && (
+        ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxColorFill} onChange={handleChange} />
+              <SwatchesPicker color={displayColor} onChange={handleChange} />
             </div>
           </div>
         )
@@ -154,145 +190,46 @@ export const ColorFillBtn: React.FC<ColorPickerProps> = ({
 };
 
 
-export const BorderColorBtn: React.FC<ColorPickerProps> = ({
-  setColor,
-  setColorAction
-}) => {
+export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxBorderColor } = useContext(FormatContext);
+  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, 
+    ctxNumSelectedStrophes, ctxSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+  } = useContext(FormatContext);
 
-  //to make sure the colour picker turns off completely when user de-selects everything
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+
   useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0);
+    setButtonEnabled(hasSelectedItems);
+
+    // make sure the colour picker turns off completely when user de-selects everything
+    if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
     }
-  }, [ctxNumSelectedWords, ctxColorAction])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
 
   const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.borderColor) ? ColorActionType.borderColor : ColorActionType.none);
-    }
-  }
-
-  const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.borderColor, color.hex);
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        <MdOutlineModeEdit fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
-        <div
-          //using embbed style for the color display for now, may move to tailwind after some research
-          style={
-            {
-              width: "100%",
-              height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxBorderColor : '#FFFFFF'}`,
-              marginTop: "0.05rem",
-            }
-          }
-        >
-        </div>
-      </button>
-      {
-        ctxColorAction === ColorActionType.borderColor && ctxNumSelectedWords > 0 && (
-          <div className="relative z-10">
-            <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxBorderColor} onChange={handleChange} />
-            </div>
-          </div>
-        )
-      }
-    </div>
-  );
-};
-
-export const TextColorBtn: React.FC<ColorPickerProps> = ({
-  setColor,
-  setColorAction
-}) => {
-
-  const { ctxStudyId, ctxColorAction, ctxNumSelectedWords, ctxSelectedWords, ctxTextColor } = useContext(FormatContext);
-
-  //to make sure the colour picker turns off completely when user de-selects everything
-  useEffect(() => {
-    if (!(ctxNumSelectedWords > 0)) {
-      setColorAction(ColorActionType.none);
-    }
-  }, [ctxNumSelectedWords, ctxColorAction])
-
-  const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
-      setColorAction((ctxColorAction != ColorActionType.textColor) ? ColorActionType.textColor : ColorActionType.none);
-    }
-  }
-
-  const handleChange = (color: any) => {
-    setColor(color.hex);
-    updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.textColor, color.hex);
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        <BiFont fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.5em" />
-        <div
-          //using embbed style for the color display for now, may move to tailwind after some research
-          style={
-            {
-              width: "100%",
-              height: "0.25rem",
-              background: `${ctxNumSelectedWords > 0 ? ctxTextColor : '#FFFFFF'}`,
-              marginTop: "0.05rem",
-            }
-          }
-        >
-        </div>
-      </button>
-      {
-        ctxColorAction === ColorActionType.textColor && ctxNumSelectedWords > 0 && (
-          <div className="relative z-10">
-            <div className="absolute top-6 -left-6">
-              <SwatchesPicker color={ctxTextColor} onChange={handleChange} />
-            </div>
-          </div>
-        )
-      }
-    </div>
-  );
-};
-
-export const ClearFormatBtn = ({ resetColorFill, resetBorderColor, resetTextColor, setColorAction }: {
-  resetColorFill: (arg: string) => void;
-  resetBorderColor: (arg: string) => void;
-  resetTextColor: (arg: string) => void;
-  setColorAction: (arg: number) => void,
-}) => {
-
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords } = useContext(FormatContext);
-
-  const handleClick = () => {
-    if (ctxNumSelectedWords > 0) {
+    if (buttonEnabled) {
       setColorAction(ColorActionType.resetColor);
-      resetColorFill(DEFAULT_COLOR_FILL);
-      resetBorderColor(DEFAULT_BORDER_COLOR);
-      resetTextColor(DEFAULT_TEXT_COLOR);
-      updateColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+      ctxSetColorFill(DEFAULT_COLOR_FILL);
+      ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+      if (ctxSelectedWords.length > 0) {
+        ctxSetTextColor(DEFAULT_TEXT_COLOR);
+        updateWordColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+      }
+      if (ctxSelectedStrophes.length > 0) {
+        updateStropheColor(ctxStudyId, ctxSelectedStrophes, ColorActionType.resetColor, null);
+      }      
     }
   }
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <AiOutlineClear fillOpacity={ctxNumSelectedWords > 0 ? "1" : "0.4"} fontSize="1.4em" />
+        <AiOutlineClear fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
       </button>
       <ToolTip text="Clear format" />
     </div>
@@ -321,173 +258,88 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
   );
 };
 
-export const LeftIndentBtn = () => {
+export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
-  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  useEffect(() => {
-    setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxNumSelectedWords]);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxSelectedWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
+  const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
 
-  const handleClick = () => {
-    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
-    if (ctxUniformWidth && ctxSelectedWords.length == 1) {
-      if (ctxIsHebrew) {
-        ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-        if (numIndent > 0) {
-          updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
-          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
-        }
-      }
-      else {
-        ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-        if (numIndent < 3) {
-          updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
-          setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
-        }
-      }
-      let newButtonCondition = ctxUniformWidth && (ctxSelectedWords.length === 1);
-      setButtonCondition(newButtonCondition);
-    }
+  if (ctxIsHebrew) {
+    leftIndent = !leftIndent;
   }
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <CgFormatIndentIncrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" />
-      </button>
-      <ToolTip text={ctxIsHebrew ? "Remove Ident" : "Add indent"} />
-    </div>
-  );
-};
 
-export const RightIndentBtn = () => {
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentWord, ctxSetIndentWord, ctxNumSelectedWords, ctxContent } = useContext(FormatContext);
-  const [buttonCondition, setButtonCondition] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
   useEffect(() => {
-    setButtonCondition(ctxUniformWidth && (ctxNumSelectedWords === 1));
-  }, [ctxUniformWidth, ctxNumSelectedWords]);
+    ctxSetIndentNum((ctxSelectedHebWords.length === 1) ? ctxSelectedHebWords[0].numIndent : 0);
+    let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
+    setButtonEnabled(ctxUniformWidth && (ctxNumSelectedWords === 1) && validIndent);
+  }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedHebWords, ctxIndentNum, ctxIsHebrew]);
 
   const handleClick = () => {
-    let numIndent = getNumIndentById(ctxContent.chapters, ctxSelectedWords[0]);
-    if (ctxIsHebrew) {
-      ctxSetIndentWord(Array.from(new Set(ctxIndentWord.concat(ctxSelectedWords))));
-      if (numIndent < 3) {
-        updateIndented(ctxStudyId, ctxSelectedWords, numIndent + 1);
-        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent + 1);
+    if (!ctxUniformWidth || ctxSelectedHebWords.length === 0)
+      return;
+
+    let numIndent = ctxSelectedHebWords[0].numIndent;
+    if (!leftIndent) {
+      if (numIndent > 0) {
+        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, --ctxSelectedHebWords[0].numIndent);
+        setButtonEnabled(ctxSelectedHebWords[0].numIndent > 0);
+        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
       }
     }
     else {
-      ctxSetIndentWord(ctxIndentWord.filter(num => !ctxSelectedWords.includes(num)));
-      if (numIndent > 0) {
-        updateIndented(ctxStudyId, ctxSelectedWords, numIndent - 1);
-        setNumIndentById(ctxContent.chapters, ctxSelectedWords[0], numIndent - 1);
+      if (numIndent < 3) {
+        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, ++ctxSelectedHebWords[0].numIndent);
+        setButtonEnabled(ctxSelectedHebWords[0].numIndent < 3);
+        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
       }
     }
   }
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row ${!leftIndent && 'border-r border-stroke'}`}>
       <button
-        className={`hover:text-primary ${buttonCondition ? '' : 'pointer-events-none'}`}
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <CgFormatIndentDecrease fillOpacity={buttonCondition ? "1" : "0.4"} fontSize="1.5em" />
+        {
+          (!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? 
+            <CgFormatIndentIncrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" /> :
+            <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
+        }          
       </button>
-      <ToolTip text={ctxIsHebrew ? "Add Ident" : "Remove indent"} />
+      <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add Indent" : "Remove indent"} />
     </div>
   );
 };
 
-function getNumIndentById(chapters: any[], id: number) {
-  for (let chapter of chapters) {
-    for (let verse of chapter.verses) {
-      for (let paragraph of verse.paragraphs) {
-        for (let word of paragraph.words) {
-          if (word.id === id) {
-            return word.numIndent == undefined ? 0 : word.numIndent;
-          }
-        }
-      }
-    }
-  }
-  return null; // If ID not found
-}
+export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : StropheActionType, toolTip : string }) => {
 
-function setNumIndentById(chapters: any[], id: number, numIndent: number) {
-  for (let chapter of chapters) {
-    for (let verse of chapter.verses) {
-      for (let paragraph of verse.paragraphs) {
-        for (let word of paragraph.words) {
-          if (word.id === id) {
-            word.numIndent = numIndent;
-          }
-        }
-      }
-    }
-  }
-}
-
-export const NewStropheBtn = () => {
-  const { ctxNumSelectedWords, ctxSetNewStropheEvent } = useContext(FormatContext);
-
-  const [visibleOptions, setVisibleOptions] = useState(false);
+  const { ctxNumSelectedWords, ctxSetStropheAction } = useContext(FormatContext);
 
   const buttonEnabled = (ctxNumSelectedWords === 1);
 
-  const handleClick = () => (buttonEnabled && ctxSetNewStropheEvent(true));
+  const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
 
   return (
     <>
-      <div className="relative">
-        <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-          <button
-            className="hover:text-primary"
-            onClick={handleClick} >
-            <CgArrowsBreakeV opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-            <ToolTip text="New strophe" />
-          </button>
-        </div>
-      </div>
+    <div className="relative">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={handleClick} >
+          {
+            (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }          
+        <ToolTip text={toolTip} />
+      </button>
+    </div>
+    </div>
     </>
   );
 };
-
-export const MergeStropheBtnUp = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
-
-  const buttonEnabled = (ctxNumSelectedWords === 1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe > 1)
-
-  const handleClick = () => (buttonEnabled && ctxSetMergeStropheEvent("up"))
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick}>
-        <LuArrowUpWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-      </button>
-      <ToolTip text="Merge with strophe above" />
-    </div>
-  )
-}
-export const MergeStropheBtnDown = () => {
-  const { ctxNumSelectedWords, ctxSetMergeStropheEvent, ctxStructuredWords, ctxCurrentStrophe } = useContext(FormatContext);
-
-  const buttonEnabled = (ctxNumSelectedWords === 1 && ctxStructuredWords.length > 1 && ctxCurrentStrophe < ctxStructuredWords.length)
-
-  const handleClick = () => (buttonEnabled && ctxSetMergeStropheEvent("down"))
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick}>
-        <LuArrowDownWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-      </button>
-      <ToolTip text="Merge with strophe below" />
-    </div>
-  )
-}
 
 export const NewStanzaBtn = () => {
 

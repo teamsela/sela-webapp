@@ -1,85 +1,76 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, MergeStropheBtnUp, MergeStropheBtnDown, NewStanzaBtn } from "./Buttons";
-import { useEffect, useContext } from "react";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, MoveUpBtn, MoveDownBtn, 
+  IndentBtn, UniformWidthBtn, StropheActionBtn, NewStanzaBtn } from "./Buttons";
+import { useContext } from "react";
 import { FormatContext } from '../index';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, StropheActionType } from "@/lib/types";
 
 const Toolbar = ({
   setZoomLevel,
   //color functions
   setColorAction,
-  setColorFill,
-  setBorderColor,
-  setTextColor,
-  setUniformWidth,
-  setIndentWord
+  setSelectedColor,
+
+  setUniformWidth
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
   setColorAction: (arg: number) => void,
-  setColorFill: (arg: string) => void;
-  setBorderColor: (arg: string) => void;
-  setTextColor: (arg: string) => void;
+  setSelectedColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
-  setIndentWord: (arg: number[]) => void;
 } ) => {
   
-  const { ctxZoomLevel, ctxNumSelectedWords, ctxInViewMode } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxInViewMode } = useContext(FormatContext);
   
-  useEffect(() => {
-    if (ctxNumSelectedWords > 0)
-      setColorAction(ColorActionType.none);
-  }, [ctxNumSelectedWords])
-
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="sticky left-0 mr-auto ml-auto z-20 flex justify-center w-full max-w-full">
-    <div className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
-    { // only show zoom in/out & uniform width buttons in view only mode
-      ctxInViewMode
-      ? (<div className="grid grid-cols-4">
-        <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-        <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-          <span className="rounded-md border-[.5px] text-center border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
-          {ctxZoomLevel}
-          </span>
-        </div>
-        <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-        <UniformWidthBtn setUniformWidth={setUniformWidth}/>
-      </div>)
-      : (<div className="flex">
-        {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}
-
-        <div className="flex flex-row group">
-          <UndoBtn />
-          <RedoBtn />
-        </div>
-
-        <div className="flex flex-row group">
-          <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-          <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-            <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
-            {ctxZoomLevel}
-            </span>
+      <div className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
+      { // only show zoom in/out & uniform width buttons in view only mode
+        ctxInViewMode
+        ? (<div className="flex">
+          <div className="flex flex-row group">
+            <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+            <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
+              <span className="rounded-md border-[.5px] text-center border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
+              {ctxZoomLevel}
+              </span>
+            </div>
+            <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+            <UniformWidthBtn setUniformWidth={setUniformWidth}/>
           </div>
-          <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-        </div>
+        </div>)
+        : (<div className="flex">
+          <div className="flex flex-row group">
+            <UndoBtn />
+            <RedoBtn />
+          </div>
 
-        <ColorFillBtn setColor={setColorFill} setColorAction={setColorAction}/>
-        <BorderColorBtn setColor={setBorderColor} setColorAction={setColorAction}/>
-        <TextColorBtn setColor={setTextColor} setColorAction={setColorAction}/>
-        <ClearFormatBtn resetColorFill={setColorFill} resetBorderColor={setBorderColor} resetTextColor={setTextColor} setColorAction={setColorAction} />
-        <UniformWidthBtn setUniformWidth={setUniformWidth}/>
-        <LeftIndentBtn />
-        <RightIndentBtn />
-        <NewStropheBtn />
-        <MergeStropheBtnUp />
-        <MergeStropheBtnDown />
-        <NewStanzaBtn />
-        <MoveUpBtn />
-        <MoveDownBtn />
-      </div>)
-    }
-  </div>
+          <div className="flex flex-row group">
+            <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+            <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
+              <span className="rounded-md border-[.5px] text-center mr-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white 2xl:ml-4">
+              {ctxZoomLevel}
+              </span>
+            </div>
+            <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+          </div>
+
+          <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+          <ClearFormatBtn setColorAction={setColorAction} />
+          <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+          <IndentBtn leftIndent={true} />
+          <IndentBtn leftIndent={false} />
+          <StropheActionBtn stropheAction={StropheActionType.new} toolTip="New Strophe" />
+          <StropheActionBtn stropheAction={StropheActionType.mergeUp} toolTip="Merge with previous strophe" />
+          <StropheActionBtn stropheAction={StropheActionType.mergeDown} toolTip="Merge with next strophe" />
+          <NewStanzaBtn />
+          <MoveUpBtn />
+          <MoveDownBtn />
+        </div>)
+      }
+    </div>
   </div>
   );
 };
