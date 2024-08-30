@@ -313,7 +313,7 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
 
   const { ctxNumSelectedWords, ctxSetStropheAction } = useContext(FormatContext);
 
-  const buttonEnabled = (ctxNumSelectedWords===1);
+  const buttonEnabled = (ctxNumSelectedWords === 1);
 
   const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
 
@@ -391,7 +391,7 @@ export const StructureBtn = ({
   infoPaneAction: InfoPaneActionType;
 }) => {
 
-  const handleClick = () =>{
+  const handleClick = () => {
     if (infoPaneAction != InfoPaneActionType.structure) {
       setInfoPaneAction(InfoPaneActionType.structure);
     } else {
@@ -401,6 +401,7 @@ export const StructureBtn = ({
   return (
     <div>
       <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        disabled={true}
         onClick={handleClick} >
         Structure
       </button>
@@ -415,10 +416,10 @@ export const MotifBtn = ({
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
 }) => {
-  const handleClick = () =>{
-    if(infoPaneAction != InfoPaneActionType.motif){
+  const handleClick = () => {
+    if (infoPaneAction != InfoPaneActionType.motif) {
       setInfoPaneAction(InfoPaneActionType.motif);
-    }else{
+    } else {
       setInfoPaneAction(InfoPaneActionType.none);
     }
   }
@@ -439,10 +440,10 @@ export const SyntaxBtn = ({
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
 }) => {
-  const handleClick = () =>{
-    if(infoPaneAction != InfoPaneActionType.syntax){
+  const handleClick = () => {
+    if (infoPaneAction != InfoPaneActionType.syntax) {
       setInfoPaneAction(InfoPaneActionType.syntax);
-    }else{
+    } else {
       setInfoPaneAction(InfoPaneActionType.none);
     }
   }
@@ -450,6 +451,7 @@ export const SyntaxBtn = ({
     <div>
       <button
         className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        disabled={true}
         onClick={handleClick} >
         Syntax
       </button>
@@ -464,10 +466,10 @@ export const SoundsBtn = ({
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
 }) => {
-  const handleClick = () =>{
-    if(infoPaneAction != InfoPaneActionType.sounds){
+  const handleClick = () => {
+    if (infoPaneAction != InfoPaneActionType.sounds) {
       setInfoPaneAction(InfoPaneActionType.sounds);
-    }else{
+    } else {
       setInfoPaneAction(InfoPaneActionType.none);
     }
   }
@@ -475,6 +477,7 @@ export const SoundsBtn = ({
     <div>
       <button
         className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        disabled={true}
         onClick={handleClick} >
         Sounds
       </button>
