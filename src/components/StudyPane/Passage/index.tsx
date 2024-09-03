@@ -174,11 +174,11 @@ const Passage = ({
   }, [ctxStropheAction]);
 
   const passageContentStyle = {
-    className: `flex-1 transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 overflow-y-auto`
+    className: `flex-1 overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
   }
 
   return (
-    <main>
+    <main className="relative top-19">
     
       <div
         key={`passage`}
@@ -187,7 +187,7 @@ const Passage = ({
         style={{ userSelect: 'none' }}
         {...passageContentStyle}
       >
-        <div className='relative top-8 z-10'>
+        <div className='relative top-8 z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe, stropheId)=>{
               return(
