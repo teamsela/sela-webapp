@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { fetchESVTranslation } from "@/lib/actions";
+import { FormatContext } from '../index';
 
 const EsvPopover = ({
     chapterNumber,
@@ -10,6 +11,8 @@ const EsvPopover = ({
     verseNumber: number;
     verseNumStyles: { className: string }
   }) => {
+
+  const { ctxIsHebrew } = useContext(FormatContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
@@ -67,7 +70,7 @@ const EsvPopover = ({
             ref={popovers}
             onFocus={() => setPopoversOpen(true)}
             onBlur={() => setPopoversOpen(false)}
-            className={`absolute bottom-full left-1 z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+            className={`absolute bottom-full ${ctxIsHebrew ? 'right-1' : 'left-0'} z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
               popoversOpen === true ? "block" : "hidden"
             }`}
           >
