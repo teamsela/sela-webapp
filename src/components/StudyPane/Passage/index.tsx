@@ -160,7 +160,6 @@ const Passage = ({
 
     if (ctxStropheAction !== StropheActionType.none && ctxSelectedHebWords.length === 1) {
       actionedContent = handleStropheAction(passageData, ctxSelectedHebWords[0], ctxStropheAction);
-      console.log(actionedContent);
     }
 
     if (actionedContent !== null) {
@@ -189,12 +188,11 @@ const Passage = ({
       >
         <div className='relative top-8 z-10 overflow-hidden'>
           {
-            passageData.strophes.map((strophe, stropheId)=>{
+            passageData.strophes.map((strophe)=>{
               return(
                 <StropheBlock 
                   strophe={strophe}
-                  id={stropheId}
-                  key={stropheId}
+                  key={strophe.id}
                 />
               )
             })

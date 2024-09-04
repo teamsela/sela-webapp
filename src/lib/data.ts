@@ -20,27 +20,7 @@ export type HebWord = {
     stropheDiv?: boolean;
     lineBreak?: boolean;
     showVerseNum: boolean;
-    // p_index?: number;
-    // w_index?: number;
 }
-
-
-// export type ChapterData = {
-//     id: number;
-//     numOfVerses: number;
-//     verses: VerseData[];
-// }
-
-// export type ParagraphData = {
-//     words: HebWord[];
-// }
-
-// export type VerseData = {
-//     id: number;
-//     paragraphs: ParagraphData[];
-//     esv: string;
-// }
-
 
 export type LineData = {
     id: number; // line id
@@ -50,7 +30,7 @@ export type LineData = {
 export type StropheData = {
     id: number; // strophe id
     colorFill?: string;
-    borderColor?: string;    
+    borderColor?: string;
     lines: LineData[];
 }
 

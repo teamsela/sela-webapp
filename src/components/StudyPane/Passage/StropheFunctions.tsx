@@ -47,7 +47,6 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
               previousDivision.stropheDiv = false;
               removeDivList.push(previousDivision.id);
             }
-            console.log(removeDivList);
             nextDivision = true;
           }
           else if (actionType == StropheActionType.mergeDown) {
@@ -91,58 +90,3 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
 
   return newPassageData;
 }
-
-
-
-// export const newStropheAction = (wordArray:HebWord[], wordIdNumber:number):HebWord[] => {
-//     for (let i = 0; i<wordArray.length; i++) {
-//       let word = wordArray[i];
-//       if (wordIdNumber == word.id) {
-//         word.stropheDiv = true
-//         break;
-//       }
-//     }
-//     return wordArray;
-//   }
-
-// export const mergeStropheAction = (wordArray:HebWord[], wordIdNumber:number, direction:string):HebWord[] => {
-//   let previousDivision:HebWord | null = null;
-
-//   if (direction == 'up') {
-//     for (let i = 0; i<wordArray.length; i++) {
-//       let word = wordArray[i];
-//       if (word.stropheDiv === true ) {
-//         previousDivision = word;
-//       }
-//       if (wordIdNumber == word.id) {
-//         word.stropheDiv = false;
-//         if (previousDivision !== null) {
-//           previousDivision.stropheDiv = false;
-//         }
-//         wordArray[i+1].stropheDiv = true
-//         break;
-//       }
-//     }
-//   }
-//   else if (direction == 'down') {
-//     for (let i = 0; i<wordArray.length; i++) {
-//       let word = wordArray[i];
-//       if (word.stropheDiv === true ) {
-//         previousDivision = word;
-//       }
-//       if (wordIdNumber == word.id) {
-//         word.stropheDiv = true;
-//         for (let j = i+1; wordArray.length - i+1; j++) {
-//           let nextWord = wordArray[j];
-//           if (nextWord.stropheDiv === true) {
-//               nextWord.stropheDiv = false;
-//               break;
-//           }
-//         }
-//         break;
-//       }
-//     }
-//   }
-//   return wordArray;
-    
-// }

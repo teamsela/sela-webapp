@@ -43,12 +43,6 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStropheAction: {} as StropheActionType,
   ctxSetStropheAction: (arg: StropheActionType) => {},
-  // ctxMergeStropheEvent: "" as string,
-  // ctxSetMergeStropheEvent: (arg: string) => {},
-  // ctxStructuredWords: [] as HebWord[][][],
-  // ctxSetStructuredWords: (arg:HebWord[][][]) => {},
-  // ctxCurrentStrophe: 0 as number,
-  // ctxSetCurrentStrophe: (arg:number) => {}
 });
 
 const StudyPane = ({
@@ -78,10 +72,6 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [stropheAction, setStropheAction] = useState(StropheActionType.none);
-  // const [newStropheEvent, setNewStropheEvent] = useState(false);
-  // const [structuredWords, setStructuredWords] = useState<HebWord[][][]>([]);
-  // const [mergeStropheEvent, setMergeStropheEvent] = useState("");
-  // const [currentStrophe, setCurrentStrophe] = useState(0);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -111,15 +101,7 @@ const StudyPane = ({
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction    
-    // ctxNewStropheEvent: newStropheEvent,
-    // ctxSetNewStropheEvent: setNewStropheEvent,
-    // ctxStructuredWords: structuredWords,
-    // ctxSetStructuredWords: setStructuredWords,
-    // ctxMergeStropheEvent: mergeStropheEvent,
-    // ctxSetMergeStropheEvent: setMergeStropheEvent,
-    // ctxSetCurrentStrophe: setCurrentStrophe,
-    // ctxCurrentStrophe: currentStrophe
+    ctxSetStropheAction: setStropheAction
   }
 
 

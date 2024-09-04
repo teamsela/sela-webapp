@@ -7,9 +7,9 @@ import { StropheData } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 
 export const StropheBlock = ({
-    strophe, id
+    strophe
   }: {
-    strophe: StropheData, id: number
+    strophe: StropheData
   }) => {
   
     const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
@@ -21,22 +21,22 @@ export const StropheBlock = ({
     const [colorFillLocal, setColorFillLocal] = useState(strophe.colorFill || DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(strophe.borderColor || DEFAULT_BORDER_COLOR);
   
-    if (ctxColorAction != ColorActionType.none) {
-      if (selected) {
-        if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
-          setColorFillLocal(ctxSelectedColor);
-        }
-        else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
-          setBorderColorLocal(ctxSelectedColor);
-        }
-        else if (ctxColorAction === ColorActionType.resetColor) {
-          (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
-          (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        }
+    if (ctxColorAction != ColorActionType.none && selected) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+        setColorFillLocal(ctxSelectedColor);
+        strophe.colorFill = ctxSelectedColor;
+      }
+      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+        setBorderColorLocal(ctxSelectedColor);
+        strophe.borderColor = ctxSelectedColor;
+      }
+      else if (ctxColorAction === ColorActionType.resetColor) {
+        (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
+        (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
       }
     }
   
-    const handleStropheBlockClick = (index: number) => {
+    const handleStropheBlockClick = () => {
       setSelected(prevState => !prevState);
       (!selected) ? ctxSelectedStrophes.push(strophe) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(strophe), 1);
       ctxSetSelectedStrophes(ctxSelectedStrophes);
@@ -46,8 +46,8 @@ export const StropheBlock = ({
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
       if (ctxSelectedStrophes.length >= 1) {
         const lastSelectedStrophe = ctxSelectedStrophes.at(ctxSelectedStrophes.length-1);
-        if (lastSelectedStrophe) { 
-          strophesHasSameColor(ctxSelectedStrophes, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedStrophe.colorFill || DEFAULT_COLOR_FILL); 
+        if (lastSelectedStrophe) {
+          strophesHasSameColor(ctxSelectedStrophes, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedStrophe.colorFill || DEFAULT_COLOR_FILL);
           strophesHasSameColor(ctxSelectedStrophes, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedStrophe.borderColor || DEFAULT_BORDER_COLOR);
         }
       }
@@ -60,7 +60,7 @@ export const StropheBlock = ({
   
     return(
       <div 
-        key={"strophe" + id}
+        key={"strophe_" + strophe.id}
         className={`relative flex-column p-5 m-5 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
         style={
           {
@@ -70,9 +70,9 @@ export const StropheBlock = ({
         }
       >
         <button
-          key={"strophe" + id + "Selector"}
+          key={"strophe" + strophe.id + "Selector"}
           className={`z-1 absolute top-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
-          onClick={() => handleStropheBlockClick(id)}
+          onClick={() => handleStropheBlockClick()}
           data-clicktype={'clickable'}
         >
           <LuTextSelect
@@ -87,14 +87,14 @@ export const StropheBlock = ({
                 className={`flex`}
               >
               {
-                line.words.map((word, wordId) => {
+                line.words.map((word) => {
                   return (
                     <div
                       className={`mt-1 mb-1`}
-                      key={wordId}
+                      key={word.id}
                     >
                       <WordBlock
-                        key={"word_" + wordId}
+                        key={"word_" + word.id}
                         hebWord={word}
                       />
                     </div>           

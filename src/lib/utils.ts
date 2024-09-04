@@ -265,7 +265,7 @@ export function getWordById(passage: PassageData, id: number) : HebWord | null {
 
 export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
 
-  if (words.length === 0) return true;
+  if (words.length <= 1) return true;
 
   let previousColor : string = "";
 
@@ -307,7 +307,7 @@ export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType)
 
 export function strophesHasSameColor(strophes: StropheData[], actionType: ColorActionType) : boolean {
 
-  if (strophes.length === 0) return true;
+  if (strophes.length <= 1) return true;
 
   let previousColor : any;
 
