@@ -31,8 +31,14 @@ export const StropheBlock = ({
         strophe.borderColor = ctxSelectedColor;
       }
       else if (ctxColorAction === ColorActionType.resetColor) {
-        (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
-        (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
+        if (colorFillLocal != DEFAULT_COLOR_FILL) {
+          setColorFillLocal(DEFAULT_COLOR_FILL);
+          strophe.colorFill = DEFAULT_COLOR_FILL;
+        }
+        if (borderColorLocal != DEFAULT_BORDER_COLOR) {
+          setBorderColorLocal(DEFAULT_BORDER_COLOR);
+          strophe.borderColor = DEFAULT_BORDER_COLOR;  
+        }
       }
     }
   

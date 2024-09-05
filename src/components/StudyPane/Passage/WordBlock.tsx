@@ -44,17 +44,29 @@ export const WordBlock = ({
     if (ctxColorAction != ColorActionType.none && selected) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
         setColorFillLocal(ctxSelectedColor);
+        hebWord.colorFill = ctxSelectedColor;
       }
       else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
         setBorderColorLocal(ctxSelectedColor);
+        hebWord.borderColor = ctxSelectedColor;
       }
       else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
         setTextColorLocal(ctxSelectedColor);
+        hebWord.textColor = ctxSelectedColor;
       }
       else if (ctxColorAction === ColorActionType.resetColor) {
-        (colorFillLocal != DEFAULT_COLOR_FILL) && setColorFillLocal(DEFAULT_COLOR_FILL);
-        (borderColorLocal != DEFAULT_BORDER_COLOR) && setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        (textColorLocal != DEFAULT_TEXT_COLOR) && setTextColorLocal(DEFAULT_TEXT_COLOR);
+        if (colorFillLocal != DEFAULT_COLOR_FILL) {
+          setColorFillLocal(DEFAULT_COLOR_FILL);
+          hebWord.colorFill = DEFAULT_COLOR_FILL;
+        }
+        if (borderColorLocal != DEFAULT_BORDER_COLOR) {
+          setBorderColorLocal(DEFAULT_BORDER_COLOR);
+          hebWord.borderColor = DEFAULT_BORDER_COLOR;
+        }
+        if (textColorLocal != DEFAULT_TEXT_COLOR) {
+          setTextColorLocal(DEFAULT_TEXT_COLOR);
+          hebWord.textColor = DEFAULT_TEXT_COLOR;
+        }
       }
     }
   
