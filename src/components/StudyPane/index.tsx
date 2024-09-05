@@ -31,7 +31,10 @@ export const FormatContext = createContext({
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => { },
   ctxContent: {} as PassageData,
-  ctxInViewMode: false
+  ctxInViewMode: false,
+  ctxFitScreen: false,
+  ctxNumOfLines: 0,
+  ctxZoomLevelSaved: DEFAULT_ZOOM_LEVEL
 });
 
 const StudyPane = ({
@@ -42,7 +45,9 @@ const StudyPane = ({
   inViewMode: boolean;
 }) => {
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
+  const [zoomLevelSaved, setZoomLevelSaved] = useState(DEFAULT_ZOOM_LEVEL);
   const [isHebrew, setHebrew] = useState(false);
+  const [fitScreen, setFitScreen] = useState(false);
 
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [numSelectedWords, setNumSelectedWords] = useState(0);
@@ -60,6 +65,13 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
 
 
+  // count lines
+  const numOfLines = content.chapters.map(chapter =>
+    chapter.verses.map(verse =>
+      verse.paragraphs.length
+    )
+  ).flat().reduce((acc, val) => acc + val, 0);
+  
   const formatContextValue = {
     ctxStudyId: study.id,
     ctxZoomLevel: zoomLevel,
@@ -76,14 +88,17 @@ const StudyPane = ({
     ctxIndentWord: indentWord,
     ctxSetIndentWord: setIndentWord,
     ctxContent: content,
-    ctxInViewMode: inViewMode
+    ctxInViewMode: inViewMode,
+    ctxFitScreen: fitScreen,
+    ctxNumOfLines: numOfLines,
+    ctxZoomLevelSaved: zoomLevelSaved
   }
 
 
   const passageDivStyle = {
     className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
   }
-
+  
   return (
     <>
       <FormatContext.Provider value={formatContextValue}>
@@ -102,6 +117,8 @@ const StudyPane = ({
           setTextColor={setTextColor}
           setUniformWidth={setUniformWidth}
           setIndentWord={setIndentWord}
+          setFitScreen={setFitScreen}
+          setZoomLevelSaved={setZoomLevelSaved}
         />
         <main>
           <div {...passageDivStyle}>

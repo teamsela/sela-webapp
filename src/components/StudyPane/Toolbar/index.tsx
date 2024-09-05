@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn } from "./Buttons";
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorFillBtn, BorderColorBtn, TextColorBtn, MoveUpBtn, MoveDownBtn, LeftIndentBtn, RightIndentBtn, ClearFormatBtn, UniformWidthBtn, NewStropheBtn, NewStanzaBtn, FitScreenSwitcher } from "./Buttons";
 import { useEffect, useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -11,7 +11,9 @@ const Toolbar = ({
   setBorderColor,
   setTextColor,
   setUniformWidth,
-  setIndentWord
+  setIndentWord,
+  setFitScreen,
+  setZoomLevelSaved
 }: {
   setZoomLevel: (arg: number) => void;
   //color functions
@@ -21,9 +23,11 @@ const Toolbar = ({
   setTextColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
   setIndentWord: (arg: number[]) => void;
+  setFitScreen: (arg:boolean) => void;
+  setZoomLevelSaved: (arg:number) => void;
 } ) => {
   
-  const { ctxZoomLevel, ctxNumSelectedWords, ctxInViewMode } = useContext(FormatContext);
+  const { ctxZoomLevel, ctxNumSelectedWords, ctxInViewMode, ctxFitScreen } = useContext(FormatContext);
   
   useEffect(() => {
     if (ctxNumSelectedWords > 0)
@@ -32,11 +36,13 @@ const Toolbar = ({
 
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
-    <div className="sticky left-0 top-20 mr-auto ml-auto z-9999 flex justify-center max-w-180 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
+    <div id="sela-toolbar" className="sticky left-0 top-20 mr-auto ml-auto z-9999 flex justify-center max-w-180 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
     <div className="mx-auto my-2 max-w-180 bg-white rounded-md border border-stroke py-2 shadow-1 dark:border-strokedark dark:bg-[#37404F]" style={{position:"relative"}}>
     { // only show zoom in/out & uniform width buttons in view only mode
       ctxInViewMode
-      ? (<div className="grid grid-cols-4">
+      ? (
+      // <div className="flex justify-center">
+      <div className="grid grid-cols-5">
         <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
         <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
           <span className="rounded-md border-[.5px] text-center border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
@@ -45,6 +51,7 @@ const Toolbar = ({
         </div>
         <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
         <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+        <FitScreenSwitcher fitScreen={ctxFitScreen} setFitScreen={setFitScreen} setZoomLevel={setZoomLevel} setZoomLevelSaved={setZoomLevelSaved}/>
       </div>)
       : (<div className="grid grid-cols-16">
         {/* {ctxNumSelectedWords ? <DeselectAllBtn /> : ""} */}

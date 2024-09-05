@@ -1,7 +1,7 @@
 "use client";
 
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineModeEdit } from "react-icons/md";
+import { MdOutlineModeEdit, MdFullscreen, MdFullscreenExit } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
@@ -59,12 +59,12 @@ export const ZoomOutBtn = ({
   zoomLevel: number;
   setZoomLevel: (arg: number) => void;
 }) => {
-
+  const { ctxFitScreen } = useContext(FormatContext);
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
-        className="hover:text-primary"
-        onClick={() => (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1)} >
+        className={`${ctxFitScreen ? "cursor-not-allowed":"hover:text-primary"}`}
+        onClick={() => !ctxFitScreen && (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1)} >
         <AiOutlineMinusCircle fontSize="1.5em" />
       </button>
       <ToolTip text="Zoom out" />
@@ -79,12 +79,12 @@ export const ZoomInBtn = ({
   zoomLevel: number;
   setZoomLevel: (arg: number) => void;
 }) => {
-
+  const { ctxFitScreen } = useContext(FormatContext);
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
       <button
-        className="hover:text-primary"
-        onClick={() => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1)} >
+        className={`${ctxFitScreen ? "cursor-not-allowed":"hover:text-primary"}`}
+        onClick={() => !ctxFitScreen && (zoomLevel < 10) && setZoomLevel(zoomLevel + 1)} >
         <AiOutlinePlusCircle fontSize="1.5em" />
       </button>
       <ToolTip text="Zoom in" />
@@ -582,3 +582,87 @@ export const SoundsBtn = ({
   );
 };
 
+export const FitScreenSwitcher = ({
+  fitScreen,
+  setFitScreen,
+  setZoomLevel,
+  setZoomLevelSaved
+}: {
+  fitScreen: boolean;
+  setFitScreen: (arg:boolean)=>void;
+  setZoomLevel: (arg: number) => void;
+  setZoomLevelSaved: (arg: number) => void;
+} ) => {
+  const { ctxZoomLevel, ctxNumOfLines, ctxZoomLevelSaved } = useContext(FormatContext);
+  const getFitScreenZoomLevel = () => {
+    if (!fitScreen) {
+      // store previous zoom level
+      setZoomLevelSaved(ctxZoomLevel);
+      
+      // calculate fit screen zoom level
+      const headerHeight = document.getElementById("sela-header")?.offsetHeight;
+      const toolbarHeight = document.getElementById("sela-toolbar")?.offsetHeight;
+      const passageHeight = window.innerHeight - (headerHeight || 0) -  (toolbarHeight || 0);
+      // console.log(window.innerHeight, headerHeight, toolbarHeight, passageHeight, ctxNumOfLines);
+      const REM = 16; 
+
+      // formula: numOfLines * (1rem + 4 + fontSize) + 3rem = passageHeight
+      const fontSize = (passageHeight - 3 * REM - ctxNumOfLines * (REM+4)) / ctxNumOfLines 
+      // zoomLevel to font size map: 
+      // level 0: 6, level 1: 8, level 2: 10, level 3: 12, level 4: 14, level 5: 16
+      // level 6: 18, level 7: 20, level 8: 24, level 9: 30, level 10: 36 
+      let zoomLevel = 0;
+      if (fontSize < 6) {
+        return;
+      } else if (fontSize < 22) {
+        zoomLevel = Math.floor((fontSize - 6) / 2);
+      } else if (fontSize < 24) {
+        zoomLevel=7;
+      }else if (fontSize < 30) {
+        zoomLevel = 8;
+      } else if (fontSize < 36) {
+        zoomLevel = 9;
+      } else {
+        zoomLevel = 10;
+      }
+      // console.log(`${fontSize} calculated fit screen zoom level is ${zoomLevel}`);
+      setZoomLevel(zoomLevel);
+    } else { // restore previous zoom level
+      setZoomLevel(ctxZoomLevelSaved);
+    }
+  }
+  return (
+    <div className="border-l border-stroke px-4 dark:border-strokedark flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <label
+        htmlFor="toggleFitScreen"
+        className="flex cursor-pointer select-none items-center"
+      >
+        <div className="relative">
+          <input
+            id="toggleFitScreen"
+            type="checkbox"
+            className="sr-only"
+            onChange={() => {
+              setFitScreen(!fitScreen);
+              getFitScreenZoomLevel();
+            }}
+          />
+          <div className="block h-8 w-14 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
+          <div
+            className={`dot absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white transition ${
+              fitScreen && "!right-1 !translate-x-full"
+            }`}
+          >
+            <span className={`hidden ${fitScreen && "!block"}`}>
+              <MdFullscreen />
+            </span>
+            <span className={`${fitScreen && "hidden"}`}>
+              <MdFullscreenExit/>
+            </span>
+          </div>
+        </div>
+      </label>
+      <ToolTip text="Fit content to screen" />
+    </div>
+  );
+};

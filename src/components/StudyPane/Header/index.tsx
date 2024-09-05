@@ -31,7 +31,7 @@ const Header = ({
     setInfoPaneAction(infoPaneAction);
   }, [infoPaneAction]);
   return (
-    <header className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
+    <header id="sela-header" className="sticky left-0 top-0 z-9999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-8">
         <div className="flex items-center 2xl:w-2/5 w-1/3">
           <Link className="block flex-shrink-0" href="/">
