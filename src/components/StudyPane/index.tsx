@@ -38,21 +38,14 @@ export const FormatContext = createContext({
   ctxTextColor: "" as string,
   ctxSetTextColor: (arg: string) => {},
   ctxUniformWidth: false,
-<<<<<<< HEAD
-  ctxIndentWord: [] as number[],
-  ctxSetIndentWord: (arg: number[]) => { },
-  ctxContent: {} as PassageData,
-  ctxInViewMode: false,
-  ctxFitScreen: false,
-  ctxNumOfLines: 0,
-  ctxZoomLevelSaved: DEFAULT_ZOOM_LEVEL
-=======
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
   ctxStropheAction: {} as StropheActionType,
   ctxSetStropheAction: (arg: StropheActionType) => {},
->>>>>>> main
+  ctxFitScreen: false,
+  ctxNumOfLines: 0,
+  ctxZoomLevelSaved: DEFAULT_ZOOM_LEVEL
 });
 
 const StudyPane = ({
@@ -86,12 +79,10 @@ const StudyPane = ({
   const [stropheAction, setStropheAction] = useState(StropheActionType.none);
 
   // count lines
-  const numOfLines = content.chapters.map(chapter =>
-    chapter.verses.map(verse =>
-      verse.paragraphs.length
-    )
+  const numOfLines = content.strophes.map(strophe =>
+    strophe.lines.length
   ).flat().reduce((acc, val) => acc + val, 0);
-  
+
   const formatContextValue = {
     ctxStudyId: study.id,
     ctxZoomLevel: zoomLevel,
@@ -116,21 +107,14 @@ const StudyPane = ({
     ctxTextColor: textColor,
     ctxSetTextColor: setTextColor,
     ctxUniformWidth: uniformWidth,
-<<<<<<< HEAD
-    ctxIndentWord: indentWord,
-    ctxSetIndentWord: setIndentWord,
-    ctxContent: content,
-    ctxInViewMode: inViewMode,
-    ctxFitScreen: fitScreen,
-    ctxNumOfLines: numOfLines,
-    ctxZoomLevelSaved: zoomLevelSaved
-=======
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction
->>>>>>> main
+    ctxSetStropheAction: setStropheAction,
+    ctxFitScreen: fitScreen,
+    ctxNumOfLines: numOfLines,
+    ctxZoomLevelSaved: zoomLevelSaved
   }
 
 
@@ -147,32 +131,16 @@ const StudyPane = ({
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
         />
-<<<<<<< HEAD
-        <Toolbar
-          setZoomLevel={setZoomLevel}
-          //color functions
-          setColorAction={setColorAction}
-          setColorFill={setColorFill}
-          setBorderColor={setBorderColor}
-          setTextColor={setTextColor}
-          setUniformWidth={setUniformWidth}
-          setIndentWord={setIndentWord}
-          setFitScreen={setFitScreen}
-          setZoomLevelSaved={setZoomLevelSaved}
-        />
-        <main>
-=======
-
         <main className="flex flex-row">
->>>>>>> main
           <div {...passageDivStyle}>
-
             <Toolbar
               setZoomLevel={setZoomLevel}
               //color functions
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
               setUniformWidth={setUniformWidth}
+              setFitScreen={setFitScreen}
+              setZoomLevelSaved={setZoomLevelSaved}
             />
 
             <Passage content={content}/>
@@ -190,7 +158,6 @@ const StudyPane = ({
       </FormatContext.Provider>
     </>
   );
-
 };
 
 export default StudyPane;

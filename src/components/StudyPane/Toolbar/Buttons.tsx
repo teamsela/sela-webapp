@@ -1,12 +1,7 @@
 "use client";
 
-<<<<<<< HEAD
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineModeEdit, MdFullscreen, MdFullscreenExit } from "react-icons/md";
-=======
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpWideNarrow, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineModeEdit } from "react-icons/md";
->>>>>>> main
+import { MdOutlineModeEdit, MdFullscreen, MdFullscreenExit } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent } from "react-icons/tb";
