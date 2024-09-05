@@ -7,7 +7,7 @@ const CountDownTimer: React.FC = () => {
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
 
-  const targetDate = new Date("12/15/2024 23:59:59");
+  const targetDate = new Date("01/04/2025");
 
   const calculateRemainingPercentage = (): string => {
     const now = new Date();
