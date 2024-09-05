@@ -5,10 +5,9 @@ import { useState, createContext } from "react";
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
-import { ColorActionType, InfoPaneActionType } from "@/lib/types";
-import { StudyData, PassageData } from '@/lib/data';
-import Sidebar from "../Sidebar";
 import InfoPane from "./InfoPane";
+import { ColorActionType, InfoPaneActionType, StropheActionType } from "@/lib/types";
+import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
 
 export const DEFAULT_ZOOM_LEVEL: number = 5;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -19,15 +18,27 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
   ctxIsHebrew: false,
+  ctxSelectedHebWords: [] as HebWord[],
+  ctxSetSelectedHebWords: (arg: HebWord[]) => {},
   ctxSelectedWords: [] as number[],
-  ctxSetSelectedWords: (arg: number[]) => { },
-  ctxNumSelectedWords: {} as number,
-  ctxSetNumSelectedWords: (arg: number) => { },
-  ctxColorAction: {} as number,
+  ctxSetSelectedWords: (arg: number[]) => {},
+  ctxNumSelectedWords: 0 as number,
+  ctxSetNumSelectedWords: (arg: number) => {},
+  ctxSelectedStrophes: [] as StropheData[],  
+  ctxSetSelectedStrophes: (arg: StropheData[]) => {},
+  ctxNumSelectedStrophes: 0 as number,
+  ctxSetNumSelectedStrophes: (arg: number) => {},
+  ctxColorAction: {} as ColorActionType,
+  ctxSelectedColor: "" as string,
+  ctxSetSelectedColor: (arg: string) => {},
   ctxColorFill: "" as string,
+  ctxSetColorFill: (arg: string) => {},
   ctxBorderColor: "" as string,
+  ctxSetBorderColor: (arg: string) => {},
   ctxTextColor: "" as string,
+  ctxSetTextColor: (arg: string) => {},
   ctxUniformWidth: false,
+<<<<<<< HEAD
   ctxIndentWord: [] as number[],
   ctxSetIndentWord: (arg: number[]) => { },
   ctxContent: {} as PassageData,
@@ -35,6 +46,13 @@ export const FormatContext = createContext({
   ctxFitScreen: false,
   ctxNumOfLines: 0,
   ctxZoomLevelSaved: DEFAULT_ZOOM_LEVEL
+=======
+  ctxIndentNum: {} as number,
+  ctxSetIndentNum: (arg: number) => {},
+  ctxInViewMode: false,
+  ctxStropheAction: {} as StropheActionType,
+  ctxSetStropheAction: (arg: StropheActionType) => {},
+>>>>>>> main
 });
 
 const StudyPane = ({
@@ -51,19 +69,21 @@ const StudyPane = ({
 
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [numSelectedWords, setNumSelectedWords] = useState(0);
+  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
+  const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
+  const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
+  const [selectedColor, setSelectedColor] = useState("");
 
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
   const [uniformWidth, setUniformWidth] = useState(false);
-  const [indentWord, setIndentWord] = useState<number[]>([]);
+  const [indentNum, setIndentNum] = useState(0);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [createStudyOpen, setCreateStudyOpen] = useState(false)
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
-
+  const [stropheAction, setStropheAction] = useState(StropheActionType.none);
 
   // count lines
   const numOfLines = content.chapters.map(chapter =>
@@ -76,15 +96,27 @@ const StudyPane = ({
     ctxStudyId: study.id,
     ctxZoomLevel: zoomLevel,
     ctxIsHebrew: isHebrew,
+    ctxSelectedHebWords: selectedHebWords,
+    ctxSetSelectedHebWords: setSelectedHebWords,    
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords: setSelectedWords,
     ctxNumSelectedWords: numSelectedWords,
     ctxSetNumSelectedWords: setNumSelectedWords,
+    ctxSelectedStrophes: selectedStrophes,
+    ctxSetSelectedStrophes: setSelectedStrophes,
+    ctxNumSelectedStrophes: numSelectedStrophes,
+    ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxColorAction: colorAction,
+    ctxSelectedColor: selectedColor,
+    ctxSetSelectedColor: setSelectedColor,
     ctxColorFill: colorFill,
+    ctxSetColorFill: setColorFill,
     ctxBorderColor: borderColor,
+    ctxSetBorderColor: setBorderColor,
     ctxTextColor: textColor,
+    ctxSetTextColor: setTextColor,
     ctxUniformWidth: uniformWidth,
+<<<<<<< HEAD
     ctxIndentWord: indentWord,
     ctxSetIndentWord: setIndentWord,
     ctxContent: content,
@@ -92,11 +124,18 @@ const StudyPane = ({
     ctxFitScreen: fitScreen,
     ctxNumOfLines: numOfLines,
     ctxZoomLevelSaved: zoomLevelSaved
+=======
+    ctxIndentNum: indentNum,
+    ctxSetIndentNum: setIndentNum,
+    ctxInViewMode: inViewMode,
+    ctxStropheAction: stropheAction,
+    ctxSetStropheAction: setStropheAction
+>>>>>>> main
   }
 
 
   const passageDivStyle = {
-    className: `pt-4 overflow-auto whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont ml-6" : " mr-6"}`
+    className: `flex-1 whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : " "}`
   }
   
   return (
@@ -108,6 +147,7 @@ const StudyPane = ({
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
         />
+<<<<<<< HEAD
         <Toolbar
           setZoomLevel={setZoomLevel}
           //color functions
@@ -121,15 +161,29 @@ const StudyPane = ({
           setZoomLevelSaved={setZoomLevelSaved}
         />
         <main>
+=======
+
+        <main className="flex flex-row">
+>>>>>>> main
           <div {...passageDivStyle}>
+
+            <Toolbar
+              setZoomLevel={setZoomLevel}
+              //color functions
+              setColorAction={setColorAction}
+              setSelectedColor={setSelectedColor}
+              setUniformWidth={setUniformWidth}
+            />
+
             <Passage content={content}/>
           </div>
-          {(infoPaneAction != InfoPaneActionType.none) &&
-            <div className="fixed top-35 w-1/4 rounded border border-transparent right-3 h-full bg-white shadow-lg ">
+          {
+            (infoPaneAction != InfoPaneActionType.none) &&
+            <div className="relative top-19 w-1/4 border border-transparent right-0 z-30 h-full bg-white">
               <InfoPane
                 infoPaneAction={infoPaneAction}
                 setInfoPaneAction={setInfoPaneAction}
-                 />
+              />
             </div>
           }
         </main>

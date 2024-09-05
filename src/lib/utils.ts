@@ -1,3 +1,6 @@
+import { HebWord, PassageData, StropheData } from "./data";
+import { ColorActionType } from "./types";
+
 type PsalmBook = {
     [key: number]: number;
 }
@@ -245,4 +248,94 @@ export function wrapText(
   }
   
   return lineCount;
+}
+
+export function getWordById(passage: PassageData, id: number) : HebWord | null {
+  for (let strophe of passage.strophes) {
+    for (let line of strophe.lines) {
+      for (let word of line.words) {
+        if (word.id === id) {
+          return word;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
+
+  if (words.length <= 1) return true;
+
+  let previousColor : string = "";
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      previousColor = words[0].colorFill;
+      break;    
+    case ColorActionType.borderColor:
+      previousColor = words[0].borderColor;
+      break;    
+    case ColorActionType.textColor:
+      previousColor = words[0].textColor;
+      break;
+    default:
+      break;
+  }
+
+  for (let word of words) {
+      switch (actionType) {
+        case ColorActionType.colorFill:
+          if (word.colorFill != previousColor) { return false; }
+          previousColor = word.colorFill;
+          break;
+        case ColorActionType.borderColor:
+          if (word.borderColor != previousColor) { return false; }
+          previousColor = word.borderColor;
+          break;
+        case ColorActionType.textColor:
+          if (word.textColor != previousColor) { return false; }
+          previousColor = word.textColor;
+          break;
+        default:
+          break;
+      }
+  }
+
+  return true;
+}
+
+export function strophesHasSameColor(strophes: StropheData[], actionType: ColorActionType) : boolean {
+
+  if (strophes.length <= 1) return true;
+
+  let previousColor : any;
+
+  switch (actionType) {
+    case ColorActionType.colorFill:
+      previousColor = strophes[0].colorFill;
+      break;    
+    case ColorActionType.borderColor:
+      previousColor = strophes[0].borderColor;
+      break;
+    default:
+      break;
+  }
+
+  for (let strophe of strophes) {
+      switch (actionType) {
+        case ColorActionType.colorFill:
+          if (strophe.colorFill != previousColor) { return false; }
+          previousColor = strophe.colorFill;
+          break;
+        case ColorActionType.borderColor:
+          if (strophe.borderColor != previousColor) { return false; }
+          previousColor = strophe.borderColor;
+          break;
+        default:
+          break;
+      }
+  }
+
+  return true;
 }

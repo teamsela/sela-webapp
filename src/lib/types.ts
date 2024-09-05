@@ -7,8 +7,16 @@ export enum ColorActionType {
 }
 
 export interface ColorPickerProps {
-    setColor: (arg: string) => void;
+    colorAction: ColorActionType,
+    setSelectedColor: (arg: string) => void;
     setColorAction: (arg: number) => void,
+}
+
+export enum StropheActionType {
+    none,
+    new,
+    mergeUp,
+    mergeDown
 }
 
 export enum InfoPaneActionType {
@@ -18,4 +26,3 @@ export enum InfoPaneActionType {
     syntax,
     sounds,
 }
-  

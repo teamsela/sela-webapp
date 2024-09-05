@@ -17,24 +17,24 @@ export type HebWord = {
     borderColor: string;
     textColor: string;
     numIndent: number;
+    stropheDiv?: boolean;
+    lineBreak?: boolean;
+    showVerseNum: boolean;
 }
 
-export type ChapterData = {
-    id: number;
-    numOfVerses: number;
-    verses: VerseData[];
-}
-
-export type ParagraphData = {
+export type LineData = {
+    id: number; // line id
     words: HebWord[];
 }
 
-export type VerseData = {
-    id: number;
-    paragraphs: ParagraphData[];
+export type StropheData = {
+    id: number; // strophe id
+    colorFill?: string;
+    borderColor?: string;
+    lines: LineData[];
 }
 
 export type PassageData = {
-    chapters: ChapterData[];
+    studyId: string; // study id
+    strophes: StropheData[];
 }
-
