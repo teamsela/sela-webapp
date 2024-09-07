@@ -38,26 +38,31 @@ const Toolbar = ({
             <UniformWidthBtn setUniformWidth={setUniformWidth}/>
         </div>)
         : (<div className="flex">
-          {/*<div className="flex flex-row group">
+          {/*<div className="border-r border-stroke flex flex-row">
             <UndoBtn />
             <RedoBtn />
           </div>*/}
 
-          <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-          <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-            <span className="rounded-md border-[.5px] text-center ml-2 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
-            {ctxZoomLevel}
-            </span>
+          <div className="border-r border-stroke flex flex-row">
+            <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+            <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
+              <span className="rounded-md border-[.5px] text-center ml-2 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
+              {ctxZoomLevel}
+              </span>
+            </div>
+            <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
           </div>
-          <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-
-          <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-          <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-          <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-          <ClearFormatBtn setColorAction={setColorAction} />
-          <UniformWidthBtn setUniformWidth={setUniformWidth}/>
-          <IndentBtn leftIndent={true} />
-          <IndentBtn leftIndent={false} />
+          <div className="border-r border-stroke flex flex-row">
+            <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+            <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+            <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
+            <ClearFormatBtn setColorAction={setColorAction} />          
+          </div>
+          <div className="border-r border-stroke flex flex-row">
+            <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+            <IndentBtn leftIndent={true} />
+            <IndentBtn leftIndent={false} />
+          </div>
           <StropheActionBtn stropheAction={StropheActionType.new} toolTip="New Strophe" />
           <StropheActionBtn stropheAction={StropheActionType.mergeUp} toolTip="Merge with previous strophe" />
           <StropheActionBtn stropheAction={StropheActionType.mergeDown} toolTip="Merge with next strophe" />

@@ -40,7 +40,7 @@ export const UndoBtn = () => {
 export const RedoBtn = () => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={() => console.log("Redo Clicked")} >
@@ -80,7 +80,7 @@ export const ZoomInBtn = ({
 }) => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={() => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1)} >
@@ -225,7 +225,7 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
@@ -294,7 +294,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
   }
   return (
-    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row ${!leftIndent && 'border-r border-stroke'}`}>
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `}>
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
