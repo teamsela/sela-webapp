@@ -183,7 +183,7 @@ const Passage = ({
         key={`passage`}
         onMouseDown={handleMouseDown}
         ref={containerRef}
-        style={{ userSelect: 'none' }}
+        style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
         {...passageContentStyle}
       >
         <div className='relative pt-5 top-8 z-10 overflow-hidden'>
