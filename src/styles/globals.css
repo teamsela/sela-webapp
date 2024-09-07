@@ -178,3 +178,6 @@ span.flatpickr-weekday,
 .hbFont {
   direction: rtl;
 }
+.hbFontExemption{
+  direction: ltr !important;
+}
