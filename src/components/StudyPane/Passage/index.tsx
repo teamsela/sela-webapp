@@ -31,10 +31,12 @@ const Passage = ({
   const [passageData, setPassageData] = useState<PassageData>(content);
   
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    // if (ctxSelectedStrophes.length > 0) return;
+    event.preventDefault();
     setIsDragging(true);
+    document.body.style.userSelect = 'none';
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
+
 
     //click to de-select
     //if clicked on wordBlock, set status here so de-select function doesnt fire
@@ -61,7 +63,9 @@ const Passage = ({
   };
 
   const handleMouseUp = () => {
+    document.body.style.userSelect = 'text';
     setIsDragging(false);
+    console.log(ctxSelectedWords);
     //click to de-select
     //if selectionEnd is null it means the mouse didnt move at all
     //otherwise it means it is a drag
@@ -183,7 +187,8 @@ const Passage = ({
         key={`passage`}
         onMouseDown={handleMouseDown}
         ref={containerRef}
-        style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+        // style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+        style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
         {...passageContentStyle}
       >
         <div className='relative py-5 top-8 z-10 overflow-hidden'>
