@@ -1,25 +1,26 @@
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, MoveUpBtn, MoveDownBtn, 
   IndentBtn, UniformWidthBtn, StropheActionBtn, NewStanzaBtn } from "./Buttons";
+import ScaleDropDown from "./ScaleDropDown";
 import { useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType, StropheActionType } from "@/lib/types";
 
 const Toolbar = ({
-  setZoomLevel,
+  setScaleValue,
   //color functions
   setColorAction,
   setSelectedColor,
 
   setUniformWidth
 }: {
-  setZoomLevel: (arg: number) => void;
+  setScaleValue: (arg: number) => void;
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
 } ) => {
   
-  const { ctxZoomLevel, ctxInViewMode } = useContext(FormatContext);
+  const { ctxScaleValue, ctxInViewMode } = useContext(FormatContext);
   
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
@@ -28,13 +29,7 @@ const Toolbar = ({
       { // only show zoom in/out & uniform width buttons in view only mode
         ctxInViewMode
         ? (<div className="flex">
-            <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-            <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-              <span className="rounded-md border-[.5px] text-center ml-3 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
-              {ctxZoomLevel}
-              </span>
-            </div>
-            <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
+            <ScaleDropDown />
             <UniformWidthBtn setUniformWidth={setUniformWidth}/>
         </div>)
         : (<div className="flex">
@@ -42,14 +37,6 @@ const Toolbar = ({
             <UndoBtn />
             <RedoBtn />
           </div>*/}
-
-          <ZoomOutBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
-          <div className="flex flex-col group relative inline-block items-center justify-center xsm:flex-row">
-            <span className="rounded-md border-[.5px] text-center ml-2 border-stroke bg-gray-2 px-4 py-0.5 text-base font-medium text-black dark:border-strokedark dark:bg-boxdark-2 dark:text-white">
-            {ctxZoomLevel}
-            </span>
-          </div>
-          <ZoomInBtn zoomLevel={ctxZoomLevel} setZoomLevel={setZoomLevel} />
 
           <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
           <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>

@@ -24,13 +24,15 @@ const zoomLevelMap: ZoomLevel = {
     12: { fontSize: "text-6xl", verseNumMl: "ml-2.5", verseNumMr: "mr-2.5", hbWidth: "w-42", hbHeight: "h-18", width: "w-72", height: "h-20", fontInPx: "42px", maxWidthPx: 236 },
 }
 
+const DEFAULT_ZOOM_LEVEL = 5;
+
 export const WordBlock = ({
     hebWord
   }: {
     hebWord: HebWord;
   }) => {
   
-    const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
+    const { ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
       ctxNumSelectedWords, ctxSelectedStrophes, ctxColorAction, ctxSelectedColor, 
       ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxUniformWidth 
@@ -101,10 +103,10 @@ export const WordBlock = ({
   
   
     const verseNumStyles = {
-      className: `${zoomLevelMap[ctxZoomLevel].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[ctxZoomLevel].verseNumMr : zoomLevelMap[ctxZoomLevel].verseNumMl}`
+      className: `${zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[DEFAULT_ZOOM_LEVEL].verseNumMr : zoomLevelMap[DEFAULT_ZOOM_LEVEL].verseNumMl}`
     }
   
-    let fontSize = zoomLevelMap[(ctxIsHebrew) ? ctxZoomLevel + 2 : ctxZoomLevel].fontSize;
+    let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
   
     if (ctxUniformWidth && !ctxIsHebrew) {
       const canvas = document.createElement('canvas');
@@ -112,12 +114,12 @@ export const WordBlock = ({
         // Get the 2D rendering context
         const context = canvas.getContext('2d');
         if (context) {
-          context.font = zoomLevelMap[ctxZoomLevel].fontInPx + " Satoshi";
-          let currentLineCount = wrapText(hebWord.gloss.trim(), context, zoomLevelMap[ctxZoomLevel].maxWidthPx /*(index === 0) ? 90 : 96*/);
-          let currentZoomLevel = ctxZoomLevel - 1;
+          context.font = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontInPx + " Satoshi";
+          let currentLineCount = wrapText(hebWord.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx /*(index === 0) ? 90 : 96*/);
+          let currentZoomLevel = DEFAULT_ZOOM_LEVEL - 1;
           while (currentLineCount > 2 && currentZoomLevel >= 0) {
             context.font = zoomLevelMap[currentZoomLevel].fontInPx + " Satoshi";
-            currentLineCount = wrapText(hebWord.gloss.trim(), context, zoomLevelMap[ctxZoomLevel].maxWidthPx);
+            currentLineCount = wrapText(hebWord.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx);
             fontSize = zoomLevelMap[currentZoomLevel].fontSize;
             currentZoomLevel--;
           }
@@ -127,8 +129,8 @@ export const WordBlock = ({
       }
     }
   
-    const hebBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].hbWidth} ${zoomLevelMap[ctxZoomLevel].hbHeight}`;
-    const engBlockSizeStyle = `${zoomLevelMap[ctxZoomLevel].width} ${zoomLevelMap[ctxZoomLevel].height} text-wrap`;
+    const hebBlockSizeStyle = `${zoomLevelMap[DEFAULT_ZOOM_LEVEL].hbWidth} ${zoomLevelMap[DEFAULT_ZOOM_LEVEL].hbHeight}`;
+    const engBlockSizeStyle = `${zoomLevelMap[DEFAULT_ZOOM_LEVEL].width} ${zoomLevelMap[DEFAULT_ZOOM_LEVEL].height} text-wrap`;
   
     const renderIndents = (times: number) => {
       return (

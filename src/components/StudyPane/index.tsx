@@ -9,14 +9,14 @@ import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType, StropheActionType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
 
-export const DEFAULT_ZOOM_LEVEL: number = 5;
+export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
 export const DEFAULT_BORDER_COLOR = "#D9D9D9";
 export const DEFAULT_TEXT_COLOR = "#656565";
 
 export const FormatContext = createContext({
   ctxStudyId: "",
-  ctxZoomLevel: DEFAULT_ZOOM_LEVEL,
+  ctxScaleValue: DEFAULT_SCALE_VALUE,
   ctxIsHebrew: false,
   ctxSelectedHebWords: [] as HebWord[],
   ctxSetSelectedHebWords: (arg: HebWord[]) => {},
@@ -52,7 +52,7 @@ const StudyPane = ({
   content: PassageData;
   inViewMode: boolean;
 }) => {
-  const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
+  const [scaleValue, setScaleValue] = useState(DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
@@ -75,7 +75,7 @@ const StudyPane = ({
 
   const formatContextValue = {
     ctxStudyId: study.id,
-    ctxZoomLevel: zoomLevel,
+    ctxScaleValue: scaleValue,
     ctxIsHebrew: isHebrew,
     ctxSelectedHebWords: selectedHebWords,
     ctxSetSelectedHebWords: setSelectedHebWords,    
@@ -123,7 +123,7 @@ const StudyPane = ({
           <div {...passageDivStyle}>
 
             <Toolbar
-              setZoomLevel={setZoomLevel}
+              setScaleValue={setScaleValue}
               //color functions
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
