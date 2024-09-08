@@ -14,7 +14,7 @@ const Passage = ({
 
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
     ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, /*ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes,
+    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes, ctxSetSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction
     /*ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe*/
   } = useContext(FormatContext)
@@ -73,7 +73,7 @@ const Passage = ({
       ctxSetSelectedWords([]);
       ctxSetNumSelectedWords(ctxSelectedWords.length);
       ctxSetSelectedHebWords([]);
-      //console.log('click to deselect')
+      ctxSetSelectedStrophes([]);
     }
   };
 
@@ -91,7 +91,6 @@ const Passage = ({
         left: rectBounds.left + window.scrollX,
         right: rectBounds.right + window.scrollX,
       };
-      //console.log(window.scrollY)
 
       // Check if the element is within the selection box
       if (
@@ -120,7 +119,6 @@ const Passage = ({
     ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
     if (ctxSelectedHebWords.length >= 1) {
-      //console.log(ctxSelectedHebWords);
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
       if (lastSelectedWord) { 
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill); 
@@ -187,7 +185,6 @@ const Passage = ({
         key={`passage`}
         onMouseDown={handleMouseDown}
         ref={containerRef}
-        // style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
         style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
         {...passageContentStyle}
       >
