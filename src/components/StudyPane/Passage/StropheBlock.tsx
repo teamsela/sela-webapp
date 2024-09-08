@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
 import { StropheData } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
+import { TbLayoutBottombarCollapseFilled, TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 
 export const StropheBlock = ({
     strophe
@@ -17,9 +18,14 @@ export const StropheBlock = ({
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
+    const [collapsed, setCollapsed] = useState(false);
   
     const [colorFillLocal, setColorFillLocal] = useState(strophe.colorFill || DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(strophe.borderColor || DEFAULT_BORDER_COLOR);
+     
+    // use a ref to reference the height of selector/collapse buttons
+    const stropheButtonsRef = useRef<HTMLDivElement | null>(null);
+    const [minStropheHeight, setMinStropheHeight] = useState(0);
   
     if (ctxColorAction != ColorActionType.none && selected) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
@@ -58,12 +64,24 @@ export const StropheBlock = ({
         }
       }
     }
+
+    const handleCollapseBlockClick = () => {
+      console.log("collapsed button")
+      setCollapsed(prevState => !prevState);
+
+    }
   
     useEffect(() => {
       setSelected(ctxSelectedStrophes.includes(strophe));
       ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
     }, [ctxSelectedStrophes]);
   
+    useEffect(() => {
+      if (stropheButtonsRef.current) {
+        setMinStropheHeight(stropheButtonsRef.current.offsetHeight + 10);
+      }
+    })
+
     return(
       <div 
         key={"strophe_" + strophe.id}
@@ -75,9 +93,13 @@ export const StropheBlock = ({
           }
         }
       >
+        <div
+          ref={stropheButtonsRef}
+          className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+          >
         <button
-          key={"strophe" + strophe.id + "Selector"}
-          className={`z-1 absolute top-0 p-2 m-2 bg-white hover:bg-theme active:bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+          key={"strophe" + strophe.id + "CollapseButton"}
+          className={`p-2 m-1 bg-white hover:bg-theme active:bg-transparent`}
           onClick={() => handleStropheBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -85,7 +107,25 @@ export const StropheBlock = ({
             style={{pointerEvents:'none'}}
           />
         </button>
+        <button
+          key={"strophe" + strophe.id + "Selector"}
+          className={`p-2 m-1 bg-white hover:bg-theme active:bg-transparent`}
+          onClick={() => handleCollapseBlockClick()}
+          data-clicktype={'clickable'}
+        >
+          { collapsed ? 
+          <TbLayoutSidebarLeftCollapseFilled
+          style={{pointerEvents:'none'}}
+          />:
+          <TbLayoutBottombarCollapseFilled
+            style={{pointerEvents:'none'}}
+          />
+          }
+          
+        </button>
+        </div>
         {
+          !collapsed?
           strophe.lines.map((line, lineId) => {
             return (
               <div
@@ -110,6 +150,13 @@ export const StropheBlock = ({
               </div>
             )
           })
+          :
+          <div
+            // style={{minHeight: `${minStropheHeight + 10}`}}
+            style={{minHeight: 25}}
+            key={"collapsed" + strophe.id}
+          >
+          </div>
         }
       </div>
     )

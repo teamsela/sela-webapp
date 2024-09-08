@@ -186,7 +186,7 @@ const Passage = ({
         style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
         {...passageContentStyle}
       >
-        <div className='relative pt-5 top-8 z-10 overflow-hidden'>
+        <div className='relative py-5 top-8 z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
               return(
