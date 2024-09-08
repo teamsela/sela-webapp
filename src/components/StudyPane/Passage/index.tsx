@@ -34,6 +34,8 @@ const Passage = ({
     event.preventDefault();
     setIsDragging(true);
     document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
 
@@ -44,13 +46,11 @@ const Passage = ({
     const target = event.target as HTMLElement;
     const clickedTarget = target.getAttribute('data-clickType');
     clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-
   };
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDragging) return;
     if (!selectionStart) return;
-    if (ctxSelectedStrophes.length > 0) return;
     // filter out small accidental drags when user clicks
     /////////
     const distance = Math.sqrt(Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2));
@@ -65,7 +65,6 @@ const Passage = ({
   const handleMouseUp = () => {
     document.body.style.userSelect = 'text';
     setIsDragging(false);
-    console.log(ctxSelectedWords);
     //click to de-select
     //if selectionEnd is null it means the mouse didnt move at all
     //otherwise it means it is a drag
@@ -135,6 +134,7 @@ const Passage = ({
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
     const width = Math.abs(selectionStart.x - selectionEnd.x);
     const height = Math.abs(selectionStart.y - selectionEnd.y);
+    console.log(`height is ${height}, width is ${width}`);
     return {
       left,
       top,
