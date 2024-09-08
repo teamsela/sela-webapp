@@ -63,7 +63,6 @@ export const StropheBlock = ({
     const handleCollapseBlockClick = () => {
       console.log("collapsed button")
       setCollapsed(prevState => !prevState);
-
     }
   
     useEffect(() => {
