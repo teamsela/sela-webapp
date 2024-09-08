@@ -31,7 +31,7 @@ const Passage = ({
   const [passageData, setPassageData] = useState<PassageData>(content);
   
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (ctxSelectedStrophes.length > 0) return;
+    // if (ctxSelectedStrophes.length > 0) return;
     setIsDragging(true);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
