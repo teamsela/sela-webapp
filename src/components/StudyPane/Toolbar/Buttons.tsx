@@ -14,7 +14,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
-const ToolTip = ({ text }: { text: string }) => {
+export const ToolTip = ({ text }: { text: string }) => {
   return (
     <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
