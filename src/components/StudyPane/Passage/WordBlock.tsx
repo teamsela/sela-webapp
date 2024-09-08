@@ -73,8 +73,7 @@ export const WordBlock = ({
     }
   
     useEffect(() => {
-      setSelected(ctxSelectedWords.includes(hebWord.id));
-      setSelected(ctxSelectedHebWords.includes(hebWord));
+      setSelected(ctxSelectedWords.includes(hebWord.id) || ctxSelectedHebWords.includes(hebWord));
       ctxSetNumSelectedWords(ctxSelectedWords.length);
     }, [ctxSelectedWords, ctxSelectedHebWords, selected, hebWord.numIndent]);
   
@@ -167,7 +166,7 @@ export const WordBlock = ({
         <div
           id={hebWord.id.toString()}
           key={hebWord.id}
-          className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300]' : 'rounded border'}`}
+          className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
           style={
             {
               background: `${colorFillLocal}`,

@@ -14,7 +14,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
-const ToolTip = ({ text }: { text: string }) => {
+export const ToolTip = ({ text }: { text: string }) => {
   return (
     <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
@@ -40,7 +40,7 @@ export const UndoBtn = () => {
 export const RedoBtn = () => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={() => console.log("Redo Clicked")} >
@@ -80,7 +80,7 @@ export const ZoomInBtn = ({
 }) => {
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={() => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1)} >
@@ -225,7 +225,7 @@ export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: num
   }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 border-r border-stroke xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
@@ -294,7 +294,7 @@ export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
     }
   }
   return (
-    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row ${!leftIndent && 'border-r border-stroke'}`}>
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `}>
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
