@@ -20,16 +20,16 @@ const Toolbar = ({
   setUniformWidth: (arg: boolean) => void;
 } ) => {
   
-  const { ctxScaleValue, ctxInViewMode } = useContext(FormatContext);
+  const { ctxInViewMode } = useContext(FormatContext);
   
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="fixed top-19 left-0 mr-auto ml-auto z-20 flex justify-center w-full max-w-full">
-      <div className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
+      <div id="selaToolbar" className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
       { // only show zoom in/out & uniform width buttons in view only mode
         ctxInViewMode
         ? (<div className="flex">
-            <ScaleDropDown />
+            <ScaleDropDown setScaleValue={setScaleValue} />
             <UniformWidthBtn setUniformWidth={setUniformWidth}/>
         </div>)
         : (<div className="flex">
@@ -37,7 +37,7 @@ const Toolbar = ({
             <UndoBtn />
             <RedoBtn />
           </div>*/}
-
+          <ScaleDropDown setScaleValue={setScaleValue} />
           <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
           <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
           <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>

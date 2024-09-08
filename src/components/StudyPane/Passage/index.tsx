@@ -177,16 +177,18 @@ const Passage = ({
   }
 
   return (
-    <main className="relative top-19">
-    
+    <main className="relative top-19 h-0">
+      
       <div
         key={`passage`}
         onMouseDown={handleMouseDown}
         ref={containerRef}
         style={{ userSelect: 'none' }}
         {...passageContentStyle}
+        className="h-0"
       >
-        <div className='relative top-8 z-10 overflow-hidden'>
+        <div className="h-12"/>
+        <div id="selaPassage" className='relative z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
               return(
