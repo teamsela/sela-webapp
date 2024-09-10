@@ -166,6 +166,29 @@ export async function updateWordColor(studyId: string, selectedWords: number[], 
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
+export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
+  "use server";
+
+  const xataClient = getXataClient();
+
+  let result : any;
+
+  try {
+    result = await xataClient.transactions.run([
+      {
+        update: {
+          table: "styling" as const,
+          id: studyId + "_" + hebId,
+          fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
+          upsert: true,
+        }
+      }
+    ]);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
+  }
+}
+
 export async function updateStropheColor(studyId: string, selectedStrophes: StropheData[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
@@ -217,35 +240,23 @@ export async function updateStropheState(studyId: string, stropheId: number, new
   "use server";
 
   const xataClient = getXataClient();
-  try {
-    await xataClient.db.stropheStyling.updateOrThrow({ id: studyId + "_" + stropheId, collapsed: newState });
-  } catch (error) {
-    return { message: 'Database Error: Failed to update strophe collapsible state.' };
-  }
-
-  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
-}
-
-export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
-  "use server";
-
-  const xataClient = getXataClient();
 
   let result : any;
+  let operations: any = [];
+
+  operations.push({
+      update: {
+        table: "stropheStyling" as const,
+        id: studyId + "_" + stropheId,
+        fields: { studyId: studyId, stropheId: stropheId, collapsed: newState },
+        upsert: true,
+      }
+  })
 
   try {
-    result = await xataClient.transactions.run([
-      {
-        update: {
-          table: "styling" as const,
-          id: studyId + "_" + hebId,
-          fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
-          upsert: true,
-        }
-      }
-    ]);
+    result = await xataClient.transactions.run(operations);
   } catch (error) {
-    return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
+    return { message: 'Database Error: Failed to update styling strophe collapsed state.' };
   }
 }
 
@@ -256,7 +267,6 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
 
   let result : any;
   let operations: any = [];
-  let fieldsToUpdate: {};
 
   hebIdsToAddDiv.forEach((hebId) => {
     operations.push({
