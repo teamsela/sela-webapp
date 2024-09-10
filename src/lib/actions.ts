@@ -213,6 +213,19 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
   redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
+export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.stropheStyling.updateOrThrow({ id: studyId + "_" + stropheId, collapsed: newState });
+  } catch (error) {
+    return { message: 'Database Error: Failed to update strophe collapsible state.' };
+  }
+
+  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
+}
+
 export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
   "use server";
 
@@ -333,12 +346,12 @@ export async function fetchPassageContent(studyId: string) {
 
               const stropheStyling = await xataClient.db.stropheStyling
                 .filter({studyId: study.id})
-                .select(['stropheId', 'colorFill', 'borderColor'])
+                .select(['stropheId', 'colorFill', 'borderColor', 'collapsed'])
                 .sort("stropheId", "asc")
                 .getAll();
               const stropheStylingMap = new Map();
               stropheStyling.forEach((obj) => {
-                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor });
+                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, collapsed: obj.collapsed });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -384,6 +397,7 @@ export async function fetchPassageContent(studyId: string) {
                       if (currentStropheStyling !== undefined) {
                           (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
                           (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
+                          (currentStropheStyling.collapsed !== null) && (currentStropheData.collapsed = currentStropheStyling.collapsed);
                       }
                       currentLineIdx = -1;
                   }
