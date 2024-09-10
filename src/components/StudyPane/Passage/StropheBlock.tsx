@@ -13,7 +13,7 @@ export const StropheBlock = ({
     strophe: StropheData
   }) => {
   
-    const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
+    const { ctxStudyId, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
       ctxSetCollapsedStrophes, ctxCollapsedStrophes
     } = useContext(FormatContext);
   
