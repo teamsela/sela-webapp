@@ -13,10 +13,8 @@ const Passage = ({
 }) => {
 
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
-    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, /*ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction
-    /*ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe*/
+    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction, ctxCollapsedStrophes, ctxSetCollapsedStrophes
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -195,7 +193,6 @@ const Passage = ({
                 <StropheBlock 
                   strophe={strophe}
                   key={strophe.id}
-                  data-role={'stropheBlock'}
                 />
               )
             })

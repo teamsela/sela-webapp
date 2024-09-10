@@ -13,6 +13,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
+import { findIfFirstWord, findIfLastWord, findIfPassageEnd } from "../Passage/StropheFunctions";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -311,11 +312,37 @@ export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
 
 export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : StropheActionType, toolTip : string }) => {
 
-  const { ctxNumSelectedWords, ctxSetStropheAction } = useContext(FormatContext);
+  const { ctxNumSelectedWords, ctxSelectedWords, ctxSetStropheAction, ctxSelectedSingleWordStrophe } = useContext(FormatContext);
 
   const buttonEnabled = (ctxNumSelectedWords === 1);
 
-  const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
+  const [newStropheEnabled, setNewStropheEnabled] = useState(false);
+  const [mergeUpEnabled, setMergeUpEnabled] = useState(false);
+  const [mergeDownEnabled, setMergeDownEnabled] = useState(false);
+
+  useEffect(() => {
+    if (ctxSelectedSingleWordStrophe != -1 && ctxNumSelectedWords === 1 ){
+      setNewStropheEnabled(!findIfFirstWord(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
+      setMergeUpEnabled(ctxSelectedSingleWordStrophe !== 0 || !findIfLastWord(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
+      console.log(findIfPassageEnd(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
+      setMergeDownEnabled(!findIfPassageEnd(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
+    }
+    if (ctxNumSelectedWords !== 1){
+      setNewStropheEnabled(false);
+      setMergeUpEnabled(false);
+      setMergeDownEnabled(false);
+    }
+    if (ctxSelectedSingleWordStrophe === 0) {
+      setMergeUpEnabled(false);  
+    }
+  }, [ctxSelectedSingleWordStrophe, ctxNumSelectedWords])
+
+
+  // const handleClick = () => { buttonEnabled && ctxSelectedSingleWordStrophe != -1 && newStropheEnabled};
+  // const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
+  const handleClick = () => { stropheAction === StropheActionType.new && newStropheEnabled && ctxSetStropheAction(stropheAction)
+    || stropheAction === StropheActionType.mergeUp && mergeUpEnabled && ctxSetStropheAction(stropheAction)
+    || stropheAction === StropheActionType.mergeDown && mergeDownEnabled && ctxSetStropheAction(stropheAction)};
 
   return (
     <>
@@ -325,13 +352,13 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
         className="hover:text-primary"
         onClick={handleClick} >
           {
-            (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(newStropheEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
           {
-            (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(mergeUpEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
           {
-            (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(mergeDownEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }          
         <ToolTip text={toolTip} />
       </button>

@@ -43,6 +43,10 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStropheAction: {} as StropheActionType,
   ctxSetStropheAction: (arg: StropheActionType) => {},
+  ctxCollapsedStrophes: [] as boolean[],
+  ctxSetCollapsedStrophes: (arg: []) => {},
+  ctxSelectedSingleWordStrophe: -1 as number,
+  ctxSetSelectedSingleWordStrophe: (arg: number) => {}
 });
 
 const StudyPane = ({
@@ -73,6 +77,11 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [stropheAction, setStropheAction] = useState(StropheActionType.none);
 
+  const [collapsedStrophes, setCollapsedStrophes] = useState([]);
+
+  const [selectedSingleWordStrophe, setSelectedSingleWordStrophe] = useState(-1);
+
+
   const formatContextValue = {
     ctxStudyId: study.id,
     ctxZoomLevel: zoomLevel,
@@ -101,7 +110,11 @@ const StudyPane = ({
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction
+    ctxSetStropheAction: setStropheAction,
+    ctxCollapsedStrophes: collapsedStrophes,
+    ctxSetCollapsedStrophes: setCollapsedStrophes,
+    ctxSelectedSingleWordStrophe: selectedSingleWordStrophe,
+    ctxSetSelectedSingleWordStrophe: setSelectedSingleWordStrophe,
   }
 
 

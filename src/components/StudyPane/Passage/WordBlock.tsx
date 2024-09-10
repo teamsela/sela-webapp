@@ -33,13 +33,16 @@ export const WordBlock = ({
     const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
       ctxNumSelectedWords, ctxSelectedStrophes, ctxColorAction, ctxSelectedColor, 
-      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxUniformWidth 
+      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxUniformWidth,
+      ctxSelectedSingleWordStrophe, ctxSetSelectedSingleWordStrophe
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
     const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
     const [selected, setSelected] = useState(false);
+
+    const [stropheMembership, setStropheMembership] = useState(-1);
   
     if (ctxColorAction != ColorActionType.none && selected) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
@@ -74,9 +77,13 @@ export const WordBlock = ({
       setSelected(ctxSelectedWords.includes(hebWord.id) || ctxSelectedHebWords.includes(hebWord));
       ctxSetNumSelectedWords(ctxSelectedWords.length);
     }, [ctxSelectedWords, ctxSelectedHebWords, selected, hebWord.numIndent]);
-  
-    const handleClick = () => {
 
+    useEffect(() => { 
+      selected && ctxNumSelectedWords == 1 && ctxSetSelectedSingleWordStrophe(stropheMembership); // pass the strophe number to context.
+      // selected && ctxNumSelectedWords == 1 && console.log(stropheMembership);
+    }, [stropheMembership, ctxNumSelectedWords, selected])
+  
+    const handleClick = (event: React.MouseEvent<HTMLSpanElement>) => {
       setSelected(prevState => !prevState);
       (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
       ctxSetSelectedWords(ctxSelectedWords);
@@ -95,6 +102,7 @@ export const WordBlock = ({
           wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR);
         }
       }
+      setStropheMembership(Number((event.target as HTMLElement).closest('.stropheBlock')?.getAttribute('data-id'))); // get the id of the parent stropheBlock
     }
   
   

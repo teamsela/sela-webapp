@@ -13,7 +13,8 @@ export const StropheBlock = ({
     strophe: StropheData
   }) => {
   
-    const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
+    const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
+      ctxSetCollapsedStrophes, ctxCollapsedStrophes
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
@@ -61,19 +62,31 @@ export const StropheBlock = ({
     }
 
     const handleCollapseBlockClick = () => {
-      console.log("collapsed button")
       setCollapsed(prevState => !prevState);
     }
   
     useEffect(() => {
       setSelected(ctxSelectedStrophes.includes(strophe));
       ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+
     }, [ctxSelectedStrophes]);
+
+    useEffect(() => {
+      // ctxCollapsedStrophes[strophe.id]? ctxCollapsedStrophes[strophe.id]=collapsed : ctxCollapsedStrophes.push(collapsed)
+      let updatedCollapsedCtx = [...ctxCollapsedStrophes]
+      if (ctxCollapsedStrophes[strophe.id]) {
+        updatedCollapsedCtx[strophe.id] = collapsed
+      }
+      else {
+        updatedCollapsedCtx.push(collapsed);
+      }
+    })
 
     return(
       <div 
         key={"strophe_" + strophe.id}
-        className={`relative flex-column px-5 py-2 mx-5 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+        data-id={`${strophe.id}`}
+        className={`stropheBlock relative flex-column px-5 py-2 mx-5 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
         style={
           {
             background: `${colorFillLocal}`,
@@ -117,7 +130,8 @@ export const StropheBlock = ({
             return (
               <div
                 key={"line_" + lineId}
-                className={`flex`}
+                data-id={`${lineId}`}
+                className={`line flex`}
               >
               {
                 line.words.map((word) => {

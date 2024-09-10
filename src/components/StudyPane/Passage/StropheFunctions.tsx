@@ -90,3 +90,34 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
 
   return newPassageData;
 }
+
+export const findIfFirstWord = (stropheNumber: number, hebWordId: number): boolean => {
+  let stropheFirstWord = document.getElementsByClassName('stropheBlock')[stropheNumber]
+    ?.getElementsByClassName('line')[0]
+    ?.getElementsByClassName('wordBlock')[0]?.id;
+  return Number(stropheFirstWord) == hebWordId;
+}
+
+export const findIfLastWord = (stropheNumber: number, hebWordId: number): boolean => {
+  let stropheLastWord = document.getElementsByClassName('stropheBlock')[stropheNumber]?.getElementsByClassName('line');
+  if (stropheLastWord !== null || stropheLastWord !== undefined) {
+    stropheLastWord = stropheLastWord[stropheLastWord.length -1].getElementsByClassName('wordBlock');
+    return Number(stropheLastWord[stropheLastWord?.length-1]?.id) == hebWordId;
+  }
+  return false;
+}
+
+export const findIfPassageEnd = (stropheNumber: number, hebWordId: number): boolean => {
+  let passageEnd = document.getElementsByClassName('stropheBlock');
+  if (passageEnd !== null || passageEnd !== undefined) {
+    if (passageEnd.length-1 == stropheNumber) {
+      return true;
+    }
+    passageEnd = passageEnd[passageEnd.length-1].getElementsByClassName('line');
+    if (passageEnd !== null || passageEnd !== undefined) {
+      passageEnd = passageEnd[passageEnd.length-1].getElementsByClassName('wordBlock');
+      return Number(passageEnd[passageEnd?.length-1]?.id) == hebWordId;
+    }
+  }
+  return false;
+}
