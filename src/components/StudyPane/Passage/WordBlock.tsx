@@ -76,7 +76,6 @@ export const WordBlock = ({
     }, [ctxSelectedWords, ctxSelectedHebWords, selected, hebWord.numIndent]);
   
     const handleClick = () => {
-      if (ctxSelectedStrophes.length > 0) return;
 
       setSelected(prevState => !prevState);
       (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);

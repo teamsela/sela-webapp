@@ -195,6 +195,7 @@ const Passage = ({
                 <StropheBlock 
                   strophe={strophe}
                   key={strophe.id}
+                  data-role={'stropheBlock'}
                 />
               )
             })
