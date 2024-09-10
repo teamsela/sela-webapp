@@ -324,7 +324,6 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
     if (ctxSelectedSingleWordStrophe != -1 && ctxNumSelectedWords === 1 ){
       setNewStropheEnabled(!findIfFirstWord(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
       setMergeUpEnabled(ctxSelectedSingleWordStrophe !== 0 || !findIfLastWord(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
-      console.log(findIfPassageEnd(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
       setMergeDownEnabled(!findIfPassageEnd(ctxSelectedSingleWordStrophe, ctxSelectedWords[0]));
     }
     if (ctxNumSelectedWords !== 1){
@@ -337,9 +336,6 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
     }
   }, [ctxSelectedSingleWordStrophe, ctxNumSelectedWords])
 
-
-  // const handleClick = () => { buttonEnabled && ctxSelectedSingleWordStrophe != -1 && newStropheEnabled};
-  // const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
   const handleClick = () => { stropheAction === StropheActionType.new && newStropheEnabled && ctxSetStropheAction(stropheAction)
     || stropheAction === StropheActionType.mergeUp && mergeUpEnabled && ctxSetStropheAction(stropheAction)
     || stropheAction === StropheActionType.mergeDown && mergeDownEnabled && ctxSetStropheAction(stropheAction)};
