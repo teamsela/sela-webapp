@@ -31,6 +31,7 @@ export type StropheData = {
     id: number; // strophe id
     colorFill?: string;
     borderColor?: string;
+    collapsed?: boolean;
     lines: LineData[];
 }
 

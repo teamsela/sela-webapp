@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { LuTextSelect } from "react-icons/lu";
+import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
 import { StropheData } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
-import { TbLayoutBottombarCollapseFilled, TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
+import { updateStropheState } from '@/lib/actions';
 
 export const StropheBlock = ({
     strophe
@@ -13,11 +14,11 @@ export const StropheBlock = ({
     strophe: StropheData
   }) => {
   
-    const { ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
+    const { ctxStudyId, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(strophe.collapsed != undefined ? strophe.collapsed : true);
   
     const [colorFillLocal, setColorFillLocal] = useState(strophe.colorFill || DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(strophe.borderColor || DEFAULT_BORDER_COLOR);
@@ -61,8 +62,8 @@ export const StropheBlock = ({
     }
 
     const handleCollapseBlockClick = () => {
-      console.log("collapsed button")
       setCollapsed(prevState => !prevState);
+      updateStropheState(ctxStudyId, strophe.id, !collapsed);
     }
   
     useEffect(() => {
@@ -86,7 +87,7 @@ export const StropheBlock = ({
           >
         <button
           key={"strophe" + strophe.id + "CollapseButton"}
-          className={`p-2 m-1 bg-white hover:bg-theme active:bg-transparent`}
+          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
           onClick={() => handleStropheBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -96,23 +97,17 @@ export const StropheBlock = ({
         </button>
         <button
           key={"strophe" + strophe.id + "Selector"}
-          className={`p-2 m-1 bg-white hover:bg-theme active:bg-transparent`}
+          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
-          { collapsed ? 
-          <TbLayoutSidebarLeftCollapseFilled
-          style={{pointerEvents:'none'}}
-          />
-          :
-          <TbLayoutBottombarCollapseFilled
-            style={{pointerEvents:'none'}}
-          />
-          }
+          { (!collapsed && ctxIsHebrew) && <IoIosArrowForward style={{pointerEvents:'none'}} /> }
+          { (!collapsed && !ctxIsHebrew) && <IoIosArrowBack style={{pointerEvents:'none'}} /> }
+          { (collapsed) && <IoIosArrowDown style={{pointerEvents:'none'}} /> }
         </button>
         </div>
         {
-          !collapsed?
+          collapsed?
           strophe.lines.map((line, lineId) => {
             return (
               <div
