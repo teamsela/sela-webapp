@@ -28,6 +28,8 @@ export const FormatContext = createContext({
   ctxSetSelectedStrophes: (arg: StropheData[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
+  ctxStropheCount: 0 as number,
+  ctxSetStropheCount: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
@@ -60,6 +62,7 @@ const StudyPane = ({
   const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
+  const [stropheCount, setStropheCount] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -101,7 +104,9 @@ const StudyPane = ({
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction
+    ctxSetStropheAction: setStropheAction,
+    ctxStropheCount: stropheCount,
+    ctxSetStropheCount: setStropheCount
   }
 
 
