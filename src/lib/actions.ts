@@ -115,7 +115,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   revalidatePath('/');   
 }
 
-export async function updateWordColor(studyId: string, selectedWords: number[], actionType: ColorActionType, newColor: string | null) {
+export async function updateWordColor(studyId: string, selectedWords: HebWord[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -143,12 +143,12 @@ export async function updateWordColor(studyId: string, selectedWords: number[], 
       break;
   }
 
-  selectedWords.forEach((hebId) => {
+  selectedWords.forEach((word) => {
     operations.push({
       update: {
         table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, ...fieldsToUpdate },
+        id: studyId + "_" + word.id,
+        fields: { studyId: studyId, hebId: word.id, ...fieldsToUpdate },
         upsert: true,
       },
     })
