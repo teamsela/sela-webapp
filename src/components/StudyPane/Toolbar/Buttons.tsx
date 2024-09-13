@@ -408,11 +408,11 @@ export const StructureBtn = ({
   }
   return (
     <div>
-      <button className="text-gray-800 border-gray-400 font-semibold 
-        py-1 px-2 border border-gray-400 rounded shadow cursor-not-allowed
+      <button className="text-gray-200 border-gray-400 font-semibold 
+        py-1 px-2 border rounded shadow cursor-not-allowed
         text-xs sm:text-sm lg:text-base 
         sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ backgroundColor: '#e2e8f0' }}
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Structure
@@ -466,10 +466,10 @@ export const SyntaxBtn = ({
     <div>
       <button
         className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
-        py-1 px-4 border border-gray-400 rounded shadow cursor-not-allowed
+        py-1 px-4 border rounded shadow cursor-not-allowed
         text-xs sm:text-sm lg:text-base
         sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ backgroundColor: '#e2e8f0' }}
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Syntax
@@ -496,10 +496,10 @@ export const SoundsBtn = ({
     <div>
       <button
         className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
-        py-1 px-2 border border-gray-400 rounded shadow 
+        py-1 px-2 border rounded shadow 
         text-xs sm:text-sm lg:text-base
         sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ backgroundColor: '#e2e8f0' }}
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Sounds
