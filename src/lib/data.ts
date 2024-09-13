@@ -20,6 +20,8 @@ export type HebWord = {
     stropheDiv?: boolean;
     lineBreak?: boolean;
     showVerseNum: boolean;
+    stropheId: number | undefined;
+    firstWordInStrophe: boolean;
 }
 
 export type LineData = {
@@ -31,7 +33,7 @@ export type StropheData = {
     id: number; // strophe id
     colorFill?: string;
     borderColor?: string;
-    collapsed?: boolean;
+    expanded?: boolean;
     lines: LineData[];
 }
 

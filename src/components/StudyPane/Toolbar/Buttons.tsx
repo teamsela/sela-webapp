@@ -311,32 +311,40 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StropheActionBtn = ({ stropheAction, toolTip }: { stropheAction: StropheActionType, toolTip: string }) => {
 
-  const { ctxNumSelectedWords, ctxSetStropheAction } = useContext(FormatContext);
+  const { ctxSelectedHebWords, ctxSetStropheAction, ctxStropheCount } = useContext(FormatContext);
 
-  const buttonEnabled = (ctxNumSelectedWords === 1);
+  let buttonEnabled = (ctxSelectedHebWords.length === 1);
+
+  if (stropheAction === StropheActionType.mergeUp) {
+    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== 0);
+  } else if (stropheAction === StropheActionType.mergeDown) {
+    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
+  } else if (stropheAction === StropheActionType.new) {
+    buttonEnabled = buttonEnabled && (!ctxSelectedHebWords[0].firstWordInStrophe);
+  }
 
   const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
 
   return (
     <>
-      <div className="relative">
-        <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-          <button
-            className="hover:text-primary"
-            onClick={handleClick} >
-            {
-              (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-            }
-            {
-              (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-            }
-            {
-              (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-            }
-            <ToolTip text={toolTip} />
-          </button>
-        </div>
-      </div>
+    <div className="relative">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        onClick={handleClick} >
+          {
+            (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }          
+        <ToolTip text={toolTip} />
+      </button>
+    </div>
+    </div>
     </>
   );
 };

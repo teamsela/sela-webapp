@@ -15,7 +15,7 @@ const Passage = ({
   const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
     ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, /*ctxNewStropheEvent, 
     ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction, ctxSetStropheCount
     /*ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe*/
   } = useContext(FormatContext)
 
@@ -30,6 +30,8 @@ const Passage = ({
 
   const [passageData, setPassageData] = useState<PassageData>(content);
   
+  ctxSetStropheCount(passageData.strophes.length);
+
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);

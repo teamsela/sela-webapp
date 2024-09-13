@@ -162,8 +162,6 @@ export async function updateWordColor(studyId: string, selectedWords: number[], 
   } catch (error) {
     return { message: 'Database Error: Failed to update word color for study:' + studyId + ', result: ' + result };
   }
-
-  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
 export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
@@ -232,8 +230,6 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
   } catch (error) {
     return { message: 'Database Error: Failed to update strophe color for study:' + studyId + ', result: ' + result };
   }
-
-  redirect('/study/' + studyId.replace("rec_", "") + '/edit');
 }
 
 export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
@@ -248,7 +244,7 @@ export async function updateStropheState(studyId: string, stropheId: number, new
       update: {
         table: "stropheStyling" as const,
         id: studyId + "_" + stropheId,
-        fields: { studyId: studyId, stropheId: stropheId, collapsed: newState },
+        fields: { studyId: studyId, stropheId: stropheId, expanded: newState },
         upsert: true,
       }
   })
@@ -256,11 +252,11 @@ export async function updateStropheState(studyId: string, stropheId: number, new
   try {
     result = await xataClient.transactions.run(operations);
   } catch (error) {
-    return { message: 'Database Error: Failed to update styling strophe collapsed state.' };
+    return { message: 'Database Error: Failed to update styling strophe expanded state.' };
   }
 }
 
-export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[], hebIdsToRemoveDiv: number[], ) {
+export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[], hebIdsToRemoveDiv: number[], strophesToUpdate: StropheData[]) {
   "use server";
 
   const xataClient = getXataClient();
@@ -290,8 +286,34 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
     })
   })
 
+  if (strophesToUpdate.length > 0) {
+    try {
+      const stropheRecords = await xataClient.db.stropheStyling.select(["id"]).filter({"studyId.id": studyId}).getMany();
+      stropheRecords.forEach((stropheRecord) => {
+        operations.push({
+          delete: {
+            table: "stropheStyling" as const,
+            id: stropheRecord.id,
+          }    
+        })
+      });
+    } catch (error) {
+      console.log(error);
+    } 
+  }
+
+  strophesToUpdate.forEach((strophe) => {
+    operations.push({
+      update: {
+        table: "stropheStyling" as const,
+        id: studyId + "_" + strophe.id,
+        fields: { studyId: studyId, stropheId: strophe.id, colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded },
+        upsert: true,
+      }
+    })
+  })
+
   try {
-    
     result = await xataClient.transactions.run(operations);
   } catch (error) {
     return { message: 'Database Error: Failed to update styling strophe division.' };
@@ -356,12 +378,12 @@ export async function fetchPassageContent(studyId: string) {
 
               const stropheStyling = await xataClient.db.stropheStyling
                 .filter({studyId: study.id})
-                .select(['stropheId', 'colorFill', 'borderColor', 'collapsed'])
+                .select(['stropheId', 'colorFill', 'borderColor', 'expanded'])
                 .sort("stropheId", "asc")
                 .getAll();
               const stropheStylingMap = new Map();
               stropheStyling.forEach((obj) => {
-                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, collapsed: obj.collapsed });
+                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
               });
 
               const passageContent = await xataClient.db.heb_bible_bsb
@@ -389,6 +411,7 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.showVerseNum = false;
                   hebWord.numIndent = 0;
                   hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
+                  hebWord.firstWordInStrophe = false;
 
                   const currentWordStyling = wordStylingMap.get(hebWord.id);
                   if (currentWordStyling !== undefined) {
@@ -407,10 +430,11 @@ export async function fetchPassageContent(studyId: string) {
                       if (currentStropheStyling !== undefined) {
                           (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
                           (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
-                          (currentStropheStyling.collapsed !== null) && (currentStropheData.collapsed = currentStropheStyling.collapsed);
+                          (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
                       }
                       currentLineIdx = -1;
-                  }
+                      hebWord.firstWordInStrophe = true;
+                    }
 
                   let currentLineData = currentStropheData.lines[currentLineIdx];
                   if (currentLineData === undefined || hebWord.lineBreak) {
@@ -421,6 +445,8 @@ export async function fetchPassageContent(studyId: string) {
                   if (prevVerseNum !== hebWord.verse) {
                       hebWord.showVerseNum = true;
                   }
+                  hebWord.stropheId = currentStropheIdx;
+                  
                   currentLineData.words.push(hebWord);
                   prevVerseNum = hebWord.verse;
               })
