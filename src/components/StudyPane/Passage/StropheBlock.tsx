@@ -14,7 +14,8 @@ export const StropheBlock = ({
     strophe: StropheData
   }) => {
   
-    const { ctxStudyId, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
+    const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, 
+      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
@@ -53,6 +54,9 @@ export const StropheBlock = ({
       (!selected) ? ctxSelectedStrophes.push(strophe) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(strophe), 1);
       ctxSetSelectedStrophes(ctxSelectedStrophes);
       ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+      // remove any selected word blocks if strophe block is selected
+      ctxSetSelectedHebWords([]);
+      ctxSetNumSelectedWords(0);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
@@ -68,6 +72,11 @@ export const StropheBlock = ({
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
       updateStropheState(ctxStudyId, strophe.id, !expanded);
+      if (expanded) {
+        // remove any selected word blocks if strophe block is collapsed
+        ctxSetSelectedHebWords([]);
+        ctxSetNumSelectedWords(0);        
+      }
     }
   
     useEffect(() => {

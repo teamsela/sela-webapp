@@ -97,7 +97,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes 
+    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes 
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -140,8 +140,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     //console.log("Changing " + colorActionType + " color to " + color.hex);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
-    if (ctxSelectedWords.length > 0) {
-      updateWordColor(ctxStudyId, ctxSelectedWords, colorAction, color.hex);
+    if (ctxSelectedHebWords.length > 0) {
+      updateWordColor(ctxStudyId, ctxSelectedHebWords, colorAction, color.hex);
     }
     if (ctxNumSelectedStrophes > 0) {
       updateStropheColor(ctxStudyId, ctxSelectedStrophes, colorAction, color.hex);
@@ -192,7 +192,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
 export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, 
+  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedHebWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
@@ -214,9 +214,9 @@ export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: num
       setColorAction(ColorActionType.resetColor);
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-      if (ctxSelectedWords.length > 0) {
+      if (ctxSelectedHebWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
-        updateWordColor(ctxStudyId, ctxSelectedWords, ColorActionType.resetColor, null);
+        updateWordColor(ctxStudyId, ctxSelectedHebWords, ColorActionType.resetColor, null);
       }
       if (ctxSelectedStrophes.length > 0) {
         updateStropheColor(ctxStudyId, ctxSelectedStrophes, ColorActionType.resetColor, null);
@@ -260,7 +260,7 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
 
 export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxSelectedWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
 
   if (ctxIsHebrew) {

@@ -30,10 +30,10 @@ export const WordBlock = ({
     hebWord: HebWord;
   }) => {
   
-    const { ctxZoomLevel, ctxIsHebrew, ctxSelectedWords, ctxSetSelectedWords, 
+    const { ctxZoomLevel, ctxIsHebrew, ctxUniformWidth,
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
-      ctxNumSelectedWords, ctxSelectedStrophes, ctxColorAction, ctxSelectedColor, 
-      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxUniformWidth 
+      ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor, 
+      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -71,19 +71,17 @@ export const WordBlock = ({
     }
   
     useEffect(() => {
-      setSelected(ctxSelectedWords.includes(hebWord.id) || ctxSelectedHebWords.includes(hebWord));
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
-    }, [ctxSelectedWords, ctxSelectedHebWords, selected, hebWord.numIndent]);
-  
+      setSelected(ctxSelectedHebWords.includes(hebWord));
+      ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+    }, [ctxSelectedHebWords, selected]);
+
     const handleClick = () => {
-      if (ctxSelectedStrophes.length > 0) return;
 
       setSelected(prevState => !prevState);
-      (!selected) ? ctxSelectedWords.push(hebWord.id) : ctxSelectedWords.splice(ctxSelectedWords.indexOf(hebWord.id), 1);
-      ctxSetSelectedWords(ctxSelectedWords);
       (!selected) ? ctxSelectedHebWords.push(hebWord) : ctxSelectedHebWords.splice(ctxSelectedHebWords.indexOf(hebWord), 1);
       ctxSetSelectedHebWords(ctxSelectedHebWords);      
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
+      ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+      ctxSetSelectedStrophes([]);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
