@@ -153,15 +153,15 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-          {
-            (colorAction === ColorActionType.colorFill) && <BiSolidColorFill fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
-          }
-          {
-            (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
-          }
-          {
-            (colorAction === ColorActionType.textColor) && <BiFont fillOpacity={buttonEnabled? "1" : "0.4"} fontSize="1.5em" />
-          }
+        {
+          (colorAction === ColorActionType.colorFill) && <BiSolidColorFill fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+        }
+        {
+          (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+        }
+        {
+          (colorAction === ColorActionType.textColor) && <BiFont fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
+        }
         <div
           // TODO: using embbed style for the color display for now, may move to tailwind after some research
           style={
@@ -190,7 +190,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 };
 
 
-export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: number) => void }) => {
+export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
   const { ctxStudyId, ctxNumSelectedWords, ctxSelectedHebWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
@@ -220,7 +220,7 @@ export const ClearFormatBtn = ({ setColorAction } : { setColorAction : (arg: num
       }
       if (ctxSelectedStrophes.length > 0) {
         updateStropheColor(ctxStudyId, ctxSelectedStrophes, ColorActionType.resetColor, null);
-      }      
+      }
     }
   }
 
@@ -258,7 +258,7 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
   );
 };
 
-export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
+export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
   const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
@@ -299,17 +299,17 @@ export const IndentBtn = ({ leftIndent } : { leftIndent : boolean }) => {
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         {
-          (!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? 
+          (!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ?
             <CgFormatIndentIncrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" /> :
             <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
-        }          
+        }
       </button>
       <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add Indent" : "Remove indent"} />
     </div>
   );
 };
 
-export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : StropheActionType, toolTip : string }) => {
+export const StropheActionBtn = ({ stropheAction, toolTip }: { stropheAction: StropheActionType, toolTip: string }) => {
 
   const { ctxSelectedHebWords, ctxSetStropheAction, ctxStropheCount } = useContext(FormatContext);
 
@@ -408,7 +408,11 @@ export const StructureBtn = ({
   }
   return (
     <div>
-      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+      <button className="text-gray-200 border-gray-400 font-semibold 
+        py-1 px-2 border rounded shadow cursor-not-allowed
+        text-xs sm:text-sm lg:text-base 
+        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Structure
@@ -433,7 +437,10 @@ export const MotifBtn = ({
   }
   return (
     <div>
-      <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+      <button className="bg-white hover:bg-gray-100 text-gray-800 
+        font-semibold py-1 px-2 border border-gray-400 rounded shadow
+        text-xs sm:text-sm lg:text-base
+        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
         onClick={handleClick} >
         Motif
       </button>
@@ -458,7 +465,11 @@ export const SyntaxBtn = ({
   return (
     <div>
       <button
-        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
+        py-1 px-4 border rounded shadow cursor-not-allowed
+        text-xs sm:text-sm lg:text-base
+        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Syntax
@@ -484,7 +495,11 @@ export const SoundsBtn = ({
   return (
     <div>
       <button
-        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
+        py-1 px-2 border rounded shadow 
+        text-xs sm:text-sm lg:text-base
+        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
+        style={{ color: '#d6dadf' }}
         disabled={true}
         onClick={handleClick} >
         Sounds
