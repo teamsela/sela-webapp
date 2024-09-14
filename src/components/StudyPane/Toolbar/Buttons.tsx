@@ -318,8 +318,6 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
   const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
 
   return (
-    <>
-    <div className="relative">
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
@@ -336,8 +334,6 @@ export const StropheActionBtn = ({ stropheAction, toolTip } : {stropheAction : S
         <ToolTip text={toolTip} />
       </button>
     </div>
-    </div>
-    </>
   );
 };
 
