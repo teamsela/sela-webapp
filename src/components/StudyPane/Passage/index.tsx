@@ -38,7 +38,7 @@ const Passage = ({
     document.addEventListener('mouseup', handleMouseUp);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
-
+    
 
     //click to de-select
     //if clicked on wordBlock, set status here so de-select function doesnt fire
@@ -134,7 +134,6 @@ const Passage = ({
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
     const width = Math.abs(selectionStart.x - selectionEnd.x);
     const height = Math.abs(selectionStart.y - selectionEnd.y);
-    console.log(`height is ${height}, width is ${width}`);
     return {
       left,
       top,
@@ -144,6 +143,7 @@ const Passage = ({
       backgroundColor: 'rgba(0, 0, 255, 0.2)',
       border: '1px solid blue',
       pointerEvents: 'none',
+      zIndex: 100,
     };
   };
 
@@ -189,8 +189,8 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div className="h-12"/>
-        <div id="selaPassage" className='relative py-5 top-8 z-10 overflow-hidden'>
+        <div className="h-16"/>
+        <div id="selaPassage" className='relative z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
               return(
@@ -201,8 +201,8 @@ const Passage = ({
               )
             })
           }
-          {isDragging && <div style={getSelectionBoxStyle()} />}
         </div>
+        {isDragging && <div style={getSelectionBoxStyle()} />}
       </div>
 
     </main>

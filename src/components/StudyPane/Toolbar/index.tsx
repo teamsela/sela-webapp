@@ -25,7 +25,7 @@ const Toolbar = ({
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
     <div className="fixed top-19 left-0 mr-auto ml-auto z-20 flex justify-center w-full max-w-full hbFontExemption">
-      <div id="selaToolbar" className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
+      <div className="fixed left-0 mx-auto pl-11 pr-11 max-w-220 bg-white py-2 w-full">
 
       { // only show zoom in/out & uniform width buttons in view only mode
         ctxInViewMode

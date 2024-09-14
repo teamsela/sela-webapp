@@ -94,8 +94,8 @@ const ScaleDropDown = ({setScaleValue}: {
       // calculate fit screen height
       const currentHeight = document.getElementById('selaPassage')?.offsetHeight;
       const headerHeight = document.getElementById("selaHeader")?.offsetHeight;
-      const toolbarHeight = document.getElementById("selaToolbar")?.offsetHeight;
-      const fitScreenHeight = window.innerHeight - (headerHeight || 0) -  (toolbarHeight || 0);
+      const hardcodedPadding = 64; // <div class="h-16">;
+      const fitScreenHeight = window.innerHeight - (headerHeight || 0) -  hardcodedPadding;
       const scale = currentHeight ? fitScreenHeight / currentHeight : 1;
 
       setScaleValueAndScalePassage(scale);
@@ -110,13 +110,13 @@ const ScaleDropDown = ({setScaleValue}: {
       <div
         ref={trigger}
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-stroke px-3 py-2 font-medium"
+        className="inline-flex items-center gap-1.5 rounded-md border border-stroke px-2 py-1.5 font-medium text-sm"
       >
         <input id="scaleInput" 
           type="text" 
           value={displayScaleLevel}
           onChange={e => setDisplayScaleLevel(e.target.value)}
-          className="w-16 border-r">
+          className="w-12 border-r">
         </input>
         <svg
           className={`fill-current duration-200 ease-linear ${
@@ -150,13 +150,13 @@ const ScaleDropDown = ({setScaleValue}: {
       >
         <ul className="flex flex-col">
           <li 
-            className="flex cursor=pointer  px-5 py-2 font-medium hover:bg-whiter hover:text-primary dark:hover:bg-meta-4"
+            className="flex cursor=pointer  px-5 py-2 font-normal text-sm select-none hover:bg-whiter hover:text-primary dark:hover:bg-meta-4"
             onClick={()=> ScaleByFitScreen()}
           > Fit
           </li>
           <hr/>
           {PRESET_SCALE_LEVELS.map( scalePair =>
-            (<li className="flex cursor=pointer px-5 py-2 font-medium hover:bg-whiter hover:text-primary dark:hover:bg-meta-4"
+            (<li className="flex cursor=pointer px-5 py-2 font-normal text-sm select-none hover:bg-whiter hover:text-primary dark:hover:bg-meta-4"
               key={scalePair[1]} onClick={()=> scaleByPresetLevel(...scalePair)}>
                 {scalePair[1]}
             </li>)
