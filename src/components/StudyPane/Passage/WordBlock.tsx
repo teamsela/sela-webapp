@@ -32,7 +32,7 @@ export const WordBlock = ({
     hebWord: HebWord;
   }) => {
   
-    const { ctxZoomLevel, ctxIsHebrew, ctxUniformWidth,
+    const { ctxIsHebrew, ctxUniformWidth,
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
       ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor, 
       ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
