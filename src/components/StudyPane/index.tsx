@@ -20,14 +20,14 @@ export const FormatContext = createContext({
   ctxIsHebrew: false,
   ctxSelectedHebWords: [] as HebWord[],
   ctxSetSelectedHebWords: (arg: HebWord[]) => {},
-  ctxSelectedWords: [] as number[],
-  ctxSetSelectedWords: (arg: number[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
   ctxSelectedStrophes: [] as StropheData[],  
   ctxSetSelectedStrophes: (arg: StropheData[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
+  ctxStropheCount: 0 as number,
+  ctxSetStropheCount: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
@@ -60,6 +60,7 @@ const StudyPane = ({
   const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
+  const [stropheCount, setStropheCount] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -78,9 +79,7 @@ const StudyPane = ({
     ctxScaleValue: scaleValue,
     ctxIsHebrew: isHebrew,
     ctxSelectedHebWords: selectedHebWords,
-    ctxSetSelectedHebWords: setSelectedHebWords,    
-    ctxSelectedWords: selectedWords,
-    ctxSetSelectedWords: setSelectedWords,
+    ctxSetSelectedHebWords: setSelectedHebWords,
     ctxNumSelectedWords: numSelectedWords,
     ctxSetNumSelectedWords: setNumSelectedWords,
     ctxSelectedStrophes: selectedStrophes,
@@ -101,7 +100,9 @@ const StudyPane = ({
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
     ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction
+    ctxSetStropheAction: setStropheAction,
+    ctxStropheCount: stropheCount,
+    ctxSetStropheCount: setStropheCount
   }
 
 

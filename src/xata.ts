@@ -83,6 +83,7 @@ const tables = [
       { name: "colorFill", type: "text" },
       { name: "borderColor", type: "text" },
       { name: "stropheId", type: "int", notNull: true, defaultValue: "0" },
+      { name: "expanded", type: "bool", defaultValue: "true" },
     ],
   },
 ] as const;

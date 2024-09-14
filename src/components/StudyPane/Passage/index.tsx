@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
-import { HebWord, PassageData } from '@/lib/data';
+import { PassageData } from '@/lib/data';
 import { ColorActionType, StropheActionType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
 import { handleStropheAction } from './StropheFunctions';
@@ -12,11 +12,8 @@ const Passage = ({
   content: PassageData;
 }) => {
 
-  const { ctxSelectedWords, ctxSetSelectedWords, ctxSelectedHebWords, ctxSetSelectedHebWords,
-    ctxSetNumSelectedWords, ctxNumSelectedWords, ctxIsHebrew, /*ctxNewStropheEvent, 
-    ctxSetNewStropheEvent, ctxStructuredWords, ctxSetStructuredWords,*/ ctxSelectedStrophes, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction
-    /*ctxSetMergeStropheEvent, ctxMergeStropheEvent, ctxSetCurrentStrophe*/
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction, ctxSetStropheCount
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -30,6 +27,8 @@ const Passage = ({
 
   const [passageData, setPassageData] = useState<PassageData>(content);
   
+  ctxSetStropheCount(passageData.strophes.length);
+
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -69,8 +68,7 @@ const Passage = ({
     //if selectionEnd is null it means the mouse didnt move at all
     //otherwise it means it is a drag
     if (!selectionEnd && clickToDeSelect) {
-      ctxSetSelectedWords([]);
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
+      ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
     }
@@ -99,16 +97,11 @@ const Passage = ({
         adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
       ) {
         const wordId = Number(rect.getAttribute('id'));
-        if (!ctxSelectedWords.includes(wordId)) {
-          const newArray = [...ctxSelectedWords, wordId];
-          ctxSetSelectedWords(newArray);
-          const selectedWord = getWordById(content, wordId);
-          if (selectedWord !== null) {
-            const newArray2 = [...ctxSelectedHebWords, selectedWord];
-            ctxSetSelectedHebWords(newArray2);
-          }
-          ctxSetNumSelectedWords(ctxSelectedWords.length);
-
+        const selectedWord = getWordById(content, wordId);
+        if (selectedWord !== null && !ctxSelectedHebWords.includes(selectedWord)) {
+          const newArray = [...ctxSelectedHebWords, selectedWord];
+          ctxSetSelectedHebWords(newArray);
+          ctxSetNumSelectedWords(ctxSelectedHebWords.length);
         }
       }
     });
@@ -124,9 +117,10 @@ const Passage = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
       }
+      ctxSetSelectedStrophes([]);
     }
 
-  }, [selectionStart, selectionEnd, ctxSelectedWords, ctxSelectedHebWords]);
+  }, [selectionStart, selectionEnd]);
 
   const getSelectionBoxStyle = (): React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
@@ -134,6 +128,7 @@ const Passage = ({
     const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
     const width = Math.abs(selectionStart.x - selectionEnd.x);
     const height = Math.abs(selectionStart.y - selectionEnd.y);
+    //console.log(`height is ${height}, width is ${width}`);
     return {
       left,
       top,
@@ -166,8 +161,7 @@ const Passage = ({
 
     if (actionedContent !== null) {
       setPassageData(actionedContent);
-      ctxSetSelectedWords([]);
-      ctxSetNumSelectedWords(ctxSelectedWords.length);
+      ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
     } 
     ctxSetStropheAction(StropheActionType.none);
@@ -189,8 +183,8 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div className="h-16"/>
-        <div id="selaPassage" className='relative z-10 overflow-hidden'>
+
+        <div id="selaPassage" className='relative py-5 top-5 z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
               return(

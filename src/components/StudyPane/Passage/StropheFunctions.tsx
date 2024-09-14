@@ -9,19 +9,21 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
   let flattenedContent : HebWord[] = [];
 
   const stropheStylingMap = new Map();
-  let indexToInsert : number = 0;
+  let stropheIdxUpdate : number = 0;
   let previousDivision : HebWord | null = null;
   let nextDivision : boolean = false;
   let removeNextDivision : boolean = false;
   let addDivList : number[] = [];
   let removeDivList : number[] = [];
+  let strophesToUpdate : StropheData[] = [];
 
   // flatten the passage data into an array of HebWord
   content.strophes.map((strophe, stropheId) => {
+
+    stropheStylingMap.set(stropheId + stropheIdxUpdate, { colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded });
     
-    stropheStylingMap.set(stropheId + indexToInsert, { colorFill: strophe.colorFill, borderColor: strophe.borderColor });
     strophe.lines.map((line) => {
-      line.words.map((word) => {
+      line.words.map((word, wordIdx) => {
         if (word.stropheDiv === true) {
           previousDivision = word;
           if (removeNextDivision) {
@@ -39,7 +41,7 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
           if (actionType == StropheActionType.new) {
             selectedWord.stropheDiv = true;
             addDivList.push(selectedWord.id);
-            indexToInsert = 1;
+            stropheIdxUpdate = 1;
           }
           else if (actionType == StropheActionType.mergeUp) {
             word.stropheDiv = false;
@@ -48,11 +50,13 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
               removeDivList.push(previousDivision.id);
             }
             nextDivision = true;
+            if (wordIdx == line.words.length-1) { stropheIdxUpdate = -1; }
           }
           else if (actionType == StropheActionType.mergeDown) {
             word.stropheDiv = true;
             addDivList.push(word.id);
             removeNextDivision = true;
+            if (wordIdx == 0) { stropheIdxUpdate = -1; }
           }
         }
         flattenedContent.push(word);
@@ -65,6 +69,8 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
 
   flattenedContent.forEach(word => {
 
+    word.firstWordInStrophe = false;
+
     let currentStropheData = newPassageData.strophes[currentStropheIdx];
     if (currentStropheData === undefined || (word.stropheDiv === true)) {
       newPassageData.strophes.push({id: ++currentStropheIdx, lines: []});
@@ -73,8 +79,11 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
       if (currentStropheStyling !== undefined) {
         (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
         (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
+        (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
+        strophesToUpdate.push(currentStropheData);
       }        
       currentLineIdx = -1;
+      word.firstWordInStrophe = true;
     }
 
     let currentLineData = currentStropheData.lines[currentLineIdx];
@@ -83,10 +92,11 @@ export const handleStropheAction = (content: PassageData, selectedWord: HebWord,
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 
+    word.stropheId = currentStropheIdx;
     currentLineData.words.push(word);
   });
 
-  updateStropheDiv(content.studyId, addDivList, removeDivList);
+  updateStropheDiv(content.studyId, addDivList, removeDivList, strophesToUpdate);
 
   return newPassageData;
 }
