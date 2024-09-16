@@ -12,11 +12,14 @@ export interface ColorPickerProps {
     setColorAction: (arg: number) => void,
 }
 
-export enum StropheActionType {
+export enum StructureUpdateType {
     none,
-    new,
-    mergeUp,
-    mergeDown
+    newLine,
+    mergeWithPrevLine,
+    mergeWithNextLine,
+    newStrophe,
+    mergeWithPrevStrophe,
+    mergeWithNextStrophe
 }
 
 export enum InfoPaneActionType {

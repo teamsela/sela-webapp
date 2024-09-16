@@ -7,7 +7,7 @@ import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
 import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
-import { parsePassageInfo, psalmBook } from './utils';
+import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, StropheData, HebWord } from './data';
 import { ColorActionType } from './types';
 
@@ -256,6 +256,45 @@ export async function updateStropheState(studyId: string, stropheId: number, new
   }
 }
 
+export async function updateLineBreak(studyId: string, hebIdsToAddBreak: number[], hebIdsToRemoveBreak: number[]) {
+  "use server";
+
+  const xataClient = getXataClient();
+
+  let result : any;
+  let operations: any = [];
+
+  hebIdsToAddBreak.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, lineBreak: true },
+        upsert: true,
+      }
+    })
+  })
+
+  hebIdsToRemoveBreak.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, lineBreak: false },
+        upsert: true,
+      }
+    })
+  })
+
+  try {
+    result = await xataClient.transactions.run(operations);
+    console.log(result);
+  } catch (error) {
+    console.log(error);
+    return { message: 'Database Error: Failed to update line break in styling.' };
+  }
+}
+
 export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[], hebIdsToRemoveDiv: number[], strophesToUpdate: StropheData[]) {
   "use server";
 
@@ -316,7 +355,7 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
   try {
     result = await xataClient.transactions.run(operations);
   } catch (error) {
-    return { message: 'Database Error: Failed to update styling strophe division.' };
+    return { message: 'Database Error: Failed to update strophe division in styling.' };
   }
 }
 
@@ -368,12 +407,12 @@ export async function fetchPassageContent(studyId: string) {
           {
               const wordStyling = await xataClient.db.styling
                 .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'stropheDiv'])
+                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'lineBreak', 'stropheDiv'])
                 .sort("hebId", "asc")
                 .getAll();
               const wordStylingMap = new Map();
               wordStyling.forEach((obj) => {
-                wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, stropheDiv: obj.stropheDiv });
+                wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, lineBreak: obj.lineBreak, stropheDiv: obj.stropheDiv });
               });
 
               const stropheStyling = await xataClient.db.stropheStyling
@@ -411,6 +450,7 @@ export async function fetchPassageContent(studyId: string) {
                   hebWord.showVerseNum = false;
                   hebWord.numIndent = 0;
                   hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
+                  hebWord.lastLineInStrophe = false;
                   hebWord.firstWordInStrophe = false;
 
                   const currentWordStyling = wordStylingMap.get(hebWord.id);
@@ -419,11 +459,18 @@ export async function fetchPassageContent(studyId: string) {
                     (currentWordStyling.borderColor !== null) && (hebWord.borderColor = currentWordStyling.borderColor);
                     (currentWordStyling.textColor !== null) && (hebWord.textColor = currentWordStyling.textColor);
                     (currentWordStyling.numIndent !== null) && (hebWord.numIndent = currentWordStyling.numIndent);
+                    (currentWordStyling.lineBreak !== null) && (hebWord.lineBreak = currentWordStyling.lineBreak);
                     (currentWordStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentWordStyling.stropheDiv);
                   }
 
                   let currentStropheData = passageData.strophes[currentStropheIdx];
                   if (currentStropheData === undefined || (hebWord.stropheDiv !== undefined && hebWord.stropheDiv)) {
+                      if (currentStropheIdx !== -1) {
+                          let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
+                          passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
+                              word.lastLineInStrophe = true;
+                          })
+                      }
                       passageData.strophes.push({id: ++currentStropheIdx, lines: []});
                       currentStropheData = passageData.strophes[currentStropheIdx];
                       const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
@@ -434,7 +481,7 @@ export async function fetchPassageContent(studyId: string) {
                       }
                       currentLineIdx = -1;
                       hebWord.firstWordInStrophe = true;
-                    }
+                  }
 
                   let currentLineData = currentStropheData.lines[currentLineIdx];
                   if (currentLineData === undefined || hebWord.lineBreak) {
@@ -445,12 +492,17 @@ export async function fetchPassageContent(studyId: string) {
                   if (prevVerseNum !== hebWord.verse) {
                       hebWord.showVerseNum = true;
                   }
+                  hebWord.lineId = currentLineIdx;
                   hebWord.stropheId = currentStropheIdx;
                   
                   currentLineData.words.push(hebWord);
                   prevVerseNum = hebWord.verse;
               })
-          }
+              let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
+              passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
+                  word.lastLineInStrophe = true;
+              })
+          }         
       }
       return passageData;
 

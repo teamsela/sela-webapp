@@ -19,6 +19,7 @@ const tables = [
     revLinks: [
       { column: "studyId", table: "styling" },
       { column: "studyId", table: "stropheStyling" },
+      { column: "studyId", table: "stanzaStyling" },
     ],
   },
   {
@@ -49,6 +50,7 @@ const tables = [
       { name: "numIndent", type: "int", defaultValue: "0" },
       { name: "indented", type: "bool", defaultValue: "false" },
       { name: "stropheDiv", type: "bool" },
+      { name: "lineBreak", type: "bool" },
     ],
   },
   {
@@ -86,6 +88,16 @@ const tables = [
       { name: "expanded", type: "bool", defaultValue: "true" },
     ],
   },
+  {
+    name: "stanzaStyling",
+    columns: [
+      { name: "studyId", type: "link", link: { table: "study" } },
+      { name: "colorFill", type: "text" },
+      { name: "borderColor", type: "text" },
+      { name: "expanded", type: "bool" },
+      { name: "stanzaId", type: "int", notNull: true, defaultValue: "0" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -106,12 +118,16 @@ export type HebBibleBsbRecord = HebBibleBsb & XataRecord;
 export type StropheStyling = InferredTypes["stropheStyling"];
 export type StropheStylingRecord = StropheStyling & XataRecord;
 
+export type StanzaStyling = InferredTypes["stanzaStyling"];
+export type StanzaStylingRecord = StanzaStyling & XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
   heb_bible: HebBibleRecord;
   styling: StylingRecord;
   heb_bible_bsb: HebBibleBsbRecord;
   stropheStyling: StropheStylingRecord;
+  stanzaStyling: StanzaStylingRecord;
 };
 
 const DatabaseClient = buildClient();

@@ -1,17 +1,17 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpWideNarrow, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
-import { MdOutlineModeEdit } from "react-icons/md";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
-import { TbArrowAutofitContent } from "react-icons/tb";
+import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps, InfoPaneActionType, StropheActionType } from "@/lib/types";
+import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
 
 export const ToolTip = ({ text }: { text: string }) => {
@@ -249,7 +249,9 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
       <button
         className="hover:text-primary"
         onClick={handleClick} >
-        <TbArrowAutofitContent fontSize="1.5em" />
+        {
+         (ctxUniformWidth) ? <TbArrowAutofitContentFilled fontSize="1.5em" /> : <TbArrowAutofitContent fontSize="1.5em" />
+        }
       </button>
       {
         ctxUniformWidth ? (<ToolTip text="Disable uniform width" />) : (<ToolTip text="Enable uniform width" />)
@@ -304,26 +306,32 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
             <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
         }
       </button>
-      <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add Indent" : "Remove indent"} />
+      <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add indent" : "Remove indent"} />
     </div>
   );
 };
 
-export const StropheActionBtn = ({ stropheAction, toolTip }: { stropheAction: StropheActionType, toolTip: string }) => {
+export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedHebWords, ctxSetStropheAction, ctxStropheCount } = useContext(FormatContext);
+  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount } = useContext(FormatContext);
 
   let buttonEnabled = (ctxSelectedHebWords.length === 1);
 
-  if (stropheAction === StropheActionType.mergeUp) {
-    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== 0);
-  } else if (stropheAction === StropheActionType.mergeDown) {
-    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
-  } else if (stropheAction === StropheActionType.new) {
+  if (updateType === StructureUpdateType.newLine) {
+    buttonEnabled = buttonEnabled && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
+  } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
+    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].lineId !== 0);
+  } else if (updateType === StructureUpdateType.mergeWithNextLine) {
+    buttonEnabled = buttonEnabled && (!ctxSelectedHebWords[0].lastLineInStrophe);
+  } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = buttonEnabled && (!ctxSelectedHebWords[0].firstWordInStrophe);
+  } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
+    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== 0);
+  } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
+    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
   }
 
-  const handleClick = () => { buttonEnabled && ctxSetStropheAction(stropheAction) };
+  const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (
     <>
@@ -333,14 +341,23 @@ export const StropheActionBtn = ({ stropheAction, toolTip }: { stropheAction: St
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
           {
-            (stropheAction === StropheActionType.new) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
           {
-            (stropheAction === StropheActionType.mergeUp) && <LuArrowUpWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
           {
-            (stropheAction === StropheActionType.mergeDown) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }          
+            (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }   
         <ToolTip text={toolTip} />
       </button>
     </div>
@@ -359,34 +376,6 @@ export const NewStanzaBtn = () => {
         <CgArrowsBreakeH opacity="0.4" fontSize="1.5em" />
       </button>
       <ToolTip text="New stanza" />
-    </div>
-  );
-};
-
-export const MoveUpBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={() => console.log("Move Up Clicked")} >
-        <LuArrowUpToLine opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="Move up" />
-    </div>
-  );
-};
-
-export const MoveDownBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={() => console.log("Move Down Clicked")} >
-        <LuArrowDownToLine opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="Move down" />
     </div>
   );
 };

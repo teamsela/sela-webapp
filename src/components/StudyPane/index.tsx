@@ -6,7 +6,7 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
-import { ColorActionType, InfoPaneActionType, StropheActionType } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
 
 export const DEFAULT_ZOOM_LEVEL: number = 5;
@@ -41,8 +41,8 @@ export const FormatContext = createContext({
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
-  ctxStropheAction: {} as StropheActionType,
-  ctxSetStropheAction: (arg: StropheActionType) => {},
+  ctxStructureUpdateType: {} as StructureUpdateType,
+  ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
 });
 
 const StudyPane = ({
@@ -55,7 +55,6 @@ const StudyPane = ({
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM_LEVEL);
   const [isHebrew, setHebrew] = useState(false);
 
-  const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [numSelectedWords, setNumSelectedWords] = useState(0);
   const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
@@ -72,7 +71,7 @@ const StudyPane = ({
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
-  const [stropheAction, setStropheAction] = useState(StropheActionType.none);
+  const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -99,8 +98,8 @@ const StudyPane = ({
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
-    ctxStropheAction: stropheAction,
-    ctxSetStropheAction: setStropheAction,
+    ctxStructureUpdateType: structureUpdateType,
+    ctxSetStructureUpdateType: setStructureUpdateType,
     ctxStropheCount: stropheCount,
     ctxSetStropheCount: setStropheCount
   }
