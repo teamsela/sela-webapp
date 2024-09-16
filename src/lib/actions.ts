@@ -288,9 +288,7 @@ export async function updateLineBreak(studyId: string, hebIdsToAddBreak: number[
 
   try {
     result = await xataClient.transactions.run(operations);
-    console.log(result);
   } catch (error) {
-    console.log(error);
     return { message: 'Database Error: Failed to update line break in styling.' };
   }
 }
