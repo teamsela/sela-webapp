@@ -20,7 +20,9 @@ export type HebWord = {
     stropheDiv?: boolean;
     lineBreak?: boolean;
     showVerseNum: boolean;
+    lineId: number | undefined;
     stropheId: number | undefined;
+    lastLineInStrophe: boolean;
     firstWordInStrophe: boolean;
 }
 

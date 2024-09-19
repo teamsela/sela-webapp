@@ -2,9 +2,9 @@ import React, { useState, useRef, useCallback, useEffect, useContext } from 'rea
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
 import { PassageData } from '@/lib/data';
-import { ColorActionType, StropheActionType } from '@/lib/types';
+import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
-import { handleStropheAction } from './StropheFunctions';
+import { handleStructureUpdate } from './StructureUpdate';
 
 const Passage = ({
   content,
@@ -13,7 +13,7 @@ const Passage = ({
 }) => {
 
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStropheAction, ctxSetStropheAction, ctxSetStropheCount
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -155,8 +155,8 @@ const Passage = ({
 
     let actionedContent : PassageData | null = null;
 
-    if (ctxStropheAction !== StropheActionType.none && ctxSelectedHebWords.length === 1) {
-      actionedContent = handleStropheAction(passageData, ctxSelectedHebWords[0], ctxStropheAction);
+    if (ctxStructureUpdateType !== StructureUpdateType.none && ctxSelectedHebWords.length === 1) {
+      actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
     }
 
     if (actionedContent !== null) {
@@ -164,9 +164,9 @@ const Passage = ({
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
     } 
-    ctxSetStropheAction(StropheActionType.none);
+    ctxSetStructureUpdateType(StructureUpdateType.none);
 
-  }, [ctxStropheAction]);
+  }, [ctxStructureUpdateType]);
 
   const passageContentStyle = {
     className: `flex-1 overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`

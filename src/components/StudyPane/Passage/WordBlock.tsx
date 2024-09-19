@@ -81,7 +81,7 @@ export const WordBlock = ({
 
       setSelected(prevState => !prevState);
       (!selected) ? ctxSelectedHebWords.push(hebWord) : ctxSelectedHebWords.splice(ctxSelectedHebWords.indexOf(hebWord), 1);
-      ctxSetSelectedHebWords(ctxSelectedHebWords);      
+      ctxSetSelectedHebWords(ctxSelectedHebWords);
       ctxSetNumSelectedWords(ctxSelectedHebWords.length);
       ctxSetSelectedStrophes([]);
 

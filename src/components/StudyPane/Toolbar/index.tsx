@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, MoveUpBtn, MoveDownBtn, 
   IndentBtn, UniformWidthBtn, StropheActionBtn, NewStanzaBtn } from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
+=======
+import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, 
+  IndentBtn, UniformWidthBtn, StructureUpdateBtn, NewStanzaBtn } from "./Buttons";
+>>>>>>> main
 import { useContext } from "react";
 import { FormatContext } from '../index';
-import { ColorActionType, StropheActionType } from "@/lib/types";
+import { ColorActionType, StructureUpdateType } from "@/lib/types";
 
 const Toolbar = ({
   setScaleValue,
@@ -50,12 +55,17 @@ const Toolbar = ({
             <IndentBtn leftIndent={true} />
             <IndentBtn leftIndent={false} />
           </div>
-          <StropheActionBtn stropheAction={StropheActionType.new} toolTip="New Strophe" />
-          <StropheActionBtn stropheAction={StropheActionType.mergeUp} toolTip="Merge with previous strophe" />
-          <StropheActionBtn stropheAction={StropheActionType.mergeDown} toolTip="Merge with next strophe" />
+          <div className="border-r border-stroke flex flex-row">
+            <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Move to previous line" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Move to next line" />
+          </div>
+          <div className="border-r border-stroke flex flex-row">
+            <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
+          </div>
           <NewStanzaBtn />
-          <MoveUpBtn />
-          <MoveDownBtn />
         </div>)
       }
     </div>
