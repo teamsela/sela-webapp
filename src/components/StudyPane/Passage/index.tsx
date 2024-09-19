@@ -11,7 +11,6 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
   } = useContext(FormatContext)
@@ -174,7 +173,6 @@ const Passage = ({
 
   return (
     <main className="relative top-19 h-0">
-      
       <div
         key={`passage`}
         onMouseDown={handleMouseDown}
@@ -183,7 +181,6 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-
         <div id="selaPassage" className='relative py-5 top-5 z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
