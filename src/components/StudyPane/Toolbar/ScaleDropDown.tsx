@@ -100,9 +100,9 @@ const ScaleDropDown = ({setScaleValue}: {
       // calculate fit screen height
       const currentHeight = document.getElementById('selaPassage')?.offsetHeight;
       const headerHeight = document.getElementById("selaHeader")?.offsetHeight;
-      const hardcodedPadding = 64; // <div class="h-16">;
+      const hardcodedPadding = 64; // <div class="top-16">;
       const fitScreenHeight = window.innerHeight - (headerHeight || 0) -  hardcodedPadding;
-      const scale = currentHeight ? fitScreenHeight / currentHeight : 1;
+      const scale = Number((currentHeight ? fitScreenHeight / currentHeight : 1).toFixed(2));
 
       setScaleValueAndScalePassage(scale);
       setDisplayScaleLevel("Fit");
