@@ -1,4 +1,4 @@
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, 
+import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, NewStanzaBtn } from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { useContext } from "react";
