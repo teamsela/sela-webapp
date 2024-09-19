@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { FormatContext } from '../index';
-import {PiMinusSquare, PiPlusSquare } from "react-icons/pi";
+import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { ToolTip } from "./Buttons";
 
 const ScaleDropDown = ({setScaleValue}: {
@@ -135,7 +135,7 @@ const ScaleDropDown = ({setScaleValue}: {
         <button
           className="hover:text-primary"
           onClick={scaleByDecrement}>
-          <PiMinusSquare  fontSize="1.5em" />
+          <AiOutlineMinusCircle fontSize="1.4em" />
         </button>
         <ToolTip text="Minus scale by 5%"/>
       </div>
@@ -205,7 +205,7 @@ const ScaleDropDown = ({setScaleValue}: {
         <button
           className="hover:text-primary"
           onClick={scaleByIncrement}>
-          <PiPlusSquare fontSize="1.5em" />
+          <AiOutlinePlusCircle fontSize="1.4em" />
         </button>
         <ToolTip text="Add scale by 5%"/>
       </div>

@@ -3,7 +3,7 @@
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
-import { AiOutlineMinusCircle, AiOutlinePlusCircle, AiOutlineClear } from "react-icons/ai";
+import { AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
@@ -47,46 +47,6 @@ export const RedoBtn = () => {
         <LuRedo2 fontSize="1.5em" />
       </button>
       <ToolTip text="Redo" />
-    </div>
-  );
-};
-
-export const ZoomOutBtn = ({
-  zoomLevel,
-  setZoomLevel
-}: {
-  zoomLevel: number;
-  setZoomLevel: (arg: number) => void;
-}) => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={() => (zoomLevel >= 1) && setZoomLevel(zoomLevel - 1)} >
-        <AiOutlineMinusCircle fontSize="1.5em" />
-      </button>
-      <ToolTip text="Zoom out" />
-    </div>
-  );
-};
-
-export const ZoomInBtn = ({
-  zoomLevel,
-  setZoomLevel
-}: {
-  zoomLevel: number;
-  setZoomLevel: (arg: number) => void;
-}) => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={() => (zoomLevel < 10) && setZoomLevel(zoomLevel + 1)} >
-        <AiOutlinePlusCircle fontSize="1.5em" />
-      </button>
-      <ToolTip text="Zoom in" />
     </div>
   );
 };
