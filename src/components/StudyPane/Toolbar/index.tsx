@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, MoveUpBtn, MoveDownBtn, 
-  IndentBtn, UniformWidthBtn, StropheActionBtn, NewStanzaBtn } from "./Buttons";
-import ScaleDropDown from "./ScaleDropDown";
-=======
 import { UndoBtn, RedoBtn, ZoomInBtn, ZoomOutBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, NewStanzaBtn } from "./Buttons";
->>>>>>> main
+import ScaleDropDown from "./ScaleDropDown";
 import { useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType } from "@/lib/types";
