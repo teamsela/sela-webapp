@@ -11,7 +11,6 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
   } = useContext(FormatContext)
@@ -37,7 +36,7 @@ const Passage = ({
     document.addEventListener('mouseup', handleMouseUp);
     setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
     setSelectionEnd(null);
-
+    
 
     //click to de-select
     //if clicked on wordBlock, set status here so de-select function doesnt fire
@@ -138,6 +137,7 @@ const Passage = ({
       backgroundColor: 'rgba(0, 0, 255, 0.2)',
       border: '1px solid blue',
       pointerEvents: 'none',
+      zIndex: 100,
     };
   };
 
@@ -172,16 +172,16 @@ const Passage = ({
   }
 
   return (
-    <main className="relative top-19">
-    
+    <main className="relative top-19 h-0">
       <div
         key={`passage`}
         onMouseDown={handleMouseDown}
         ref={containerRef}
         style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
         {...passageContentStyle}
+        className="h-0"
       >
-        <div className='relative py-5 top-5 z-10 overflow-hidden'>
+        <div id="selaPassage" className='relative top-16 pb-2 z-10 overflow-hidden'>
           {
             passageData.strophes.map((strophe)=>{
               return(
@@ -192,8 +192,8 @@ const Passage = ({
               )
             })
           }
-          {isDragging && <div style={getSelectionBoxStyle()} />}
         </div>
+        {isDragging && <div style={getSelectionBoxStyle()} />}
       </div>
 
     </main>

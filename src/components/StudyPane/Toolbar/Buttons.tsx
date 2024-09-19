@@ -334,8 +334,6 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (
-    <>
-    <div className="relative">
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
@@ -361,8 +359,6 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
         <ToolTip text={toolTip} />
       </button>
     </div>
-    </div>
-    </>
   );
 };
 

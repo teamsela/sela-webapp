@@ -8,6 +8,16 @@ const LanguageSwitcher = ({
 }) => {
   const { ctxIsHebrew } = useContext(FormatContext);
 
+  const updateScaleOrigin = () => {
+    const passageDiv = document.getElementById('selaPassage');
+    if (!passageDiv) {
+      console.error("Can not find the passage division.");
+      return;
+    }
+    // ctxIsHebrew is not updated yet, so reversed origin 
+    passageDiv.style.transformOrigin = ctxIsHebrew ? "0 0" : "100% 0";
+  };
+
   return (
     <div>
       <label
@@ -21,6 +31,7 @@ const LanguageSwitcher = ({
             className="sr-only"
             onChange={() => {
               setLangToHebrew(!ctxIsHebrew);
+              updateScaleOrigin();
             }}
           />
           <div className="block h-10 w-18 lg:w-26 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
