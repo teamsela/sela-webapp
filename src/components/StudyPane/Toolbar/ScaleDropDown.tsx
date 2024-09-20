@@ -93,7 +93,7 @@ const ScaleDropDown = ({setScaleValue}: {
     setDropdownOpen(false)
   }
 
-  // scale passage to horiztontally fit to screen
+  // scale passage to vertically fit to screen
   const ScaleByFitScreen = () => {
     if (!fitScreen) {
       /*TODO: current layout is not steady, may need to update the calculation later */
@@ -102,7 +102,7 @@ const ScaleDropDown = ({setScaleValue}: {
       const headerHeight = document.getElementById("selaHeader")?.offsetHeight;
       const hardcodedPadding = 64; // <div class="top-16">;
       const fitScreenHeight = window.innerHeight - (headerHeight || 0) -  hardcodedPadding;
-      const scale = Number((currentHeight ? fitScreenHeight / currentHeight : 1).toPrecision(2));
+      const scale = Math.floor((currentHeight ? fitScreenHeight / currentHeight : 1) * 100) / 100;
       setScaleValueAndScalePassage(scale);
       setDisplayScaleLevel("Fit");
       setFitScreen(true);
