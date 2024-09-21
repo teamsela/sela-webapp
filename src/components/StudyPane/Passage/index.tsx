@@ -168,7 +168,7 @@ const Passage = ({
   }, [ctxStructureUpdateType]);
 
   const passageContentStyle = {
-    className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+    className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-17`
   }
 
   return (
