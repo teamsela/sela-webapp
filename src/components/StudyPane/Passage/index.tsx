@@ -172,7 +172,7 @@ const Passage = ({
   }
 
   return (
-    <main className="relative top-19 h-full w-full h-0">
+    <main className="relative min-h-screen w-full">
     
       <div
         key={`passage`}
@@ -182,7 +182,7 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div id="selaPassage" className='relative top-16 pb-2 z-10 overflow-hidden'>
+        <div id="selaPassage" className='relative py-5 top-30 pb-2 z-10'>
           {
             passageData.strophes.map((strophe)=>{
               return(
