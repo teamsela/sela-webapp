@@ -168,11 +168,12 @@ const Passage = ({
   }, [ctxStructureUpdateType]);
 
   const passageContentStyle = {
-    className: `flex-1 overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+    className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-17`
   }
 
   return (
-    <main className="relative top-19 h-0">
+    <main className="relative min-h-screen w-full">
+    
       <div
         key={`passage`}
         onMouseDown={handleMouseDown}
@@ -181,7 +182,7 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div id="selaPassage" className='relative top-16 pb-2 z-10 overflow-hidden'>
+        <div id="selaPassage" className='relative py-5 top-30 pb-2 z-10'>
           {
             passageData.strophes.map((strophe)=>{
               return(
