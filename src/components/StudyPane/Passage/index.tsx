@@ -168,11 +168,12 @@ const Passage = ({
   }, [ctxStructureUpdateType]);
 
   const passageContentStyle = {
-    className: `flex-1 overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+    className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
   }
 
   return (
-    <main className="relative top-19 h-0">
+    <main className="relative top-19 h-full w-full h-0">
+    
       <div
         key={`passage`}
         onMouseDown={handleMouseDown}

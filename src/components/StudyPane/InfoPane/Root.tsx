@@ -38,9 +38,9 @@ const Root = ({
     };
 
     return (
-        <div className="flex flex-col  w-full h-full  relative">
-            <h2 className="text-lg text-black font-bold mb-2">Identical Roots</h2>
-            <div className="flex flex-col gap-2 overflow-y-auto w-full max-h-[630px] px-4">
+        <div className="flex flex-col  w-full max-h-[80vh]  relative">
+            <h2 className="text-lg text-black font-bold mb-2 mt-2">Identical Roots</h2>
+            <div className="flex flex-col gap-2 overflow-y-auto w-full max-h-screen px-4">
                 {rootWords.map((root, index) => (
                     <button
                         key={index}
@@ -54,7 +54,7 @@ const Root = ({
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center">
                 <button
-                    className="px-4 py-2 mt-2 bg-yellow-300 text-black font-semibold rounded-md shadow"
+                    className="px-4 py-2 mt-3 bg-yellow-300 text-black font-semibold rounded-md shadow"
                     onClick={() => console.log("Smart Highlight Clicked")}
                 >
                     Smart Highlight
