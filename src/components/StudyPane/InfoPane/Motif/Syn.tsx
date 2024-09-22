@@ -19,9 +19,8 @@ const Syn = ({
     ];
 
     return (
+        
         <div className="w-full h-full">
-            {/* Synonyms Header */}
-            <h2 className="text-lg text-black font-bold mb-2 mt-2">Synonyms</h2>
             {/* List of Synonym Groups */}
             <div className="flex flex-col gap-4">
                 {synonymsGroups.map((group, index) => (

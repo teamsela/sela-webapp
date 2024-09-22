@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Structure from "./Structure";
-import Motif from "./Motif";
+import Motif from "./Motif/index";
 import Syntax from "./Syntax";
 import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
@@ -28,7 +28,7 @@ const InfoPane = ({
         >
             {/* Fixed close button */}
             <button
-                className="absolute top-4 right-4 p-2 bg-gray-200 rounded-full"
+                className="absolute top-2 right-4 p-2 bg-gray-200 rounded-full"
                 onClick={handleClick}
                 style={{ zIndex: 1000 }} // Keep z-index for the close button
             >
@@ -36,7 +36,7 @@ const InfoPane = ({
             </button>
 
             {/* Conditionally render the content based on infoPaneAction */}
-            <div className="p-4">
+            <div className="mx-6">
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
                 {infoPaneAction === InfoPaneActionType.motif && <Motif />}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
