@@ -46,7 +46,7 @@ const Passage = ({
     clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
   };
 
-  const handleMouseMove = (event: MouseEvent) => {
+  const handleMouseMove = useCallback((event: MouseEvent) => {
     if (!isDragging) return;
     if (!selectionStart) return;
     // filter out small accidental drags when user clicks
@@ -57,23 +57,6 @@ const Passage = ({
     else
       setSelectionEnd(null);
     /////////
-    updateSelectedWords();
-  };
-
-  const handleMouseUp = () => {
-    document.body.style.userSelect = 'text';
-    setIsDragging(false);
-    //click to de-select
-    //if selectionEnd is null it means the mouse didnt move at all
-    //otherwise it means it is a drag
-    if (!selectionEnd && clickToDeSelect) {
-      ctxSetNumSelectedWords(0);
-      ctxSetSelectedHebWords([]);
-      ctxSetSelectedStrophes([]);
-    }
-  };
-
-  const updateSelectedWords = useCallback(() => {
     if (!selectionStart || !selectionEnd || !containerRef.current) return;
 
     // Get all elements with the class 'wordBlock' inside the container
@@ -119,7 +102,21 @@ const Passage = ({
       ctxSetSelectedStrophes([]);
     }
 
-  }, [selectionStart, selectionEnd]);
+  }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes,
+    ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+
+  const handleMouseUp = useCallback(() => {
+    document.body.style.userSelect = 'text';
+    setIsDragging(false);
+    //click to de-select
+    //if selectionEnd is null it means the mouse didnt move at all
+    //otherwise it means it is a drag
+    if (!selectionEnd && clickToDeSelect) {
+      ctxSetNumSelectedWords(0);
+      ctxSetSelectedHebWords([]);
+      ctxSetSelectedStrophes([]);
+    }
+  }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 
   const getSelectionBoxStyle = (): React.CSSProperties => {
     if (!selectionStart || !selectionEnd) return {};
@@ -165,7 +162,7 @@ const Passage = ({
     } 
     ctxSetStructureUpdateType(StructureUpdateType.none);
 
-  }, [ctxStructureUpdateType]);
+  }, [ctxStructureUpdateType, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetStructureUpdateType, passageData]);
 
   const passageContentStyle = {
     className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-17`

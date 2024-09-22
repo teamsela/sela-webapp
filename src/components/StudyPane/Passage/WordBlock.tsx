@@ -75,7 +75,7 @@ export const WordBlock = ({
     useEffect(() => {
       setSelected(ctxSelectedHebWords.includes(hebWord));
       ctxSetNumSelectedWords(ctxSelectedHebWords.length);
-    }, [ctxSelectedHebWords, selected]);
+    }, [ctxSelectedHebWords, selected, ctxSetNumSelectedWords, hebWord]);
 
     const handleClick = () => {
 

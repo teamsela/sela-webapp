@@ -27,9 +27,7 @@ const Header = ({
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
 }) => {
-  useEffect(() => {
-    setInfoPaneAction(infoPaneAction);
-  }, [infoPaneAction]);
+
   return (
     <header id="selaHeader" className="fixed left-0 top-0 z-9999 flex w-full bg-white">
       <div className="flex flex-grow items-center justify-between px-4 py-4 md:px-6 2xl:px-8 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>

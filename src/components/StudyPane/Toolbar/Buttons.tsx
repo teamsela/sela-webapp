@@ -8,7 +8,7 @@ import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
 import { SwatchesPicker } from 'react-color'
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
@@ -63,12 +63,12 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [displayColor, setDisplayColor] = useState("");
 
-  const refreshDisplayColor = () => {
+  const refreshDisplayColor = useCallback(() => {
     (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
     (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
     (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
-  }
-
+  }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
+  
   useEffect(() => {
     const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
@@ -81,13 +81,13 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     else {
       refreshDisplayColor();
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor) {
       refreshDisplayColor();
     }
-  }, [ctxColorAction])
+  }, [ctxColorAction, refreshDisplayColor])
 
   const handleClick = () => {
     if (buttonEnabled) {
@@ -167,7 +167,7 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
     if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, setColorAction])
 
   const handleClick = () => {
     if (buttonEnabled) {
@@ -233,7 +233,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     ctxSetIndentNum((ctxSelectedHebWords.length === 1) ? ctxSelectedHebWords[0].numIndent : 0);
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
     setButtonEnabled(ctxUniformWidth && (ctxNumSelectedWords === 1) && validIndent);
-  }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedHebWords, ctxIndentNum, ctxIsHebrew]);
+  }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedHebWords, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
 
   const handleClick = () => {
     if (!ctxUniformWidth || ctxSelectedHebWords.length === 0)

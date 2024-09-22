@@ -47,7 +47,7 @@ export const StropheBlock = ({
       }
       if (strophe.colorFill != colorFillLocal) { setColorFillLocal(strophe.colorFill || DEFAULT_COLOR_FILL) }
       if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
-    });
+    }, [ctxColorAction, selected, strophe, colorFillLocal, borderColorLocal, ctxSelectedColor]);
     
     const handleStropheBlockClick = () => {
       setSelected(prevState => !prevState);
@@ -82,7 +82,7 @@ export const StropheBlock = ({
     useEffect(() => {
       setSelected(ctxSelectedStrophes.includes(strophe));
       ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
-    }, [ctxSelectedStrophes]);
+    }, [ctxSelectedStrophes, strophe, ctxSetNumSelectedStrophes]);
 
     return(
       <div 

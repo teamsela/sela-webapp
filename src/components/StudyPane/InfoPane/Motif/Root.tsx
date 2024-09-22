@@ -37,7 +37,7 @@ const Root = ({
         <>
             <div className="flex flex-wrap pb-8">
                 {rootWords.map((root, index) => (
-                    <RootBlock id={index} rootWord={root.word} count={root.count} />
+                    <RootBlock key={index} id={index} rootWord={root.word} count={root.count} />
                 ))}
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center">
