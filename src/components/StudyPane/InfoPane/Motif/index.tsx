@@ -17,10 +17,11 @@ const Motif = ({
   const inactiveClasses = "border-transparent";
 
   return (
-    <div className="flex flex-wrap gap-3 pb-8 sm:gap-6">
+    <div>
+      <div className="mb-6 flex flex-wrap gap-5 border-b border-stroke dark:border-strokedark sm:gap-8">
         <Link
           href="#"
-          className={`border-b-2 py-4 text-sm font-medium hover:text-primary md:text-base ${
+          className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
             openTab === MotifType.root ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(MotifType.root)}
@@ -29,14 +30,14 @@ const Motif = ({
         </Link>
         <Link
           href="#"
-          className={`border-b-2 py-4 text-sm font-medium hover:text-primary md:text-base ${
+          className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
             openTab === MotifType.syn ? activeClasses : inactiveClasses
           }`}
           onClick={() => setOpenTab(MotifType.syn)}
         >
           Synonyms
         </Link>
-
+      </div>
       <div>
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"}`}
