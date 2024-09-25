@@ -6,6 +6,7 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { RiInsertColumnLeft, RiInsertColumnRight } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useState } from 'react';
@@ -273,9 +274,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount } = useContext(FormatContext);
+  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes } = useContext(FormatContext);
 
   let buttonEnabled = (ctxSelectedHebWords.length === 1);
+  let stropheButtonEnabled = (ctxNumSelectedStrophes === 1);
 
   if (updateType === StructureUpdateType.newLine) {
     buttonEnabled = buttonEnabled && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
@@ -289,6 +291,12 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
     buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
     buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
+  } else if (updateType === StructureUpdateType.newStanza) {
+    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != 0))
+  } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
+    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != 0))
+  } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
+    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != ctxStropheCount - 1))
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
@@ -315,23 +323,18 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
           }
           {
             (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }   
+          }  
+          {
+            (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          } 
+          {
+            (updateType == StructureUpdateType.mergeWithPrevStanza) && <RiInsertColumnLeft  opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
+          {
+            (updateType == StructureUpdateType.mergeWithNextStanza) && <RiInsertColumnRight opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+          }
         <ToolTip text={toolTip} />
       </button>
-    </div>
-  );
-};
-
-export const NewStanzaBtn = () => {
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={() => console.log("New Stanza Clicked")} >
-        <CgArrowsBreakeH opacity="0.4" fontSize="1.5em" />
-      </button>
-      <ToolTip text="New stanza" />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import ScaleDropDown from "./ScaleDropDown";
 import { useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType } from "@/lib/types";
+import Structure from "../InfoPane/Structure";
 
 const Toolbar = ({
   setScaleValue,
@@ -60,7 +61,11 @@ const Toolbar = ({
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
           </div>
-          <NewStanzaBtn />
+          <div className="border-r border-stroke flex flex-row">
+            <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStanza} toolTip="Merge with previous stanza" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStanza} toolTip="Merge with next stanza" />
+          </div>
         </div>)
       }
     </div>

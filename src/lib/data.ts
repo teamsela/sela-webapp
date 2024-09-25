@@ -24,6 +24,8 @@ export type HebWord = {
     stropheId: number | undefined;
     lastLineInStrophe: boolean;
     firstWordInStrophe: boolean;
+    stanzaId: number | undefined;
+    stanzaDiv?: boolean;
 }
 
 export type LineData = {
@@ -39,7 +41,20 @@ export type StropheData = {
     lines: LineData[];
 }
 
+export type StanzaData = {
+    id: number; // stanza id
+    colorFill?: string;
+    borderColor?: string;
+    expanded?: boolean;
+    strophes: StropheData[]
+}
+
 export type PassageData = {
     studyId: string; // study id
     strophes: StropheData[];
+}
+
+export type PassageData2 = {
+    studyId: string; //study id
+    stanzas: StanzaData[];
 }

@@ -1,17 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
-import { PassageData } from '@/lib/data';
+import { PassageData, PassageData2 } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
-import { handleStructureUpdate } from './StructureUpdate';
+import { handleStructureUpdate, handleStructureUpdate2 } from './StructureUpdate';
+import { StanzaBlock } from './StanzaBlock';
 
 const Passage = ({
   content,
 }: {
-  content: PassageData;
+  // content: PassageData;
+  content: PassageData2;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
   } = useContext(FormatContext)
 
@@ -24,10 +26,21 @@ const Passage = ({
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [passageData, setPassageData] = useState<PassageData>(content);
+  // const [passageData, setPassageData] = useState<PassageData>(content);
+  const [passageData, setPassageData] = useState<PassageData2>(content);
   
-  ctxSetStropheCount(passageData.strophes.length);
-
+  useEffect(() => {
+    let tempStropheCount = 0;
+    passageData.stanzas.map((stanzas, stanzaIdx)=>{
+      tempStropheCount += stanzas.strophes.length
+    })
+    ctxSetStropheCount(tempStropheCount);
+  }, [passageData]);
+  
+  useEffect(() => {
+    console.log('passageData called');
+    console.log(passageData);
+  }, [])
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -152,10 +165,12 @@ const Passage = ({
 
   useEffect(() => {
 
-    let actionedContent : PassageData | null = null;
+    // let actionedContent : PassageData | null = null;
+    let actionedContent : PassageData2 | null = null;
 
     if (ctxStructureUpdateType !== StructureUpdateType.none && ctxSelectedHebWords.length === 1) {
-      actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
+      // actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
+      actionedContent = handleStructureUpdate2(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes[0], ctxStructureUpdateType);
     }
 
     if (actionedContent !== null) {
@@ -183,11 +198,19 @@ const Passage = ({
       >
         <div id="selaPassage" className='relative top-16 pb-2 z-10 overflow-hidden'>
           {
-            passageData.strophes.map((strophe)=>{
+            // passageData.strophes.map((strophe)=>{
+            //   return(
+            //     <StropheBlock 
+            //       strophe={strophe}
+            //       key={strophe.id}
+            //     />
+            //   )
+            // })
+            passageData.stanzas.map((stanza) => {
               return(
-                <StropheBlock 
-                  strophe={strophe}
-                  key={strophe.id}
+                <StanzaBlock
+                  stanza={stanza}
+                  key={stanza.id}
                 />
               )
             })

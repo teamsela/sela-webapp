@@ -7,7 +7,7 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { StudyData, PassageData, HebWord, StropheData, PassageData2 } from '@/lib/data';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -49,7 +49,8 @@ const StudyPane = ({
   study, content, inViewMode
 }: {
   study: StudyData;
-  content: PassageData;
+  // content: PassageData;
+  content: PassageData2;
   inViewMode: boolean;
 }) => {
   const [scaleValue, setScaleValue] = useState(DEFAULT_SCALE_VALUE);
