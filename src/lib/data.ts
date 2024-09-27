@@ -13,6 +13,7 @@ export type HebWord = {
     strongNumber: number;
     wlcWord: string;
     gloss: string;
+    ETCBCgloss: string | undefined;
     colorFill: string;
     borderColor: string;
     textColor: string;

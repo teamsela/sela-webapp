@@ -138,6 +138,7 @@ const StudyPane = ({
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}
+                  content={content}
                 />
               </div>
             )

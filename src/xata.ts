@@ -23,23 +23,6 @@ const tables = [
     ],
   },
   {
-    name: "heb_bible",
-    columns: [
-      { name: "hebId", type: "int" },
-      { name: "book", type: "string" },
-      { name: "chapter", type: "int" },
-      { name: "verse", type: "int" },
-      { name: "wlcWord", type: "string" },
-      { name: "hebUnicode", type: "string" },
-      { name: "strongNumber", type: "float" },
-      { name: "gloss", type: "string" },
-      { name: "morphology", type: "string" },
-      { name: "WLCsort", type: "int" },
-      { name: "poetryMarker", type: "bool" },
-      { name: "paragraphMarker", type: "bool" },
-    ],
-  },
-  {
     name: "styling",
     columns: [
       { name: "studyId", type: "link", link: { table: "study" } },
@@ -51,6 +34,7 @@ const tables = [
       { name: "indented", type: "bool", defaultValue: "false" },
       { name: "stropheDiv", type: "bool" },
       { name: "lineBreak", type: "bool" },
+      { name: "stanzaDiv", type: "bool" },
     ],
   },
   {
@@ -98,6 +82,27 @@ const tables = [
       { name: "stanzaId", type: "int", notNull: true, defaultValue: "0" },
     ],
   },
+  {
+    name: "heb_bible",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "hebUnicode", type: "string" },
+      { name: "book", type: "string" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "strongNumber", type: "float" },
+      { name: "wlcWord", type: "string" },
+      { name: "gloss", type: "string" },
+      { name: "WLCsort", type: "int" },
+      { name: "morphology", type: "string" },
+      { name: "stropheBreak", type: "bool" },
+      { name: "verseBreak", type: "bool" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
+      { name: "ETCBCgloss", type: "string" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -105,9 +110,6 @@ export type InferredTypes = SchemaInference<SchemaTables>;
 
 export type Study = InferredTypes["study"];
 export type StudyRecord = Study & XataRecord;
-
-export type HebBible = InferredTypes["heb_bible"];
-export type HebBibleRecord = HebBible & XataRecord;
 
 export type Styling = InferredTypes["styling"];
 export type StylingRecord = Styling & XataRecord;
@@ -121,13 +123,16 @@ export type StropheStylingRecord = StropheStyling & XataRecord;
 export type StanzaStyling = InferredTypes["stanzaStyling"];
 export type StanzaStylingRecord = StanzaStyling & XataRecord;
 
+export type HebBible = InferredTypes["heb_bible"];
+export type HebBibleRecord = HebBible & XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
-  heb_bible: HebBibleRecord;
   styling: StylingRecord;
   heb_bible_bsb: HebBibleBsbRecord;
   stropheStyling: StropheStylingRecord;
   stanzaStyling: StanzaStylingRecord;
+  heb_bible: HebBibleRecord;
 };
 
 const DatabaseClient = buildClient();

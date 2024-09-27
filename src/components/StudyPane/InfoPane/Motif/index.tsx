@@ -1,4 +1,5 @@
 import { MotifType } from "@/lib/types";
+import { PassageData } from "@/lib/data";
 import React, { useState } from "react";
 import Link from "next/link";
 
@@ -6,9 +7,9 @@ import Root from "./Root";
 import Syn from "./Syn";
 
 const Motif = ({
-
+   content
 }: {
-
+   content: PassageData;
   }) => {
 
   const [openTab, setOpenTab] = useState(MotifType.root);
@@ -42,7 +43,7 @@ const Motif = ({
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"}`}
         >
-          <Root/>
+          <Root content={content} />
         </div>
         <div
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}

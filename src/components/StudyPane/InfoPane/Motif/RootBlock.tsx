@@ -6,7 +6,7 @@ export const RootBlock = ({
     id, rootWord, count
   }: {
     id: number,
-    rootWord: string,
+    rootWord: string | undefined,
     count: number
   }) => {
   
