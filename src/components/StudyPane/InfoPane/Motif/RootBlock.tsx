@@ -3,13 +3,14 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 
 export const RootBlock = ({
-    id, rootWord, count
+    id, rootWord, count, strongNumber
   }: {
     id: number,
     rootWord: string | undefined,
-    count: number
+    count: number,
+    strongNumber: number
   }) => {
-  
+    const { ctxSelectedRoots, ctxSetSelectedRoots } = useContext(FormatContext)
     const [colorFillLocal, setColorFillLocal] = useState(/*hebWord.colorFill || */DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(/*hebWord.borderColor ||*/DEFAULT_BORDER_COLOR);
     const [textColorLocal, setTextColorLocal] = useState(/*hebWord.textColor || */DEFAULT_TEXT_COLOR);
@@ -17,6 +18,12 @@ export const RootBlock = ({
   
     const handleClick = () => {
       setSelected(prevState => !prevState);
+      const updatedSelectedRoots = !selected 
+      ? [...ctxSelectedRoots, strongNumber]  // Add the strongNumber if selected
+      : ctxSelectedRoots.filter(root => root !== strongNumber);  // Remove if unselected
+
+    // Update the context with the new array
+    ctxSetSelectedRoots(updatedSelectedRoots);
     }   
   
     return (

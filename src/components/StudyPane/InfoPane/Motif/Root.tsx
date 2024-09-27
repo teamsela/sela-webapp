@@ -13,7 +13,6 @@ const Root = ({
     }
 
     let rootWordsMap = new Map<number, HebWordCount>();
-
     content.strophes.map((strophe) => {
         strophe.lines.map((line) => {
             line.words.map((word) => {
@@ -40,7 +39,7 @@ const Root = ({
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} />
+                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} strongNumber={root.word.strongNumber}/>
                     ))
                 }
             </div>

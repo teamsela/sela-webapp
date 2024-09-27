@@ -43,6 +43,8 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
+  ctxSelectedRoots: [] as number[],
+  ctxSetSelectedRoots: (arg: number[]) => {},
 });
 
 const StudyPane = ({
@@ -72,6 +74,7 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
+  const [selectedRoots, setSelectedRoots] = useState<number[]>([]);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -101,7 +104,9 @@ const StudyPane = ({
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
     ctxStropheCount: stropheCount,
-    ctxSetStropheCount: setStropheCount
+    ctxSetStropheCount: setStropheCount,
+    ctxSelectedRoots: selectedRoots,
+    ctxSetSelectedRoots: setSelectedRoots,
   }
 
 
