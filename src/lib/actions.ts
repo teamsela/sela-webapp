@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord, PassageData2 } from './data';
+import { StudyData, PassageData, StropheData, HebWord, PassageData2, StanzaData } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -357,6 +357,71 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
   }
 }
 
+export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[], hebIdsToRemoveDiv: number[], stanzasToUpDate: StanzaData[]) {
+  "use server"
+
+  const xataClient = getXataClient();
+
+  let result: any;
+  let operations: any =[];
+
+  hebIdsToAddBreak.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stanzaDiv: true },
+        upsert: true,
+      }
+    });
+  })
+
+  hebIdsToRemoveDiv.forEach((hebId) =>{
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stanzaDiv: false },
+        upsert: true,
+      }
+    });
+  })
+
+  if (stanzasToUpDate.length > 0) {
+    try {
+      const stanzaRecords = await xataClient.db.stanzaStyling.select(["id"]).filter({"studyId.id": studyId}).getMany();
+      stanzaRecords.forEach((stanzaRecord) => {
+        operations.push({
+          delete: {
+            table: "stanzaStyling" as const,
+            id: stanzaRecord.id,
+          }
+        })
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  stanzasToUpDate.forEach((stanza) => {
+    operations.push({
+      update: {
+        table: "stanzaStyling" as const,
+        id: studyId + "_" + stanza.id,
+        fields: { studyId, stanzaId: stanza.id, colorFill: stanza.colorFill, borderColor: stanza.borderColor, expanded: stanza.expanded },
+        upsert: true,
+      }
+    });
+  })
+
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update stanza division in styling.' };
+  }
+
+}
+
 export async function deleteStudy(studyId: string) {
 
   const xataClient = getXataClient();
@@ -608,6 +673,8 @@ export async function fetchPassageContent2(studyId: string) {
               (currentStanzaStyling.borderColor !== null) && (currentStanzaData.borderColor = currentStanzaStyling.borderColor);
               (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
             }
+            currentStropheIdx = -1; 
+
           } 
 
           let currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
@@ -652,7 +719,6 @@ export async function fetchPassageContent2(studyId: string) {
         })
       }
     }
-    console.log(passageData);
     return passageData;
   }
   catch (error) {

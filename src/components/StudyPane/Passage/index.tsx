@@ -37,10 +37,11 @@ const Passage = ({
     ctxSetStropheCount(tempStropheCount);
   }, [passageData]);
   
-  useEffect(() => {
+  useEffect(() => { //debug code for stanzas
     console.log('passageData called');
     console.log(passageData);
-  }, [])
+  }, [passageData]) // debug code for stanzas
+
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
@@ -168,7 +169,7 @@ const Passage = ({
     // let actionedContent : PassageData | null = null;
     let actionedContent : PassageData2 | null = null;
 
-    if (ctxStructureUpdateType !== StructureUpdateType.none && ctxSelectedHebWords.length === 1) {
+    if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {
       // actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
       actionedContent = handleStructureUpdate2(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes[0], ctxStructureUpdateType);
     }

@@ -1,6 +1,6 @@
 import { HebWord, PassageData, StropheData, LineData, PassageData2, StanzaData } from "@/lib/data";
 import { StructureUpdateType } from "@/lib/types";
-import { updateLineBreak, updateStropheDiv } from "@/lib/actions";
+import { updateLineBreak, updateStanzaDiv, updateStropheDiv } from "@/lib/actions";
 import Structure from "../InfoPane/Structure";
 
 export const handleStructureUpdate = (content: PassageData, selectedWord: HebWord, actionType: StructureUpdateType) : PassageData => {
@@ -378,8 +378,10 @@ export const handleStructureUpdate2 = (content: PassageData2, selectedWord: HebW
   }
 
   if (insertStanzaList.length > 0 || removeStanzaList.length > 0) {
-    console.log('need to call function to update stanzas')
+    updateStanzaDiv(content.studyId, insertStanzaList, removeStanzaList, stanzasToUpdate);
   }
+  console.log(insertStanzaList);
+  console.log(removeStanzaList);
 
   return newPassageData;
 }

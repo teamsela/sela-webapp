@@ -294,7 +294,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.newStanza) {
     buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != 0))
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != 0))
+    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1))
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
     buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != ctxStropheCount - 1))
   }
