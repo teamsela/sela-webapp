@@ -1,44 +1,48 @@
-import { useState } from "react";
 import { RootBlock } from "./RootBlock";
+import { PassageData, HebWord } from "@/lib/data";
 
 const Root = ({
+    content
+  }: {
+    content: PassageData;
+  }) => {
 
-}: {
-    }) => {
+    type HebWordCount = {
+        word: HebWord,
+        count: number
+    }
 
-        const rootWords = [
-        { word: "LORD", count: 7 },
-        { word: "Many", count: 3 },
-        { word: "None", count: 3 },
-        { word: "Day", count: 2 },
-        { word: "Heart", count: 2 },
-        { word: "Heaven", count: 2 },
-        { word: "Servant", count: 2 },
-        { word: "Night", count: 2 },
-        { word: "Hide", count: 2 },
-        { word: "End", count: 2 },
-        { word: "Word", count: 2 },
-        { word: "Clear", count: 2 },
-        { word: "LORD", count: 7 },
-        { word: "Many", count: 3 },
-        { word: "None", count: 3 },
-        { word: "Day", count: 2 },
-        { word: "Heart", count: 2 },
-        { word: "Heaven", count: 2 },
-        { word: "Servant", count: 2 },
-        { word: "Night", count: 2 },
-        { word: "Hide", count: 2 },
-        { word: "End", count: 2 },
-        { word: "Word", count: 2 },
-        { word: "Clear", count: 2 },
-    ];
+    let rootWordsMap = new Map<number, HebWordCount>();
+
+    content.strophes.map((strophe) => {
+        strophe.lines.map((line) => {
+            line.words.map((word) => {
+                const currentWord = rootWordsMap.get(word.strongNumber);
+                if (currentWord !== undefined) {
+                    currentWord.count += 1;
+                }
+                else {
+                    rootWordsMap.set(word.strongNumber, { word: word, count: 1 });
+                }
+            })
+        })
+    });
+
+    let rootWords : HebWordCount[] = [];
+    rootWordsMap.forEach((value, key) => {
+        if (value.count > 1 && value.word.ETCBCgloss) {
+            rootWords.push(value);
+        }
+    });
 
     return (
         <>
             <div className="flex flex-wrap pb-8">
-                {rootWords.map((root, index) => (
-                    <RootBlock key={index} id={index} rootWord={root.word} count={root.count} />
-                ))}
+                {
+                    rootWords.map((root, index) => (
+                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} />
+                    ))
+                }
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center">
                 <button

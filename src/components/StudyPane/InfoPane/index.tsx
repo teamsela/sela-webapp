@@ -4,20 +4,22 @@ import Motif from "./Motif/index";
 import Syntax from "./Syntax";
 import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
+import { PassageData } from "@/lib/data";
 
 const InfoPane = ({
     infoPaneAction,
-    setInfoPaneAction
+    setInfoPaneAction,
+    content
 }: {
     infoPaneAction: InfoPaneActionType;
     setInfoPaneAction: (arg: InfoPaneActionType) => void;
+    content: PassageData;
 }) => {
     useEffect(() => {
         console.log(infoPaneAction)
     }, [infoPaneAction]);
     const handleClick = () => {
         setInfoPaneAction(InfoPaneActionType.none)
-        console.log("Close clicked");
     }
     return (
         <aside
@@ -38,7 +40,7 @@ const InfoPane = ({
             {/* Conditionally render the content based on infoPaneAction */}
             <div className="mx-6">
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
-                {infoPaneAction === InfoPaneActionType.motif && <Motif />}
+                {infoPaneAction === InfoPaneActionType.motif && <Motif content={content} />}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>
