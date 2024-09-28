@@ -6,6 +6,8 @@ import Link from "next/link";
 import Root from "./Root";
 import Syn from "./Syn";
 
+import { useDragToSelect } from '@/hooks/useDragToSelect';
+
 const Motif = ({
    content
 }: {
@@ -16,6 +18,8 @@ const Motif = ({
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
+
+  const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
 
   return (
     <div>
@@ -42,9 +46,12 @@ const Motif = ({
       <div>
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"}`}
+          onMouseDown={handleMouseDown}
+          ref={containerRef}
         >
           <Root content={content} />
         </div>
+        {isDragging && <div style={getSelectionBoxStyle()} />}
         <div
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
         >
