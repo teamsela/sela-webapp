@@ -12,7 +12,7 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxNumSelectedStrophes,
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
@@ -79,6 +79,7 @@ const Passage = ({
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
+      ctxSetSelectedStanzas([]);
     }
   };
 

@@ -9,13 +9,13 @@ import { strophesHasSameColor } from "@/lib/utils";
 import { updateStropheState } from '@/lib/actions';
 
 export const StropheBlock = ({
-    strophe, stanzaNumber
+    strophe
   }: {
-    strophe: StropheData, stanzaNumber: number
+    strophe: StropheData
   }) => {
   
-    const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, 
-      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
+    const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas,
+      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, 
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
@@ -57,6 +57,7 @@ export const StropheBlock = ({
       // remove any selected word blocks if strophe block is selected
       ctxSetSelectedHebWords([]);
       ctxSetNumSelectedWords(0);
+      ctxSetSelectedStanzas([]);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
@@ -88,7 +89,7 @@ export const StropheBlock = ({
     return(
       <div 
         key={"strophe_" + strophe.id}
-        className={`relative flex-column px-5 py-2 mx-1 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+        className={`relative flex-column px-5 pr-20 py-2 mx-1 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
         style={
           {
             background: `${colorFillLocal}`,
@@ -121,7 +122,7 @@ export const StropheBlock = ({
         </button>
         </div>
         {
-          expanded ?
+          expanded?
             strophe.lines.map((line, lineId) => {
               return (
                 <div
@@ -147,10 +148,10 @@ export const StropheBlock = ({
               )
             })
           :
-            <div
-              style={{minHeight: 25}}
-              key={"collapsed" + strophe.id}
-            >
+          <div
+            style={{minHeight: 25}}
+            key={"collapsed" + strophe.id}
+          >
           </div>
         }
       </div>

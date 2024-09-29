@@ -7,7 +7,7 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { StudyData, PassageData, HebWord, StropheData, StanzaData } from '@/lib/data';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -30,6 +30,8 @@ export const FormatContext = createContext({
   ctxSetStropheCount: (arg: number) => {},
   ctxStanzaCount: -1 as number,
   ctxSetStanzaCount: (arg: number) => {},
+  ctxSelectedStanzas: [] as StanzaData[],
+  ctxSetSelectedStanzas: (arg: StanzaData[]) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
@@ -62,7 +64,9 @@ const StudyPane = ({
   const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
   const [stropheCount, setStropheCount] = useState(0);
+
   const [stanzaCount, setStanzaCount] = useState(-1);
+  const [selectedStanzas, setSelectedStanzas] = useState<StanzaData[]>([]);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -90,6 +94,8 @@ const StudyPane = ({
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxStanzaCount: stanzaCount,
     ctxSetStanzaCount: setStanzaCount,
+    ctxSelectedStanzas: selectedStanzas,
+    ctxSetSelectedStanzas: setSelectedStanzas,
     ctxColorAction: colorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
