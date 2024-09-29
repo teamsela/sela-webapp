@@ -14,7 +14,7 @@ export const  StanzaBlock = ({
     return(
         <div
         key={"stanza_" + stanza.id}
-        className={`relative flex-column px-5 py-2 my-1`}
+        className={`relative flex-column w-1/2 flex-shrink-0  px-1 py-2 my-1`} 
         >
         {
             stanza.strophes.map((strophe) => {
@@ -22,6 +22,7 @@ export const  StanzaBlock = ({
                     <StropheBlock 
                     strophe={strophe}
                     key={strophe.id}
+                    stanzaNumber={stanza.id}
                     />
                 )
             })

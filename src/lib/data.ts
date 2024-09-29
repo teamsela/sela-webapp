@@ -50,11 +50,6 @@ export type StanzaData = {
 }
 
 export type PassageData = {
-    studyId: string; // study id
-    strophes: StropheData[];
-}
-
-export type PassageData2 = {
     studyId: string; //study id
     stanzas: StanzaData[];
 }

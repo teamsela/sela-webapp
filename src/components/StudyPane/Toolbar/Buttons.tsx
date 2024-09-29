@@ -274,10 +274,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes } = useContext(FormatContext);
+  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
 
   let buttonEnabled = (ctxSelectedHebWords.length === 1);
-  let stropheButtonEnabled = (ctxNumSelectedStrophes === 1);
+  let stropheButtonEnabled = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
   if (updateType === StructureUpdateType.newLine) {
     buttonEnabled = buttonEnabled && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
@@ -292,11 +292,14 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
     buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != 0))
+    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].id !== 0);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1))
+    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxStropheCount > 1 && (ctxSelectedStrophes[0] !== undefined) && (ctxNumSelectedStrophes == 1) && (ctxSelectedStrophes[0].id != ctxStropheCount - 1))
+    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
+  }
+  if (ctxSelectedStrophes[0] !== undefined){
+    console.log(ctxSelectedStrophes[0].lines[0].words[0].stanzaId)
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };

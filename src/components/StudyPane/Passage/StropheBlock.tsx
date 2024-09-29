@@ -9,9 +9,9 @@ import { strophesHasSameColor } from "@/lib/utils";
 import { updateStropheState } from '@/lib/actions';
 
 export const StropheBlock = ({
-    strophe
+    strophe, stanzaNumber
   }: {
-    strophe: StropheData
+    strophe: StropheData, stanzaNumber: number
   }) => {
   
     const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, 
@@ -84,10 +84,11 @@ export const StropheBlock = ({
       ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
     }, [ctxSelectedStrophes]);
 
+
     return(
       <div 
         key={"strophe_" + strophe.id}
-        className={`relative flex-column px-5 py-2 mx-5 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+        className={`relative flex-column px-5 py-2 mx-1 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
         style={
           {
             background: `${colorFillLocal}`,

@@ -1,20 +1,19 @@
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
-import { PassageData, PassageData2 } from '@/lib/data';
+import { PassageData } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
-import { handleStructureUpdate, handleStructureUpdate2 } from './StructureUpdate';
+import { handleStructureUpdate } from './StructureUpdate';
 import { StanzaBlock } from './StanzaBlock';
 
 const Passage = ({
   content,
 }: {
-  // content: PassageData;
-  content: PassageData2;
+  content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxNumSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -27,20 +26,21 @@ const Passage = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // const [passageData, setPassageData] = useState<PassageData>(content);
-  const [passageData, setPassageData] = useState<PassageData2>(content);
+  const [passageData, setPassageData] = useState<PassageData>(content);
   
   useEffect(() => {
     let tempStropheCount = 0;
-    passageData.stanzas.map((stanzas, stanzaIdx)=>{
+    passageData.stanzas.map((stanzas)=>{
       tempStropheCount += stanzas.strophes.length
     })
     ctxSetStropheCount(tempStropheCount);
+    ctxSetStanzaCount(passageData.stanzas.length);
   }, [passageData]);
   
-  useEffect(() => { //debug code for stanzas
-    console.log('passageData called');
-    console.log(passageData);
-  }, [passageData]) // debug code for stanzas
+  // useEffect(() => { //debug code for stanzas
+  //   console.log('passageData called');
+  //   console.log(passageData);
+  // }, [passageData]) // debug code for stanzas
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -165,26 +165,28 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
-
+    console.log('selected strophes number is ' + String(ctxNumSelectedStrophes));
     // let actionedContent : PassageData | null = null;
-    let actionedContent : PassageData2 | null = null;
+    let actionedContent : PassageData | null = null;
 
     if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {
-      // actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
-      actionedContent = handleStructureUpdate2(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes[0], ctxStructureUpdateType);
+      actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes, ctxStructureUpdateType);
     }
 
     if (actionedContent !== null) {
       setPassageData(actionedContent);
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
+      ctxSetSelectedStrophes([]);
+      ctxSetNumSelectedStrophes(0);
     } 
     ctxSetStructureUpdateType(StructureUpdateType.none);
 
   }, [ctxStructureUpdateType]);
 
+
   const passageContentStyle = {
-    className: `flex-1 overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
+    className: `flex-1 overflow-hidden relative w-full h-full transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6`
   }
 
   return (
@@ -197,16 +199,8 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div id="selaPassage" className='relative top-16 pb-2 z-10 overflow-hidden'>
+        <div id="selaPassage" className='flex overflow-x-auto relative top-16 pb-2 z-10 overflow-hidden'>
           {
-            // passageData.strophes.map((strophe)=>{
-            //   return(
-            //     <StropheBlock 
-            //       strophe={strophe}
-            //       key={strophe.id}
-            //     />
-            //   )
-            // })
             passageData.stanzas.map((stanza) => {
               return(
                 <StanzaBlock

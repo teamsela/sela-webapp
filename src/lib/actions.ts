@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord, PassageData2, StanzaData } from './data';
+import { StudyData, PassageData, StropheData, HebWord, StanzaData } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -452,130 +452,6 @@ export async function createStudy(passage: string) {
 }
 
 export async function fetchPassageContent(studyId: string) {
-
-  const xataClient = getXataClient();
-
-  try {
-      // fetch a study by id from xata
-      const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
-     
-      let passageData = { studyId: studyId, strophes: [] } as PassageData;
-
-      if (study)
-      {
-          const passageInfo = parsePassageInfo(study.passage);
-
-          // fetch all words from xata by start/end chapter and verse
-          if (passageInfo instanceof Error === false)
-          {
-              const wordStyling = await xataClient.db.styling
-                .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'lineBreak', 'stropheDiv'])
-                .sort("hebId", "asc")
-                .getAll();
-              const wordStylingMap = new Map();
-              wordStyling.forEach((obj) => {
-                wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, lineBreak: obj.lineBreak, stropheDiv: obj.stropheDiv });
-              });
-
-              const stropheStyling = await xataClient.db.stropheStyling
-                .filter({studyId: study.id})
-                .select(['stropheId', 'colorFill', 'borderColor', 'expanded'])
-                .sort("stropheId", "asc")
-                .getAll();
-              const stropheStylingMap = new Map();
-              stropheStyling.forEach((obj) => {
-                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
-              });
-
-              const passageContent = await xataClient.db.heb_bible_bsb
-                  .filter("chapter", ge(passageInfo.startChapter))
-                  .filter("chapter", le(passageInfo.endChapter))
-                  .filter("verse", ge(passageInfo.startVerse))
-                  .filter("verse", le(passageInfo.endVerse))
-                  .sort("hebId", "asc")
-              //    .select(["hebId", "chapter", "verse", "hebUnicode", "strongNumber", "gloss"])
-                  .getAll();
-          
-              let currentStropheIdx = -1;
-              let currentLineIdx = -1;
-              let prevVerseNum = 0;
-
-              passageContent.forEach(word => {
-
-                  let hebWord = {} as HebWord;
-                  hebWord.id = word.hebId || 0;
-                  hebWord.chapter = word.chapter || 0;
-                  hebWord.verse = word.verse || 0;
-                  hebWord.strongNumber = word.strongNumber || 0;
-                  hebWord.wlcWord = word.wlcWord || "";
-                  hebWord.gloss = word.gloss?.trim() || "";
-                  hebWord.showVerseNum = false;
-                  hebWord.numIndent = 0;
-                  hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
-                  hebWord.lastLineInStrophe = false;
-                  hebWord.firstWordInStrophe = false;
-
-                  const currentWordStyling = wordStylingMap.get(hebWord.id);
-                  if (currentWordStyling !== undefined) {
-                    (currentWordStyling.colorFill !== null) && (hebWord.colorFill = currentWordStyling.colorFill);
-                    (currentWordStyling.borderColor !== null) && (hebWord.borderColor = currentWordStyling.borderColor);
-                    (currentWordStyling.textColor !== null) && (hebWord.textColor = currentWordStyling.textColor);
-                    (currentWordStyling.numIndent !== null) && (hebWord.numIndent = currentWordStyling.numIndent);
-                    (currentWordStyling.lineBreak !== null) && (hebWord.lineBreak = currentWordStyling.lineBreak);
-                    (currentWordStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentWordStyling.stropheDiv);
-                  }
-
-                  let currentStropheData = passageData.strophes[currentStropheIdx];
-                  if (currentStropheData === undefined || (hebWord.stropheDiv !== undefined && hebWord.stropheDiv)) {
-                      if (currentStropheIdx !== -1) {
-                          let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
-                          passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
-                              word.lastLineInStrophe = true;
-                          })
-                      }
-                      passageData.strophes.push({id: ++currentStropheIdx, lines: []});
-                      currentStropheData = passageData.strophes[currentStropheIdx];
-                      const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
-                      if (currentStropheStyling !== undefined) {
-                          (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
-                          (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
-                          (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
-                      }
-                      currentLineIdx = -1;
-                      hebWord.firstWordInStrophe = true;
-                  }
-
-                  let currentLineData = currentStropheData.lines[currentLineIdx];
-                  if (currentLineData === undefined || hebWord.lineBreak) {
-                      currentStropheData.lines.push({id: ++currentLineIdx, words: []})
-                      currentLineData = currentStropheData.lines[currentLineIdx];
-                  }
-
-                  if (prevVerseNum !== hebWord.verse) {
-                      hebWord.showVerseNum = true;
-                  }
-                  hebWord.lineId = currentLineIdx;
-                  hebWord.stropheId = currentStropheIdx;
-                  
-                  currentLineData.words.push(hebWord);
-                  prevVerseNum = hebWord.verse;
-              })
-              let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
-              passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
-                  word.lastLineInStrophe = true;
-              })
-          }         
-      }
-      return passageData;
-
-  } catch (error) {
-      console.error('Database Error:', error);
-      throw new Error('Failed to fetch passage content by study id.');        
-  }
-}
-
-export async function fetchPassageContent2(studyId: string) {
   
   const xataClient = getXataClient();
 
@@ -583,7 +459,7 @@ export async function fetchPassageContent2(studyId: string) {
     // fetch a study by id from xata
     const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
 
-    let passageData = { studyId: studyId, stanzas: [] } as PassageData2;
+    let passageData = { studyId: studyId, stanzas: [] } as PassageData;
 
     if (study)
     {
@@ -609,17 +485,17 @@ export async function fetchPassageContent2(studyId: string) {
           .getAll();
         const stanzaStylingMap = new Map();
         stanzaStyling.forEach((obj) => {
-          stanzaStylingMap.set(obj.stanzaId, { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded })
+          stanzaStylingMap.set(String(obj.stanzaId), { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded })
         })
 
         const stropheStyling = await xataClient.db.stropheStyling
           .filter({studyId: study.id})
-          .select(['stropheId', 'colorFill', 'borderColor', 'expanded'])
+          .select(['stropheId', 'stanzaStylingId', 'colorFill', 'borderColor', 'expanded'])
           .sort("stropheId", "asc")
           .getAll();
         const stropheStylingMap = new Map();
         stropheStyling.forEach((obj) => {
-          stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
+          stropheStylingMap.set(String(obj.stanzaStylingId)+'_'+String(obj.stropheId), { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
         });
 
         const passageContent = await xataClient.db.heb_bible_bsb
@@ -662,12 +538,9 @@ export async function fetchPassageContent2(studyId: string) {
 
           let currentStanzaData = passageData.stanzas[currentStanzaIdx];
           if (currentStanzaData === undefined || (hebWord.stanzaDiv !== undefined && hebWord.stanzaDiv)) {
-            if (currentStanzaIdx !== -1) {
-              
-            }
             passageData.stanzas.push({id: ++currentStanzaIdx, strophes:[]});
             currentStanzaData = passageData.stanzas[currentStanzaIdx];
-            const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
+            const currentStanzaStyling = stanzaStylingMap.get(String(currentStanzaIdx));
             if (currentStanzaStyling !== undefined) {
               (currentStanzaStyling.colorFill !== null) && (currentStanzaData.colorFill = currentStanzaStyling.colorFill);
               (currentStanzaStyling.borderColor !== null) && (currentStanzaData.borderColor = currentStanzaStyling.borderColor);
@@ -687,7 +560,7 @@ export async function fetchPassageContent2(studyId: string) {
             }
             passageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
             currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
-            const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
+            const currentStropheStyling = stropheStylingMap.get(String(currentStanzaIdx)+'_'+String(currentStropheIdx));
             if (currentStropheStyling !== undefined) {
               (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
               (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
