@@ -58,7 +58,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxSelectedStanzas 
+    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxSelectedStanzas, ctxNumSelectedStanzas
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
