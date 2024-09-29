@@ -12,7 +12,7 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas,
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas, ctxSetNumSelectedStanzas,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
@@ -79,7 +79,9 @@ const Passage = ({
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
+      ctxSetNumSelectedStrophes(0);
       ctxSetSelectedStanzas([]);
+      ctxSetNumSelectedStanzas(0);
     }
   };
 
@@ -111,6 +113,7 @@ const Passage = ({
           const newArray = [...ctxSelectedHebWords, selectedWord];
           ctxSetSelectedHebWords(newArray);
           ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+        
         }
       }
     });
@@ -127,6 +130,9 @@ const Passage = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
       }
       ctxSetSelectedStrophes([]);
+      ctxSetNumSelectedStrophes(0);
+      ctxSetSelectedStanzas([]);
+      ctxSetNumSelectedStanzas(0);
     }
 
   }, [selectionStart, selectionEnd]);
@@ -173,6 +179,8 @@ const Passage = ({
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
+      ctxSetSelectedStanzas([]);
+      ctxSetNumSelectedStanzas(0);
     } 
     ctxSetStructureUpdateType(StructureUpdateType.none);
 

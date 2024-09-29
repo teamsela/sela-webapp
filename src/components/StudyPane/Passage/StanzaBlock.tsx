@@ -1,8 +1,10 @@
 import { StanzaData } from "@/lib/data"
 import { useContext, useEffect, useState } from "react"
-import { FormatContext } from ".."
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { LuTextSelect } from "react-icons/lu"
+import { stanzaHasSameColor } from "@/lib/utils"
+import { ColorActionType } from "@/lib/types"
 
 export const  StanzaBlock = ({
     stanza 
@@ -10,22 +12,63 @@ export const  StanzaBlock = ({
     stanza: StanzaData 
 }) => {
 
-    const { ctxIsHebrew, ctxSetSelectedStanzas, ctxSelectedStanzas, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctx } = useContext(FormatContext);
+    const { ctxIsHebrew, ctxSetSelectedStanzas, ctxSelectedStanzas, ctxSetSelectedStrophes, 
+        ctxSetNumSelectedStrophes, ctxSetNumSelectedWords, ctxSetSelectedHebWords, 
+        ctxSetColorFill, ctxSetBorderColor, ctxColorAction, ctxSelectedColor, ctxSetNumSelectedStanzas } = useContext(FormatContext);
     const [selected, setSelected] = useState(false);
+
+    const [colorFillLocal, setColorFillLocal] = useState(stanza.colorFill || DEFAULT_COLOR_FILL);
+    const [borderColorLocal, setBorderColorLocal] = useState(stanza.borderColor || DEFAULT_BORDER_COLOR);
+
+    useEffect(() => {
+        if (ctxColorAction != ColorActionType.none && selected) {
+          if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+            setColorFillLocal(ctxSelectedColor);
+            stanza.colorFill = ctxSelectedColor;
+          }
+          else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+            setBorderColorLocal(ctxSelectedColor);
+            stanza.borderColor = ctxSelectedColor;
+          }
+          else if (ctxColorAction === ColorActionType.resetColor) {
+            if (colorFillLocal != DEFAULT_COLOR_FILL) {
+              setColorFillLocal(DEFAULT_COLOR_FILL);
+              stanza.colorFill = DEFAULT_COLOR_FILL;
+            }
+            if (borderColorLocal != DEFAULT_BORDER_COLOR) {
+              setBorderColorLocal(DEFAULT_BORDER_COLOR);
+              stanza.borderColor = DEFAULT_BORDER_COLOR;  
+            }
+          }
+        }
+        if (stanza.colorFill != colorFillLocal) { setColorFillLocal(stanza.colorFill || DEFAULT_COLOR_FILL) }
+        if (stanza.borderColor != borderColorLocal) { setBorderColorLocal(stanza.borderColor || DEFAULT_BORDER_COLOR) }
+      });
 
     const handleStanzaBlockClick = () => {
         setSelected(prevState => !prevState);
         (!selected) ? ctxSelectedStanzas.push((stanza)) : ctxSelectedStanzas.splice(ctxSelectedStanzas.indexOf(stanza), 1);
         ctxSetSelectedStanzas(ctxSelectedStanzas);
+        ctxSetNumSelectedStanzas(ctxSelectedStanzas.length);
         ctxSetSelectedStrophes([]);
         ctxSetNumSelectedStrophes(0);
         ctxSetSelectedHebWords([]);
         ctxSetNumSelectedWords(0);
 
+        ctxSetColorFill(DEFAULT_COLOR_FILL);
+        ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+        if (ctxSelectedStanzas.length >= 1) {
+        const lastSelectedStrophe = ctxSelectedStanzas.at(ctxSelectedStanzas.length-1);
+        if (lastSelectedStrophe) {
+            stanzaHasSameColor(ctxSelectedStanzas, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedStrophe.colorFill || DEFAULT_COLOR_FILL);
+            stanzaHasSameColor(ctxSelectedStanzas, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedStrophe.borderColor || DEFAULT_BORDER_COLOR);
+        }
+        }
     }
 
     useEffect(() => {
         setSelected(ctxSelectedStanzas.includes(stanza));
+        ctxSetNumSelectedStanzas(ctxSelectedStanzas.length);
     }, [ctxSelectedStanzas])
 
     return(

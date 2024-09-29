@@ -32,6 +32,8 @@ export const FormatContext = createContext({
   ctxSetStanzaCount: (arg: number) => {},
   ctxSelectedStanzas: [] as StanzaData[],
   ctxSetSelectedStanzas: (arg: StanzaData[]) => {},
+  ctxNumSelectedStanzas: 0 as number,
+  ctxSetNumSelectedStanzas: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
@@ -67,6 +69,7 @@ const StudyPane = ({
 
   const [stanzaCount, setStanzaCount] = useState(-1);
   const [selectedStanzas, setSelectedStanzas] = useState<StanzaData[]>([]);
+  const [numSelectedStanzas, setNumSelectedStanzas] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -96,6 +99,8 @@ const StudyPane = ({
     ctxSetStanzaCount: setStanzaCount,
     ctxSelectedStanzas: selectedStanzas,
     ctxSetSelectedStanzas: setSelectedStanzas,
+    ctxSetNumSelectedStanzas: setNumSelectedStanzas,
+    ctxNumSelectedStanzas: numSelectedStanzas,
     ctxColorAction: colorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
