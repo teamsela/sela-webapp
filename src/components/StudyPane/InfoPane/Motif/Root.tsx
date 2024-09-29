@@ -1,5 +1,7 @@
 import { RootBlock } from "./RootBlock";
-import { PassageData, HebWord } from "@/lib/data";
+import { PassageData, HebWord, RootColor } from "@/lib/data";
+import React, { useContext } from 'react';
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
 const Root = ({
     content
@@ -11,7 +13,7 @@ const Root = ({
         word: HebWord,
         count: number
     }
-
+    const { ctxRootsColorMap, ctxSetRootsColorMap } = useContext(FormatContext);
     let rootWordsMap = new Map<number, HebWordCount>();
     content.strophes.map((strophe) => {
         strophe.lines.map((line) => {
@@ -31,15 +33,20 @@ const Root = ({
     rootWordsMap.forEach((value, key) => {
         if (value.count > 1 && value.word.ETCBCgloss) {
             rootWords.push(value);
+            let color:RootColor = {
+                colorFill : DEFAULT_COLOR_FILL,
+                colorBorder : DEFAULT_BORDER_COLOR,
+                colorText: DEFAULT_TEXT_COLOR
+            }
+            ctxRootsColorMap.set(value.word.strongNumber, color);
         }
     });
-
     return (
         <>
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} strongNumber={root.word.strongNumber}/>
+                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} strongNumber={root.word.strongNumber} hebWord={root.word}/>
                     ))
                 }
             </div>

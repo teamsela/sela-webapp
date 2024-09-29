@@ -35,7 +35,7 @@ export const WordBlock = ({
     const { ctxIsHebrew, ctxUniformWidth,
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
       ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor, 
-      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots, ctxSetSelectedRoots
+      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -43,37 +43,56 @@ export const WordBlock = ({
     const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
     const [selected, setSelected] = useState(false);
   
-    if (ctxColorAction != ColorActionType.none && selected) {
-      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
-        setColorFillLocal(ctxSelectedColor);
-        hebWord.colorFill = ctxSelectedColor;
-      }
-      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
-        setBorderColorLocal(ctxSelectedColor);
-        hebWord.borderColor = ctxSelectedColor;
-      }
-      else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
-        setTextColorLocal(ctxSelectedColor);
-        hebWord.textColor = ctxSelectedColor;
-      }
-      else if (ctxColorAction === ColorActionType.resetColor) {
-        if (colorFillLocal != DEFAULT_COLOR_FILL) {
-          setColorFillLocal(DEFAULT_COLOR_FILL);
-          hebWord.colorFill = DEFAULT_COLOR_FILL;
+    useEffect(() => {
+      if (ctxColorAction !== ColorActionType.none && selected) {
+        //let colorConfig = ctxRootsColorMap?.get(hebWord.strongNumber);
+        //let newMap = new Map(ctxRootsColorMap);
+    
+        if (ctxColorAction === ColorActionType.colorFill && colorFillLocal !== ctxSelectedColor && ctxSelectedColor !== "") {
+          setColorFillLocal(ctxSelectedColor);
+          hebWord.colorFill = ctxSelectedColor;
+          //if (colorConfig) colorConfig.colorFill = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal !== ctxSelectedColor && ctxSelectedColor !== "") {
+          setBorderColorLocal(ctxSelectedColor);
+          hebWord.borderColor = ctxSelectedColor;
+          //if (colorConfig) colorConfig.colorBorder = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.textColor && textColorLocal !== ctxSelectedColor && ctxSelectedColor !== "") {
+          setTextColorLocal(ctxSelectedColor);
+          hebWord.textColor = ctxSelectedColor;
+          //if (colorConfig) colorConfig.colorText = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.resetColor) {
+          if (colorFillLocal !== DEFAULT_COLOR_FILL) {
+            setColorFillLocal(DEFAULT_COLOR_FILL);
+            hebWord.colorFill = DEFAULT_COLOR_FILL;
+          }
+          if (borderColorLocal !== DEFAULT_BORDER_COLOR) {
+            setBorderColorLocal(DEFAULT_BORDER_COLOR);
+            hebWord.borderColor = DEFAULT_BORDER_COLOR;
+          }
+          if (textColorLocal !== DEFAULT_TEXT_COLOR) {
+            setTextColorLocal(DEFAULT_TEXT_COLOR);
+            hebWord.textColor = DEFAULT_TEXT_COLOR;
+          }
+          /*if (colorConfig) {
+            colorConfig.colorFill = DEFAULT_COLOR_FILL;
+            colorConfig.colorBorder = DEFAULT_BORDER_COLOR;
+            colorConfig.colorText = DEFAULT_TEXT_COLOR;
+          }*/
         }
-        if (borderColorLocal != DEFAULT_BORDER_COLOR) {
-          setBorderColorLocal(DEFAULT_BORDER_COLOR);
-          hebWord.borderColor = DEFAULT_BORDER_COLOR;
-        }
-        if (textColorLocal != DEFAULT_TEXT_COLOR) {
-          setTextColorLocal(DEFAULT_TEXT_COLOR);
-          hebWord.textColor = DEFAULT_TEXT_COLOR;
-        }
+    
+        /*if (colorConfig) {
+          newMap.set(hebWord.strongNumber, colorConfig);
+          ctxSetRootsColorMap(newMap);
+        }*/
       }
-    }
+    }, [ctxColorAction, selected, ctxSelectedColor, colorFillLocal, borderColorLocal, textColorLocal, ctxRootsColorMap, ctxSetRootsColorMap, hebWord]);
+    
   
     useEffect(() => {
       const isSelected = ctxSelectedHebWords.includes(hebWord) || ctxSelectedRoots.includes(hebWord.strongNumber);
+      if(ctxSelectedRoots.includes(hebWord.strongNumber)){
+        ctxSelectedHebWords.push(hebWord);
+      }
       setSelected(isSelected);
       ctxSetNumSelectedWords(ctxSelectedHebWords.length);
     }, [ctxSelectedHebWords, ctxSelectedRoots, selected, ctxSetNumSelectedWords, hebWord]);

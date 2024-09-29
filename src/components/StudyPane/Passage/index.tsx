@@ -26,7 +26,9 @@ const Passage = ({
 
   const [passageData, setPassageData] = useState<PassageData>(content);
   
-  ctxSetStropheCount(passageData.strophes.length);
+  useEffect(() =>{
+    ctxSetStropheCount(passageData.strophes.length);
+  }, [passageData]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();

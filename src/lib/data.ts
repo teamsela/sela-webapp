@@ -44,3 +44,9 @@ export type PassageData = {
     studyId: string; // study id
     strophes: StropheData[];
 }
+
+export type RootColor = {
+    colorFill: string;
+    colorBorder: string;
+    colorText: string;
+};
