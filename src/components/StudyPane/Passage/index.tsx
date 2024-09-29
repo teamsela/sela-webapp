@@ -36,11 +36,6 @@ const Passage = ({
     ctxSetStropheCount(tempStropheCount);
     ctxSetStanzaCount(passageData.stanzas.length);
   }, [passageData]);
-  
-  // useEffect(() => { //debug code for stanzas
-  //   console.log('passageData called');
-  //   console.log(passageData);
-  // }, [passageData]) // debug code for stanzas
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -165,8 +160,6 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
-    console.log('selected strophes number is ' + String(ctxNumSelectedStrophes));
-    // let actionedContent : PassageData | null = null;
     let actionedContent : PassageData | null = null;
 
     if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {

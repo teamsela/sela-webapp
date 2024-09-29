@@ -298,9 +298,6 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
     buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
   }
-  if (ctxSelectedStrophes[0] !== undefined){
-    console.log(ctxSelectedStrophes[0].lines[0].words[0].stanzaId)
-  }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 

@@ -75,7 +75,6 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
             }
           }
           if ((nextStanzaDiv === true) && word.firstWordInStrophe ) {
-            console.log('first word in strophe triggered')
             word.stanzaDiv = true;
             insertStanzaList.push(word.id);
             nextStanzaDiv = false;
