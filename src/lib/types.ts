@@ -32,3 +32,8 @@ export enum InfoPaneActionType {
     syntax,
     sounds,
 }
+
+export enum MotifType {
+    root,
+    syn,
+}

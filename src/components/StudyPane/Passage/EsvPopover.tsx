@@ -51,7 +51,7 @@ const EsvPopover = ({
     esvContent.then((data) =>
       setEsvData(data)
     )
-  }, []);
+  }, [chapterNumber, verseNumber]);
 
   return (
     <div>

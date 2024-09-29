@@ -109,6 +109,27 @@ const tables = [
       { name: "ETCBCgloss", type: "string" },
     ],
   },
+  {
+    name: "heb_bible",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "hebUnicode", type: "string" },
+      { name: "book", type: "string" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "strongNumber", type: "float" },
+      { name: "wlcWord", type: "string" },
+      { name: "gloss", type: "string" },
+      { name: "WLCsort", type: "int" },
+      { name: "morphology", type: "string" },
+      { name: "stropheBreak", type: "bool" },
+      { name: "verseBreak", type: "bool" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
+      { name: "ETCBCgloss", type: "string" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;

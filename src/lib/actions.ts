@@ -519,6 +519,7 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.strongNumber = word.strongNumber || 0;
           hebWord.wlcWord = word.wlcWord || "";
           hebWord.gloss = word.gloss?.trim() || "";
+                  hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.showVerseNum = false;
           hebWord.numIndent = 0;
           hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;

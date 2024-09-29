@@ -122,9 +122,9 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    className: `flex-1 whitespace-nowrap ${infoPaneAction != InfoPaneActionType.none ? 'w-3/4' : ''} ${(isHebrew) ? "hbFont" : " "}`
-  }
-
+    className: `flex overflow-y-auto h-full ${infoPaneAction !== InfoPaneActionType.none ? 'w-3/4' : 'w-full'} ${isHebrew ? "hbFont" : ""}`
+  };
+  
   return (
     <>
       <FormatContext.Provider value={formatContextValue}>
@@ -134,10 +134,9 @@ const StudyPane = ({
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
         />
-
-        <main className="flex flex-row">
+  
+        <main className="flex flex-row relative h-full">
           <div {...passageDivStyle}>
-
             <Toolbar
               setScaleValue={setScaleValue}
               //color functions
@@ -145,17 +144,20 @@ const StudyPane = ({
               setSelectedColor={setSelectedColor}
               setUniformWidth={setUniformWidth}
             />
-
-            <Passage content={content}/>
+  
+            <Passage content={content} />
           </div>
+  
           {
-            (infoPaneAction != InfoPaneActionType.none) &&
-            <div className="relative top-19 w-1/4 border border-transparent right-0 z-30 h-full bg-white">
-              <InfoPane
-                infoPaneAction={infoPaneAction}
-                setInfoPaneAction={setInfoPaneAction}
-              />
-            </div>
+            infoPaneAction !== InfoPaneActionType.none && (
+              <div className="fixed top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
+                <InfoPane
+                  infoPaneAction={infoPaneAction}
+                  setInfoPaneAction={setInfoPaneAction}
+                  content={content}
+                />
+              </div>
+            )
           }
         </main>
       </FormatContext.Provider>
