@@ -177,7 +177,7 @@ const Passage = ({
   }, [ctxStructureUpdateType, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetStructureUpdateType, passageData]);
 
   const passageContentStyle = {
-    className: `flex-1 relative  w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
+    className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
   }
 
   return (
@@ -191,7 +191,7 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div id="selaPassage" className='flex relative overflow-x-auto m-2 py-5 top-30 pb-2 z-10'>
+        <div id="selaPassage" className='flex relative m-2 py-5 top-30 pb-2 z-10'>
           {
             passageData.stanzas.map((stanza) => {
               return(
