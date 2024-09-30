@@ -89,7 +89,7 @@ export const StropheBlock = ({
     return(
       <div 
         key={"strophe_" + strophe.id}
-        className={`relative flex-column px-5 pr-20 py-2 mx-1 my-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+        className={`relative flex-column px-5 py-2 mx-1 my-1 ${ctxIsHebrew?'pl-20':'pr-20'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
         style={
           {
             background: `${colorFillLocal}`,
