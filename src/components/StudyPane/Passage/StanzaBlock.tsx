@@ -14,9 +14,7 @@ export const  StanzaBlock = ({
     stanza: StanzaData 
 }) => {
 
-    const { ctxIsHebrew, ctxSetSelectedStanzas, ctxSelectedStanzas, ctxSetSelectedStrophes, 
-        ctxSetNumSelectedStrophes, ctxSetNumSelectedWords, ctxSetSelectedHebWords, 
-        ctxSetColorFill, ctxSetBorderColor, ctxColorAction, ctxSelectedColor, ctxSetNumSelectedStanzas, ctxStudyId } = useContext(FormatContext);
+    const { ctxIsHebrew, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxColorAction, ctxSelectedColor, ctxStudyId } = useContext(FormatContext);
     const [selected, setSelected] = useState(false);
     const [expanded, setExpanded] = useState(true);
 
@@ -48,27 +46,6 @@ export const  StanzaBlock = ({
         if (stanza.borderColor != borderColorLocal) { setBorderColorLocal(stanza.borderColor || DEFAULT_BORDER_COLOR) }
       });
 
-    const handleStanzaBlockClick = () => {
-        setSelected(prevState => !prevState);
-        (!selected) ? ctxSelectedStanzas.push((stanza)) : ctxSelectedStanzas.splice(ctxSelectedStanzas.indexOf(stanza), 1);
-        ctxSetSelectedStanzas(ctxSelectedStanzas);
-        ctxSetNumSelectedStanzas(ctxSelectedStanzas.length);
-        ctxSetSelectedStrophes([]);
-        ctxSetNumSelectedStrophes(0);
-        ctxSetSelectedHebWords([]);
-        ctxSetNumSelectedWords(0);
-
-        ctxSetColorFill(DEFAULT_COLOR_FILL);
-        ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-        if (ctxSelectedStanzas.length >= 1) {
-        const lastSelectedStrophe = ctxSelectedStanzas.at(ctxSelectedStanzas.length-1);
-        if (lastSelectedStrophe) {
-            stanzaHasSameColor(ctxSelectedStanzas, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedStrophe.colorFill || DEFAULT_COLOR_FILL);
-            stanzaHasSameColor(ctxSelectedStanzas, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedStrophe.borderColor || DEFAULT_BORDER_COLOR);
-        }
-        }
-    }
-
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
       updateStanzaState(ctxStudyId, stanza.id, !expanded);
@@ -80,11 +57,6 @@ export const  StanzaBlock = ({
       }
     }
 
-    useEffect(() => {
-        setSelected(ctxSelectedStanzas.includes(stanza));
-        ctxSetNumSelectedStanzas(ctxSelectedStanzas.length);
-    }, [ctxSelectedStanzas])
-
     return(
         <div
         key={"stanza_" + stanza.id}
@@ -93,16 +65,6 @@ export const  StanzaBlock = ({
         <div
           className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
           >
-        <button
-          key={"strophe" + stanza.id + "CollapseButton"}
-          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
-          onClick={() => handleStanzaBlockClick()}
-          data-clicktype={'clickable'}
-        >
-          <LuTextSelect
-            style={{pointerEvents:'none'}}
-          />
-        </button>
         <button
           key={"strophe" + stanza.id + "Selector"}
           className={`p-2 m-1 hover:bg-theme active:bg-transparent`}

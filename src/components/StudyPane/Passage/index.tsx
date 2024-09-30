@@ -12,7 +12,7 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas, ctxSetNumSelectedStanzas,
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
@@ -111,8 +111,6 @@ const Passage = ({
       }
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
-      ctxSetSelectedStanzas([]);
-      ctxSetNumSelectedStanzas(0);
     }
 
   }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes,
@@ -128,7 +126,6 @@ const Passage = ({
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
-      ctxSetSelectedStanzas([]);
     }
   }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 
@@ -174,8 +171,6 @@ const Passage = ({
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
-      ctxSetSelectedStanzas([]);
-      ctxSetNumSelectedStanzas(0);
     } 
     ctxSetStructureUpdateType(StructureUpdateType.none);
 

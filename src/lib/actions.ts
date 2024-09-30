@@ -570,7 +570,7 @@ export async function fetchPassageContent(studyId: string) {
             if (currentStanzaStyling !== undefined) {
               (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
             }
-            currentStropheIdx = -1; 
+            currentStropheIdx = -1;
 
           } 
 
@@ -584,10 +584,8 @@ export async function fetchPassageContent(studyId: string) {
             }
             passageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
             ++runningStropheIdx;
-            console.log('running index is ' + runningStropheIdx);
             currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
             const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
-            console.log(currentStropheStyling);
             if (currentStropheStyling !== undefined) {
               (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
               (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
@@ -595,8 +593,6 @@ export async function fetchPassageContent(studyId: string) {
             }
             currentLineIdx = -1;
             hebWord.firstWordInStrophe = true;
-            console.log('end of line');
-            console.log(stropheStylingMap);
           } 
 
           let currentLineData = currentStropheData.lines[currentLineIdx];

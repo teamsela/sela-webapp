@@ -13,6 +13,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   const stanzaStylingMap = new Map();
   let stanzaIdxUpdate : number = 0;
   let stropheIdxUpdate : number = 0;
+  let runningStropheCount : number = -1;
   let previousLineBreak : HebWord | null = null;
   let previousDivision : HebWord | null = null;
   let previousStanza: HebWord | null = null;
@@ -32,11 +33,9 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   let stanzasToUpdate: StanzaData[] = [];
 
   content.stanzas.map((stanza, stanzaId) => {
-    
-    stanza.strophes.map((strophe, stropheId) => {
-      stanzaStylingMap.set(stanzaId + stanzaIdxUpdate, { expanded: stanza.expanded });
-      stropheStylingMap.set(stropheId + stropheIdxUpdate, { colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded });
-
+    stanzaStylingMap.set(stanzaId + stanzaIdxUpdate, { expanded: stanza.expanded });
+    stanza.strophes.map((strophe) => {
+      stropheStylingMap.set(++runningStropheCount + stropheIdxUpdate, { colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded });
       strophe.lines.map((line) => {
         line.words.map((word, wordIdx) => {
           if (word.lineBreak === true) {
@@ -189,6 +188,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
       }
       
       newPassageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
+      ++runningStropheIdx;
       currentStropheData = newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
       const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
       if (currentStropheStyling !== undefined) {

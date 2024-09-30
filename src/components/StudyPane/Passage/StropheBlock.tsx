@@ -14,7 +14,7 @@ export const StropheBlock = ({
     strophe: StropheData, stanzaExpanded: boolean
   }) => {
   
-    const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas, ctxSetNumSelectedStanzas,
+    const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
       ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, 
     } = useContext(FormatContext);
   
@@ -57,8 +57,6 @@ export const StropheBlock = ({
       // remove any selected word blocks if strophe block is selected
       ctxSetSelectedHebWords([]);
       ctxSetNumSelectedWords(0);
-      ctxSetSelectedStanzas([]);
-      ctxSetNumSelectedStanzas(0);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);

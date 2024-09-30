@@ -35,7 +35,7 @@ export const WordBlock = ({
     const { ctxIsHebrew, ctxUniformWidth,
       ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, 
       ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxColorAction, ctxSelectedColor, 
-      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSetSelectedStanzas, ctxSetNumSelectedStanzas
+      ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
     } = useContext(FormatContext)
   
     const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -86,8 +86,6 @@ export const WordBlock = ({
       ctxSetNumSelectedWords(ctxSelectedHebWords.length);
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
-      ctxSetSelectedStanzas([]);
-      ctxSetNumSelectedStanzas(0);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
