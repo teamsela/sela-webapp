@@ -522,7 +522,7 @@ export async function fetchPassageContent(studyId: string) {
           stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
-        const passageContent = await xataClient.db.heb_bible_bsb
+        const passageContent = await xataClient.db.heb_bible
           .filter("chapter", ge(passageInfo.startChapter))
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
@@ -544,7 +544,7 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.strongNumber = word.strongNumber || 0;
           hebWord.wlcWord = word.wlcWord || "";
           hebWord.gloss = word.gloss?.trim() || "";
-          // hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.showVerseNum = false;
           hebWord.numIndent = 0;
           hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;

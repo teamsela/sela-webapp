@@ -14,19 +14,21 @@ const Root = ({
 
     let rootWordsMap = new Map<number, HebWordCount>();
 
-    content.strophes.map((strophe) => {
-        strophe.lines.map((line) => {
-            line.words.map((word) => {
-                const currentWord = rootWordsMap.get(word.strongNumber);
-                if (currentWord !== undefined) {
-                    currentWord.count += 1;
-                }
-                else {
-                    rootWordsMap.set(word.strongNumber, { word: word, count: 1 });
-                }
+    content.stanzas.map((stanzas) => {
+        stanzas.strophes.map((strophe) => {
+            strophe.lines.map((line) => {
+                line.words.map((word) => {
+                    const currentWord = rootWordsMap.get(word.strongNumber);
+                    if (currentWord !== undefined) {
+                        currentWord.count += 1;
+                    }
+                    else {
+                        rootWordsMap.set(word.strongNumber, { word: word, count: 1 });
+                    }
+                })
             })
-        })
-    });
+        });
+    })
 
     let rootWords : HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
