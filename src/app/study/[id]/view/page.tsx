@@ -33,7 +33,6 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    // <StudyPane study={study} content={passageContent} inViewMode={true}/>
     <StudyPane study={study} content={passageContent} inViewMode={true}/>
   );
 
