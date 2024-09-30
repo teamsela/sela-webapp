@@ -341,38 +341,3 @@ export function strophesHasSameColor(strophes: StropheData[], actionType: ColorA
 
   return true;
 }
-
-export function stanzaHasSameColor(stanzas: StanzaData[], actionType: ColorActionType) : boolean {
-  
-  if (stanzas.length <= 1) return true;
-
-  let previousColor : any;
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      previousColor = stanzas[0].colorFill;
-      break;    
-    case ColorActionType.borderColor:
-      previousColor = stanzas[0].borderColor;
-      break;
-    default:
-      break;
-  }
-
-  for (let stanza of stanzas) {
-    switch (actionType) {
-      case ColorActionType.colorFill:
-        if (stanza.colorFill != previousColor) { return false; }
-        previousColor = stanza.colorFill;
-        break;
-      case ColorActionType.borderColor:
-        if (stanza.borderColor != previousColor) { return false; }
-        previousColor = stanza.borderColor;
-        break;
-      default:
-        break;
-    }
-  }
-return true;
-
-}
