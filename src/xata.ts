@@ -70,23 +70,15 @@ const tables = [
       { name: "borderColor", type: "text" },
       { name: "stropheId", type: "int", notNull: true, defaultValue: "0" },
       { name: "expanded", type: "bool", defaultValue: "true" },
-      {
-        name: "stanzaStylingId",
-        type: "link",
-        link: { table: "stanzaStyling" },
-      },
     ],
   },
   {
     name: "stanzaStyling",
     columns: [
       { name: "studyId", type: "link", link: { table: "study" } },
-      { name: "colorFill", type: "text" },
-      { name: "borderColor", type: "text" },
       { name: "expanded", type: "bool" },
       { name: "stanzaId", type: "int", notNull: true, defaultValue: "0" },
     ],
-    revLinks: [{ column: "stanzaStylingId", table: "stropheStyling" }],
   },
   {
     name: "heb_bible",

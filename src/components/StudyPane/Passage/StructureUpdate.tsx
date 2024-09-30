@@ -34,7 +34,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   content.stanzas.map((stanza, stanzaId) => {
     
     stanza.strophes.map((strophe, stropheId) => {
-      stanzaStylingMap.set(stanzaId + stanzaIdxUpdate, { colorFill: stanza.colorFill, borderColor: stanza.borderColor, expanded: stanza.expanded });
+      stanzaStylingMap.set(stanzaId + stanzaIdxUpdate, { expanded: stanza.expanded });
       stropheStylingMap.set(stropheId + stropheIdxUpdate, { colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded });
 
       strophe.lines.map((line) => {
@@ -158,6 +158,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
 
   let currentStanzaIdx = -1;
   let currentStropheIdx = -1;
+  let runningStropheIdx = -1;
   let currentLineIdx = -1;
 
   flattenedContent.forEach(word => {
@@ -189,7 +190,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
       
       newPassageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
       currentStropheData = newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
-      const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
+      const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
       if (currentStropheStyling !== undefined) {
         (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
         (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
@@ -206,7 +207,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 
-    word.stropheId = currentStropheIdx;
+    word.stropheId = runningStropheIdx;
     word.stanzaId = currentStanzaIdx;
     currentLineData.words.push(word);
   });

@@ -215,8 +215,8 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
     operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + strophe.id,
-        fields: { studyId: studyId, stropheId: strophe.id, ...fieldsToUpdate },
+        id: studyId + "_" + strophe.lines[0].words[0].stropheId,
+        fields: { studyId: studyId, stropheId: strophe.lines[0].words[0].stropheId, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -232,7 +232,7 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
   }
 }
 
-export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
+export async function updateStropheState(studyId: string, strophe: StropheData, newState: boolean) {
   "use server";
 
   const xataClient = getXataClient();
@@ -243,8 +243,32 @@ export async function updateStropheState(studyId: string, stropheId: number, new
   operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + stropheId,
-        fields: { studyId: studyId, stropheId: stropheId, expanded: newState },
+        id: studyId + "_" + strophe.lines[0].words[0].stropheId,
+        fields: { studyId: studyId, stropheId: strophe.lines[0].words[0].stropheId, expanded: newState },
+        upsert: true,
+      }
+  })
+
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update styling strophe expanded state.' };
+  }
+}
+
+export async function updateStanzaState(studyId: string, stanzaId: number, newState: boolean) {
+  "use server";
+
+  const xataClient = getXataClient();
+
+  let result : any;
+  let operations: any = [];
+
+  operations.push({
+      update: {
+        table: "stropheStyling" as const,
+        id: studyId + "_" + stanzaId,
+        fields: { studyId: studyId, stropheId: stanzaId, expanded: newState },
         upsert: true,
       }
   })
@@ -480,22 +504,22 @@ export async function fetchPassageContent(studyId: string) {
         
         const stanzaStyling = await xataClient.db.stanzaStyling
           .filter({studyId: study.id})
-          .select(['stanzaId', 'colorFill', 'borderColor', 'expanded'])
+          .select(['stanzaId', 'expanded'])
           .sort("stanzaId", "asc")
           .getAll();
         const stanzaStylingMap = new Map();
         stanzaStyling.forEach((obj) => {
-          stanzaStylingMap.set(String(obj.stanzaId), { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded })
+          stanzaStylingMap.set(obj.stanzaId, { expanded: obj.expanded })
         })
 
         const stropheStyling = await xataClient.db.stropheStyling
           .filter({studyId: study.id})
-          .select(['stropheId', 'stanzaStylingId', 'colorFill', 'borderColor', 'expanded'])
+          .select(['stropheId', 'expanded', 'borderColor', 'colorFill'])
           .sort("stropheId", "asc")
           .getAll();
         const stropheStylingMap = new Map();
         stropheStyling.forEach((obj) => {
-          stropheStylingMap.set(String(obj.stanzaStylingId)+'_'+String(obj.stropheId), { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
+          stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
         const passageContent = await xataClient.db.heb_bible_bsb
@@ -508,6 +532,7 @@ export async function fetchPassageContent(studyId: string) {
 
         let currentStanzaIdx = -1;
         let currentStropheIdx = -1;
+        let runningStropheIdx = -1;
         let currentLineIdx = -1;
         let prevVerseNum = 0;
 
@@ -519,7 +544,7 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.strongNumber = word.strongNumber || 0;
           hebWord.wlcWord = word.wlcWord || "";
           hebWord.gloss = word.gloss?.trim() || "";
-                  hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.showVerseNum = false;
           hebWord.numIndent = 0;
           hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
@@ -543,8 +568,6 @@ export async function fetchPassageContent(studyId: string) {
             currentStanzaData = passageData.stanzas[currentStanzaIdx];
             const currentStanzaStyling = stanzaStylingMap.get(String(currentStanzaIdx));
             if (currentStanzaStyling !== undefined) {
-              (currentStanzaStyling.colorFill !== null) && (currentStanzaData.colorFill = currentStanzaStyling.colorFill);
-              (currentStanzaStyling.borderColor !== null) && (currentStanzaData.borderColor = currentStanzaStyling.borderColor);
               (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
             }
             currentStropheIdx = -1; 
@@ -560,8 +583,11 @@ export async function fetchPassageContent(studyId: string) {
               })
             }
             passageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
+            ++runningStropheIdx;
+            console.log('running index is ' + runningStropheIdx);
             currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
-            const currentStropheStyling = stropheStylingMap.get(String(currentStanzaIdx)+'_'+String(currentStropheIdx));
+            const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
+            console.log(currentStropheStyling);
             if (currentStropheStyling !== undefined) {
               (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
               (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
@@ -569,6 +595,8 @@ export async function fetchPassageContent(studyId: string) {
             }
             currentLineIdx = -1;
             hebWord.firstWordInStrophe = true;
+            console.log('end of line');
+            console.log(stropheStylingMap);
           } 
 
           let currentLineData = currentStropheData.lines[currentLineIdx];
@@ -581,7 +609,7 @@ export async function fetchPassageContent(studyId: string) {
             hebWord.showVerseNum = true;
           }
           hebWord.lineId = currentLineIdx;
-          hebWord.stropheId = currentStropheIdx;
+          hebWord.stropheId = runningStropheIdx;
           hebWord.stanzaId = currentStanzaIdx;
 
           currentLineData.words.push(hebWord);
@@ -597,7 +625,7 @@ export async function fetchPassageContent(studyId: string) {
   }
   catch (error) {
     console.error('Database Error', error);
-    throw new Error('Fialed to fetch passage content by study id');
+    throw new Error('Failed to fetch passage content by study id');
   }
 }
 

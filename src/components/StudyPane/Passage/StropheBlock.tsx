@@ -9,9 +9,9 @@ import { strophesHasSameColor } from "@/lib/utils";
 import { updateStropheState } from '@/lib/actions';
 
 export const StropheBlock = ({
-    strophe
+    strophe, stanzaExpanded
   }: {
-    strophe: StropheData
+    strophe: StropheData, stanzaExpanded: boolean
   }) => {
   
     const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes, ctxSetSelectedStanzas, ctxSetNumSelectedStanzas,
@@ -73,7 +73,7 @@ export const StropheBlock = ({
 
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
-      updateStropheState(ctxStudyId, strophe.id, !expanded);
+      updateStropheState(ctxStudyId, strophe, !expanded && stanzaExpanded);
       if (expanded) {
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);
@@ -124,7 +124,7 @@ export const StropheBlock = ({
         </button>
         </div>
         {
-          expanded?
+          expanded && stanzaExpanded?
             strophe.lines.map((line, lineId) => {
               return (
                 <div

@@ -5,6 +5,8 @@ import { StropheBlock } from "./StropheBlock"
 import { LuTextSelect } from "react-icons/lu"
 import { stanzaHasSameColor } from "@/lib/utils"
 import { ColorActionType } from "@/lib/types"
+import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io"
+import { updateStanzaState } from "@/lib/actions"
 
 export const  StanzaBlock = ({
     stanza 
@@ -14,8 +16,9 @@ export const  StanzaBlock = ({
 
     const { ctxIsHebrew, ctxSetSelectedStanzas, ctxSelectedStanzas, ctxSetSelectedStrophes, 
         ctxSetNumSelectedStrophes, ctxSetNumSelectedWords, ctxSetSelectedHebWords, 
-        ctxSetColorFill, ctxSetBorderColor, ctxColorAction, ctxSelectedColor, ctxSetNumSelectedStanzas } = useContext(FormatContext);
+        ctxSetColorFill, ctxSetBorderColor, ctxColorAction, ctxSelectedColor, ctxSetNumSelectedStanzas, ctxStudyId } = useContext(FormatContext);
     const [selected, setSelected] = useState(false);
+    const [expanded, setExpanded] = useState(true);
 
     const [colorFillLocal, setColorFillLocal] = useState(stanza.colorFill || DEFAULT_COLOR_FILL);
     const [borderColorLocal, setBorderColorLocal] = useState(stanza.borderColor || DEFAULT_BORDER_COLOR);
@@ -66,6 +69,17 @@ export const  StanzaBlock = ({
         }
     }
 
+    const handleCollapseBlockClick = () => {
+      setExpanded(prevState => !prevState);
+      updateStanzaState(ctxStudyId, stanza.id, !expanded);
+      if (expanded) {
+        // remove any selected word blocks if strophe block is collapsed
+        ctxSetSelectedHebWords([]);
+        ctxSetNumSelectedWords(0);
+        
+      }
+    }
+
     useEffect(() => {
         setSelected(ctxSelectedStanzas.includes(stanza));
         ctxSetNumSelectedStanzas(ctxSelectedStanzas.length);
@@ -89,14 +103,24 @@ export const  StanzaBlock = ({
             style={{pointerEvents:'none'}}
           />
         </button>
+        <button
+          key={"strophe" + stanza.id + "Selector"}
+          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+          onClick={() => handleCollapseBlockClick()}
+          data-clicktype={'clickable'}
+        >
+          { (!expanded && ctxIsHebrew) && <IoIosArrowForward style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew) && <IoIosArrowBack style={{pointerEvents:'none'}} /> }
+          { expanded && <IoIosArrowDown style={{pointerEvents:'none'}} /> }
+        </button>
         </div>
         {
-            // expanded?
             stanza.strophes.map((strophe) => {
                 return (
                     <StropheBlock 
                     strophe={strophe}
                     key={strophe.id}
+                    stanzaExpanded={expanded}
                     />
                 )
             })
