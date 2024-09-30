@@ -170,8 +170,6 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
       currentStanzaData = newPassageData.stanzas[currentStanzaIdx];
       const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
       if (currentStanzaStyling !== undefined) {
-        (currentStanzaStyling.colorFill !== null) && (currentStanzaData.colorFill = currentStanzaStyling.colorFill);
-        (currentStanzaStyling.borderColor !== null) && (currentStanzaData.borderColor = currentStanzaStyling.borderColor);
         (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
         stanzasToUpdate.push(currentStanzaData);
       }

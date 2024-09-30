@@ -24,8 +24,6 @@ const Passage = ({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // const [passageData, setPassageData] = useState<PassageData>(content);
   const [passageData, setPassageData] = useState<PassageData>(content);
   
   useEffect(() => {

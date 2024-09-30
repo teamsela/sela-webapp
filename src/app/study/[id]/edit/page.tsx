@@ -22,30 +22,23 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 export default async function StudyPage({ params }: { params: { id: string } }) {
   const studyId = "rec_" + params.id;
 
-  // const [thisUser, study, passageContent, passageContent2] = await Promise.all([
   const [thisUser, study, passageContent] = await Promise.all([
     currentUser(),
     fetchStudyById(studyId),
-    fetchPassageContent(studyId),
+    fetchPassageContent(studyId)
   ]);
-
-  if (!study) {
-    notFound();
-  }
 
   /*
     Authorization check
     Only the owner has write access to this study. Users will be redirected to the view page if the study is public. 
   */
-  if (thisUser?.id != study.owner) {
-    if (!study.public) {
-      notFound();
-    }
+  if (!study || (thisUser?.id != study.owner && !study.public)) {
+    notFound();
     return redirect(`/study/${params.id}/view`);
   }
 
   return (
       <StudyPane study={study} content={passageContent} inViewMode={false}/>
-  );
+  );  
 
 }

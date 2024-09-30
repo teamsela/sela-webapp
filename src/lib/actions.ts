@@ -258,7 +258,6 @@ export async function updateStropheState(studyId: string, strophe: StropheData, 
 
 export async function updateStanzaState(studyId: string, stanzaId: number, newState: boolean) {
   "use server";
-
   const xataClient = getXataClient();
 
   let result : any;
@@ -266,9 +265,9 @@ export async function updateStanzaState(studyId: string, stanzaId: number, newSt
 
   operations.push({
       update: {
-        table: "stropheStyling" as const,
+        table: "stanzaStyling" as const,
         id: studyId + "_" + stanzaId,
-        fields: { studyId: studyId, stropheId: stanzaId, expanded: newState },
+        fields: { studyId: studyId, stanzaId: stanzaId, expanded: newState },
         upsert: true,
       }
   })
@@ -566,7 +565,7 @@ export async function fetchPassageContent(studyId: string) {
           if (currentStanzaData === undefined || (hebWord.stanzaDiv !== undefined && hebWord.stanzaDiv)) {
             passageData.stanzas.push({id: ++currentStanzaIdx, strophes:[]});
             currentStanzaData = passageData.stanzas[currentStanzaIdx];
-            const currentStanzaStyling = stanzaStylingMap.get(String(currentStanzaIdx));
+            const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
             if (currentStanzaStyling !== undefined) {
               (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
             }

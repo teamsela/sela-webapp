@@ -250,7 +250,6 @@ export function wrapText(
   return lineCount;
 }
 
-// export function getWordById(passage: PassageData, id: number) : HebWord | null {
 export function getWordById(passage: PassageData, id: number) : HebWord | null {
   for (let stanza of passage.stanzas) {
     for (let strophe of stanza.strophes) {
