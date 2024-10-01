@@ -108,6 +108,7 @@ const Passage = ({
     ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
   const handleMouseUp = useCallback(() => {
+    console.log("passage")
     document.body.style.userSelect = 'text';
     setIsDragging(false);
     //click to de-select

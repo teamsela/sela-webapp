@@ -1,6 +1,6 @@
 import { RootBlock } from "./RootBlock";
 import { PassageData, HebWord, RootColor } from "@/lib/data";
-import React, { useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
 const Root = ({
@@ -13,7 +13,10 @@ const Root = ({
         word: HebWord,
         count: number
     }
-    const { ctxRootsColorMap, ctxSetRootsColorMap } = useContext(FormatContext);
+    const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+
+    const [clickToDeSelect, setClickToDeSelect] = useState(true);
+
     let rootWordsMap = new Map<number, HebWordCount>();
     content.strophes.map((strophe) => {
         strophe.lines.map((line) => {
@@ -28,6 +31,26 @@ const Root = ({
             })
         })
     });
+    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        document.addEventListener('mouseup', handleMouseUp);
+        const target = event.target as HTMLElement;
+        const clickedTarget = target.getAttribute('data-clickType');
+        clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+      };
+
+      const handleMouseUp = useCallback((event: MouseEvent) => {
+        //document.body.style.userSelect = 'text';
+        if (clickToDeSelect) {
+          ctxSetSelectedRoots([]);
+          const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
+            !ctxSelectedRoots.includes(hebWord.strongNumber)
+          );
+          ctxSetSelectedHebWords(filteredHebWords)
+          console.log(filteredHebWords)
+        }
+      }, [clickToDeSelect]);
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
@@ -45,6 +68,12 @@ const Root = ({
         }
     });
 
+    useEffect(() => {
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => {
+          document.removeEventListener('mouseup', handleMouseUp);
+        };
+      }, [handleMouseUp]);
     const handleClick = () => {
         let newMap = new Map<number, RootColor>([...Array.from(ctxRootsColorMap.entries())].map(([key, value]) => [key, { ...value }]));
         ctxRootsColorMap.forEach((value, key) => {
@@ -59,13 +88,13 @@ const Root = ({
     }
     useEffect(() => {
         //console.log("Updated ctxRootsColorMap:", ctxRootsColorMap);
-    }, [ctxRootsColorMap]);
+    }, [ctxRootsColorMap, ctxSetSelectedRoots, ctxSelectedRoots]);
     const generateRandomHexColor = (): string => {
         const randomColor = Math.floor(Math.random() * 16777215);
         return `#${randomColor.toString(16).padStart(6, '0')}`;
     };
     return (
-        <>
+        <div onMouseDown={handleMouseDown}>
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
@@ -81,7 +110,7 @@ const Root = ({
                     Smart Highlight
                 </button>
             </div>
-        </>
+        </div>
     );
 };
 export default Root;
