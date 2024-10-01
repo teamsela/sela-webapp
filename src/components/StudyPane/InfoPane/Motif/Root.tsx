@@ -58,7 +58,7 @@ const Root = ({
         ctxSetRootsColorMap(newMap);
     }
     useEffect(() => {
-        console.log("Updated ctxRootsColorMap:", ctxRootsColorMap);
+        //console.log("Updated ctxRootsColorMap:", ctxRootsColorMap);
     }, [ctxRootsColorMap]);
     const generateRandomHexColor = (): string => {
         const randomColor = Math.floor(Math.random() * 16777215);
