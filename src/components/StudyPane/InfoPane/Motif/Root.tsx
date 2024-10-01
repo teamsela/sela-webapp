@@ -1,13 +1,13 @@
 import { RootBlock } from "./RootBlock";
 import { PassageData, HebWord, RootColor } from "@/lib/data";
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
 const Root = ({
     content
-  }: {
+}: {
     content: PassageData;
-  }) => {
+}) => {
 
     type HebWordCount = {
         word: HebWord,
@@ -29,35 +29,58 @@ const Root = ({
         })
     });
 
-    let rootWords : HebWordCount[] = [];
+    let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
         if (value.count > 1 && value.word.ETCBCgloss) {
             rootWords.push(value);
-            let color:RootColor = {
-                colorFill : DEFAULT_COLOR_FILL,
-                colorBorder : DEFAULT_BORDER_COLOR,
-                colorText: DEFAULT_TEXT_COLOR
+            if (!ctxRootsColorMap.has(value.word.strongNumber)) {
+                // Only set the default color if it doesn't already exist
+                let color: RootColor = {
+                    colorFill: DEFAULT_COLOR_FILL,
+                    colorBorder: DEFAULT_BORDER_COLOR,
+                    colorText: DEFAULT_TEXT_COLOR
+                };
+                ctxRootsColorMap.set(value.word.strongNumber, color);
             }
-            ctxRootsColorMap.set(value.word.strongNumber, color);
         }
     });
+
+    const handleClick = () => {
+        let newMap = new Map<number, RootColor>([...Array.from(ctxRootsColorMap.entries())].map(([key, value]) => [key, { ...value }]));
+        ctxRootsColorMap.forEach((value, key) => {
+                let color: RootColor = {
+                    colorFill: generateRandomHexColor(),
+                    colorBorder: generateRandomHexColor(),
+                    colorText: generateRandomHexColor()
+                }
+                newMap.set(key, color);
+            });
+        ctxSetRootsColorMap(newMap);
+    }
+    useEffect(() => {
+        console.log("Updated ctxRootsColorMap:", ctxRootsColorMap);
+    }, [ctxRootsColorMap]);
+    const generateRandomHexColor = (): string => {
+        const randomColor = Math.floor(Math.random() * 16777215);
+        return `#${randomColor.toString(16).padStart(6, '0')}`;
+    };
     return (
         <>
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} strongNumber={root.word.strongNumber} hebWord={root.word}/>
+                        <RootBlock key={index} id={index} rootWord={root.word.ETCBCgloss} count={root.count} strongNumber={root.word.strongNumber} hebWord={root.word} />
                     ))
                 }
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center">
                 <button
                     className="inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
-                    onClick={() => console.log("Smart Highlight Clicked")}
+                    onClick={() => handleClick()}
                 >
                     Smart Highlight
                 </button>
-            </div>            
+            </div>
         </>
     );
 };

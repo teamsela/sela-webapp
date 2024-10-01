@@ -150,21 +150,23 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
-
-    let actionedContent : PassageData | null = null;
-
+    let actionedContent: PassageData | null = null;
+  
     if (ctxStructureUpdateType !== StructureUpdateType.none && ctxSelectedHebWords.length === 1) {
       actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
     }
-
-    if (actionedContent !== null) {
+  
+    // Only update state if actionedContent is different from current passageData
+    if (actionedContent && actionedContent !== passageData) {
       setPassageData(actionedContent);
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
     } 
+    
+    // Reset the structure update type
     ctxSetStructureUpdateType(StructureUpdateType.none);
-
   }, [ctxStructureUpdateType, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetStructureUpdateType, passageData]);
+  
 
   const passageContentStyle = {
     className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-17`

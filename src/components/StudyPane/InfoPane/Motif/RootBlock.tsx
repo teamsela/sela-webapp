@@ -13,12 +13,21 @@ export const RootBlock = ({
   hebWord: HebWord,
 }) => {
   const { ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
-  const [colorFillLocal, setColorFillLocal] = useState(/*hebWord.colorFill || */DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(/*hebWord.borderColor ||*/DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(/*hebWord.textColor || */DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorBorder || DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorText || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
   const [selectedHebrewWords, setSelectedHebWords] = useState(ctxSelectedHebWords);
 
+  useEffect(() => {
+    const colorConfig = ctxRootsColorMap.get(strongNumber);
+    if (colorConfig) {
+      setColorFillLocal(colorConfig.colorFill || DEFAULT_COLOR_FILL);
+      setBorderColorLocal(colorConfig.colorBorder || DEFAULT_BORDER_COLOR);
+      setTextColorLocal(colorConfig.colorText || DEFAULT_TEXT_COLOR);
+    }
+  }, [ctxRootsColorMap, strongNumber]); // Dependencies include ctxRootsColorMap and strongNumber
+  
   const handleClick = (e: React.MouseEvent) => {
     // Check if it's a click event, and not part of a drag
     if (e.type === 'click') {
@@ -56,7 +65,6 @@ export const RootBlock = ({
   useEffect(() => {
     const isSelected = ctxSelectedRoots.includes(strongNumber);
     setSelected(isSelected);
-
     if (isSelected) {
       const colorConfig = ctxRootsColorMap.get(strongNumber);
       if (colorConfig) {
