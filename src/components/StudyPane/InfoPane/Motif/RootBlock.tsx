@@ -19,25 +19,47 @@ export const RootBlock = ({
   const [selected, setSelected] = useState(false);
   const [selectedHebrewWords, setSelectedHebWords] = useState(ctxSelectedHebWords);
 
-  const handleClick = () => {
-    setSelected(prevState => !prevState);
-    const updatedSelectedRoots = !selected
-      ? [...ctxSelectedRoots, strongNumber]  // Add the strongNumber if selected
-      : ctxSelectedRoots.filter(root => root !== strongNumber);  // Remove if unselected
-      ctxSetSelectedRoots(updatedSelectedRoots);
-    if (selected) {
-      const newSelectedHebWords = selectedHebrewWords.filter(word => word.strongNumber !== strongNumber);
-        setSelectedHebWords(newSelectedHebWords);
-        ctxSetSelectedHebWords(newSelectedHebWords);  // Update context
-    }
-  }
+  const handleClick = (e: React.MouseEvent) => {
+    // Check if it's a click event, and not part of a drag
+    if (e.type === 'click') {
+      setSelected(prevState => !prevState);
+      const alreadySelectedRoot = ctxSelectedRoots.includes(strongNumber);
+    
+      let updatedSelectedRoots;
+      if (!selected && !alreadySelectedRoot) {
+        // Add strongNumber only if it's not already selected
+        updatedSelectedRoots = [...ctxSelectedRoots, strongNumber];
+      } else {
+        // Remove strongNumber if it's already selected
+        updatedSelectedRoots = ctxSelectedRoots.filter(root => root !== strongNumber);
+      }
 
-  useEffect(() => {
-    if (selected) {
+      ctxSetSelectedRoots(updatedSelectedRoots);
+
+      if (!selected) {
+        const alreadySelected = ctxSelectedHebWords.some(word => word.strongNumber === strongNumber);
+        if (!alreadySelected) {
+          const newSelectedHebWords = [...ctxSelectedHebWords, hebWord];
+          setSelectedHebWords(newSelectedHebWords);
+          ctxSetSelectedHebWords(newSelectedHebWords);
+          ctxSetNumSelectedWords(newSelectedHebWords.length);
+        }
+        console.log(ctxSelectedHebWords)
+      } else {
+        const newSelectedHebWords = ctxSelectedHebWords.filter(word => word.strongNumber !== strongNumber);
+        setSelectedHebWords(newSelectedHebWords);
+        ctxSetSelectedHebWords(newSelectedHebWords);
+        ctxSetNumSelectedWords(newSelectedHebWords.length);
+        console.log(ctxSelectedHebWords)
+      }
+    }
+  };
+
+  /*useEffect(() => {
       ctxSetSelectedHebWords(selectedHebrewWords);
       ctxSetNumSelectedWords(selectedHebrewWords.length);
-    }
-  }, [ctxSelectedHebWords, ctxSelectedRoots, selected, hebWord]);
+      console.log(selectedHebrewWords);
+  }, [ctxSelectedHebWords, ctxSelectedRoots, selected, hebWord, selectedHebrewWords]);*/
 
   useEffect(() => {
     const isSelected = ctxSelectedRoots.includes(strongNumber);

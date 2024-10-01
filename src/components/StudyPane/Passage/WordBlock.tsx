@@ -90,7 +90,7 @@ export const WordBlock = ({
   
     useEffect(() => {
       const isSelected = ctxSelectedHebWords.includes(hebWord) || ctxSelectedRoots.includes(hebWord.strongNumber);
-      if(ctxSelectedRoots.includes(hebWord.strongNumber)){
+      if(ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord)){
         ctxSelectedHebWords.push(hebWord);
       }
       setSelected(isSelected);
@@ -100,9 +100,17 @@ export const WordBlock = ({
     const handleClick = () => {
 
       setSelected(prevState => !prevState);
-      (!selected) ? ctxSelectedHebWords.push(hebWord) : ctxSelectedHebWords.splice(ctxSelectedHebWords.indexOf(hebWord), 1);
-      ctxSetSelectedHebWords(ctxSelectedHebWords);
-      ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+
+      const newSelectedHebWords = [...ctxSelectedHebWords]; // Clone the array
+      if (!selected) {
+        newSelectedHebWords.push(hebWord);
+      } else {
+        const index = newSelectedHebWords.indexOf(hebWord);
+        newSelectedHebWords.splice(index, 1);
+      }
+    
+      ctxSetSelectedHebWords(newSelectedHebWords); // Set updated array
+      ctxSetNumSelectedWords(newSelectedHebWords.length);
       ctxSetSelectedStrophes([]);
 
       ctxSetColorFill(DEFAULT_COLOR_FILL);
