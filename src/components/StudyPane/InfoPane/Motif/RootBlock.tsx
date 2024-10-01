@@ -44,22 +44,14 @@ export const RootBlock = ({
           ctxSetSelectedHebWords(newSelectedHebWords);
           ctxSetNumSelectedWords(newSelectedHebWords.length);
         }
-        console.log(ctxSelectedHebWords)
       } else {
         const newSelectedHebWords = ctxSelectedHebWords.filter(word => word.strongNumber !== strongNumber);
         setSelectedHebWords(newSelectedHebWords);
         ctxSetSelectedHebWords(newSelectedHebWords);
         ctxSetNumSelectedWords(newSelectedHebWords.length);
-        console.log(ctxSelectedHebWords)
       }
     }
   };
-
-  /*useEffect(() => {
-      ctxSetSelectedHebWords(selectedHebrewWords);
-      ctxSetNumSelectedWords(selectedHebrewWords.length);
-      console.log(selectedHebrewWords);
-  }, [ctxSelectedHebWords, ctxSelectedRoots, selected, hebWord, selectedHebrewWords]);*/
 
   useEffect(() => {
     const isSelected = ctxSelectedRoots.includes(strongNumber);
