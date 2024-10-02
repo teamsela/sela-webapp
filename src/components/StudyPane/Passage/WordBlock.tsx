@@ -118,7 +118,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     const isSelected = ctxSelectedHebWords.includes(hebWord) || ctxSelectedRoots.includes(hebWord.strongNumber);
-    if (ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord) ) { //&& !ctxWordToRemove.includes(hebWord.strongNumber)
+    if (ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord) && !ctxWordToRemove.includes(hebWord.strongNumber)) { 
       ctxSelectedHebWords.push(hebWord);
       console.log(`added ${hebWord.strongNumber}`)
     }
@@ -130,18 +130,20 @@ export const WordBlock = ({
     if (ctxSelectedHebWords.includes(hebWord) && ctxWordToRemove.includes(hebWord.strongNumber)) {
       console.log(hebWord);
       const filteredHebWords = ctxSelectedHebWords.filter(word => word.strongNumber !== hebWord.strongNumber);
+      ctxSetSelectedHebWords(filteredHebWords);
       const hasMoreEntry = ctxSelectedHebWords.some(item => item.strongNumber === hebWord.strongNumber);
       if(!hasMoreEntry){
         const removedWordToRemove = ctxWordToRemove.filter(strongNumber => strongNumber !== hebWord.strongNumber);
+        console.log(`remove ${removedWordToRemove}`)
         ctxSetWordToRemove(removedWordToRemove);
       }
       console.log(ctxWordToRemove);
       console.log(filteredHebWords);
-      ctxSetSelectedHebWords(filteredHebWords);
       console.log(ctxSelectedHebWords);
     }
     console.log("GG")
   }, [ctxWordToRemove, ctxSetWordToRemove]);
+
 
   const handleClick = () => {
 
