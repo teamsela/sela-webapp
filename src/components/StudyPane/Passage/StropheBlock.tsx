@@ -71,7 +71,7 @@ export const StropheBlock = ({
 
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
-      updateStropheState(ctxStudyId, strophe, !expanded && stanzaExpanded);
+      updateStropheState(ctxStudyId, strophe.id, !expanded && stanzaExpanded);
       if (expanded) {
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);

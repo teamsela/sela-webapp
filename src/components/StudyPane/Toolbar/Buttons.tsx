@@ -101,11 +101,20 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     //console.log("Changing " + colorActionType + " color to " + color.hex);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
+    let wordIds : number[] = [];
+    ctxSelectedHebWords.map((word) => {
+      wordIds.push(word.id);
+    })
     if (ctxSelectedHebWords.length > 0) {
-      updateWordColor(ctxStudyId, ctxSelectedHebWords, colorAction, color.hex);
+      updateWordColor(ctxStudyId, wordIds, colorAction, color.hex);
     }
+
+    let stropheIds : number[] = [];
+    ctxSelectedStrophes.map((strophe) => {
+      stropheIds.push(strophe.id);
+    })
     if (ctxNumSelectedStrophes > 0) {
-      updateStropheColor(ctxStudyId, ctxSelectedStrophes, colorAction, color.hex);
+      updateStropheColor(ctxStudyId, stropheIds, colorAction, color.hex);
     }
   }
 
@@ -177,10 +186,18 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
       if (ctxSelectedHebWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
-        updateWordColor(ctxStudyId, ctxSelectedHebWords, ColorActionType.resetColor, null);
+        let wordIds : number[] = [];
+        ctxSelectedHebWords.map((word) => {
+          wordIds.push(word.id)
+        })
+        updateWordColor(ctxStudyId, wordIds, ColorActionType.resetColor, null);
       }
       if (ctxSelectedStrophes.length > 0) {
-        updateStropheColor(ctxStudyId, ctxSelectedStrophes, ColorActionType.resetColor, null);
+        let stropheIds : number[] = [];
+        ctxSelectedStrophes.map((strophe) => {
+          stropheIds.push(strophe.id)
+        })
+        updateStropheColor(ctxStudyId, stropheIds, ColorActionType.resetColor, null);
       }
     }
   }

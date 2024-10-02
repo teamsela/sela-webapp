@@ -185,8 +185,8 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
         })
       }
       
-      newPassageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
-      ++runningStropheIdx;
+      newPassageData.stanzas[currentStanzaIdx].strophes.push({id: ++runningStropheIdx, lines: []});
+      ++currentStropheIdx; 
       currentStropheData = newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
       const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
       if (currentStropheStyling !== undefined) {

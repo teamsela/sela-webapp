@@ -27,11 +27,11 @@ const Passage = ({
   const [passageData, setPassageData] = useState<PassageData>(content);
   
   useEffect(() => {
-    let tempStropheCount = 0;
+    let stropheCount = 0;
     passageData.stanzas.map((stanzas)=>{
-      tempStropheCount += stanzas.strophes.length
+      stropheCount += stanzas.strophes.length
     })
-    ctxSetStropheCount(tempStropheCount);
+    ctxSetStropheCount(stropheCount);
     ctxSetStanzaCount(passageData.stanzas.length);
   }, [passageData]);
 

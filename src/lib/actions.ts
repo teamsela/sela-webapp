@@ -115,7 +115,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   revalidatePath('/');   
 }
 
-export async function updateWordColor(studyId: string, selectedWords: HebWord[], actionType: ColorActionType, newColor: string | null) {
+export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -143,12 +143,12 @@ export async function updateWordColor(studyId: string, selectedWords: HebWord[],
       break;
   }
 
-  selectedWords.forEach((word) => {
+  selectedWordIds.forEach((wordId) => {
     operations.push({
       update: {
         table: "styling" as const,
-        id: studyId + "_" + word.id,
-        fields: { studyId: studyId, hebId: word.id, ...fieldsToUpdate },
+        id: studyId + "_" + wordId,
+        fields: { studyId: studyId, hebId: wordId, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -187,7 +187,7 @@ export async function updateIndented(studyId: string, hebId: number, numIndent: 
   }
 }
 
-export async function updateStropheColor(studyId: string, selectedStrophes: StropheData[], actionType: ColorActionType, newColor: string | null) {
+export async function updateStropheColor(studyId: string, selectedStropheIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -211,12 +211,12 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
       break;
   }
 
-  selectedStrophes.forEach((strophe) => {
+  selectedStropheIds.forEach((stropheId) => {
     operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + strophe.lines[0].words[0].stropheId,
-        fields: { studyId: studyId, stropheId: strophe.lines[0].words[0].stropheId, ...fieldsToUpdate },
+        id: studyId + "_" + stropheId,
+        fields: { studyId: studyId, stropheId: stropheId, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -232,7 +232,7 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
   }
 }
 
-export async function updateStropheState(studyId: string, strophe: StropheData, newState: boolean) {
+export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
   "use server";
 
   const xataClient = getXataClient();
@@ -243,8 +243,8 @@ export async function updateStropheState(studyId: string, strophe: StropheData, 
   operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + strophe.lines[0].words[0].stropheId,
-        fields: { studyId: studyId, stropheId: strophe.lines[0].words[0].stropheId, expanded: newState },
+        id: studyId + "_" + stropheId,
+        fields: { studyId: studyId, stropheId: stropheId, expanded: newState },
         upsert: true,
       }
   })
@@ -431,7 +431,7 @@ export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[
       update: {
         table: "stanzaStyling" as const,
         id: studyId + "_" + stanza.id,
-        fields: { studyId, stanzaId: stanza.id, colorFill: stanza.colorFill, borderColor: stanza.borderColor, expanded: stanza.expanded },
+        fields: { studyId, stanzaId: stanza.id, expanded: stanza.expanded },
         upsert: true,
       }
     });
@@ -581,8 +581,8 @@ export async function fetchPassageContent(studyId: string) {
                 word.lastLineInStrophe = true;
               })
             }
-            passageData.stanzas[currentStanzaIdx].strophes.push({id: ++currentStropheIdx, lines: []});
-            ++runningStropheIdx;
+            passageData.stanzas[currentStanzaIdx].strophes.push({id: ++runningStropheIdx, lines: []});
+            ++currentStropheIdx;
             currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
             const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
             if (currentStropheStyling !== undefined) {

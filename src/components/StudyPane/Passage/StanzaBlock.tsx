@@ -2,7 +2,7 @@ import { StanzaData } from "@/lib/data"
 import { useContext, useEffect, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
-import { IoIosArrowBack, IoIosArrowDown, IoIosArrowForward } from "react-icons/io"
+import { BiSolidArrowFromLeft, BiSolidArrowFromRight, BiSolidArrowFromTop } from "react-icons/bi";
 import { updateStanzaState } from "@/lib/actions"
 
 export const  StanzaBlock = ({
@@ -39,9 +39,9 @@ export const  StanzaBlock = ({
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <IoIosArrowForward style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew) && <IoIosArrowBack style={{pointerEvents:'none'}} /> }
-          { expanded && <IoIosArrowDown style={{pointerEvents:'none'}} /> }
+          { (!expanded && ctxIsHebrew) && <BiSolidArrowFromLeft style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew) && <BiSolidArrowFromRight style={{pointerEvents:'none'}} /> }
+          { expanded && <BiSolidArrowFromTop style={{pointerEvents:'none'}} /> }
         </button>
         </div>
         {
