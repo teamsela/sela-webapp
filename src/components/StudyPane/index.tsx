@@ -7,7 +7,7 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { StudyData, PassageData, HebWord, StropheData, RootColor } from '@/lib/data';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -43,6 +43,10 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
+  ctxSelectedRoots: [] as number[],
+  ctxSetSelectedRoots: (arg: number[]) => {},
+  ctxRootsColorMap : {} as Map<number, RootColor>,
+  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{}
 });
 
 const StudyPane = ({
@@ -72,6 +76,8 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
+  const [selectedRoots, setSelectedRoots] = useState<number[]>([]);
+  const [rootsColorMap, setRootsColorMap] = useState<Map<number, RootColor>>(new Map());
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -101,7 +107,11 @@ const StudyPane = ({
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
     ctxStropheCount: stropheCount,
-    ctxSetStropheCount: setStropheCount
+    ctxSetStropheCount: setStropheCount,
+    ctxSelectedRoots: selectedRoots,
+    ctxSetSelectedRoots: setSelectedRoots,
+    ctxRootsColorMap: rootsColorMap,
+    ctxSetRootsColorMap: setRootsColorMap,
   }
 
 
