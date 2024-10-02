@@ -12,12 +12,12 @@ export const RootBlock = ({
   strongNumber: number,
   hebWord: HebWord,
 }) => {
-  const { ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext);
-  
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const { ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorBorder || DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorText || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
+  const [selectedHebrewWords, setSelectedHebWords] = useState(ctxSelectedHebWords);
 
   useEffect(() => {
     const colorConfig = ctxRootsColorMap.get(strongNumber);
@@ -26,7 +26,41 @@ export const RootBlock = ({
       setBorderColorLocal(colorConfig.colorBorder || DEFAULT_BORDER_COLOR);
       setTextColorLocal(colorConfig.colorText || DEFAULT_TEXT_COLOR);
     }
-  }, [ctxRootsColorMap, strongNumber]);
+  }, [ctxRootsColorMap, strongNumber]); // Dependencies include ctxRootsColorMap and strongNumber
+  
+  const handleClick = (e: React.MouseEvent) => {
+    // Check if it's a click event, and not part of a drag
+    if (e.type === 'click') {
+      setSelected(prevState => !prevState);
+      const alreadySelectedRoot = ctxSelectedRoots.includes(strongNumber);
+    
+      let updatedSelectedRoots;
+      if (!selected && !alreadySelectedRoot) {
+        // Add strongNumber only if it's not already selected
+        updatedSelectedRoots = [...ctxSelectedRoots, strongNumber];
+      } else {
+        // Remove strongNumber if it's already selected
+        updatedSelectedRoots = ctxSelectedRoots.filter(root => root !== strongNumber);
+      }
+
+      ctxSetSelectedRoots(updatedSelectedRoots);
+
+      if (!selected) {
+        const alreadySelected = ctxSelectedHebWords.some(word => word.strongNumber === strongNumber);
+        if (!alreadySelected) {
+          const newSelectedHebWords = [...ctxSelectedHebWords, hebWord];
+          setSelectedHebWords(newSelectedHebWords);
+          ctxSetSelectedHebWords(newSelectedHebWords);
+          ctxSetNumSelectedWords(newSelectedHebWords.length);
+        }
+      } else {
+        const newSelectedHebWords = ctxSelectedHebWords.filter(word => word.strongNumber !== strongNumber);
+        setSelectedHebWords(newSelectedHebWords);
+        ctxSetSelectedHebWords(newSelectedHebWords);
+        ctxSetNumSelectedWords(newSelectedHebWords.length);
+      }
+    }
+  };
 
   useEffect(() => {
     const isSelected = ctxSelectedRoots.includes(strongNumber);
@@ -40,28 +74,6 @@ export const RootBlock = ({
       }
     }
   }, [ctxSelectedRoots, strongNumber, ctxRootsColorMap]);
-
-  const handleClick = (e: React.MouseEvent) => {
-    // Check if it's a click event, and not part of a drag
-    if (e.type === 'click') {
-      const alreadySelectedRoot = ctxSelectedRoots.includes(strongNumber);
-      const updatedSelectedRoots = alreadySelectedRoot
-        ? ctxSelectedRoots.filter(root => root !== strongNumber)
-        : [...ctxSelectedRoots, strongNumber];
-
-      ctxSetSelectedRoots(updatedSelectedRoots);
-      setSelected(!alreadySelectedRoot);
-
-      const alreadySelected = ctxSelectedHebWords.some(word => word.strongNumber === strongNumber);
-      const newSelectedHebWords = alreadySelected
-        ? ctxSelectedHebWords.filter(word => word.strongNumber !== strongNumber)
-        : [...ctxSelectedHebWords, hebWord];
-
-      ctxSetSelectedHebWords(newSelectedHebWords);
-      ctxSetNumSelectedWords(newSelectedHebWords.length);
-    }
-  };
-
   useEffect(() => {
     if (ctxColorAction !== ColorActionType.none && selected) {
       const newMap = new Map(ctxRootsColorMap);
@@ -96,11 +108,13 @@ export const RootBlock = ({
         id={id.toString()}
         key={id}
         className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
-        style={{
-          background: `${colorFillLocal}`,
-          border: `2px solid ${borderColorLocal}`,
-          color: `${textColorLocal}`,
-        }}>
+        style={
+          {
+            background: `${colorFillLocal}`,
+            border: `2px solid ${borderColorLocal}`,
+            color: `${textColorLocal}`,
+          }
+        }>
         <span
           className="flex mx-1 my-1"
           onClick={handleClick}
@@ -114,4 +128,5 @@ export const RootBlock = ({
       </div>
     </div>
   );
+
 }
