@@ -115,6 +115,7 @@ const Passage = ({
     ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
   const handleMouseUp = useCallback(() => {
+    console.log("passage")
     document.body.style.userSelect = 'text';
     setIsDragging(false);
     //click to de-select
@@ -162,17 +163,20 @@ const Passage = ({
     if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {
       actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes, ctxStructureUpdateType);
     }
-
-    if (actionedContent !== null) {
+  
+    // Only update state if actionedContent is different from current passageData
+    if (actionedContent && actionedContent !== passageData) {
       setPassageData(actionedContent);
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
     } 
+    
+    // Reset the structure update type
     ctxSetStructureUpdateType(StructureUpdateType.none);
-
   }, [ctxStructureUpdateType, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetStructureUpdateType, passageData]);
+  
 
   const passageContentStyle = {
     className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`

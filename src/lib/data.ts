@@ -44,13 +44,17 @@ export type StropheData = {
 
 export type StanzaData = {
     id: number; // stanza id
-    colorFill?: string;
-    borderColor?: string;
     expanded?: boolean;
     strophes: StropheData[]
 }
 
 export type PassageData = {
-    studyId: string; //study id
+    studyId: string; // study id
     stanzas: StanzaData[];
 }
+
+export type RootColor = {
+    colorFill: string;
+    colorBorder: string;
+    colorText: string;
+};
