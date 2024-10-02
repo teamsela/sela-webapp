@@ -1,8 +1,8 @@
 import { StanzaData } from "@/lib/data"
-import { useContext, useEffect, useState } from "react"
+import { useContext, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
-import { BiSolidArrowFromLeft, BiSolidArrowFromRight, BiSolidArrowFromTop } from "react-icons/bi";
+import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateStanzaState } from "@/lib/actions"
 
 export const  StanzaBlock = ({
@@ -39,9 +39,8 @@ export const  StanzaBlock = ({
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <BiSolidArrowFromLeft style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew) && <BiSolidArrowFromRight style={{pointerEvents:'none'}} /> }
-          { expanded && <BiSolidArrowFromTop style={{pointerEvents:'none'}} /> }
+          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }
         </button>
         </div>
         {
