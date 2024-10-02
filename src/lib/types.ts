@@ -19,7 +19,10 @@ export enum StructureUpdateType {
     mergeWithNextLine,
     newStrophe,
     mergeWithPrevStrophe,
-    mergeWithNextStrophe
+    mergeWithNextStrophe,
+    newStanza,
+    mergeWithPrevStanza,
+    mergeWithNextStanza
 }
 
 export enum InfoPaneActionType {

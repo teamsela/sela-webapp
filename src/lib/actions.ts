@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord } from './data';
+import { StudyData, PassageData, StropheData, HebWord, StanzaData } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -115,7 +115,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   revalidatePath('/');   
 }
 
-export async function updateWordColor(studyId: string, selectedWords: HebWord[], actionType: ColorActionType, newColor: string | null) {
+export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -143,12 +143,12 @@ export async function updateWordColor(studyId: string, selectedWords: HebWord[],
       break;
   }
 
-  selectedWords.forEach((word) => {
+  selectedWordIds.forEach((wordId) => {
     operations.push({
       update: {
         table: "styling" as const,
-        id: studyId + "_" + word.id,
-        fields: { studyId: studyId, hebId: word.id, ...fieldsToUpdate },
+        id: studyId + "_" + wordId,
+        fields: { studyId: studyId, hebId: wordId, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -187,7 +187,7 @@ export async function updateIndented(studyId: string, hebId: number, numIndent: 
   }
 }
 
-export async function updateStropheColor(studyId: string, selectedStrophes: StropheData[], actionType: ColorActionType, newColor: string | null) {
+export async function updateStropheColor(studyId: string, selectedStropheIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
 
   let operations: any = [];
@@ -211,12 +211,12 @@ export async function updateStropheColor(studyId: string, selectedStrophes: Stro
       break;
   }
 
-  selectedStrophes.forEach((strophe) => {
+  selectedStropheIds.forEach((stropheId) => {
     operations.push({
       update: {
         table: "stropheStyling" as const,
-        id: studyId + "_" + strophe.id,
-        fields: { studyId: studyId, stropheId: strophe.id, ...fieldsToUpdate },
+        id: studyId + "_" + stropheId,
+        fields: { studyId: studyId, stropheId: stropheId, ...fieldsToUpdate },
         upsert: true,
       },
     })
@@ -245,6 +245,29 @@ export async function updateStropheState(studyId: string, stropheId: number, new
         table: "stropheStyling" as const,
         id: studyId + "_" + stropheId,
         fields: { studyId: studyId, stropheId: stropheId, expanded: newState },
+        upsert: true,
+      }
+  })
+
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update styling strophe expanded state.' };
+  }
+}
+
+export async function updateStanzaState(studyId: string, stanzaId: number, newState: boolean) {
+  "use server";
+  const xataClient = getXataClient();
+
+  let result : any;
+  let operations: any = [];
+
+  operations.push({
+      update: {
+        table: "stanzaStyling" as const,
+        id: studyId + "_" + stanzaId,
+        fields: { studyId: studyId, stanzaId: stanzaId, expanded: newState },
         upsert: true,
       }
   })
@@ -357,6 +380,71 @@ export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[]
   }
 }
 
+export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[], hebIdsToRemoveDiv: number[], stanzasToUpDate: StanzaData[]) {
+  "use server"
+
+  const xataClient = getXataClient();
+
+  let result: any;
+  let operations: any =[];
+
+  hebIdsToAddBreak.forEach((hebId) => {
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stanzaDiv: true },
+        upsert: true,
+      }
+    });
+  })
+
+  hebIdsToRemoveDiv.forEach((hebId) =>{
+    operations.push({
+      update: {
+        table: "styling" as const,
+        id: studyId + "_" + hebId,
+        fields: { studyId: studyId, hebId: hebId, stanzaDiv: false },
+        upsert: true,
+      }
+    });
+  })
+
+  if (stanzasToUpDate.length > 0) {
+    try {
+      const stanzaRecords = await xataClient.db.stanzaStyling.select(["id"]).filter({"studyId.id": studyId}).getMany();
+      stanzaRecords.forEach((stanzaRecord) => {
+        operations.push({
+          delete: {
+            table: "stanzaStyling" as const,
+            id: stanzaRecord.id,
+          }
+        })
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  stanzasToUpDate.forEach((stanza) => {
+    operations.push({
+      update: {
+        table: "stanzaStyling" as const,
+        id: studyId + "_" + stanza.id,
+        fields: { studyId, stanzaId: stanza.id, expanded: stanza.expanded },
+        upsert: true,
+      }
+    });
+  })
+
+  try {
+    result = await xataClient.transactions.run(operations);
+  } catch (error) {
+    return { message: 'Database Error: Failed to update stanza division in styling.' };
+  }
+
+}
+
 export async function deleteStudy(studyId: string) {
 
   const xataClient = getXataClient();
@@ -387,127 +475,152 @@ export async function createStudy(passage: string) {
 }
 
 export async function fetchPassageContent(studyId: string) {
-
+  
   const xataClient = getXataClient();
 
   try {
-      // fetch a study by id from xata
-      const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
-     
-      let passageData = { studyId: studyId, strophes: [] } as PassageData;
+    // fetch a study by id from xata
+    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
 
-      if (study)
+    let passageData = { studyId: studyId, stanzas: [] } as PassageData;
+
+    if (study)
+    {
+      const passageInfo = parsePassageInfo(study.passage);
+
+      // fetch all words from xata by start/end chapter and verse
+      if (passageInfo instanceof Error === false)
       {
-          const passageInfo = parsePassageInfo(study.passage);
+        const wordStyling = await xataClient.db.styling
+          .filter({studyId: study.id})
+          .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'lineBreak', 'stropheDiv', 'stanzaDiv'])
+          .sort("hebId", "asc")
+          .getAll();
+        const wordStylingMap = new Map();
+        wordStyling.forEach((obj) => {
+          wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, lineBreak: obj.lineBreak, stropheDiv: obj.stropheDiv, stanzaDiv: obj.stanzaDiv });
+        });
+        
+        const stanzaStyling = await xataClient.db.stanzaStyling
+          .filter({studyId: study.id})
+          .select(['stanzaId', 'expanded'])
+          .sort("stanzaId", "asc")
+          .getAll();
+        const stanzaStylingMap = new Map();
+        stanzaStyling.forEach((obj) => {
+          stanzaStylingMap.set(obj.stanzaId, { expanded: obj.expanded })
+        })
 
-          // fetch all words from xata by start/end chapter and verse
-          if (passageInfo instanceof Error === false)
-          {
-              const wordStyling = await xataClient.db.styling
-                .filter({studyId: study.id})
-                .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'lineBreak', 'stropheDiv'])
-                .sort("hebId", "asc")
-                .getAll();
-              const wordStylingMap = new Map();
-              wordStyling.forEach((obj) => {
-                wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, lineBreak: obj.lineBreak, stropheDiv: obj.stropheDiv });
-              });
+        const stropheStyling = await xataClient.db.stropheStyling
+          .filter({studyId: study.id})
+          .select(['stropheId', 'expanded', 'borderColor', 'colorFill'])
+          .sort("stropheId", "asc")
+          .getAll();
+        const stropheStylingMap = new Map();
+        stropheStyling.forEach((obj) => {
+          stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
+        });
 
-              const stropheStyling = await xataClient.db.stropheStyling
-                .filter({studyId: study.id})
-                .select(['stropheId', 'colorFill', 'borderColor', 'expanded'])
-                .sort("stropheId", "asc")
-                .getAll();
-              const stropheStylingMap = new Map();
-              stropheStyling.forEach((obj) => {
-                stropheStylingMap.set(obj.stropheId, { colorFill: obj.colorFill, borderColor: obj.borderColor, expanded: obj.expanded });
-              });
+        const passageContent = await xataClient.db.heb_bible
+          .filter("chapter", ge(passageInfo.startChapter))
+          .filter("chapter", le(passageInfo.endChapter))
+          .filter("verse", ge(passageInfo.startVerse))
+          .filter("verse", le(passageInfo.endVerse))
+          .sort("hebId", "asc")
+          .getAll();
 
-              const passageContent = await xataClient.db.heb_bible
-                  .filter("chapter", ge(passageInfo.startChapter))
-                  .filter("chapter", le(passageInfo.endChapter))
-                  .filter("verse", ge(passageInfo.startVerse))
-                  .filter("verse", le(passageInfo.endVerse))
-                  .sort("hebId", "asc")
-              //    .select(["hebId", "chapter", "verse", "hebUnicode", "strongNumber", "gloss"])
-                  .getAll();
-          
-              let currentStropheIdx = -1;
-              let currentLineIdx = -1;
-              let prevVerseNum = 0;
+        let currentStanzaIdx = -1;
+        let currentStropheIdx = -1;
+        let runningStropheIdx = -1;
+        let currentLineIdx = -1;
+        let prevVerseNum = 0;
 
-              passageContent.forEach(word => {
+        passageContent.forEach(word => {
+          let hebWord = {} as HebWord;
+          hebWord.id = word.hebId || 0;
+          hebWord.chapter = word.chapter || 0;
+          hebWord.verse = word.verse || 0;
+          hebWord.strongNumber = word.strongNumber || 0;
+          hebWord.wlcWord = word.wlcWord || "";
+          hebWord.gloss = word.gloss?.trim() || "";
+          hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.showVerseNum = false;
+          hebWord.numIndent = 0;
+          hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
+          hebWord.lastLineInStrophe = false;
+          hebWord.firstWordInStrophe = false;
 
-                  let hebWord = {} as HebWord;
-                  hebWord.id = word.hebId || 0;
-                  hebWord.chapter = word.chapter || 0;
-                  hebWord.verse = word.verse || 0;
-                  hebWord.strongNumber = word.strongNumber || 0;
-                  hebWord.wlcWord = word.wlcWord || "";
-                  hebWord.gloss = word.gloss?.trim() || "";
-                  hebWord.ETCBCgloss = word.ETCBCgloss || "";
-                  hebWord.showVerseNum = false;
-                  hebWord.numIndent = 0;
-                  hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
-                  hebWord.lastLineInStrophe = false;
-                  hebWord.firstWordInStrophe = false;
+          const currentWordStyling = wordStylingMap.get(hebWord.id);
+          if (currentWordStyling !== undefined) {
+            (currentWordStyling.colorFill !== null) && (hebWord.colorFill = currentWordStyling.colorFill);
+            (currentWordStyling.borderColor !== null) && (hebWord.borderColor = currentWordStyling.borderColor);
+            (currentWordStyling.textColor !== null) && (hebWord.textColor = currentWordStyling.textColor);
+            (currentWordStyling.numIndent !== null) && (hebWord.numIndent = currentWordStyling.numIndent);
+            (currentWordStyling.lineBreak !== null) && (hebWord.lineBreak = currentWordStyling.lineBreak);
+            (currentWordStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentWordStyling.stropheDiv);
+            (currentWordStyling.stanzaDiv !== null) && (hebWord.stanzaDiv = currentWordStyling.stanzaDiv);
+          }
 
-                  const currentWordStyling = wordStylingMap.get(hebWord.id);
-                  if (currentWordStyling !== undefined) {
-                    (currentWordStyling.colorFill !== null) && (hebWord.colorFill = currentWordStyling.colorFill);
-                    (currentWordStyling.borderColor !== null) && (hebWord.borderColor = currentWordStyling.borderColor);
-                    (currentWordStyling.textColor !== null) && (hebWord.textColor = currentWordStyling.textColor);
-                    (currentWordStyling.numIndent !== null) && (hebWord.numIndent = currentWordStyling.numIndent);
-                    (currentWordStyling.lineBreak !== null) && (hebWord.lineBreak = currentWordStyling.lineBreak);
-                    (currentWordStyling.stropheDiv !== null) && (hebWord.stropheDiv = currentWordStyling.stropheDiv);
-                  }
+          let currentStanzaData = passageData.stanzas[currentStanzaIdx];
+          if (currentStanzaData === undefined || (hebWord.stanzaDiv !== undefined && hebWord.stanzaDiv)) {
+            passageData.stanzas.push({id: ++currentStanzaIdx, strophes:[]});
+            currentStanzaData = passageData.stanzas[currentStanzaIdx];
+            const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
+            if (currentStanzaStyling !== undefined) {
+              (currentStanzaStyling.expanded !== null) && (currentStanzaData.expanded = currentStanzaStyling.expanded);
+            }
+            currentStropheIdx = -1;
 
-                  let currentStropheData = passageData.strophes[currentStropheIdx];
-                  if (currentStropheData === undefined || (hebWord.stropheDiv !== undefined && hebWord.stropheDiv)) {
-                      if (currentStropheIdx !== -1) {
-                          let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
-                          passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
-                              word.lastLineInStrophe = true;
-                          })
-                      }
-                      passageData.strophes.push({id: ++currentStropheIdx, lines: []});
-                      currentStropheData = passageData.strophes[currentStropheIdx];
-                      const currentStropheStyling = stropheStylingMap.get(currentStropheIdx);
-                      if (currentStropheStyling !== undefined) {
-                          (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
-                          (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
-                          (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
-                      }
-                      currentLineIdx = -1;
-                      hebWord.firstWordInStrophe = true;
-                  }
+          } 
 
-                  let currentLineData = currentStropheData.lines[currentLineIdx];
-                  if (currentLineData === undefined || hebWord.lineBreak) {
-                      currentStropheData.lines.push({id: ++currentLineIdx, words: []})
-                      currentLineData = currentStropheData.lines[currentLineIdx];
-                  }
-
-                  if (prevVerseNum !== hebWord.verse) {
-                      hebWord.showVerseNum = true;
-                  }
-                  hebWord.lineId = currentLineIdx;
-                  hebWord.stropheId = currentStropheIdx;
-                  
-                  currentLineData.words.push(hebWord);
-                  prevVerseNum = hebWord.verse;
+          let currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
+          if (currentStropheData === undefined || (hebWord.stropheDiv !== undefined && hebWord.stropheDiv)) {
+            if (currentStropheIdx !== -1) {
+              let lastLineIdxInLastStrophe = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines.length-1;
+              passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
+                word.lastLineInStrophe = true;
               })
-              let lastLineIdxInLastStrophe = passageData.strophes[currentStropheIdx].lines.length-1;
-              passageData.strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
-                  word.lastLineInStrophe = true;
-              })
-          }         
+            }
+            passageData.stanzas[currentStanzaIdx].strophes.push({id: ++runningStropheIdx, lines: []});
+            ++currentStropheIdx;
+            currentStropheData = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx];
+            const currentStropheStyling = stropheStylingMap.get(runningStropheIdx);
+            if (currentStropheStyling !== undefined) {
+              (currentStropheStyling.colorFill !== null) && (currentStropheData.colorFill = currentStropheStyling.colorFill);
+              (currentStropheStyling.borderColor !== null) && (currentStropheData.borderColor = currentStropheStyling.borderColor);
+              (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
+            }
+            currentLineIdx = -1;
+            hebWord.firstWordInStrophe = true;
+          } 
+
+          let currentLineData = currentStropheData.lines[currentLineIdx];
+          if (currentLineData === undefined || hebWord.lineBreak) {
+            currentStropheData.lines.push({id: ++currentLineIdx, words: []})
+            currentLineData = currentStropheData.lines[currentLineIdx];
+          }
+
+          if (prevVerseNum !== hebWord.verse) {
+            hebWord.showVerseNum = true;
+          }
+          hebWord.lineId = currentLineIdx;
+          hebWord.stropheId = runningStropheIdx;
+          hebWord.stanzaId = currentStanzaIdx;
+
+          currentLineData.words.push(hebWord);
+          prevVerseNum = hebWord.verse;
+        })
+        let lastLineIdxInLastStrophe = passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines.length-1;
+        passageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
+          word.lastLineInStrophe = true;
+        })
       }
-      return passageData;
-
-  } catch (error) {
-      console.error('Database Error:', error);
-      throw new Error('Failed to fetch passage content by study id.');        
+    }
+    return passageData;
+  }
+  catch (error) {
+    console.error('Database Error', error);
+    throw new Error('Failed to fetch passage content by study id');
   }
 }
 

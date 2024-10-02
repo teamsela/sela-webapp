@@ -5,14 +5,15 @@ import { PassageData } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { StropheBlock } from './StropheBlock';
 import { handleStructureUpdate } from './StructureUpdate';
+import { StanzaBlock } from './StanzaBlock';
 
 const Passage = ({
   content,
 }: {
   content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
+  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -23,11 +24,15 @@ const Passage = ({
   const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
   const [clickToDeSelect, setClickToDeSelect] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-
   const [passageData, setPassageData] = useState<PassageData>(content);
   
-  useEffect(() =>{
-    ctxSetStropheCount(passageData.strophes.length);
+  useEffect(() => {
+    let stropheCount = 0;
+    passageData.stanzas.map((stanzas)=>{
+      stropheCount += stanzas.strophes.length
+    })
+    ctxSetStropheCount(stropheCount);
+    ctxSetStanzaCount(passageData.stanzas.length);
   }, [passageData]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -86,6 +91,7 @@ const Passage = ({
           const newArray = [...ctxSelectedHebWords, selectedWord];
           ctxSetSelectedHebWords(newArray);
           ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+        
         }
       }
     });
@@ -102,6 +108,7 @@ const Passage = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
       }
       ctxSetSelectedStrophes([]);
+      ctxSetNumSelectedStrophes(0);
     }
 
   }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes,
@@ -151,10 +158,10 @@ const Passage = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
-    let actionedContent: PassageData | null = null;
-  
-    if (ctxStructureUpdateType !== StructureUpdateType.none && ctxSelectedHebWords.length === 1) {
-      actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxStructureUpdateType);
+    let actionedContent : PassageData | null = null;
+
+    if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {
+      actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes, ctxStructureUpdateType);
     }
   
     // Only update state if actionedContent is different from current passageData
@@ -162,6 +169,8 @@ const Passage = ({
       setPassageData(actionedContent);
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
+      ctxSetSelectedStrophes([]);
+      ctxSetNumSelectedStrophes(0);
     } 
     
     // Reset the structure update type
@@ -170,7 +179,7 @@ const Passage = ({
   
 
   const passageContentStyle = {
-    className: `flex-1 overflow-scroll transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-17`
+    className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
   }
 
   return (
@@ -184,13 +193,13 @@ const Passage = ({
         {...passageContentStyle}
         className="h-0"
       >
-        <div id="selaPassage" className='relative py-5 top-30 pb-2 z-10'>
+        <div id="selaPassage" className='flex relative m-2 py-5 top-30 pb-2 z-10'>
           {
-            passageData.strophes.map((strophe)=>{
+            passageData.stanzas.map((stanza) => {
               return(
-                <StropheBlock 
-                  strophe={strophe}
-                  key={strophe.id}
+                <StanzaBlock
+                  stanza={stanza}
+                  key={stanza.id}
                 />
               )
             })

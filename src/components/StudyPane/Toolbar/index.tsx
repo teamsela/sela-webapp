@@ -1,9 +1,10 @@
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
-  IndentBtn, UniformWidthBtn, StructureUpdateBtn, NewStanzaBtn } from "./Buttons";
+  IndentBtn, UniformWidthBtn, StructureUpdateBtn } from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType } from "@/lib/types";
+import Structure from "../InfoPane/Structure";
 
 const Toolbar = ({
   setScaleValue,
@@ -55,12 +56,16 @@ const Toolbar = ({
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Move to previous line" />
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Move to next line" />
           </div>
-          <div className="border-r border-stroke flex flex-row">
+          <div className="border-r px-3 border-stroke flex flex-row">
             <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
             <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
           </div>
-          <NewStanzaBtn />
+          <div className="border-r px-3 border-stroke flex flex-row">
+            <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStanza} toolTip="Merge with previous stanza" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStanza} toolTip="Merge with next stanza" />
+          </div>
         </div>)
       }
     </div>
