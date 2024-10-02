@@ -13,7 +13,7 @@ const Root = ({
         word: HebWord,
         count: number
     }
-    const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+    const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSetWordToRemove } = useContext(FormatContext);
 
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
 
@@ -38,19 +38,19 @@ const Root = ({
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-      };
+    };
 
-      const handleMouseUp = useCallback((event: MouseEvent) => {
-        //document.body.style.userSelect = 'text';
+    const handleMouseUp = useCallback((event: MouseEvent) => {
         if (clickToDeSelect) {
-          ctxSetSelectedRoots([]);
-          const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
-            !ctxSelectedRoots.includes(hebWord.strongNumber)
-          );
-          ctxSetSelectedHebWords(filteredHebWords)
-          console.log(filteredHebWords)
+            console.log("deslect")
+            ctxSetWordToRemove(ctxSelectedRoots);
+            ctxSetSelectedRoots([]);
+            /*const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
+              !ctxSelectedRoots.includes(hebWord.strongNumber)
+            );
+            ctxSetSelectedHebWords(filteredHebWords)*/
         }
-      }, [clickToDeSelect]);
+    }, [clickToDeSelect]);
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
@@ -71,19 +71,19 @@ const Root = ({
     useEffect(() => {
         document.addEventListener('mouseup', handleMouseUp);
         return () => {
-          document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('mouseup', handleMouseUp);
         };
-      }, [handleMouseUp]);
+    }, [handleMouseUp]);
     const handleClick = () => {
         let newMap = new Map<number, RootColor>([...Array.from(ctxRootsColorMap.entries())].map(([key, value]) => [key, { ...value }]));
         ctxRootsColorMap.forEach((value, key) => {
-                let color: RootColor = {
-                    colorFill: generateRandomHexColor(),
-                    colorBorder: generateRandomHexColor(),
-                    colorText: generateRandomHexColor()
-                }
-                newMap.set(key, color);
-            });
+            let color: RootColor = {
+                colorFill: generateRandomHexColor(),
+                colorBorder: generateRandomHexColor(),
+                colorText: generateRandomHexColor()
+            }
+            newMap.set(key, color);
+        });
         ctxSetRootsColorMap(newMap);
     }
     useEffect(() => {

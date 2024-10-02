@@ -35,7 +35,8 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap,
+    ctxWordToRemove, ctxSetWordToRemove
   } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -74,7 +75,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     const rootColor = ctxRootsColorMap.get(hebWord.strongNumber);
-  
+
     // Check if the current colors are different from the new colors before setting them
     if (rootColor) {
       if (colorFillLocal !== rootColor.colorFill) {
@@ -86,7 +87,7 @@ export const WordBlock = ({
       if (textColorLocal !== rootColor.colorText) {
         setTextColorLocal(rootColor.colorText);
       }
-  
+
       // Update hebWord directly only if necessary
       if (hebWord.colorFill !== rootColor.colorFill) {
         hebWord.colorFill = rootColor.colorFill;
@@ -102,7 +103,7 @@ export const WordBlock = ({
       const defaultColorFill = hebWord.colorFill || DEFAULT_COLOR_FILL;
       const defaultBorderColor = hebWord.borderColor || DEFAULT_BORDER_COLOR;
       const defaultTextColor = hebWord.textColor || DEFAULT_TEXT_COLOR;
-  
+
       if (colorFillLocal !== defaultColorFill) {
         setColorFillLocal(defaultColorFill);
       }
@@ -117,12 +118,30 @@ export const WordBlock = ({
 
   useEffect(() => {
     const isSelected = ctxSelectedHebWords.includes(hebWord) || ctxSelectedRoots.includes(hebWord.strongNumber);
-    if (ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord)) {
+    if (ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord) ) { //&& !ctxWordToRemove.includes(hebWord.strongNumber)
       ctxSelectedHebWords.push(hebWord);
+      console.log(`added ${hebWord.strongNumber}`)
     }
     setSelected(isSelected);
     ctxSetNumSelectedWords(ctxSelectedHebWords.length);
   }, [ctxSelectedHebWords, ctxSelectedRoots, selected, ctxSetNumSelectedWords, hebWord]);
+
+  useEffect(() => {
+    if (ctxSelectedHebWords.includes(hebWord) && ctxWordToRemove.includes(hebWord.strongNumber)) {
+      console.log(hebWord);
+      const filteredHebWords = ctxSelectedHebWords.filter(word => word.strongNumber !== hebWord.strongNumber);
+      const hasMoreEntry = ctxSelectedHebWords.some(item => item.strongNumber === hebWord.strongNumber);
+      if(!hasMoreEntry){
+        const removedWordToRemove = ctxWordToRemove.filter(strongNumber => strongNumber !== hebWord.strongNumber);
+        ctxSetWordToRemove(removedWordToRemove);
+      }
+      console.log(ctxWordToRemove);
+      console.log(filteredHebWords);
+      ctxSetSelectedHebWords(filteredHebWords);
+      console.log(ctxSelectedHebWords);
+    }
+    console.log("GG")
+  }, [ctxWordToRemove, ctxSetWordToRemove]);
 
   const handleClick = () => {
 

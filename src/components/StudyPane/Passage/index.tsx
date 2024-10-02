@@ -12,7 +12,7 @@ const Passage = ({
   content: PassageData;
 }) => {
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetSelectedRoots
   } = useContext(FormatContext)
 
   //drag-to-select module
@@ -33,6 +33,8 @@ const Passage = ({
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
+    console.log("Mouse Down")
+
     document.body.style.userSelect = 'none';
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -108,9 +110,9 @@ const Passage = ({
     ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
   const handleMouseUp = useCallback(() => {
-    console.log("passage")
     document.body.style.userSelect = 'text';
     setIsDragging(false);
+    console.log("Mouse Up")
     //click to de-select
     //if selectionEnd is null it means the mouse didnt move at all
     //otherwise it means it is a drag
@@ -163,7 +165,6 @@ const Passage = ({
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
     } 
-    
     // Reset the structure update type
     ctxSetStructureUpdateType(StructureUpdateType.none);
   }, [ctxStructureUpdateType, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetStructureUpdateType, passageData]);
