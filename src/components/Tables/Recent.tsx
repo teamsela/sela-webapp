@@ -11,7 +11,6 @@ import EditStudyModal from '@/components/Modals/EditStudy';
 import Pagination from "@/components/Paginations/Pagination";
 import { FetchStudiesResult } from '@/lib/data';
 import { fetchRecentStudies } from '@/lib/actions';
-import Loader from "@/components/common/Loader";
 
 export default function RecentTable({
   query,
@@ -40,12 +39,6 @@ export default function RecentTable({
     }
   }, [triggerFetch]);
 
-  if (studiesResult.records.length == 0) {
-    return (
-      <Loader />
-    )
-  }
-  
   return (
     <>
     <SearchBar placeholder="Search study by name or passage..." />
