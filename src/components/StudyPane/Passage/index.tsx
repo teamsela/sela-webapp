@@ -160,7 +160,8 @@ const Passage = ({
   useEffect(() => {
     let actionedContent : PassageData | null = null;
 
-    if (ctxStructureUpdateType !== StructureUpdateType.none && (ctxSelectedHebWords.length === 1 || (ctxSelectedStrophes.length === 1 && ctxStructureUpdateType === StructureUpdateType.newStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStanza || ctxStructureUpdateType === StructureUpdateType.mergeWithNextStanza ))) {
+    if (ctxStructureUpdateType !== StructureUpdateType.none && 
+      (ctxSelectedHebWords.length === 1 || ctxSelectedStrophes.length === 1)) {
       actionedContent = handleStructureUpdate(passageData, ctxSelectedHebWords[0], ctxSelectedStrophes, ctxStructureUpdateType);
     }
   

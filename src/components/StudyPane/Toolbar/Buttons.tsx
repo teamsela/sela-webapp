@@ -294,27 +294,29 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
 
   const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
 
-  let buttonEnabled = (ctxSelectedHebWords.length === 1);
-  let stropheButtonEnabled = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+  let buttonEnabled = false;
+  let hasWordSelected = (ctxSelectedHebWords.length === 1);
+  let hasStropheSelected = (ctxSelectedStrophes.length === 1);
+  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = buttonEnabled && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
+    buttonEnabled = hasWordSelected && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].lineId !== 0);
+    buttonEnabled = hasWordSelected && (ctxSelectedHebWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-    buttonEnabled = buttonEnabled && (!ctxSelectedHebWords[0].lastLineInStrophe);
+    buttonEnabled = hasWordSelected && (!ctxSelectedHebWords[0].lastLineInStrophe);
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = buttonEnabled && (!ctxSelectedHebWords[0].firstWordInStrophe);
+    buttonEnabled = hasWordSelected && (!ctxSelectedHebWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== 0);
+    buttonEnabled = (hasWordSelected && (ctxSelectedHebWords[0].stropheId !== 0) || (hasStropheSelected && (ctxSelectedStrophes[0].id !== 0)));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = buttonEnabled && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1);
+    buttonEnabled = (hasWordSelected && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1)) || (hasStropheSelected && (ctxSelectedStrophes[0].id !== ctxStropheCount-1));
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].id !== 0);
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].id !== 0);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = stropheButtonEnabled && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };

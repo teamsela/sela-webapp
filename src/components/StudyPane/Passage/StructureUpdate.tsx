@@ -79,33 +79,52 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
             nextStanzaDiv = false;
           }
           
-          // for the stanza updates 
-          if ((selectedStrophe !== undefined) && (selectedStrophe.length === 1) && (selectedStrophe[0].lines[0].words[0].id === word.id)) {
-            if ((actionType == StructureUpdateType.newStanza) && word.stropheId !== 0) {
-              word.stanzaDiv = true;
-              insertStanzaList.push(word.id);
-              stanzaIdxUpdate = 1;
-            }
-            else if ((actionType == StructureUpdateType.mergeWithPrevStanza) && (content.stanzas.length > 1)) {
-              word.stanzaDiv = false;
-              if (previousStanza !== null) {
-                previousStanza.stanzaDiv = false;
-                removeStanzaList.push(previousStanza.id);
+          // update by selected strophe
+          if ((selectedStrophe !== undefined) && (selectedStrophe.length === 1)) {
+
+            const firstHebWord = selectedStrophe[0].lines[0].words[0];
+
+            // for strophe updates
+            if (selectedStrophe[0].id === word.stropheId) {
+              const lastLineIdx = selectedStrophe[0].lines.length-1;
+              const lastWordIdx = selectedStrophe[0].lines[lastLineIdx].words.length-1;
+              const lastHebWord = selectedStrophe[0].lines[lastLineIdx].words[lastWordIdx];
+              if ((actionType == StructureUpdateType.mergeWithPrevStrophe) && word.id === lastHebWord.id) {
+                selectedWord = lastHebWord;
               }
-              removeStanzaList.push(word.id);
-              nextStanzaDiv = true; 
-              if (word.lastLineInStrophe && (wordIdx == line.words.length-1)){
-                stanzaIdxUpdate = -1;
-              }
+              else if ((actionType == StructureUpdateType.mergeWithNextStrophe) && word.id === firstHebWord.id) {
+                selectedWord = firstHebWord;
+              }  
             }
-            else if ((actionType == StructureUpdateType.mergeWithNextStanza) && (content.stanzas.length > 1) && (word.stanzaId !== content.stanzas.length -1)) {
-              if (word.firstWordInStrophe) {
+
+            // for stanza updates
+            if (firstHebWord.id === word.id) {
+              if ((actionType == StructureUpdateType.newStanza) && word.stropheId !== 0) {
                 word.stanzaDiv = true;
                 insertStanzaList.push(word.id);
-                removeNextStanzaDiv = true;
+                stanzaIdxUpdate = 1;
               }
-              if (word.lastLineInStrophe && (wordIdx == line.words.length-1)){
-                stanzaIdxUpdate = -1;
+              else if ((actionType == StructureUpdateType.mergeWithPrevStanza) && (content.stanzas.length > 1)) {
+                word.stanzaDiv = false;
+                if (previousStanza !== null) {
+                  previousStanza.stanzaDiv = false;
+                  removeStanzaList.push(previousStanza.id);
+                }
+                removeStanzaList.push(word.id);
+                nextStanzaDiv = true; 
+                if (word.lastLineInStrophe && (wordIdx == line.words.length-1)){
+                  stanzaIdxUpdate = -1;
+                }
+              }
+              else if ((actionType == StructureUpdateType.mergeWithNextStanza) && (content.stanzas.length > 1) && (word.stanzaId !== content.stanzas.length -1)) {
+                if (word.firstWordInStrophe) {
+                  word.stanzaDiv = true;
+                  insertStanzaList.push(word.id);
+                  removeNextStanzaDiv = true;
+                }
+                if (word.lastLineInStrophe && (wordIdx == line.words.length-1)){
+                  stanzaIdxUpdate = -1;
+                }
               }
             }
           }
