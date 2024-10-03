@@ -1,22 +1,36 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { deleteStudy } from '@/lib/actions';
+import { FormEvent, useEffect, useRef, useState } from 'react'
 
 import { IconTrash } from "@tabler/icons-react";
 
+import { deleteStudy } from '@/lib/actions';
+import { StudyData } from '@/lib/data';
+
 const DeleteStudyModal = ({
-  studyId,
-  studyName
+  studyItem,
+  setTriggerFetch
 }: {
-  studyId: string;
-  studyName: string;
+  studyItem: StudyData;
+  setTriggerFetch: (arg: boolean) => void;
 } ) => {
 
   const [modalOpen, setModalOpen] = useState(false);
 
   const trigger = useRef<any>(null);
   const modal = useRef<any>(null);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      deleteStudy(studyItem.id);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTriggerFetch(true);
+      setModalOpen(false);
+    }
+  }
 
   // close on click outside
   useEffect(() => {
@@ -89,28 +103,30 @@ const DeleteStudyModal = ({
             </svg>
           </span>
           <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-            &ldquo;{studyName}&rdquo;
+            &ldquo;{studyItem.name}&rdquo;
           </h3>
           <p className="mb-10">
             Are you sure you want to delete this study permanently?
           </p>
-          <div className="-mx-3 flex flex-wrap gap-y-4">
-            <div className="w-full px-3 2xsm:w-1/2">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
-              >
-                Cancel
-              </button>
+          <form onSubmit={onSubmit}>
+            <div className="-mx-3 flex flex-wrap gap-y-4">
+              <div className="w-full px-3 2xsm:w-1/2">
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="w-full px-3 2xsm:w-1/2">
+                <button type="submit"
+                  className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <div className="w-full px-3 2xsm:w-1/2">
-              <button 
-                onClick={() => deleteStudy(studyId)}
-                className="block w-full rounded border border-meta-1 bg-meta-1 p-3 text-center font-medium text-white transition hover:bg-opacity-90">
-                Delete
-              </button>
-            </div>
-          </div>
+          </form>
         </div>
       </div>
     </>

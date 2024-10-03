@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord, StanzaData } from './data';
+import { StudyData, PassageData, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -101,7 +101,6 @@ export async function updatePublic(studyId: string, publicAccess: boolean) {
   } catch (error) {
     return { message: 'Database Error: Failed to update study public access.' };
   }
-  revalidatePath('/');
 }
 
 export async function updateStar(studyId: string, isStarred: boolean) {
@@ -112,7 +111,6 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   } catch (error) {
     return { message: 'Database Error: Failed to update study star.' };
   }
-  revalidatePath('/');   
 }
 
 export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
@@ -453,7 +451,6 @@ export async function deleteStudy(studyId: string) {
   } catch (error) {
     return { message: 'Database Error: Failed to delete study.' };
   }
-  revalidatePath('/');   
 }
 
 export async function createStudy(passage: string) {
@@ -472,6 +469,42 @@ export async function createStudy(passage: string) {
     if (record)
       redirect('/study/' + record.id.replace("rec_", "") + '/edit');
   }
+}
+
+export async function fetchRecentStudies(query: string, currentPage: number) {
+  const PAGINATION_SIZE = 10;
+  let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
+
+  const user = await currentUser();
+
+  const xataClient = getXataClient();
+
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        { owner: user?.id },
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  search.records.map((studyRecord) => {   
+    searchResult.records.push({
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
+      public: studyRecord.public || false, starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xata.updatedAt.toLocaleString() })
+  });
+  searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  console.log(searchResult);
+  return searchResult;
 }
 
 export async function fetchPassageContent(studyId: string) {

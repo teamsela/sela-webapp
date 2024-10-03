@@ -1,6 +1,7 @@
-import { getXataClient } from '@/xata';
-import { currentUser } from '@clerk/nextjs';
-import Link from 'next/link'
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 import SearchBar from "@/components/Tables/Search";
 import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
@@ -8,40 +9,43 @@ import StarToggler from '@/components/Tables/Recent/StarToggler';
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
 import Pagination from "@/components/Paginations/Pagination";
+import { FetchStudiesResult } from '@/lib/data';
+import { fetchRecentStudies } from '@/lib/actions';
+import Loader from "@/components/common/Loader";
 
-export default async function RecentTable({
+export default function RecentTable({
   query,
   currentPage,
 }: {
   query: string;
   currentPage: number;
 }) {
-  // may make PAGINATION_SIZE editable by user later
-  const PAGINATION_SIZE = 10;
 
-  const user = await currentUser();
+  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
+  const [triggerFetch, setTriggerFetch] = useState<boolean>(false);
 
-  const xataClient = getXataClient();
-  const search = await xataClient.db.study.search("", {
-    filter: {
-      $all:[
-        { owner: user?.id },
-        {
-          $any: [
-            { name: {$iContains: query }},
-            { passage: {$iContains: query }}
-          ]
-        },  
-      ]
-    },
-    page: {
-      size: PAGINATION_SIZE,
-      offset: (currentPage-1) * PAGINATION_SIZE
+  async function fetchStudies() {
+    const [result] = await Promise.all([fetchRecentStudies(query, currentPage)]);
+    setStudiesResult(result);
+  }
+
+  useEffect(() => {
+    fetchStudies();
+  }, []);
+
+  useEffect(() => {
+    if (triggerFetch) {
+      setTimeout(() => fetchStudies(), 3000);
+      setTriggerFetch(false);
     }
-  });
-  const studies = search.records;
-  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  }, [triggerFetch]);
 
+  if (studiesResult.records.length == 0) {
+    return (
+      <Loader />
+    )
+  }
+  
   return (
     <>
     <SearchBar placeholder="Search study by name or passage..." />
@@ -68,7 +72,7 @@ export default async function RecentTable({
             </tr>
           </thead>
           <tbody>
-            {studies.map((studyItem) => (
+            {studiesResult.records.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/edit"}>
@@ -84,7 +88,7 @@ export default async function RecentTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {studyItem.xata.updatedAt.toLocaleString()}
+                    {studyItem.lastUpdated}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -92,8 +96,8 @@ export default async function RecentTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
-                    <EditStudyModal studyId={studyItem.id} studyName={studyItem.name} />
-                    <DeleteStudyModal studyId={studyItem.id} studyName={studyItem.name} />
+                    <EditStudyModal studyId={studyItem.id} studyName={studyItem.name} setTriggerFetch={setTriggerFetch} />
+                    <DeleteStudyModal studyItem={studyItem} setTriggerFetch={setTriggerFetch} />
                     <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} />
                   </div>
                 </td>
@@ -103,8 +107,8 @@ export default async function RecentTable({
         </table>
       </div>
       {
-        totalPages > 0 
-          ? <Pagination totalPages={ totalPages } /> 
+        studiesResult.totalPages > 0 
+          ? <Pagination totalPages={ studiesResult.totalPages } /> 
           : (<div className="text-center py-5">
             <h2 className="text-xl"> No study found </h2>
           </div>)

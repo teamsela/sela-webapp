@@ -1,9 +1,11 @@
 export interface StudyData {
     id: string;
     name: string;
-    owner: string;
+    owner: string | undefined;
     passage: string;
     public: boolean;
+    starred?: boolean;
+    lastUpdated?: string;
 }
 
 export type HebWord = {
@@ -51,6 +53,11 @@ export type StanzaData = {
 export type PassageData = {
     studyId: string; // study id
     stanzas: StanzaData[];
+}
+
+export type FetchStudiesResult = {
+    records: StudyData[];
+    totalPages: number;
 }
 
 export type RootColor = {

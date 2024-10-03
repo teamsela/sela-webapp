@@ -8,9 +8,11 @@ import { State, updateStudyNameWithForm } from '@/lib/actions';
 const EditStudyModal = ({
   studyId,
   studyName,
+  setTriggerFetch
 }: {
   studyId: string;
   studyName: string;
+  setTriggerFetch: (arg: boolean) => void;
 } ) => {
 
   const initialState = { message: null, errors: {} };
@@ -72,7 +74,7 @@ const EditStudyModal = ({
                 </div>
                 <div className="w-full px-3 2xsm:w-1/2">
                   <button type="submit"
-                    onClick={() => setModalOpen(false)}
+                    onClick={() => { setModalOpen(false); setTriggerFetch(true); }}
                     className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90"
                   >
                   OK
