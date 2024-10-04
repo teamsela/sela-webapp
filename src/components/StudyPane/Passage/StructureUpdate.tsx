@@ -214,6 +214,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
         (currentStropheStyling.expanded !== null) && (currentStropheData.expanded = currentStropheStyling.expanded);
         strophesToUpdate.push(currentStropheData);
       }
+      currentStropheData.firstStropheInStanza = (currentStropheIdx === 0);
       currentLineIdx = -1;
       word.firstWordInStrophe = true;
     }
@@ -232,6 +233,11 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines[lastLineIdxInLastStrophe].words.forEach(word => {
       word.lastLineInStrophe = true;
   })
+  newPassageData.stanzas.map((stanza) => {
+    stanza.strophes.map((strophe, stropheId) => {
+      strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
+    })
+  })
 
   if (insertDivList.length > 0 || removeDivList.length > 0) {
     updateStropheDiv(content.studyId, insertDivList, removeDivList, strophesToUpdate);
@@ -239,7 +245,6 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   if (insertLineBreakList.length > 0 || removeLineBreakList.length > 0) {
     updateLineBreak(content.studyId, insertLineBreakList, removeLineBreakList);
   }
-
   if (insertStanzaList.length > 0 || removeStanzaList.length > 0) {
     updateStanzaDiv(content.studyId, insertStanzaList, removeStanzaList, stanzasToUpdate);
   }

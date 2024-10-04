@@ -42,6 +42,8 @@ export type StropheData = {
     borderColor?: string;
     expanded?: boolean;
     lines: LineData[];
+    firstStropheInStanza?: boolean;
+    lastStropheInStanza?: boolean;    
 }
 
 export type StanzaData = {
