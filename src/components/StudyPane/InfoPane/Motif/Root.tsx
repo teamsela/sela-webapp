@@ -14,9 +14,7 @@ const Root = ({
         word: HebWord,
         count: number
     }
-    const { ctxIsDragging, ctxSetIsDragging, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
-
-    const { handleMouseUpAddOn } = useDragToSelect(content);
+    const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
 
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
 

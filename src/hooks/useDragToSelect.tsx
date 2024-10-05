@@ -7,12 +7,13 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (content: PassageData) => {
 
     const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxIsDragging, ctxSetIsDragging, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
       } = useContext(FormatContext)
 
     //drag-to-select module
     ///////////////////////////
     ///////////////////////////
+    const [isDragging, setIsDragging] = useState(false);
     const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
     const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
@@ -20,7 +21,7 @@ export const useDragToSelect = (content: PassageData) => {
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        ctxSetIsDragging(true);
+        setIsDragging(true);
         document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
@@ -36,7 +37,7 @@ export const useDragToSelect = (content: PassageData) => {
 
 
     const handleMouseMove = useCallback((event: MouseEvent) => {
-        if (!ctxIsDragging) return;
+        if (!isDragging) return;
         if (!selectionStart) return;
         // filter out small accidental drags when user clicks
         /////////
@@ -90,13 +91,12 @@ export const useDragToSelect = (content: PassageData) => {
         ctxSetSelectedStrophes([]);
         }
 
-    }, [ctxIsDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+    }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
 
     const handleMouseUp = useCallback(() => {
         document.body.style.userSelect = 'text';
-        ctxSetIsDragging(false);
-        console.log('mouseup');
+        setIsDragging(false);
         //click to de-select
         //if selectionEnd is null it means the mouse didnt move at all
         //otherwise it means it is a drag
@@ -107,19 +107,6 @@ export const useDragToSelect = (content: PassageData) => {
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 
-    const handleMouseUpAddOn = () => {
-        document.body.style.userSelect = 'text';
-        ctxSetIsDragging(false);
-        console.log('mouseup addon');
-        //click to de-select
-        //if selectionEnd is null it means the mouse didnt move at all
-        //otherwise it means it is a drag
-        if (!selectionEnd && clickToDeSelect) {
-        ctxSetNumSelectedWords(0);
-        ctxSetSelectedHebWords([]);
-        ctxSetSelectedStrophes([]);
-        }
-    }
 
     useEffect(() => {
         document.addEventListener('mousemove', handleMouseMove);
@@ -128,7 +115,7 @@ export const useDragToSelect = (content: PassageData) => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [ctxIsDragging, handleMouseMove, handleMouseUp]);
+    }, [isDragging, handleMouseMove, handleMouseUp]);
 
 
     const getSelectionBoxStyle = (): React.CSSProperties => {
@@ -152,6 +139,7 @@ export const useDragToSelect = (content: PassageData) => {
     };
 
     return {
+        isDragging,
         selectionStart,
         selectionEnd,
         clickToDeSelect,
@@ -159,8 +147,7 @@ export const useDragToSelect = (content: PassageData) => {
         handleMouseUp,
         setClickToDeSelect,
         containerRef,
-        getSelectionBoxStyle,
-        handleMouseUpAddOn
+        getSelectionBoxStyle
     };
 
 }
