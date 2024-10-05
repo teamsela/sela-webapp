@@ -24,7 +24,6 @@ const InfoPane = ({
         setInfoPaneAction(InfoPaneActionType.none)
     }
 
-    const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
 
     return (
         <aside
@@ -32,8 +31,6 @@ const InfoPane = ({
                 infoPaneAction !== InfoPaneActionType.none ? "w-1/4" : "w-0"
             } fixed right-0 top-0 z-30 border-l-2`}
             style={{ borderColor: "rgb(203 213 225)" }}
-            onMouseDown={handleMouseDown}
-            ref={containerRef}
         >
             {/* Fixed close button */}
             <button
@@ -51,7 +48,7 @@ const InfoPane = ({
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>
-            {isDragging && <div style={getSelectionBoxStyle()} />}
+            
         </aside>
     );
 };
