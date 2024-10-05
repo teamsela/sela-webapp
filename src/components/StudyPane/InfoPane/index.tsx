@@ -6,6 +6,8 @@ import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
 import { PassageData } from "@/lib/data";
 
+import { useDragToSelect } from '@/hooks/useDragToSelect';
+
 const InfoPane = ({
     infoPaneAction,
     setInfoPaneAction,
@@ -21,12 +23,17 @@ const InfoPane = ({
     const handleClick = () => {
         setInfoPaneAction(InfoPaneActionType.none)
     }
+
+    const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
+
     return (
         <aside
             className={`h-full top-19 flex-col overflow-y-auto bg-white transition-all duration-300 ${
                 infoPaneAction !== InfoPaneActionType.none ? "w-1/4" : "w-0"
             } fixed right-0 top-0 z-30 border-l-2`}
             style={{ borderColor: "rgb(203 213 225)" }}
+            onMouseDown={handleMouseDown}
+            ref={containerRef}
         >
             {/* Fixed close button */}
             <button
@@ -44,6 +51,7 @@ const InfoPane = ({
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>
+            {isDragging && <div style={getSelectionBoxStyle()} />}
         </aside>
     );
 };
