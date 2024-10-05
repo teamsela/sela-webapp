@@ -48,7 +48,9 @@ export const FormatContext = createContext({
   ctxSelectedRoots: [] as number[],
   ctxSetSelectedRoots: (arg: number[]) => {},
   ctxRootsColorMap : {} as Map<number, RootColor>,
-  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{}
+  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{},
+  ctxIsDragging: false,
+  ctxSetIsDragging: (arg: boolean) => {},
 });
 
 const StudyPane = ({
@@ -82,6 +84,9 @@ const StudyPane = ({
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [selectedRoots, setSelectedRoots] = useState<number[]>([]);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, RootColor>>(new Map());
+
+  const [isDragging, setIsDragging] = useState(false);
+
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -118,6 +123,8 @@ const StudyPane = ({
     ctxSetSelectedRoots: setSelectedRoots,
     ctxRootsColorMap: rootsColorMap,
     ctxSetRootsColorMap: setRootsColorMap,
+    ctxIsDragging: isDragging,
+    ctxSetIsDragging: setIsDragging,
   }
 
 

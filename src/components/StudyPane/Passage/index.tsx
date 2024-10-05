@@ -13,13 +13,13 @@ const Passage = ({
 }: {
   content: PassageData;
 }) => {
-  const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
+  const { ctxIsDragging, ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
   const [passageData, setPassageData] = useState<PassageData>(content);
 
-  const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
+  const { selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
   // ctxSetStropheCount(passageData.strophes.length);
 
 
@@ -72,7 +72,7 @@ const Passage = ({
             })
           }
         </div>
-        {isDragging && <div style={getSelectionBoxStyle()} />}
+        {ctxIsDragging && <div style={getSelectionBoxStyle()} />}
       </div>
 
     </main>

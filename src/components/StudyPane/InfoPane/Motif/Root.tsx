@@ -2,6 +2,7 @@ import { RootBlock } from "./RootBlock";
 import { PassageData, HebWord, RootColor } from "@/lib/data";
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+import { useDragToSelect } from '@/hooks/useDragToSelect';
 
 const Root = ({
     content
@@ -13,7 +14,9 @@ const Root = ({
         word: HebWord,
         count: number
     }
-    const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+    const { ctxIsDragging, ctxSetIsDragging, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+
+    const { handleMouseUpAddOn } = useDragToSelect(content);
 
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
 
@@ -36,23 +39,24 @@ const Root = ({
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
-        document.addEventListener('mouseup', handleMouseUp);
+        // document.addEventListener('mouseup', handleMouseUp);
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
       };
 
-      const handleMouseUp = useCallback((event: MouseEvent) => {
-        //document.body.style.userSelect = 'text';
-        if (clickToDeSelect) {
-          ctxSetSelectedRoots([]);
-          const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
-            !ctxSelectedRoots.includes(hebWord.strongNumber)
-          );
-          ctxSetSelectedHebWords(filteredHebWords)
-          console.log(filteredHebWords)
-        }
-      }, [clickToDeSelect]);
+    //   const handleMouseUp = useCallback((event: MouseEvent) => {
+    //     ctxIsDragging ? ctxSetIsDragging(false) : ""
+    //     //document.body.style.userSelect = 'text';
+    //     if (clickToDeSelect) {
+    //       ctxSetSelectedRoots([]);
+    //       const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
+    //         !ctxSelectedRoots.includes(hebWord.strongNumber)
+    //       );
+    //       ctxSetSelectedHebWords(filteredHebWords)
+    //       console.log(filteredHebWords)
+    //     }
+    //   }, [clickToDeSelect]);
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
@@ -71,12 +75,12 @@ const Root = ({
     });
     rootWords.sort((a, b) => b.count - a.count);
 
-    useEffect(() => {
-        document.addEventListener('mouseup', handleMouseUp);
-        return () => {
-          document.removeEventListener('mouseup', handleMouseUp);
-        };
-      }, [handleMouseUp]);
+    // useEffect(() => {
+    //     document.addEventListener('mouseup', handleMouseUp);
+    //     return () => {
+    //       document.removeEventListener('mouseup', handleMouseUp);
+    //     };
+    //   }, [handleMouseUp]);
     const handleClick = () => {
         let newMap = new Map<number, RootColor>([...Array.from(ctxRootsColorMap.entries())].map(([key, value]) => [key, { ...value }]));
         ctxRootsColorMap.forEach((value, key) => {
