@@ -37,7 +37,6 @@ const Root = ({
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         // event.preventDefault();
         // event.stopPropagation();
-        // document.addEventListener('mouseup', handleMouseUp);
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
@@ -52,12 +51,6 @@ const Root = ({
         }
 
       };
-
-    //   const handleMouseUp = useCallback((event: MouseEvent) => {
-    //     // ctxIsDragging ? ctxSetIsDragging(false) : ""
-    //     //document.body.style.userSelect = 'text';
-
-    //   }, [clickToDeSelect]);
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
@@ -76,12 +69,6 @@ const Root = ({
     });
     rootWords.sort((a, b) => b.count - a.count);
 
-    // useEffect(() => {
-    //     document.addEventListener('mouseup', handleMouseUp);
-    //     return () => {
-    //       document.removeEventListener('mouseup', handleMouseUp);
-    //     };
-    //   }, [handleMouseUp]);
     const handleClick = () => {
         let newMap = new Map<number, RootColor>([...Array.from(ctxRootsColorMap.entries())].map(([key, value]) => [key, { ...value }]));
         ctxRootsColorMap.forEach((value, key) => {
