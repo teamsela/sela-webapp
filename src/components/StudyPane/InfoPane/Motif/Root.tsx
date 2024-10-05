@@ -69,6 +69,7 @@ const Root = ({
             }
         }
     });
+    rootWords.sort((a, b) => b.count - a.count);
 
     useEffect(() => {
         document.addEventListener('mouseup', handleMouseUp);
