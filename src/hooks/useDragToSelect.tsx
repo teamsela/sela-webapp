@@ -97,6 +97,7 @@ export const useDragToSelect = (content: PassageData) => {
     const handleMouseUp = useCallback(() => {
         document.body.style.userSelect = 'text';
         setIsDragging(false);
+        console.log('mouseup');
         //click to de-select
         //if selectionEnd is null it means the mouse didnt move at all
         //otherwise it means it is a drag
