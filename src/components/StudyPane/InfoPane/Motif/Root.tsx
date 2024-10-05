@@ -37,25 +37,28 @@ const Root = ({
         });
     })
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
+        // event.preventDefault();
+        // event.stopPropagation();
         // document.addEventListener('mouseup', handleMouseUp);
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+
+        if (clickToDeSelect) {
+            ctxSetSelectedRoots([]);
+            const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
+              !ctxSelectedRoots.includes(hebWord.strongNumber)
+            );
+            ctxSetSelectedHebWords(filteredHebWords)
+            console.log(filteredHebWords)
+        }
+
       };
 
     //   const handleMouseUp = useCallback((event: MouseEvent) => {
-    //     ctxIsDragging ? ctxSetIsDragging(false) : ""
+    //     // ctxIsDragging ? ctxSetIsDragging(false) : ""
     //     //document.body.style.userSelect = 'text';
-    //     if (clickToDeSelect) {
-    //       ctxSetSelectedRoots([]);
-    //       const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
-    //         !ctxSelectedRoots.includes(hebWord.strongNumber)
-    //       );
-    //       ctxSetSelectedHebWords(filteredHebWords)
-    //       console.log(filteredHebWords)
-    //     }
+
     //   }, [clickToDeSelect]);
 
     let rootWords: HebWordCount[] = [];
