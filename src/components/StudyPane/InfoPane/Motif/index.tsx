@@ -6,6 +6,7 @@ import Link from "next/link";
 import Root from "./Root";
 import Syn from "./Syn";
 
+
 const Motif = ({
    content
 }: {
