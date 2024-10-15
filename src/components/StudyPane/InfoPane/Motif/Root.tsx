@@ -47,10 +47,10 @@ const Root = ({
               !ctxSelectedRoots.includes(hebWord.strongNumber)
             );
             ctxSetSelectedHebWords(filteredHebWords)
-            console.log(filteredHebWords)
+            // console.log(filteredHebWords)
         }
 
-      };
+    };
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {

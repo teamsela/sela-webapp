@@ -48,7 +48,7 @@ export const FormatContext = createContext({
   ctxSelectedRoots: [] as number[],
   ctxSetSelectedRoots: (arg: number[]) => {},
   ctxRootsColorMap : {} as Map<number, RootColor>,
-  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{},
+  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{}
 });
 
 const StudyPane = ({
