@@ -70,7 +70,7 @@ const EsvPopover = ({
             ref={popovers}
             onFocus={() => setPopoversOpen(true)}
             onBlur={() => setPopoversOpen(false)}
-            className={`absolute bottom-full ${ctxIsHebrew ? 'right-1' : 'left-0'} z-20 mb-1 w-max max-w-[560px] rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+            className={`absolute bottom-full text-left ${ctxIsHebrew ? 'right-1 max-w-[420px]' : 'left-0 max-w-[560px]'} z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
               popoversOpen === true ? "block" : "hidden"
             }`}
           >
