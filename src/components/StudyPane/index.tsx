@@ -83,6 +83,8 @@ const StudyPane = ({
   const [selectedRoots, setSelectedRoots] = useState<number[]>([]);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, RootColor>>(new Map());
 
+
+
   const formatContextValue = {
     ctxStudyId: study.id,
     ctxScaleValue: scaleValue,

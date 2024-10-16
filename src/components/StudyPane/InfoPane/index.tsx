@@ -6,6 +6,8 @@ import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
 import { PassageData } from "@/lib/data";
 
+import { useDragToSelect } from '@/hooks/useDragToSelect';
+
 const InfoPane = ({
     infoPaneAction,
     setInfoPaneAction,
@@ -21,6 +23,8 @@ const InfoPane = ({
     const handleClick = () => {
         setInfoPaneAction(InfoPaneActionType.none)
     }
+
+
     return (
         <aside
             className={`h-full top-19 flex-col overflow-y-auto bg-white transition-all duration-300 ${
@@ -44,6 +48,7 @@ const InfoPane = ({
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>
+            
         </aside>
     );
 };
