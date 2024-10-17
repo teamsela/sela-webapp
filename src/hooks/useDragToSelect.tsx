@@ -7,7 +7,7 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (content: PassageData) => {
 
     const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetSelectedRoots
       } = useContext(FormatContext)
 
     //drag-to-select module
@@ -31,6 +31,7 @@ export const useDragToSelect = (content: PassageData) => {
         //if clicked on wordBlock, set status here so de-select function doesnt fire
         //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
         const target = event.target as HTMLElement;
+        console.log(target)
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
     };
@@ -94,16 +95,21 @@ export const useDragToSelect = (content: PassageData) => {
     }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
 
-    const handleMouseUp = useCallback(() => {
+    const handleMouseUp = useCallback((event: MouseEvent) => {
+        const target  = event.target as HTMLTextAreaElement;
         document.body.style.userSelect = 'text';
         setIsDragging(false);
         //click to de-select
         //if selectionEnd is null it means the mouse didnt move at all
         //otherwise it means it is a drag
+        if(target?.classList.contains("RootBlock")){
+            return;
+        }
         if (!selectionEnd && clickToDeSelect) {
         ctxSetNumSelectedWords(0);
         ctxSetSelectedHebWords([]);
         ctxSetSelectedStrophes([]);
+        ctxSetSelectedRoots([]);
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 

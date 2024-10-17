@@ -15,6 +15,8 @@ const Root = ({
         count: number
     }
     const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+    const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
+
 
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
 
@@ -34,23 +36,6 @@ const Root = ({
             })
         });
     })
-    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-        // event.preventDefault();
-        // event.stopPropagation();
-        const target = event.target as HTMLElement;
-        const clickedTarget = target.getAttribute('data-clickType');
-        clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-
-        if (clickToDeSelect) {
-            ctxSetSelectedRoots([]);
-            const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
-              !ctxSelectedRoots.includes(hebWord.strongNumber)
-            );
-            ctxSetSelectedHebWords(filteredHebWords)
-            // console.log(filteredHebWords)
-        }
-
-    };
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
