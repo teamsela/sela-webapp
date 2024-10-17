@@ -102,7 +102,7 @@ export const useDragToSelect = (content: PassageData) => {
         //click to de-select
         //if selectionEnd is null it means the mouse didnt move at all
         //otherwise it means it is a drag
-        if(target?.classList.contains("RootBlock")){
+        if(target?.classList.contains("ClickBlock")){
             return;
         }
         if (!selectionEnd && clickToDeSelect) {
@@ -115,8 +115,10 @@ export const useDragToSelect = (content: PassageData) => {
 
 
     useEffect(() => {
+        if(isDragging){
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
+        }
         return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);

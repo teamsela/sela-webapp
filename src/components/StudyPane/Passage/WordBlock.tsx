@@ -233,7 +233,7 @@ export const WordBlock = ({
         >
           {hebWord.showVerseNum ? <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={hebWord.chapter} verseNumber={hebWord.verse} /> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
           <span
-            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ${fontSize}
+            className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >

@@ -15,7 +15,6 @@ const Root = ({
         count: number
     }
     const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
-    const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
 
 
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
@@ -74,7 +73,7 @@ const Root = ({
         return `#${randomColor.toString(16).padStart(6, '0')}`;
     };
     return (
-        <div onMouseDown={handleMouseDown}>
+        <div>
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
