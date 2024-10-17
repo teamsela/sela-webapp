@@ -20,7 +20,15 @@ const Passage = ({
   const [passageData, setPassageData] = useState<PassageData>(content);
 
   const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
-  // ctxSetStropheCount(passageData.strophes.length);
+  
+  useEffect(() => {
+    let stropheCount = 0;
+    passageData.stanzas.map((stanzas)=>{
+      stropheCount += stanzas.strophes.length
+    })
+    ctxSetStropheCount(stropheCount);
+    ctxSetStanzaCount(passageData.stanzas.length);
+  }, [passageData]);
 
 
   useEffect(() => {
