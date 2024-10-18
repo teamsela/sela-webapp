@@ -120,18 +120,18 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
       <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick} >
         {
-          (colorAction === ColorActionType.colorFill) && <BiSolidColorFill fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+          (colorAction === ColorActionType.colorFill) && <BiSolidColorFill className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
         }
         {
-          (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+          (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
         }
         {
-          (colorAction === ColorActionType.textColor) && <BiFont fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
+          (colorAction === ColorActionType.textColor) && <BiFont className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
         }
         <div
           // TODO: using embbed style for the color display for now, may move to tailwind after some research
