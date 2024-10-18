@@ -312,7 +312,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
     buttonEnabled = (hasWordSelected && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1)) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza);
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].id !== 0);
+    buttonEnabled = hasStrophesSelected && (!ctxSelectedStrophes[0].firstStropheInStanza);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
