@@ -16,6 +16,7 @@ const Root = ({
     }
     const { ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots, ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
 
+
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
 
     let rootWordsMap = new Map<number, HebWordCount>();
@@ -34,23 +35,6 @@ const Root = ({
             })
         });
     })
-    const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-        // event.preventDefault();
-        // event.stopPropagation();
-        const target = event.target as HTMLElement;
-        const clickedTarget = target.getAttribute('data-clickType');
-        clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-
-        if (clickToDeSelect) {
-            ctxSetSelectedRoots([]);
-            const filteredHebWords = ctxSelectedHebWords.filter(hebWord => 
-              !ctxSelectedRoots.includes(hebWord.strongNumber)
-            );
-            ctxSetSelectedHebWords(filteredHebWords)
-            // console.log(filteredHebWords)
-        }
-
-    };
 
     let rootWords: HebWordCount[] = [];
     rootWordsMap.forEach((value, key) => {
@@ -89,7 +73,7 @@ const Root = ({
         return `#${randomColor.toString(16).padStart(6, '0')}`;
     };
     return (
-        <div onMouseDown={handleMouseDown}>
+        <div>
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
