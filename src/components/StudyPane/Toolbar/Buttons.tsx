@@ -1,12 +1,11 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow } from "react-icons/lu";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
-import { RiInsertColumnLeft, RiInsertColumnRight } from "react-icons/ri";
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useCallback, useState } from 'react';
@@ -292,7 +291,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedHebWords.length === 1);
@@ -348,10 +347,10 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
             (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
           } 
           {
-            (updateType == StructureUpdateType.mergeWithPrevStanza) && <RiInsertColumnLeft  opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            ((updateType == StructureUpdateType.mergeWithPrevStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && ctxIsHebrew) && <LuArrowDownWideNarrow style={{transform:'rotate(90deg)'}} opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
           {
-            (updateType == StructureUpdateType.mergeWithNextStanza) && <RiInsertColumnRight opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
+            ((updateType == StructureUpdateType.mergeWithNextStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && ctxIsHebrew) && <LuArrowUpNarrowWide style={{transform:'rotate(90deg)'}} opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
           }
         <ToolTip text={toolTip} />
       </button>

@@ -21,7 +21,7 @@ const Toolbar = ({
   setUniformWidth: (arg: boolean) => void;
 } ) => {
   
-  const { ctxInViewMode } = useContext(FormatContext);
+  const { ctxInViewMode, ctxIsHebrew } = useContext(FormatContext);
   
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
@@ -63,8 +63,8 @@ const Toolbar = ({
           </div>
           <div className="border-r px-3 border-stroke flex flex-row">
             <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
-            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStanza} toolTip="Merge with previous stanza" />
-            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStanza} toolTip="Merge with next stanza" />
+            <StructureUpdateBtn updateType={ctxIsHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={ctxIsHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
+            <StructureUpdateBtn updateType={ctxIsHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={ctxIsHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
           </div>
         </div>)
       }
