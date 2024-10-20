@@ -182,6 +182,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   flattenedContent.forEach(word => {
     word.lastLineInStrophe = false;
     word.firstWordInStrophe = false;
+    word.firstStropheInStanza = false; 
 
     let currentStanzaData = newPassageData.stanzas[currentStanzaIdx];
     if (currentStanzaData === undefined || (word.stanzaDiv === true)) {
@@ -225,6 +226,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 
+    word.firstStropheInStanza = (currentStropheIdx === 0);
     word.stropheId = runningStropheIdx;
     word.stanzaId = currentStanzaIdx;
     currentLineData.words.push(word);
@@ -236,6 +238,13 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   newPassageData.stanzas.map((stanza) => {
     stanza.strophes.map((strophe, stropheId) => {
       strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
+      if (strophe.lastStropheInStanza) {
+        strophe.lines.forEach((line) => {
+          line.words.forEach((word) => {
+            word.lastStropheInStanza = true;
+          })
+        })
+      }      
     })
   })
 

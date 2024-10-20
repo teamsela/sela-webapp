@@ -582,6 +582,8 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
           hebWord.lastLineInStrophe = false;
           hebWord.firstWordInStrophe = false;
+          hebWord.firstStropheInStanza = false; 
+          hebWord.lastStropheInStanza = false;
 
           const currentWordStyling = wordStylingMap.get(hebWord.id);
           if (currentWordStyling !== undefined) {
@@ -636,6 +638,8 @@ export async function fetchPassageContent(studyId: string) {
           if (prevVerseNum !== hebWord.verse) {
             hebWord.showVerseNum = true;
           }
+          hebWord.firstStropheInStanza = (currentStropheIdx === 0);
+          hebWord.lastStropheInStanza = false;
           hebWord.lineId = currentLineIdx;
           hebWord.stropheId = runningStropheIdx;
           hebWord.stanzaId = currentStanzaIdx;
@@ -650,6 +654,13 @@ export async function fetchPassageContent(studyId: string) {
         passageData.stanzas.map((stanza) => {
           stanza.strophes.map((strophe, stropheId) => {
             strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
+            if (strophe.lastStropheInStanza) {
+              strophe.lines.forEach((line) => {
+                line.words.forEach((word) => {
+                  word.lastStropheInStanza = true;
+                })
+              })
+            }
           })
         })
       }

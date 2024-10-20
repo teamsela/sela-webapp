@@ -307,9 +307,9 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && (!ctxSelectedHebWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (hasWordSelected && (ctxSelectedHebWords[0].stropheId !== 0) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = (hasWordSelected && (!ctxSelectedHebWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (hasWordSelected && (ctxSelectedHebWords[0].stropheId !== ctxStropheCount-1)) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza);
+    buttonEnabled = (hasWordSelected && (!ctxSelectedHebWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
     buttonEnabled = hasStrophesSelected && (!ctxSelectedStrophes[0].firstStropheInStanza);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {

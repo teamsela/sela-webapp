@@ -27,6 +27,8 @@ export type HebWord = {
     stropheId: number | undefined;
     lastLineInStrophe: boolean;
     firstWordInStrophe: boolean;
+    firstStropheInStanza: boolean;
+    lastStropheInStanza: boolean;
     stanzaId: number | undefined;
     stanzaDiv?: boolean;
 }
