@@ -6,8 +6,8 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
-import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, HebWord, StropheData, StanzaData, RootColor } from '@/lib/data';
+import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -47,8 +47,8 @@ export const FormatContext = createContext({
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   ctxSelectedRoots: [] as number[],
   ctxSetSelectedRoots: (arg: number[]) => {},
-  ctxRootsColorMap : {} as Map<number, RootColor>,
-  ctxSetRootsColorMap : (arg: Map<number, RootColor>) =>{}
+  ctxRootsColorMap : {} as Map<number, ColorType>,
+  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{}
 });
 
 const StudyPane = ({
@@ -81,7 +81,7 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [selectedRoots, setSelectedRoots] = useState<number[]>([]);
-  const [rootsColorMap, setRootsColorMap] = useState<Map<number, RootColor>>(new Map());
+  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
 
 
 

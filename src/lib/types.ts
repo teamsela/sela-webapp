@@ -12,6 +12,12 @@ export interface ColorPickerProps {
     setColorAction: (arg: number) => void,
 }
 
+export type ColorType = {
+    colorFill: string;
+    borderColor: string;
+    textColor: string;
+};
+
 export enum StructureUpdateType {
     none,
     newLine,

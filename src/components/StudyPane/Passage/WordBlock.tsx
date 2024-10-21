@@ -39,8 +39,8 @@ export const WordBlock = ({
   } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || hebWord.colorFill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorBorder || hebWord.borderColor || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorText || hebWord.textColor || DEFAULT_TEXT_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.borderColor || hebWord.borderColor || DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.textColor || hebWord.textColor || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
@@ -80,22 +80,22 @@ export const WordBlock = ({
       if (colorFillLocal !== rootColor.colorFill) {
         setColorFillLocal(rootColor.colorFill);
       }
-      if (borderColorLocal !== rootColor.colorBorder) {
-        setBorderColorLocal(rootColor.colorBorder);
+      if (borderColorLocal !== rootColor.borderColor) {
+        setBorderColorLocal(rootColor.borderColor);
       }
-      if (textColorLocal !== rootColor.colorText) {
-        setTextColorLocal(rootColor.colorText);
+      if (textColorLocal !== rootColor.textColor) {
+        setTextColorLocal(rootColor.textColor);
       }
   
       // Update hebWord directly only if necessary
       if (hebWord.colorFill !== rootColor.colorFill) {
         hebWord.colorFill = rootColor.colorFill;
       }
-      if (hebWord.borderColor !== rootColor.colorBorder) {
-        hebWord.borderColor = rootColor.colorBorder;
+      if (hebWord.borderColor !== rootColor.borderColor) {
+        hebWord.borderColor = rootColor.borderColor;
       }
-      if (hebWord.textColor !== rootColor.colorText) {
-        hebWord.textColor = rootColor.colorText;
+      if (hebWord.textColor !== rootColor.textColor) {
+        hebWord.textColor = rootColor.textColor;
       }
     } else {
       // Fallback to default colors only if they're different

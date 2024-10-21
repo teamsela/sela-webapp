@@ -63,9 +63,3 @@ export type FetchStudiesResult = {
     records: StudyData[];
     totalPages: number;
 }
-
-export type RootColor = {
-    colorFill: string;
-    colorBorder: string;
-    colorText: string;
-};

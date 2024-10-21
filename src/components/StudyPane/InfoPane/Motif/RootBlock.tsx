@@ -4,18 +4,24 @@ import { ColorActionType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
-  id, rootWord, count, strongNumber, hebWord
+  id, rootWord, count, strongNumber, hebWord, sameColor
 }: {
   id: number,
   rootWord: string | undefined,
   count: number,
   strongNumber: number,
   hebWord: HebWord,
+  sameColor: boolean
 }) => {
+
+  const defaultColorFill = (sameColor) ? hebWord.colorFill : DEFAULT_COLOR_FILL;
+  const defaultTextColor = (sameColor) ? hebWord.textColor : DEFAULT_TEXT_COLOR;
+  const defaultBorderColor = (sameColor) ? hebWord.borderColor : DEFAULT_BORDER_COLOR;
+
   const { ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
-  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorBorder || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorText || DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(defaultColorFill);
+  const [textColorLocal, setTextColorLocal] = useState(defaultTextColor);
+  const [borderColorLocal, setBorderColorLocal] = useState(defaultBorderColor);
   const [selected, setSelected] = useState(false);
   const [selectedHebrewWords, setSelectedHebWords] = useState(ctxSelectedHebWords);
 
@@ -23,8 +29,8 @@ export const RootBlock = ({
     const colorConfig = ctxRootsColorMap.get(strongNumber);
     if (colorConfig) {
       setColorFillLocal(colorConfig.colorFill || DEFAULT_COLOR_FILL);
-      setBorderColorLocal(colorConfig.colorBorder || DEFAULT_BORDER_COLOR);
-      setTextColorLocal(colorConfig.colorText || DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(colorConfig.borderColor || DEFAULT_BORDER_COLOR);
+      setTextColorLocal(colorConfig.textColor || DEFAULT_TEXT_COLOR);
     }
   }, [ctxRootsColorMap, strongNumber]); // Dependencies include ctxRootsColorMap and strongNumber
   
@@ -63,38 +69,26 @@ export const RootBlock = ({
   };
 
   useEffect(() => {
-    const isSelected = ctxSelectedRoots.includes(strongNumber);
-    setSelected(isSelected);
-    if (isSelected) {
-      const colorConfig = ctxRootsColorMap.get(strongNumber);
-      if (colorConfig) {
-        setColorFillLocal(colorConfig.colorFill || DEFAULT_COLOR_FILL);
-        setBorderColorLocal(colorConfig.colorBorder || DEFAULT_BORDER_COLOR);
-        setTextColorLocal(colorConfig.colorText || DEFAULT_TEXT_COLOR);
-      }
-    }
-  }, [ctxSelectedRoots, strongNumber, ctxRootsColorMap]);
-  useEffect(() => {
     if (ctxColorAction !== ColorActionType.none && selected) {
       const newMap = new Map(ctxRootsColorMap);
-      const colorConfig = newMap.get(strongNumber) || { colorFill: DEFAULT_COLOR_FILL, colorBorder: DEFAULT_BORDER_COLOR, colorText: DEFAULT_TEXT_COLOR };
+      const colorConfig = newMap.get(strongNumber) || { colorFill: DEFAULT_COLOR_FILL, borderColor: DEFAULT_BORDER_COLOR, textColor: DEFAULT_TEXT_COLOR };
 
       if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
         setColorFillLocal(ctxSelectedColor);
         colorConfig.colorFill = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
         setBorderColorLocal(ctxSelectedColor);
-        colorConfig.colorBorder = ctxSelectedColor;
+        colorConfig.borderColor = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
         setTextColorLocal(ctxSelectedColor);
-        colorConfig.colorText = ctxSelectedColor;
+        colorConfig.textColor = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.resetColor) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
         setTextColorLocal(DEFAULT_TEXT_COLOR);
         colorConfig.colorFill = DEFAULT_COLOR_FILL;
-        colorConfig.colorBorder = DEFAULT_BORDER_COLOR;
-        colorConfig.colorText = DEFAULT_TEXT_COLOR;
+        colorConfig.borderColor = DEFAULT_BORDER_COLOR;
+        colorConfig.textColor = DEFAULT_TEXT_COLOR;
       }
 
       newMap.set(strongNumber, colorConfig);
