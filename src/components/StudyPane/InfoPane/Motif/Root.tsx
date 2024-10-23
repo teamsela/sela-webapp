@@ -35,12 +35,12 @@ const Root = ({
 
     type HebWordProps = {
         count: number,
-        children: HebWord[]
+        descendants: HebWord[]
     };
     let rootWords: HebWordProps[] = [];
     rootWordsMap.forEach((rootWord) => {
         if (rootWord.length > 1 && rootWord[0].strongNumber) {
-            rootWords.push({ count: rootWord.length, children: rootWord });
+            rootWords.push({ count: rootWord.length, descendants: rootWord });
         }
     });
     rootWords.sort((a, b) => b.count - a.count);
@@ -51,7 +51,7 @@ const Root = ({
 
         rootWords.forEach((rootWord, index) => {
             let wordIds : number[] = [];
-            rootWord.children.forEach((word) => {
+            rootWord.descendants.forEach((word) => {
               wordIds.push(word.id)
             });
             const randomNum = Math.floor(Math.random() * 16777215);
@@ -63,7 +63,7 @@ const Root = ({
                 format: 'hex'
             })
             updateWordColor(ctxStudyId, wordIds, ColorActionType.colorFill, randomWordColor);
-            newMap.set(rootWord.children[0].strongNumber, randomWordColor);
+            newMap.set(rootWord.descendants[0].strongNumber, randomWordColor);
         })
         ctxSetRootsColorMap(newMap);
     }
@@ -73,7 +73,7 @@ const Root = ({
             <div className="flex flex-wrap pb-8">
                 {
                     rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} count={root.count} children={root.children} />
+                        <RootBlock key={index} id={index} count={root.count} descendants={root.descendants} />
                     ))
                 }
             </div>

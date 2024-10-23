@@ -5,24 +5,24 @@ import { ColorActionType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
-  id, count, children
+  id, count, descendants
 }: {
   id: number,
   count: number,
-  children: HebWord[]
+  descendants: HebWord[]
 }) => {
 
-  let defaultColorFill = children[0].colorFill || DEFAULT_COLOR_FILL;
-  children.forEach((child) => {
-     if (child.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
+  let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
+  descendants.forEach((dsd) => {
+     if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
   });
-  let defaultBorderColor = children[0].borderColor || DEFAULT_BORDER_COLOR;
-  children.forEach((child) => {
-     if (child.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
+  let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
+  descendants.forEach((dsd) => {
+     if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
   });
-  let defaultTextColor = children[0].textColor || DEFAULT_TEXT_COLOR;
-  children.forEach((child) => {
-     if (child.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
+  let defaultTextColor = descendants[0].textColor || DEFAULT_TEXT_COLOR;
+  descendants.forEach((dsd) => {
+     if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
   });
 
   const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
@@ -32,30 +32,30 @@ export const RootBlock = ({
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
-    const randomColor = ctxRootsColorMap.get(children[0].strongNumber);
+    const randomColor = ctxRootsColorMap.get(descendants[0].strongNumber);
     if (randomColor) {
       setColorFillLocal(randomColor);
     }
-  }, [ctxRootsColorMap]);
+  }, [ctxRootsColorMap, descendants]);
   
   useEffect(() => {
     let hasChildren = true;
-    children.forEach((child) => {
-      hasChildren = hasChildren && ctxSelectedHebWords.includes(child);
+    descendants.forEach((dsd) => {
+      hasChildren = hasChildren && ctxSelectedHebWords.includes(dsd);
     })
 
     setSelected(hasChildren);
-  }, [ctxSelectedHebWords]);
+  }, [ctxSelectedHebWords, descendants]);
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);
 
     let updatedSelectedHebWords = [...ctxSelectedHebWords];
     if (!selected) {
-      updatedSelectedHebWords = ctxSelectedHebWords.concat(children);
+      updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
     } else {
-      children.forEach((child) => {
-        updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(child), 1)
+      descendants.forEach((dsd) => {
+        updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
       })
     }
     ctxSetSelectedHebWords(updatedSelectedHebWords);
@@ -98,7 +98,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{children[0].ETCBCgloss}</span>
+          >{descendants[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>
