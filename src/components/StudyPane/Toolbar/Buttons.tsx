@@ -57,8 +57,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes,
-    ctxSelectedRoots,
+    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -71,7 +70,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
   
   useEffect(() => {
-    const hasSelectedItems = (ctxSelectedRoots.length > 0 ||ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
@@ -82,7 +81,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     else {
       refreshDisplayColor();
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, ctxSelectedRoots, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor) {
@@ -164,20 +163,20 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
 
   const { ctxStudyId, ctxNumSelectedWords, ctxSelectedHebWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
 
   useEffect(() => {
-    const hasSelectedItems = (ctxSelectedRoots.length > 0 || ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0);
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0);
     setButtonEnabled(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
     if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, ctxSelectedRoots, setColorAction])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, setColorAction])
 
   const handleClick = () => {
     if (buttonEnabled) {
@@ -207,7 +206,7 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-        <AiOutlineClear fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
+        <AiOutlineClear className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
       </button>
       <ToolTip text="Clear format" />
     </div>

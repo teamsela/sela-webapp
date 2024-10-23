@@ -6,8 +6,6 @@ import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
 import { PassageData } from "@/lib/data";
 
-import { useDragToSelect } from '@/hooks/useDragToSelect';
-
 const InfoPane = ({
     infoPaneAction,
     setInfoPaneAction,
@@ -17,9 +15,7 @@ const InfoPane = ({
     setInfoPaneAction: (arg: InfoPaneActionType) => void;
     content: PassageData;
 }) => {
-    useEffect(() => {
-        console.log(infoPaneAction)
-    }, [infoPaneAction]);
+
     const handleClick = () => {
         setInfoPaneAction(InfoPaneActionType.none)
     }

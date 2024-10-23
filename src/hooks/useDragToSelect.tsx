@@ -7,7 +7,7 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (content: PassageData) => {
 
     const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetSelectedRoots
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
     } = useContext(FormatContext)
 
     //drag-to-select module
@@ -112,7 +112,6 @@ export const useDragToSelect = (content: PassageData) => {
             ctxSetNumSelectedWords(0);
             ctxSetSelectedHebWords([]);
             ctxSetSelectedStrophes([]);
-            ctxSetSelectedRoots([]);
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 

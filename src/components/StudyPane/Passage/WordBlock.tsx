@@ -35,12 +35,12 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootsColorMap, ctxSetRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.colorFill || hebWord.colorFill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.borderColor || hebWord.borderColor || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber)?.textColor || hebWord.textColor || DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber) || hebWord.colorFill || DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
@@ -73,70 +73,33 @@ export const WordBlock = ({
   }
 
   useEffect(() => {
-    const rootColor = ctxRootsColorMap.get(hebWord.strongNumber);
-  
+    const rootColorFill = ctxRootsColorMap.get(hebWord.strongNumber);
     // Check if the current colors are different from the new colors before setting them
-    if (rootColor) {
-      if (colorFillLocal !== rootColor.colorFill) {
-        setColorFillLocal(rootColor.colorFill);
-      }
-      if (borderColorLocal !== rootColor.borderColor) {
-        setBorderColorLocal(rootColor.borderColor);
-      }
-      if (textColorLocal !== rootColor.textColor) {
-        setTextColorLocal(rootColor.textColor);
-      }
-  
-      // Update hebWord directly only if necessary
-      if (hebWord.colorFill !== rootColor.colorFill) {
-        hebWord.colorFill = rootColor.colorFill;
-      }
-      if (hebWord.borderColor !== rootColor.borderColor) {
-        hebWord.borderColor = rootColor.borderColor;
-      }
-      if (hebWord.textColor !== rootColor.textColor) {
-        hebWord.textColor = rootColor.textColor;
-      }
-    } else {
-      // Fallback to default colors only if they're different
-      const defaultColorFill = hebWord.colorFill || DEFAULT_COLOR_FILL;
-      const defaultBorderColor = hebWord.borderColor || DEFAULT_BORDER_COLOR;
-      const defaultTextColor = hebWord.textColor || DEFAULT_TEXT_COLOR;
-  
-      if (colorFillLocal !== defaultColorFill) {
-        setColorFillLocal(defaultColorFill);
-      }
-      if (borderColorLocal !== defaultBorderColor) {
-        setBorderColorLocal(defaultBorderColor);
-      }
-      if (textColorLocal !== defaultTextColor) {
-        setTextColorLocal(defaultTextColor);
-      }
+    if (rootColorFill && colorFillLocal !== rootColorFill) {
+        setColorFillLocal(rootColorFill);
+        hebWord.colorFill = rootColorFill;
     }
-  }, [ctxRootsColorMap, hebWord.strongNumber]);
+  }, [ctxRootsColorMap]);
 
   useEffect(() => {
-    const isSelected = ctxSelectedHebWords.includes(hebWord) || ctxSelectedRoots.includes(hebWord.strongNumber);
-    if (ctxSelectedRoots.includes(hebWord.strongNumber) && !ctxSelectedHebWords.includes(hebWord)) {
-      ctxSelectedHebWords.push(hebWord);
+    setSelected(ctxSelectedHebWords.includes(hebWord));
+
+    if (ctxSelectedHebWords.length >= 1) {
+      const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
+      if (lastSelectedWord) {
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
+      }
     }
-    setSelected(isSelected);
-    ctxSetNumSelectedWords(ctxSelectedHebWords.length);
-  }, [ctxSelectedHebWords, ctxSelectedRoots, selected, ctxSetNumSelectedWords, hebWord]);
+  }, [ctxSelectedHebWords, ctxSetNumSelectedWords]);
 
   const handleClick = () => {
-
     setSelected(prevState => !prevState);
-
     const newSelectedHebWords = [...ctxSelectedHebWords]; // Clone the array
-    if (!selected) {
-      newSelectedHebWords.push(hebWord);
-    } else {
-      const index = newSelectedHebWords.indexOf(hebWord);
-      newSelectedHebWords.splice(index, 1);
-    }
+    (!selected) ? newSelectedHebWords.push(hebWord) : newSelectedHebWords.splice(newSelectedHebWords.indexOf(hebWord), 1);
 
-    ctxSetSelectedHebWords(newSelectedHebWords); // Set updated array
+    ctxSetSelectedHebWords(newSelectedHebWords);
     ctxSetNumSelectedWords(newSelectedHebWords.length);
     ctxSetSelectedStrophes([]);
 
@@ -146,9 +109,9 @@ export const WordBlock = ({
     if (ctxSelectedHebWords.length >= 1) {
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length - 1);
       if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL);
-        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR);
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.colorFill) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.borderColor) : ctxSetColorFill(DEFAULT_BORDER_COLOR);
+        wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor) : ctxSetColorFill(DEFAULT_TEXT_COLOR);
       }
     }
   }
