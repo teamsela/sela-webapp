@@ -117,8 +117,12 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    className: `flex overflow-y-auto h-full ${infoPaneAction !== InfoPaneActionType.none ? 'w-3/4' : 'w-full'} ${isHebrew ? "hbFont" : ""}`
+    // className: `flex overflow-y-auto h-full ${infoPaneAction !== InfoPaneActionType.none ? 'w-3/4' : 'w-full'} ${isHebrew ? "hbFont" : ""}`
+    className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
   };
+  const studyPaneWrapperStyle = {
+    className: `grid gap-x-2 ${infoPaneAction !== InfoPaneActionType.none ? 'grid-cols-[3fr_1fr]' : ''} relative h-full`
+  }
   
   return (
     <>
@@ -130,7 +134,8 @@ const StudyPane = ({
           infoPaneAction={infoPaneAction}
         />
   
-        <main className="flex flex-row relative h-full">
+        {/* <main className="flex flex-row relative h-full"> */}
+        <main {...studyPaneWrapperStyle}>
           <div {...passageDivStyle}>
             <Toolbar
               setScaleValue={setScaleValue}
@@ -145,7 +150,7 @@ const StudyPane = ({
   
           {
             infoPaneAction !== InfoPaneActionType.none && (
-              <div className="fixed top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
+              <div className="relative top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}
