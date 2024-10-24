@@ -32,9 +32,10 @@ export const RootBlock = ({
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
-    const randomColor = ctxRootsColorMap.get(descendants[0].strongNumber);
-    if (randomColor) {
-      setColorFillLocal(randomColor);
+    const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
+    if (rootBlockColor) {
+      setColorFillLocal(rootBlockColor.colorFill);
+      setTextColorLocal(rootBlockColor.textColor);
     }
   }, [ctxRootsColorMap, descendants]);
   

@@ -38,9 +38,11 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(ctxRootsColorMap.get(hebWord.strongNumber) || hebWord.colorFill || DEFAULT_COLOR_FILL);
+  const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
+
+  const [colorFillLocal, setColorFillLocal] = useState((colorOverride && colorOverride.colorFill) || hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState((colorOverride && colorOverride.textColor) || hebWord.textColor || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
@@ -73,13 +75,19 @@ export const WordBlock = ({
   }
 
   useEffect(() => {
-    const rootColorFill = ctxRootsColorMap.get(hebWord.strongNumber);
+    const rootBlockColor = ctxRootsColorMap.get(hebWord.strongNumber);
     // Check if the current colors are different from the new colors before setting them
-    if (rootColorFill && colorFillLocal !== rootColorFill) {
-        setColorFillLocal(rootColorFill);
-        hebWord.colorFill = rootColorFill;
+    if (rootBlockColor) {
+      if (colorFillLocal !== rootBlockColor.colorFill) {
+        setColorFillLocal(rootBlockColor.colorFill);
+        hebWord.colorFill = rootBlockColor.colorFill;
+      }
+      if (textColorLocal !== rootBlockColor.textColor) {
+        setColorFillLocal(rootBlockColor.textColor);
+        hebWord.textColor = rootBlockColor.textColor;
+      }
     }
-  }, [ctxRootsColorMap, colorFillLocal, hebWord]);
+  }, [ctxRootsColorMap, colorFillLocal, textColorLocal, hebWord]);
 
   useEffect(() => {
     setSelected(ctxSelectedHebWords.includes(hebWord));

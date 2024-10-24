@@ -1,12 +1,17 @@
 import React, { useContext } from 'react';
-import randomColor from 'randomcolor';
 
 import { PassageData, HebWord } from "@/lib/data";
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, ColorType } from "@/lib/types";
 import { updateWordColor } from "@/lib/actions";
 
 import { RootBlock } from "./RootBlock";
-import { FormatContext } from '../../index';
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+
+const RootColorPalette = [ 
+    '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
+    '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
+    '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
+];
 
 const Root = ({
     content
@@ -47,23 +52,25 @@ const Root = ({
 
     const handleClick = () => {
 
-        let newMap = new Map<number, string>();
+        let newMap = new Map<number, ColorType>();
 
         rootWords.forEach((rootWord, index) => {
-            let wordIds : number[] = [];
+            let descendantWordIds : number[] = [];
             rootWord.descendants.forEach((word) => {
-              wordIds.push(word.id)
+                descendantWordIds.push(word.id)
             });
-            const randomNum = Math.floor(Math.random() * 16777215);
-            const randomHue = `#${randomNum.toString(16).padStart(6, '0')}`;
 
-            const randomWordColor = randomColor({
-                luminosity: 'light',
-                hue: randomHue,
-                format: 'hex'
-            })
-            updateWordColor(ctxStudyId, wordIds, ColorActionType.colorFill, randomWordColor);
-            newMap.set(rootWord.descendants[0].strongNumber, randomWordColor);
+            const colorFill : string = (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL;
+
+            let rootBlockColor: ColorType = {
+                colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
+                textColor: (index < 10) ? '#000000' : (index < 20 || index > RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
+                borderColor: "" // not used for root block
+            };
+
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+            newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
         })
         ctxSetRootsColorMap(newMap);
     }
