@@ -117,7 +117,6 @@ const StudyPane = ({
 
 
   const passageDivStyle = {
-    // className: `flex overflow-y-auto h-full ${infoPaneAction !== InfoPaneActionType.none ? 'w-3/4' : 'w-full'} ${isHebrew ? "hbFont" : ""}`
     className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
   };
   const studyPaneWrapperStyle = {
@@ -134,7 +133,6 @@ const StudyPane = ({
           infoPaneAction={infoPaneAction}
         />
   
-        {/* <main className="flex flex-row relative h-full"> */}
         <main {...studyPaneWrapperStyle}>
           <div {...passageDivStyle}>
             <Toolbar

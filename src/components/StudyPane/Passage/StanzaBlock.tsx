@@ -21,7 +21,6 @@ export const  StanzaBlock = ({
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);
         ctxSetNumSelectedWords(0);
-        
       }
     }
 

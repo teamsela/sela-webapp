@@ -20,7 +20,6 @@ const InfoPane = ({
         setInfoPaneAction(InfoPaneActionType.none)
     }
 
-
     return (
         <aside
             className={`fixed h-full top-19 flex-col overflow-y-auto bg-white transition-all duration-300 ${
