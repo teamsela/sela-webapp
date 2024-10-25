@@ -83,7 +83,7 @@ export const WordBlock = ({
         hebWord.colorFill = rootBlockColor.colorFill;
       }
       if (textColorLocal !== rootBlockColor.textColor) {
-        setColorFillLocal(rootBlockColor.textColor);
+        setTextColorLocal(rootBlockColor.textColor);
         hebWord.textColor = rootBlockColor.textColor;
       }
     }

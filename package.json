@@ -11,11 +11,9 @@
   "dependencies": {
     "@clerk/nextjs": "^4.29.5",
     "@tabler/icons-react": "^2.47.0",
-    "@types/randomcolor": "^0.5.9",
     "@xata.io/client": "^0.29.5",
     "clsx": "^2.1.0",
     "next": "^14.2.6",
-    "randomcolor": "^0.6.2",
     "react": "^18.3.1",
     "react-color": "^2.19.3",
     "react-dom": "^18.3.1",
