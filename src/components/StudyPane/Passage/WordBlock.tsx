@@ -190,7 +190,7 @@ export const WordBlock = ({
       <div
         id={hebWord.id.toString()}
         key={hebWord.id}
-        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={
           {
             background: `${colorFillLocal}`,
