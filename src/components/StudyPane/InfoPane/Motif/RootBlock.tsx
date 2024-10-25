@@ -37,6 +37,10 @@ export const RootBlock = ({
       setColorFillLocal(rootBlockColor.colorFill);
       setTextColorLocal(rootBlockColor.textColor);
     }
+    descendants.forEach((dsd) => {
+      if (dsd.colorFill !== colorFillLocal) { setColorFillLocal(DEFAULT_COLOR_FILL); }
+      if (dsd.textColor !== textColorLocal) { setTextColorLocal(DEFAULT_TEXT_COLOR); }
+   });    
   }, [ctxRootsColorMap, descendants]);
   
   useEffect(() => {
