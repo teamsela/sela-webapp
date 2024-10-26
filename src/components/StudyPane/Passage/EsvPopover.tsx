@@ -60,7 +60,7 @@ const EsvPopover = ({
       }
       )
     }
-  }, [chapterNumber, verseNumber]);
+  }, []);
 
   return (
     <div>
