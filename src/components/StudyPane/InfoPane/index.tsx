@@ -20,10 +20,9 @@ const InfoPane = ({
         setInfoPaneAction(InfoPaneActionType.none)
     }
 
-
     return (
         <aside
-            className={`h-full top-19 flex-col overflow-y-auto bg-white transition-all duration-300 ${
+            className={`fixed h-full top-19 flex-col overflow-y-auto bg-white transition-all duration-300 ${
                 infoPaneAction !== InfoPaneActionType.none ? "w-1/4" : "w-0"
             } fixed right-0 top-0 z-30 border-l-2`}
             style={{ borderColor: "rgb(203 213 225)" }}

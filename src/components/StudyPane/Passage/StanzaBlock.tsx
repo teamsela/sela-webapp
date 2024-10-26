@@ -21,14 +21,13 @@ export const  StanzaBlock = ({
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);
         ctxSetNumSelectedWords(0);
-        
       }
     }
 
     return(
         <div
         key={"stanza_" + stanza.id}
-        className={`relative flex-column pt-10 flex-1 mr-1 px-1 py-2 my-1 rounded border`} 
+        className={`relative flex-column pt-10 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
         >
         <div
           className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
