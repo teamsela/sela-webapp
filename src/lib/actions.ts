@@ -503,7 +503,6 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
       lastUpdated: studyRecord.xata.updatedAt.toLocaleString() })
   });
   searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
-  console.log(searchResult);
   return searchResult;
 }
 

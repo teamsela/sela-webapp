@@ -12,7 +12,7 @@ const EsvPopover = ({
     verseNumStyles: { className: string }
   }) => {
 
-  const { ctxIsHebrew } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxStropheCount, ctxStanzaCount, ctxStructureUpdateType, ctxSelectedHebWords } = useContext(FormatContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
@@ -47,11 +47,19 @@ const EsvPopover = ({
   });
 
   useEffect(() => {
-    const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
-    esvContent.then((data) =>
-      setEsvData(data)
-    )
-  }, [chapterNumber, verseNumber]);
+    const localEsvData = localStorage.getItem(`${chapterNumber}:${verseNumber}`)
+    if (localEsvData) {
+      setEsvData(localEsvData);
+    }
+    else {
+      const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+      esvContent.then((data) =>{
+        localStorage.setItem(`${chapterNumber}:${verseNumber}`, data);
+        setEsvData(data)
+      }
+      )
+    }
+  }, []);
 
   return (
     <div>
