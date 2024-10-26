@@ -49,7 +49,6 @@ const EsvPopover = ({
   useEffect(() => {
     const localEsvData = localStorage.getItem(`${chapterNumber}:${verseNumber}`)
     if (localEsvData) {
-      console.log(localEsvData);
       setEsvData(localEsvData);
     }
     else {
