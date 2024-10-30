@@ -58,7 +58,7 @@ const Passage = ({
   }
 
   return (
-    <main className="relative min-h-screen w-full">
+    <main className="relative min-h-full w-full">
     
       <div
         key={`passage`}

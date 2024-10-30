@@ -148,7 +148,7 @@ const StudyPane = ({
   
           {
             infoPaneAction !== InfoPaneActionType.none && (
-              <div className="relative top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
+              <div className="top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}

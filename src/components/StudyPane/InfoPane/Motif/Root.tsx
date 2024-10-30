@@ -7,7 +7,7 @@ import { updateWordColor } from "@/lib/actions";
 import { RootBlock } from "./RootBlock";
 import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
-const RootColorPalette = [ 
+const RootColorPalette = [
     '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
     '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
     '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
@@ -55,12 +55,12 @@ const Root = ({
         let newMap = new Map<number, ColorType>();
 
         rootWords.forEach((rootWord, index) => {
-            let descendantWordIds : number[] = [];
+            let descendantWordIds: number[] = [];
             rootWord.descendants.forEach((word) => {
                 descendantWordIds.push(word.id)
             });
 
-            const colorFill : string = (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL;
+            const colorFill: string = (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL;
 
             let rootBlockColor: ColorType = {
                 colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
@@ -74,17 +74,21 @@ const Root = ({
         })
         ctxSetRootsColorMap(newMap);
     }
-  
+
     return (
-        <div>
-            <div className="flex flex-wrap pb-8">
-                {
-                    rootWords.map((root, index) => (
+        <div className="flex-col h-full">
+            <div
+                style={{ height: '70%' }}
+                className=" gap-4 pb-8 overflow-y-auto">
+                <div className ="flex flex-wrap">
+                    {rootWords.map((root, index) => (
                         <RootBlock key={index} id={index} count={root.count} descendants={root.descendants} />
                     ))
-                }
+
+                    }
+                </div>
             </div>
-            <div className="w-full bottom-0 left-0 flex justify-center">
+            <div className="w-full bottom-0 left-0 flex justify-center mt-3">
                 <button
                     className="inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
                     onClick={() => handleClick()}
