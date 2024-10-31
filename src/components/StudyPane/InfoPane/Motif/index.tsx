@@ -18,7 +18,7 @@ const Motif = ({
   const inactiveClasses = "border-transparent";
 
   return (
-    <div>
+    <div className="h-full">
       <div className="mb-6 flex flex-wrap gap-5 border-b border-stroke dark:border-strokedark sm:gap-8">
         <Link
           href="#"
@@ -39,9 +39,9 @@ const Motif = ({
           Synonyms
         </Link>
       </div>
-      <div>
+      <div className="h-full">
         <div
-          className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"}`}
+          className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
         >
           <Root content={content} />
         </div>
