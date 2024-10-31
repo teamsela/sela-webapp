@@ -60,11 +60,9 @@ const Root = ({
                 descendantWordIds.push(word.id)
             });
 
-            const colorFill: string = (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL;
-
             let rootBlockColor: ColorType = {
                 colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
-                textColor: (index < 10) ? '#000000' : (index < 20 || index > RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
+                textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
                 borderColor: "" // not used for root block
             };
 
