@@ -35,24 +35,28 @@ export const RootBlock = ({
   const [textColorLocal, setTextColorLocal] = useState(defaultTextColor);
   const [selected, setSelected] = useState(false);
 
-
-
   useEffect(() => {
     const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
-    let newColorFill = colorFillLocal;
-    let newTextColor = textColorLocal;
     if (rootBlockColor) {
-      newColorFill = rootBlockColor.colorFill;
-      setColorFillLocal(newColorFill);
-      newTextColor = rootBlockColor.textColor;
-      setTextColorLocal(newTextColor);
+      setColorFillLocal(rootBlockColor.colorFill);
+      setTextColorLocal(rootBlockColor.textColor);
     }
-    descendants.forEach((dsd) => {
-      if (dsd.colorFill !== newColorFill) { setColorFillLocal(DEFAULT_COLOR_FILL); }
-      if (dsd.textColor !== newTextColor) { setTextColorLocal(DEFAULT_TEXT_COLOR); }
-    });
-  }, [ctxRootsColorMap, descendants]);
+  }, [ctxRootsColorMap]);
   
+  useEffect(() => {
+    const colorFill = descendants[0].colorFill;
+    const isSameColorFill = descendants.every((x) => x.colorFill === colorFill);
+    if (!isSameColorFill) {
+       setColorFillLocal(DEFAULT_COLOR_FILL);
+    } else if (colorFill != colorFillLocal) { setColorFillLocal(colorFill); }
+
+    const textColor = descendants[0].textColor;
+    const isSameTextColor = descendants.every((x) => x.textColor === textColor);
+    if (!isSameTextColor) {
+       setColorFillLocal(DEFAULT_TEXT_COLOR);
+    } else if (textColor != textColorLocal) { setTextColorLocal(textColor); }
+  }, [descendants]);
+
   useEffect(() => {
     let hasChildren = true;
     descendants.forEach((dsd) => {
