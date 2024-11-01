@@ -12,35 +12,45 @@ export const RootBlock = ({
   descendants: HebWord[]
 }) => {
 
+  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  
   let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
-  descendants.forEach((dsd) => {
-     if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
-  });
   let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
-  descendants.forEach((dsd) => {
-     if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
-  });
   let defaultTextColor = descendants[0].textColor || DEFAULT_TEXT_COLOR;
+
+  const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
+  if (rootBlockColor) {
+    defaultColorFill = rootBlockColor.colorFill;
+    defaultBorderColor = rootBlockColor.textColor;
+  }
+
   descendants.forEach((dsd) => {
-     if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
+    if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
+    if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
+    if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
   });
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
   const [colorFillLocal, setColorFillLocal] = useState(defaultColorFill);
   const [borderColorLocal, setBorderColorLocal] = useState(defaultBorderColor);
   const [textColorLocal, setTextColorLocal] = useState(defaultTextColor);
   const [selected, setSelected] = useState(false);
 
+
+
   useEffect(() => {
     const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
+    let newColorFill = colorFillLocal;
+    let newTextColor = textColorLocal;
     if (rootBlockColor) {
-      setColorFillLocal(rootBlockColor.colorFill);
-      setTextColorLocal(rootBlockColor.textColor);
+      newColorFill = rootBlockColor.colorFill;
+      setColorFillLocal(newColorFill);
+      newTextColor = rootBlockColor.textColor;
+      setTextColorLocal(newTextColor);
     }
     descendants.forEach((dsd) => {
-      if (dsd.colorFill !== colorFillLocal) { setColorFillLocal(DEFAULT_COLOR_FILL); }
-      if (dsd.textColor !== textColorLocal) { setTextColorLocal(DEFAULT_TEXT_COLOR); }
-   });    
+      if (dsd.colorFill !== newColorFill) { setColorFillLocal(DEFAULT_COLOR_FILL); }
+      if (dsd.textColor !== newTextColor) { setTextColorLocal(DEFAULT_TEXT_COLOR); }
+    });
   }, [ctxRootsColorMap, descendants]);
   
   useEffect(() => {
