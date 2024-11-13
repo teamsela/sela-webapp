@@ -23,13 +23,11 @@ export const SynBlock = ({
         }else{
             setSelectedCategory(category);
             ctxSetSynonymRoots(value);
-            console.log(value)
         }
     };
     return (
         <div className="flex my-1">
             <div
-                key={index}
                 className={`wordBlock mx-1 ClickBlock ${selectedCategory === category ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
                 data-clicktype="clickable"
                 style={

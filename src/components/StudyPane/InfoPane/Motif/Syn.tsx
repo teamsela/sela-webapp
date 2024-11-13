@@ -37,7 +37,7 @@ const Syn = ({
                 <div className="flex flex-wrap">
                     {Array.from(synonymCount.entries()).map(([key, value], index) => (
                         (value.length > 1) && (
-                            <div>
+                            <div key={index}>
                                 <SynBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} value={value}/>
                             </div>
                         )
