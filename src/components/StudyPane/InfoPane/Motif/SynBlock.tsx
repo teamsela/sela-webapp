@@ -44,6 +44,7 @@ export const SynBlock = ({
                     <span
                         className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
                     >{category}</span>
+                    <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{value.length}</span>
                 </span>
             </div>
         </div>
