@@ -38,7 +38,7 @@ const tables = [
     ],
   },
   {
-    name: "heb_bible_bsb",
+    name: "heb_bible_bsb_old2",
     columns: [
       { name: "hebId", type: "int" },
       { name: "book", type: "string" },
@@ -81,7 +81,7 @@ const tables = [
     ],
   },
   {
-    name: "heb_bible",
+    name: "heb_bible_old",
     columns: [
       { name: "hebId", type: "int" },
       { name: "hebUnicode", type: "string" },
@@ -101,20 +101,19 @@ const tables = [
       { name: "ETCBCgloss", type: "string" },
     ],
   },
+  { name: "domain", columns: [{ name: "name", type: "string" }] },
   {
-    name: "domain",
-    columns: [{ name: "name", type: "string" }],
-    revLinks: [{ column: "domain", table: "synonym" }],
-  },
-  {
-    name: "synonym",
+    name: "step_lexicon_root",
     columns: [
-      { name: "strongNumber", type: "int" },
-      { name: "domain", type: "link", link: { table: "domain" } },
+      { name: "strongCode", type: "int" },
+      { name: "rootCode", type: "int" },
+      { name: "gloss", type: "string" },
+      { name: "lemma", type: "string" },
+      { name: "domains", type: "multiple" },
     ],
   },
   {
-    name: "heb_bible_Oct31_2024",
+    name: "heb_bible",
     columns: [
       { name: "hebId", type: "int" },
       { name: "book", type: "string" },
@@ -137,10 +136,20 @@ const tables = [
       { name: "ETCBCgloss", type: "string" },
       { name: "HebSort", type: "float" },
       { name: "BSBSort", type: "float" },
-      { name: "Vs", type: "int" },
+      { name: "Vs", type: "float" },
       { name: "BSBVersion", type: "string" },
       { name: "mergecolumn", type: "float" },
       { name: "BSBnewLine", type: "bool" },
+    ],
+  },
+  {
+    name: "motif",
+    columns: [
+      { name: "strongCode", type: "int" },
+      { name: "gloss", type: "text" },
+      { name: "lemma", type: "text" },
+      { name: "rootCode", type: "int" },
+      { name: "categories", type: "multiple" },
     ],
   },
 ] as const;
@@ -154,8 +163,8 @@ export type StudyRecord = Study & XataRecord;
 export type Styling = InferredTypes["styling"];
 export type StylingRecord = Styling & XataRecord;
 
-export type HebBibleBsb = InferredTypes["heb_bible_bsb"];
-export type HebBibleBsbRecord = HebBibleBsb & XataRecord;
+export type HebBibleBsbOld2 = InferredTypes["heb_bible_bsb_old2"];
+export type HebBibleBsbOld2Record = HebBibleBsbOld2 & XataRecord;
 
 export type StropheStyling = InferredTypes["stropheStyling"];
 export type StropheStylingRecord = StropheStyling & XataRecord;
@@ -163,28 +172,32 @@ export type StropheStylingRecord = StropheStyling & XataRecord;
 export type StanzaStyling = InferredTypes["stanzaStyling"];
 export type StanzaStylingRecord = StanzaStyling & XataRecord;
 
-export type HebBible = InferredTypes["heb_bible"];
-export type HebBibleRecord = HebBible & XataRecord;
+export type HebBibleOld = InferredTypes["heb_bible_old"];
+export type HebBibleOldRecord = HebBibleOld & XataRecord;
 
 export type Domain = InferredTypes["domain"];
 export type DomainRecord = Domain & XataRecord;
 
-export type Synonym = InferredTypes["synonym"];
-export type SynonymRecord = Synonym & XataRecord;
+export type StepLexiconRoot = InferredTypes["step_lexicon_root"];
+export type StepLexiconRootRecord = StepLexiconRoot & XataRecord;
 
-export type HebBibleOct312024 = InferredTypes["heb_bible_Oct31_2024"];
-export type HebBibleOct312024Record = HebBibleOct312024 & XataRecord;
+export type HebBible = InferredTypes["heb_bible"];
+export type HebBibleRecord = HebBible & XataRecord;
+
+export type Motif = InferredTypes["motif"];
+export type MotifRecord = Motif & XataRecord;
 
 export type DatabaseSchema = {
   study: StudyRecord;
   styling: StylingRecord;
-  heb_bible_bsb: HebBibleBsbRecord;
+  heb_bible_bsb_old2: HebBibleBsbOld2Record;
   stropheStyling: StropheStylingRecord;
   stanzaStyling: StanzaStylingRecord;
-  heb_bible: HebBibleRecord;
+  heb_bible_old: HebBibleOldRecord;
   domain: DomainRecord;
-  synonym: SynonymRecord;
-  heb_bible_Oct31_2024: HebBibleOct312024Record;
+  step_lexicon_root: StepLexiconRootRecord;
+  heb_bible: HebBibleRecord;
+  motif: MotifRecord;
 };
 
 const DatabaseClient = buildClient();

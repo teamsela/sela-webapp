@@ -553,8 +553,7 @@ export async function fetchPassageContent(studyId: string) {
           stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
-        // const passageContent = await xataClient.db.heb_bible
-        const passageContent = await xataClient.db.heb_bible_Oct31_2024
+        const passageContent = await xataClient.db.heb_bible
           .filter("chapter", ge(passageInfo.startChapter))
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
@@ -579,7 +578,6 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.showVerseNum = false;
           hebWord.numIndent = 0;
-          // hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
           hebWord.lineBreak = (word.BSBnewLine) || false;
           hebWord.lastLineInStrophe = false;
           hebWord.firstWordInStrophe = false;
