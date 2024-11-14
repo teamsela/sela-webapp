@@ -578,7 +578,7 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.showVerseNum = false;
           hebWord.numIndent = 0;
-          hebWord.lineBreak = (word.paragraphMarker || word.poetryMarker || word.verseBreak) || false;
+          hebWord.lineBreak = (word.BSBnewLine) || false;
           hebWord.lastLineInStrophe = false;
           hebWord.firstWordInStrophe = false;
           hebWord.firstStropheInStanza = false; 
