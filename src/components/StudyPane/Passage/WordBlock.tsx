@@ -35,8 +35,7 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap,
-    ctxCategoryRoots
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
@@ -91,11 +90,7 @@ export const WordBlock = ({
   }, [ctxRootsColorMap, colorFillLocal, textColorLocal, hebWord]);
 
   useEffect(() => {
-    // Only update selection if word is not already in selected words
-    if (!ctxSelectedHebWords.includes(hebWord)) {
-      setSelected(ctxCategoryRoots.includes(hebWord.strongNumber));
-    }
-
+    setSelected(ctxSelectedHebWords.some(word => word.id === hebWord.id));
     if (ctxSelectedHebWords.length >= 1) {
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
       if (lastSelectedWord) {
@@ -104,14 +99,8 @@ export const WordBlock = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
     }
-  }, [ctxSelectedHebWords, ctxCategoryRoots]);
+  }, [ctxSelectedHebWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
 
-  // Add a separate effect just for selection state
-  useEffect(() => {
-    if (ctxSelectedHebWords.includes(hebWord)) {
-      setSelected(true);
-    }
-  }, [ctxSelectedHebWords]);
 
   const handleClick = () => {
     setSelected(prevState => !prevState);

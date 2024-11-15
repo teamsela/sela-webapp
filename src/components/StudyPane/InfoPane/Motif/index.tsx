@@ -13,25 +13,11 @@ const Motif = ({
   }) => {
 
   const [openTab, setOpenTab] = useState(MotifType.root);
+  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
-  let rootWordsMap = new Map<number, HebWord[]>();
-    content.stanzas.map((stanzas) => {
-        stanzas.strophes.map((strophe) => {
-            strophe.lines.map((line) => {
-                line.words.map((word) => {
-                    const currentWord = rootWordsMap.get(word.strongNumber);
-                    if (currentWord !== undefined) {
-                        currentWord.push(word);
-                    }
-                    else {
-                        rootWordsMap.set(word.strongNumber, [word]);
-                    }
-                })
-            })
-        });
-    })
+
 
   return (
     <div className="h-full">
@@ -59,10 +45,10 @@ const Motif = ({
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
         >
-          <Root rootWordsMap={rootWordsMap}  />
+          <Root content={content}/>
         </div>
         <div
-          className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
+          className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"} h-full`}
         >
           <Category content={content}/>
         </div>

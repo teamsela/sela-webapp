@@ -28,7 +28,6 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
     fetchPassageContent(studyId),
   ]);
 
-
   if (!study || (thisUser?.id != study.owner && !study.public)) {
     notFound();
   }

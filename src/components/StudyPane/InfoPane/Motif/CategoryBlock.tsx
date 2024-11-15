@@ -1,28 +1,43 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from "../..";
+import { HebWord } from "@/lib/data";
 
 export const CategoryBlock = ({
     category,
     index,
     selectedCategory,
     setSelectedCategory,
-    value
+    value,
+    lastSelectedHebWords,
+    setLastSelectedHebWords
 }: {
     category: String,
     index: number,
     selectedCategory: String,
     setSelectedCategory: React.Dispatch<React.SetStateAction<String>>,
-    value: { strongNumbers: number[], count: number }
+    value: { strongNumbers: number[], count: number, hebWords: HebWord[] },
+    lastSelectedHebWords: HebWord[],
+    setLastSelectedHebWords: React.Dispatch<React.SetStateAction<HebWord[]>>
 }) => {
-    const { ctxSetCategoryRoots } = useContext(FormatContext);
-
+    const { ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
     const handleClick = () => {
-        if(category == selectedCategory){
+        if (category === selectedCategory) {
+            const newSelectedHebWords = ctxSelectedHebWords.filter(
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+            );
+            ctxSetSelectedHebWords(newSelectedHebWords);
+            setLastSelectedHebWords([]);
             setSelectedCategory("");
-            ctxSetCategoryRoots([]);
-        }else{
+        } else {
+            const wordsWithoutPrevCategory = ctxSelectedHebWords.filter(
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+            );
+            
+            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.hebWords]));
+            
             setSelectedCategory(category);
-            ctxSetCategoryRoots(value.strongNumbers);
+            ctxSetSelectedHebWords(newSelectedHebWords);
+            setLastSelectedHebWords(value.hebWords);
         }
     };
     return (
