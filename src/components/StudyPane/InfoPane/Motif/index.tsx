@@ -13,7 +13,6 @@ const Motif = ({
   }) => {
 
   const [openTab, setOpenTab] = useState(MotifType.root);
-  const [selectedHebWords, setSelectedHebWords] = useState<HebWord[]>([]);
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
@@ -38,7 +37,7 @@ const Motif = ({
           }`}
           onClick={() => setOpenTab(MotifType.syn)}
         >
-          Synonyms
+          Categories
         </Link>
       </div>
       <div className="h-full">
