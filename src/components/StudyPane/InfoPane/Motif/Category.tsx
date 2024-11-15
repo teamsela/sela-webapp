@@ -1,15 +1,14 @@
 import { useContext, useState } from "react";
 import { HebWord, PassageData } from "@/lib/data";
-import { SynBlock } from "./SynBlock";
+import { CategoryBlock } from "./CategoryBlock";
 import { FormatContext } from "../..";
 
-const Syn = ({
+const Category = ({
     content
 }: {
     content: PassageData;
 }) => {
-    const { ctxSynonymMap } = useContext(FormatContext)
-    let synonymCount = new Map<String, { strongNumbers: number[], count: number }>();
+    let categoryCount = new Map<String, { strongNumbers: number[], count: number }>();
     let [selectedCategory, setSelectedCategory] = useState<String>("");
 
     content.stanzas.forEach(stanza => {
@@ -19,14 +18,14 @@ const Syn = ({
                     if (word.categories && word.strongNumber) {
                         word.categories.forEach(category => {
                             // Initialize category data if not in map
-                            if (!synonymCount.has(category)) {
-                                synonymCount.set(category, {
+                            if (!categoryCount.has(category)) {
+                                categoryCount.set(category, {
                                     strongNumbers: [],
                                     count: 0
                                 });
                             }
                             
-                            const categoryData = synonymCount.get(category)!;
+                            const categoryData = categoryCount.get(category)!;
                             
                             // Add strongNumber if not already present
                             if (!categoryData.strongNumbers.includes(word.strongNumber)) {
@@ -41,19 +40,17 @@ const Syn = ({
             });
         });
     });
-
-    console.log(synonymCount);
-    console.log(content);
+    
     return (
         <div className="flex-col h-full">
             <div
                 style={{ height: '70%' }}
                 className=" gap-4 pb-8 overflow-y-auto">
                 <div className="flex flex-wrap">
-                    {Array.from(synonymCount.entries()).map(([key, value], index) => (
+                    {Array.from(categoryCount.entries()).map(([key, value], index) => (
                         (value.strongNumbers.length > 1) && (
                             <div key={index}>
-                                <SynBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} value={value}/>
+                                <CategoryBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} value={value}/>
                             </div>
                         )
                     ))}
@@ -62,4 +59,4 @@ const Syn = ({
         </div>
     );
 };
-export default Syn;
+export default Category;

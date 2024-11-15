@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 import Root from "./Root";
-import Syn from "./Syn";
+import Category from "./Category";
 
 const Motif = ({
    content
@@ -64,7 +64,7 @@ const Motif = ({
         <div
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
         >
-          <Syn content={content}/>
+          <Category content={content}/>
         </div>
       </div>
     </div>

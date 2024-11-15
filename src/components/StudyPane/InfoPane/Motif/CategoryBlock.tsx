@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from "../..";
 
-export const SynBlock = ({
+export const CategoryBlock = ({
     category,
     index,
     selectedCategory,
@@ -14,15 +14,15 @@ export const SynBlock = ({
     setSelectedCategory: React.Dispatch<React.SetStateAction<String>>,
     value: { strongNumbers: number[], count: number }
 }) => {
-    const { ctxSetSynonymRoots } = useContext(FormatContext);
+    const { ctxSetCategoryRoots } = useContext(FormatContext);
 
     const handleClick = () => {
         if(category == selectedCategory){
             setSelectedCategory("");
-            ctxSetSynonymRoots([]);
+            ctxSetCategoryRoots([]);
         }else{
             setSelectedCategory(category);
-            ctxSetSynonymRoots(value.strongNumbers);
+            ctxSetCategoryRoots(value.strongNumbers);
         }
     };
     return (
