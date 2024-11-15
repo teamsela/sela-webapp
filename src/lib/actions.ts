@@ -558,9 +558,10 @@ export async function fetchPassageContent(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
+          .select(["*", "motifLink.categories", "motifLink.rootLink.*"])
           .sort("hebId", "asc")
           .getAll();
-
+        
         let currentStanzaIdx = -1;
         let currentStropheIdx = -1;
         let runningStropheIdx = -1;
@@ -583,6 +584,14 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.firstWordInStrophe = false;
           hebWord.firstStropheInStanza = false; 
           hebWord.lastStropheInStanza = false;
+          if (word.motifLink?.rootLink) {
+            hebWord.rootData = {
+              strongCode: word.motifLink.rootLink.id,
+              lemma: word.motifLink.rootLink.lemma || "",
+              gloss: word.motifLink.rootLink.gloss || "",
+            };
+          }
+          hebWord.categories = word.motifLink?.categories || [];
 
           const currentWordStyling = wordStylingMap.get(hebWord.id);
           if (currentWordStyling !== undefined) {
