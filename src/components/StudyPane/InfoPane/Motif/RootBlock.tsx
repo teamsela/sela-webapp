@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, ColorType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
@@ -12,7 +12,7 @@ export const RootBlock = ({
   descendants: HebWord[]
 }) => {
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap } = useContext(FormatContext)
   
   let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
   let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
@@ -21,7 +21,8 @@ export const RootBlock = ({
   const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
   if (rootBlockColor) {
     defaultColorFill = rootBlockColor.colorFill;
-    defaultBorderColor = rootBlockColor.textColor;
+    defaultBorderColor = rootBlockColor.borderColor;
+    defaultTextColor = rootBlockColor.textColor;
   }
 
   descendants.forEach((dsd) => {
@@ -40,22 +41,23 @@ export const RootBlock = ({
     if (rootBlockColor) {
       setColorFillLocal(rootBlockColor.colorFill);
       setTextColorLocal(rootBlockColor.textColor);
+      setBorderColorLocal(rootBlockColor.borderColor);
     }
   }, [ctxRootsColorMap]);
   
-  useEffect(() => {
-    const colorFill = descendants[0].colorFill;
-    const isSameColorFill = descendants.every((x) => x.colorFill === colorFill);
-    if (!isSameColorFill) {
-       setColorFillLocal(DEFAULT_COLOR_FILL);
-    } else if (colorFill != colorFillLocal) { setColorFillLocal(colorFill); }
+  // useEffect(() => {
+  //   const colorFill = descendants[0].colorFill;
+  //   const isSameColorFill = descendants.every((x) => x.colorFill === colorFill);
+  //   if (!isSameColorFill) {
+  //      setColorFillLocal(DEFAULT_COLOR_FILL);
+  //   } else if (colorFill != colorFillLocal) { setColorFillLocal(colorFill); }
 
-    const textColor = descendants[0].textColor;
-    const isSameTextColor = descendants.every((x) => x.textColor === textColor);
-    if (!isSameTextColor) {
-       setColorFillLocal(DEFAULT_TEXT_COLOR);
-    } else if (textColor != textColorLocal) { setTextColorLocal(textColor); }
-  }, [descendants]);
+  //   const textColor = descendants[0].textColor;
+  //   const isSameTextColor = descendants.every((x) => x.textColor === textColor);
+  //   if (!isSameTextColor) {
+  //      setColorFillLocal(DEFAULT_TEXT_COLOR);
+  //   } else if (textColor != textColorLocal) { setTextColorLocal(textColor); }
+  // }, [descendants]);
 
   useEffect(() => {
     let hasChildren = true;
@@ -82,18 +84,31 @@ export const RootBlock = ({
   };
 
   useEffect(() => {
+    let colorObject: ColorType = {} as ColorType;
+    colorObject.colorFill = defaultColorFill;
+    colorObject.borderColor = defaultBorderColor;
+    colorObject.textColor = defaultTextColor;
+
     if (ctxColorAction !== ColorActionType.none && selected) {
       if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
         setColorFillLocal(ctxSelectedColor);
+        colorObject.colorFill = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
         setBorderColorLocal(ctxSelectedColor);
+        colorObject.borderColor = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
         setTextColorLocal(ctxSelectedColor);
+        colorObject.textColor = ctxSelectedColor;
       } else if (ctxColorAction === ColorActionType.resetColor) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
         setTextColorLocal(DEFAULT_TEXT_COLOR);
+        colorObject.colorFill = DEFAULT_COLOR_FILL;
+        colorObject.borderColor = DEFAULT_BORDER_COLOR;
+        colorObject.textColor = DEFAULT_TEXT_COLOR;
       }
+      ctxRootsColorMap.set(descendants[0].strongNumber, colorObject);
+      ctxSetRootsColorMap(ctxRootsColorMap);
     }
   }, [ctxColorAction, ctxSelectedColor, selected]);
 
