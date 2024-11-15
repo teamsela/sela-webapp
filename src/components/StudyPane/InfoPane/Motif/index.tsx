@@ -1,5 +1,5 @@
 import { MotifType } from "@/lib/types";
-import { PassageData } from "@/lib/data";
+import { HebWord, PassageData } from "@/lib/data";
 import React, { useState } from "react";
 import Link from "next/link";
 
@@ -16,6 +16,22 @@ const Motif = ({
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
+  let rootWordsMap = new Map<number, HebWord[]>();
+    content.stanzas.map((stanzas) => {
+        stanzas.strophes.map((strophe) => {
+            strophe.lines.map((line) => {
+                line.words.map((word) => {
+                    const currentWord = rootWordsMap.get(word.strongNumber);
+                    if (currentWord !== undefined) {
+                        currentWord.push(word);
+                    }
+                    else {
+                        rootWordsMap.set(word.strongNumber, [word]);
+                    }
+                })
+            })
+        });
+    })
 
   return (
     <div className="h-full">
@@ -43,12 +59,12 @@ const Motif = ({
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
         >
-          <Root content={content} />
+          <Root rootWordsMap={rootWordsMap}  />
         </div>
         <div
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
         >
-          <Syn/>
+          <Syn rootWordsMap={rootWordsMap}/>
         </div>
       </div>
     </div>

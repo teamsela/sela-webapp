@@ -35,7 +35,8 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap,
+    ctxSynonymRoots
   } = useContext(FormatContext)
 
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
@@ -91,6 +92,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     setSelected(ctxSelectedHebWords.includes(hebWord));
+    setSelected(ctxSynonymRoots.includes(hebWord.strongNumber));
 
     if (ctxSelectedHebWords.length >= 1) {
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
@@ -100,7 +102,7 @@ export const WordBlock = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
     }
-  }, [ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
+  }, [ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxSynonymRoots]);
 
   const handleClick = () => {
     setSelected(prevState => !prevState);

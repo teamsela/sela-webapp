@@ -14,29 +14,14 @@ const RootColorPalette = [
 ];
 
 const Root = ({
-    content
+    rootWordsMap
 }: {
-    content: PassageData;
+    rootWordsMap: Map<number, HebWord[]>;
 }) => {
 
     const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
 
-    let rootWordsMap = new Map<number, HebWord[]>();
-    content.stanzas.map((stanzas) => {
-        stanzas.strophes.map((strophe) => {
-            strophe.lines.map((line) => {
-                line.words.map((word) => {
-                    const currentWord = rootWordsMap.get(word.strongNumber);
-                    if (currentWord !== undefined) {
-                        currentWord.push(word);
-                    }
-                    else {
-                        rootWordsMap.set(word.strongNumber, [word]);
-                    }
-                })
-            })
-        });
-    })
+    
 
     type HebWordProps = {
         count: number,

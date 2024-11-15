@@ -39,7 +39,7 @@ const InfoPane = ({
             {/* Conditionally render the content based on infoPaneAction */}
             <div className="mx-6 h-full">
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
-                {infoPaneAction === InfoPaneActionType.motif && <Motif content={content} />}
+                {infoPaneAction === InfoPaneActionType.motif && <Motif content={content}/>}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>

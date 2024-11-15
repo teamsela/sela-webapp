@@ -1,56 +1,48 @@
+import { useContext, useState } from "react";
+import { HebWord, PassageData } from "@/lib/data";
+import { SynBlock } from "./SynBlock";
+import { FormatContext } from "../..";
+
 const Syn = ({
-
+    rootWordsMap
 }: {
+    rootWordsMap: Map<number, HebWord[]>;
+}) => {
+    const { ctxSynonymMap } = useContext(FormatContext)
+    let synonymCount = new Map<String, number[]>();
+    let [selectedCategory, setSelectedCategory] = useState<String>("");
 
-    }) => {
-    const synonymsGroups = [
-        {
-            words: ["law", "testimony", "statues", "commandments"],
-            highlighted: true, // To apply custom styling for yellow border
-        },
-        {
-            words: ["honey", "honeycomb"],
-            highlighted: false, // Default border for this group
-        },
-        {
-            words: ["gold", "fine gold"],
-            highlighted: false, // Default border for this group
-        },
-    ];
+    rootWordsMap.forEach((value, key) => {
+        const syns: String[] | undefined = ctxSynonymMap.get(key);
+        if (syns !== undefined) {
+            syns.forEach((syn) => {
+                // Initialize the array if this synonym is not yet in the map
+                if (!synonymCount.has(syn)) {
+                    synonymCount.set(syn, []);
+                }
+                // Get the current array and add `key` if it's not already present
+                const currentKeys = synonymCount.get(syn);
+                if (currentKeys && !currentKeys.includes(key)) {
+                    currentKeys.push(key);
+                }
+            });
+        }
+    });
 
     return (
-        
-        <div className="w-full h-full">
-            {/* List of Synonym Groups */}
-            <div className="flex flex-col gap-4">
-                {synonymsGroups.map((group, index) => (
-                    <div key={index} className="flex flex-col gap-4">
-                        {/* Synonym words */}
-                        <div className="flex flex-wrap gap-2">
-                            {group.words.map((word, i) => (
-                                <div
-                                    key={i}
-                                    style={{
-                                        padding: "0.5rem 1rem",
-                                        border: "2px solid",
-                                        borderColor: group.highlighted ? "#FFD700" : "#888", // Explicit colors for border
-                                        borderRadius: "8px",
-                                        textAlign: "center",
-                                        backgroundColor: group.highlighted ? "#FFFACD" : "#FFF", // Light yellow background for highlighted words
-                                        color: group.highlighted ? "#FFD700" : "#000", // Text color for highlighted words
-                                      }}
-                                >
-                                    {word}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Divider between groups, except for the last group */}
-                        {index < synonymsGroups.length - 1 && (
-                            <div style={{ width: "100%", height: "2px", backgroundColor: "#888", marginTop: "0.5rem" }} />
-                        )}
-                    </div>
-                ))}
+        <div className="flex-col h-full">
+            <div
+                style={{ height: '70%' }}
+                className=" gap-4 pb-8 overflow-y-auto">
+                <div className="flex flex-wrap">
+                    {Array.from(synonymCount.entries()).map(([key, value], index) => (
+                        (value.length > 1) && (
+                            <div>
+                                <SynBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} value={value}/>
+                            </div>
+                        )
+                    ))}
+                </div>
             </div>
         </div>
     );

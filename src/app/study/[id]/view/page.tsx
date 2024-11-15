@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs';
 
-import { fetchStudyById, fetchPassageContent } from '@/lib/actions';
+import { fetchStudyById, fetchPassageContent, fetchSynonym } from '@/lib/actions';
 import StudyPane from "@/components/StudyPane";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -27,6 +27,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
     fetchStudyById(studyId),
     fetchPassageContent(studyId),
   ]);
+
 
   if (!study || (thisUser?.id != study.owner && !study.public)) {
     notFound();

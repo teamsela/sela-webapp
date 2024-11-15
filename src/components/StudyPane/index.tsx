@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 import Header from "./Header";
 import Toolbar from "./Toolbar";
@@ -8,6 +8,7 @@ import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { fetchSynonym } from "@/lib/actions";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -46,7 +47,10 @@ export const FormatContext = createContext({
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   ctxRootsColorMap : {} as Map<number, ColorType>,
-  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{}
+  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{},
+  ctxSynonymMap: {} as Map<number, String[]>,
+  ctxSynonymRoots: [] as number[],
+  ctxSetSynonymRoots: (arg: number[]) => {}
 });
 
 const StudyPane = ({
@@ -79,6 +83,17 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
+  const [synonymMap, setSynonymMap] = useState(new Map<number, string[]>());
+  const [synonymRoots, setSynonymRoots] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchSynonyms = async () => {
+      const synonyms = await fetchSynonym();
+      setSynonymMap(synonyms);
+    };
+
+    fetchSynonyms();
+  }, []);
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -113,6 +128,9 @@ const StudyPane = ({
     ctxSetStropheCount: setStropheCount,
     ctxRootsColorMap: rootsColorMap,
     ctxSetRootsColorMap: setRootsColorMap,
+    ctxSynonymMap: synonymMap,
+    ctxSynonymRoots: synonymRoots,
+    ctxSetSynonymRoots: setSynonymRoots
   }
 
 
