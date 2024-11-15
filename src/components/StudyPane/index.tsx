@@ -8,7 +8,6 @@ import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
-import { fetchSynonym } from "@/lib/actions";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -86,14 +85,6 @@ const StudyPane = ({
   const [synonymMap, setSynonymMap] = useState(new Map<number, string[]>());
   const [synonymRoots, setSynonymRoots] = useState<number[]>([]);
 
-  useEffect(() => {
-    const fetchSynonyms = async () => {
-      const synonyms = await fetchSynonym();
-      setSynonymMap(synonyms);
-    };
-
-    fetchSynonyms();
-  }, []);
 
   const formatContextValue = {
     ctxStudyId: study.id,

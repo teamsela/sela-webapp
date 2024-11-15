@@ -12,21 +12,22 @@ const Syn = ({
     let synonymCount = new Map<String, number[]>();
     let [selectedCategory, setSelectedCategory] = useState<String>("");
 
-    rootWordsMap.forEach((value, key) => {
-        const syns: String[] | undefined = ctxSynonymMap.get(key);
-        if (syns !== undefined) {
-            syns.forEach((syn) => {
-                // Initialize the array if this synonym is not yet in the map
-                if (!synonymCount.has(syn)) {
-                    synonymCount.set(syn, []);
-                }
-                // Get the current array and add `key` if it's not already present
-                const currentKeys = synonymCount.get(syn);
-                if (currentKeys && !currentKeys.includes(key)) {
-                    currentKeys.push(key);
-                }
-            });
-        }
+    rootWordsMap.forEach((words, key) => {
+        words.forEach((word) => {
+            if (word.categories) {
+                word.categories.forEach((category) => {
+                    // Initialize the array if this category is not yet in the map
+                    if (!synonymCount.has(category)) {
+                        synonymCount.set(category, []);
+                    }
+                    // Get the current array and add `key` if it's not already present
+                    const currentKeys = synonymCount.get(category);
+                    if (currentKeys && !currentKeys.includes(key)) {
+                        currentKeys.push(key);
+                    }
+                });
+            }
+        });
     });
 
     return (

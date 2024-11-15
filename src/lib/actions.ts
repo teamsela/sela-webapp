@@ -705,25 +705,3 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
     throw new Error('Failed to fetch passage text from ESV API endpoint (error ' + error);
   }
 };
-
-export async function fetchSynonym(){
-  const xata = getXataClient();
-  console.log("fetch")
-try{
-  const records = await xata.db.motif
-  .select(["strongCode", "rootCode", "categories"])
-  .getAll();
-  console.log(records);
-
-  const synonymMap = new Map();
-  records.forEach((obj) => {
-    if (obj.categories && obj.categories.length > 0) {
-      synonymMap.set(obj.strongCode, obj.categories);
-    }
-  });
-  return synonymMap;
-}catch (error) {
-  console.error('Database Error', error);
-  throw new Error('Failed to fetch synonym');
-}
-}
