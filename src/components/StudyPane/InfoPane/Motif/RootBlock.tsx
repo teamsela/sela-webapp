@@ -53,7 +53,7 @@ export const RootBlock = ({
     const textColor = descendants[0].textColor;
     const isSameTextColor = descendants.every((x) => x.textColor === textColor);
     if (!isSameTextColor) {
-       setColorFillLocal(DEFAULT_TEXT_COLOR);
+       setTextColorLocal(DEFAULT_TEXT_COLOR);
     } else if (textColor != textColorLocal) { setTextColorLocal(textColor); }
   }, [descendants]);
 
