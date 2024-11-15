@@ -9,7 +9,7 @@ const Syn = ({
     content: PassageData;
 }) => {
     const { ctxSynonymMap } = useContext(FormatContext)
-    let synonymCount = new Map<String, number[]>();
+    let synonymCount = new Map<String, { strongNumbers: number[], count: number }>();
     let [selectedCategory, setSelectedCategory] = useState<String>("");
 
     content.stanzas.forEach(stanza => {
@@ -18,15 +18,23 @@ const Syn = ({
                 line.words.forEach(word => {
                     if (word.categories && word.strongNumber) {
                         word.categories.forEach(category => {
-                            // Initialize array if category not in map
+                            // Initialize category data if not in map
                             if (!synonymCount.has(category)) {
-                                synonymCount.set(category, []);
+                                synonymCount.set(category, {
+                                    strongNumbers: [],
+                                    count: 0
+                                });
                             }
+                            
+                            const categoryData = synonymCount.get(category)!;
+                            
                             // Add strongNumber if not already present
-                            const currentNumbers = synonymCount.get(category);
-                            if (currentNumbers && !currentNumbers.includes(word.strongNumber)) {
-                                currentNumbers.push(word.strongNumber);
+                            if (!categoryData.strongNumbers.includes(word.strongNumber)) {
+                                categoryData.strongNumbers.push(word.strongNumber);
                             }
+                            
+                            // Increment the overall count for this category
+                            categoryData.count++;
                         });
                     }
                 });
@@ -43,7 +51,7 @@ const Syn = ({
                 className=" gap-4 pb-8 overflow-y-auto">
                 <div className="flex flex-wrap">
                     {Array.from(synonymCount.entries()).map(([key, value], index) => (
-                        (value.length > 1) && (
+                        (value.strongNumbers.length > 1) && (
                             <div key={index}>
                                 <SynBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} value={value}/>
                             </div>
