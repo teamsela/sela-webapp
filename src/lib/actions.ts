@@ -31,7 +31,6 @@ export async function fetchStudyById(studyId: string) {
   // Add noStore() here to prevent the response from being cached.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
   //noStore();
-
   const xataClient = getXataClient();
 
   try {

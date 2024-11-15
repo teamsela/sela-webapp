@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 import Header from "./Header";
 import Toolbar from "./Toolbar";
@@ -46,7 +46,7 @@ export const FormatContext = createContext({
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   ctxRootsColorMap : {} as Map<number, ColorType>,
-  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{}
+  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{},
 });
 
 const StudyPane = ({
@@ -79,6 +79,7 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
+
 
   const formatContextValue = {
     ctxStudyId: study.id,
