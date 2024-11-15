@@ -101,17 +101,6 @@ const tables = [
       { name: "ETCBCgloss", type: "string" },
     ],
   },
-  { name: "domain", columns: [{ name: "name", type: "string" }] },
-  {
-    name: "step_lexicon_root",
-    columns: [
-      { name: "strongCode", type: "int" },
-      { name: "rootCode", type: "int" },
-      { name: "gloss", type: "string" },
-      { name: "lemma", type: "string" },
-      { name: "domains", type: "multiple" },
-    ],
-  },
   {
     name: "heb_bible",
     columns: [
@@ -140,17 +129,25 @@ const tables = [
       { name: "BSBVersion", type: "string" },
       { name: "mergecolumn", type: "float" },
       { name: "BSBnewLine", type: "bool" },
+      { name: "motifLink", type: "link", link: { table: "motif" } },
     ],
   },
   {
     name: "motif",
     columns: [
       { name: "strongCode", type: "int" },
+      { name: "categories", type: "multiple" },
+      { name: "rootLink", type: "link", link: { table: "lexicon" } },
+    ],
+    revLinks: [{ column: "motifLink", table: "heb_bible" }],
+  },
+  {
+    name: "lexicon",
+    columns: [
       { name: "gloss", type: "text" },
       { name: "lemma", type: "text" },
-      { name: "rootCode", type: "int" },
-      { name: "categories", type: "multiple" },
     ],
+    revLinks: [{ column: "rootLink", table: "motif" }],
   },
 ] as const;
 
@@ -175,17 +172,14 @@ export type StanzaStylingRecord = StanzaStyling & XataRecord;
 export type HebBibleOld = InferredTypes["heb_bible_old"];
 export type HebBibleOldRecord = HebBibleOld & XataRecord;
 
-export type Domain = InferredTypes["domain"];
-export type DomainRecord = Domain & XataRecord;
-
-export type StepLexiconRoot = InferredTypes["step_lexicon_root"];
-export type StepLexiconRootRecord = StepLexiconRoot & XataRecord;
-
 export type HebBible = InferredTypes["heb_bible"];
 export type HebBibleRecord = HebBible & XataRecord;
 
 export type Motif = InferredTypes["motif"];
 export type MotifRecord = Motif & XataRecord;
+
+export type Lexicon = InferredTypes["lexicon"];
+export type LexiconRecord = Lexicon & XataRecord;
 
 export type DatabaseSchema = {
   study: StudyRecord;
@@ -194,10 +188,9 @@ export type DatabaseSchema = {
   stropheStyling: StropheStylingRecord;
   stanzaStyling: StanzaStylingRecord;
   heb_bible_old: HebBibleOldRecord;
-  domain: DomainRecord;
-  step_lexicon_root: StepLexiconRootRecord;
   heb_bible: HebBibleRecord;
   motif: MotifRecord;
+  lexicon: LexiconRecord;
 };
 
 const DatabaseClient = buildClient();
