@@ -31,6 +31,14 @@ export type HebWord = {
     lastStropheInStanza: boolean;
     stanzaId: number | undefined;
     stanzaDiv?: boolean;
+    rootData: LexiconData | undefined;
+    categories: string[];
+}
+
+export type LexiconData = {
+    strongCode: string;
+    lemma: string;
+    gloss: string;
 }
 
 export type LineData = {
