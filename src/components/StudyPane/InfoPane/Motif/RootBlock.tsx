@@ -21,7 +21,7 @@ export const RootBlock = ({
   const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
   if (rootBlockColor) {
     defaultColorFill = rootBlockColor.colorFill;
-    defaultBorderColor = rootBlockColor.textColor;
+    defaultTextColor = rootBlockColor.textColor;
   }
 
   descendants.forEach((dsd) => {
