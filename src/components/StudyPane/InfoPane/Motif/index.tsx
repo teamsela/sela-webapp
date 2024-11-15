@@ -64,7 +64,7 @@ const Motif = ({
         <div
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
         >
-          <Syn rootWordsMap={rootWordsMap}/>
+          <Syn content={content}/>
         </div>
       </div>
     </div>

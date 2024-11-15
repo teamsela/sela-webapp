@@ -4,32 +4,38 @@ import { SynBlock } from "./SynBlock";
 import { FormatContext } from "../..";
 
 const Syn = ({
-    rootWordsMap
+    content
 }: {
-    rootWordsMap: Map<number, HebWord[]>;
+    content: PassageData;
 }) => {
     const { ctxSynonymMap } = useContext(FormatContext)
     let synonymCount = new Map<String, number[]>();
     let [selectedCategory, setSelectedCategory] = useState<String>("");
 
-    rootWordsMap.forEach((words, key) => {
-        words.forEach((word) => {
-            if (word.categories) {
-                word.categories.forEach((category) => {
-                    // Initialize the array if this category is not yet in the map
-                    if (!synonymCount.has(category)) {
-                        synonymCount.set(category, []);
-                    }
-                    // Get the current array and add `key` if it's not already present
-                    const currentKeys = synonymCount.get(category);
-                    if (currentKeys && !currentKeys.includes(key)) {
-                        currentKeys.push(key);
+    content.stanzas.forEach(stanza => {
+        stanza.strophes.forEach(strophe => {
+            strophe.lines.forEach(line => {
+                line.words.forEach(word => {
+                    if (word.categories && word.strongNumber) {
+                        word.categories.forEach(category => {
+                            // Initialize array if category not in map
+                            if (!synonymCount.has(category)) {
+                                synonymCount.set(category, []);
+                            }
+                            // Add strongNumber if not already present
+                            const currentNumbers = synonymCount.get(category);
+                            if (currentNumbers && !currentNumbers.includes(word.strongNumber)) {
+                                currentNumbers.push(word.strongNumber);
+                            }
+                        });
                     }
                 });
-            }
+            });
         });
     });
 
+    console.log(synonymCount);
+    console.log(content);
     return (
         <div className="flex-col h-full">
             <div
