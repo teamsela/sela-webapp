@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 import Header from "./Header";
 import Toolbar from "./Toolbar";

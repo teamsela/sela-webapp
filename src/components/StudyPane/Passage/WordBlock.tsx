@@ -90,8 +90,7 @@ export const WordBlock = ({
   }, [ctxRootsColorMap, colorFillLocal, textColorLocal, hebWord]);
 
   useEffect(() => {
-    setSelected(ctxSelectedHebWords.includes(hebWord));
-
+    setSelected(ctxSelectedHebWords.some(word => word.id === hebWord.id));
     if (ctxSelectedHebWords.length >= 1) {
       const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length-1);
       if (lastSelectedWord) {
@@ -100,7 +99,8 @@ export const WordBlock = ({
         wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
     }
-  }, [ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
+  }, [ctxSelectedHebWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
+
 
   const handleClick = () => {
     setSelected(prevState => !prevState);

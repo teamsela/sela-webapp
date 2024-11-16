@@ -1,10 +1,10 @@
 import { MotifType } from "@/lib/types";
-import { PassageData } from "@/lib/data";
+import { HebWord, PassageData } from "@/lib/data";
 import React, { useState } from "react";
 import Link from "next/link";
 
 import Root from "./Root";
-import Syn from "./Syn";
+import Category from "./Category";
 
 const Motif = ({
    content
@@ -16,6 +16,7 @@ const Motif = ({
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
+
 
   return (
     <div className="h-full">
@@ -36,19 +37,19 @@ const Motif = ({
           }`}
           onClick={() => setOpenTab(MotifType.syn)}
         >
-          Synonyms
+          Categories
         </Link>
       </div>
       <div className="h-full">
         <div
           className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
         >
-          <Root content={content} />
+          <Root content={content}/>
         </div>
         <div
-          className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"}`}
+          className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"} h-full`}
         >
-          <Syn/>
+          <Category content={content}/>
         </div>
       </div>
     </div>
