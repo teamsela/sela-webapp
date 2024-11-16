@@ -90,6 +90,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [ctxColorAction, refreshDisplayColor])
 
   const handleClick = () => {
+    setColorAction(ColorActionType.none);
     if (buttonEnabled) {
       setColorAction((ctxColorAction != colorAction) ? colorAction : ColorActionType.none);
       setSelectedColor("");

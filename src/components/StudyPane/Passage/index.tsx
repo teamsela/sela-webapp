@@ -14,13 +14,26 @@ const Passage = ({
   content: PassageData;
 }) => {
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount, ctxSetExpandedStanzas, ctxSetExpandedStrophes
   } = useContext(FormatContext)
 
   const [passageData, setPassageData] = useState<PassageData>(content);
 
   const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
   
+  const logExpandedStanzasStrophes = (passage: PassageData) => {
+    let stanzaExpandedArray: boolean[] = [];
+    let stropheExpandedArray: boolean[] = [];
+    passage.stanzas.map((stanza) => {
+      stanzaExpandedArray.push(stanza.expanded?true: false);
+      stanza.strophes.map((strophe) => {
+        stropheExpandedArray.push(strophe.expanded?true:false);
+      })
+    })
+    ctxSetExpandedStanzas(stanzaExpandedArray);
+    ctxSetExpandedStrophes(stropheExpandedArray);
+  }
+
   useEffect(() => {
     let stropheCount = 0;
     passageData.stanzas.map((stanzas)=>{
@@ -28,6 +41,7 @@ const Passage = ({
     })
     ctxSetStropheCount(stropheCount);
     ctxSetStanzaCount(passageData.stanzas.length);
+    logExpandedStanzasStrophes(passageData);
   }, [passageData]);
 
 
@@ -42,6 +56,7 @@ const Passage = ({
     // Only update state if actionedContent is different from current passageData
     if (actionedContent && actionedContent !== passageData) {
       setPassageData(actionedContent);
+      logExpandedStanzasStrophes(actionedContent);
       ctxSetNumSelectedWords(0);
       ctxSetSelectedHebWords([]);
       ctxSetSelectedStrophes([]);

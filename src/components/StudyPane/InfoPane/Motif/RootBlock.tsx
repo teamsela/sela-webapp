@@ -12,7 +12,7 @@ export const RootBlock = ({
   descendants: HebWord[]
 }) => {
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap } = useContext(FormatContext)
+  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
   
   let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
   let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
@@ -24,12 +24,16 @@ export const RootBlock = ({
     defaultBorderColor = rootBlockColor.borderColor;
     defaultTextColor = rootBlockColor.textColor;
   }
-
-  descendants.forEach((dsd) => {
-    if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
-    if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
-    if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
-  });
+  useEffect(() => {
+    descendants.forEach((dsd) => {
+      if (ctxExpandedStrophes[Number(dsd.stropheId)] === false || ctxExpandedStanzas[Number(dsd.stanzaId)] === false ) {
+        return;
+      }
+      if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
+      if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
+      if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
+    });
+  }, [ctxRootsColorMap])
 
   const [colorFillLocal, setColorFillLocal] = useState(defaultColorFill);
   const [borderColorLocal, setBorderColorLocal] = useState(defaultBorderColor);
