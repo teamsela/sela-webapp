@@ -66,24 +66,34 @@ export const RootBlock = ({
     setSelected(hasChildren);
   }, [ctxSelectedHebWords, descendants]);
 
-  const handleClick = (e: React.MouseEvent) => {
-    setSelected(prevState => !prevState);
-    let updatedSelectedRoots = new Set<number>([])
-    let updatedSelectedHebWords = [...ctxSelectedHebWords];
-    if (!selected) {
+  useEffect(() => {
+    if (selected) {
       if (!ctxSelectedRoots.has(descendants[0].strongNumber)) {
         ctxSelectedRoots.add(descendants[0].strongNumber);
-        updatedSelectedRoots = new Set(ctxSelectedRoots);
+        let updatedSelectedRoots = new Set(ctxSelectedRoots);
+        ctxSetSelectedRoots(updatedSelectedRoots);
+        console.log(updatedSelectedRoots);
       }
+    }
+    else {
+      ctxSelectedRoots.delete(descendants[0].strongNumber);
+      let updatedSelectedRoots = new Set(ctxSelectedRoots);
+      ctxSetSelectedRoots(updatedSelectedRoots);
+      console.log(updatedSelectedRoots);
+    }
+  }, [selected])
+
+  const handleClick = (e: React.MouseEvent) => {
+    setSelected(prevState => !prevState);
+    let updatedSelectedHebWords = [...ctxSelectedHebWords];
+    if (!selected) {
       updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
     } else {
-      ctxSelectedRoots.delete(descendants[0].strongNumber);
-      updatedSelectedRoots = new Set(ctxSelectedRoots);
       descendants.forEach((dsd) => {
         updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
       })
     }
-    ctxSetSelectedRoots(updatedSelectedRoots);
+    
     ctxSetSelectedHebWords(updatedSelectedHebWords);
     ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
