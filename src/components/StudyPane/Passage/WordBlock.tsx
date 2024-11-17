@@ -35,7 +35,7 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap
   } = useContext(FormatContext)
 
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);

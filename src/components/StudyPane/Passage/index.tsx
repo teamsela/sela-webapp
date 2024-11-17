@@ -25,9 +25,9 @@ const Passage = ({
     let stanzaExpandedArray: boolean[] = [];
     let stropheExpandedArray: boolean[] = [];
     passage.stanzas.map((stanza) => {
-      stanzaExpandedArray.push(stanza.expanded?true: false);
+      stanzaExpandedArray.push(stanza.expanded === undefined || stanza.expanded === true? true: false);
       stanza.strophes.map((strophe) => {
-        stropheExpandedArray.push(strophe.expanded?true:false);
+        stropheExpandedArray.push(strophe.expanded === undefined || strophe.expanded === true? true: false);
       })
     })
     ctxSetExpandedStanzas(stanzaExpandedArray);

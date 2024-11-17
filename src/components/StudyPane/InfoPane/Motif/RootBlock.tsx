@@ -5,64 +5,57 @@ import { ColorActionType, ColorType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
-  id, count, descendants
+    id, count, descendants
 }: {
-  id: number,
-  count: number,
-  descendants: HebWord[]
+    id: number,
+    count: number,
+    descendants: HebWord[]
 }) => {
 
   const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
   
-  let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
-  let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
-  let defaultTextColor = descendants[0].textColor || DEFAULT_TEXT_COLOR;
 
-  const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
-  if (rootBlockColor) {
-    defaultColorFill = rootBlockColor.colorFill;
-    defaultBorderColor = rootBlockColor.borderColor;
-    defaultTextColor = rootBlockColor.textColor;
-  }
-  useEffect(() => {
-    descendants.forEach((dsd) => {
-      if (ctxExpandedStrophes[Number(dsd.stropheId)] === false || ctxExpandedStanzas[Number(dsd.stanzaId)] === false ) {
-        return;
-      }
-      if (dsd.colorFill !== defaultColorFill) { defaultColorFill = DEFAULT_COLOR_FILL; }
-      if (dsd.borderColor !== defaultBorderColor) { defaultBorderColor = DEFAULT_BORDER_COLOR; }
-      if (dsd.textColor !== defaultTextColor) { defaultTextColor = DEFAULT_TEXT_COLOR; }
-    });
-  }, [ctxRootsColorMap])
+  const matchedColorScheme = descendants.every((dsd) => {
+    const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+    const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+    const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
 
-  const [colorFillLocal, setColorFillLocal] = useState(defaultColorFill);
-  const [borderColorLocal, setBorderColorLocal] = useState(defaultBorderColor);
-  const [textColorLocal, setTextColorLocal] = useState(defaultTextColor);
+    return matchesBorderColor && matchesColorFill && matchesTextColor;
+  });
+
+  console.log(matchedColorScheme)
+  const [colorFillLocal, setColorFillLocal] = useState(matchedColorScheme? descendants[0].colorFill: DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(matchedColorScheme? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(matchedColorScheme? descendants[0].textColor: DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
     const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
+    const matchedColorScheme = descendants.every((dsd) => {
+      const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+      const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+      const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
+
+      return matchesBorderColor && matchesColorFill && matchesTextColor;
+    });
     if (rootBlockColor) {
       setColorFillLocal(rootBlockColor.colorFill);
-      setTextColorLocal(rootBlockColor.textColor);
       setBorderColorLocal(rootBlockColor.borderColor);
+      setTextColorLocal(rootBlockColor.textColor);
     }
-  }, [ctxRootsColorMap]);
+    else if (matchedColorScheme) {
+      setColorFillLocal(descendants[0].colorFill);
+      setBorderColorLocal(descendants[0].borderColor);
+      setTextColorLocal(descendants[0].textColor);
+    }
+    else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
+      setTextColorLocal(DEFAULT_TEXT_COLOR);
+    }
+  },[ctxColorAction, ctxRootsColorMap, ctxSelectedHebWords])
+
   
-  // useEffect(() => {
-  //   const colorFill = descendants[0].colorFill;
-  //   const isSameColorFill = descendants.every((x) => x.colorFill === colorFill);
-  //   if (!isSameColorFill) {
-  //      setColorFillLocal(DEFAULT_COLOR_FILL);
-  //   } else if (colorFill != colorFillLocal) { setColorFillLocal(colorFill); }
-
-  //   const textColor = descendants[0].textColor;
-  //   const isSameTextColor = descendants.every((x) => x.textColor === textColor);
-  //   if (!isSameTextColor) {
-  //      setColorFillLocal(DEFAULT_TEXT_COLOR);
-  //   } else if (textColor != textColorLocal) { setTextColorLocal(textColor); }
-  // }, [descendants]);
-
   useEffect(() => {
     let hasChildren = true;
     descendants.forEach((dsd) => {
@@ -87,34 +80,7 @@ export const RootBlock = ({
     ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
 
-  useEffect(() => {
-    let colorObject: ColorType = {} as ColorType;
-    colorObject.colorFill = defaultColorFill;
-    colorObject.borderColor = defaultBorderColor;
-    colorObject.textColor = defaultTextColor;
-
-    if (ctxColorAction !== ColorActionType.none && selected) {
-      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-        setColorFillLocal(ctxSelectedColor);
-        colorObject.colorFill = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-        setBorderColorLocal(ctxSelectedColor);
-        colorObject.borderColor = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-        setTextColorLocal(ctxSelectedColor);
-        colorObject.textColor = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.resetColor) {
-        setColorFillLocal(DEFAULT_COLOR_FILL);
-        setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        setTextColorLocal(DEFAULT_TEXT_COLOR);
-        colorObject.colorFill = DEFAULT_COLOR_FILL;
-        colorObject.borderColor = DEFAULT_BORDER_COLOR;
-        colorObject.textColor = DEFAULT_TEXT_COLOR;
-      }
-      ctxRootsColorMap.set(descendants[0].strongNumber, colorObject);
-      ctxSetRootsColorMap(ctxRootsColorMap);
-    }
-  }, [ctxColorAction, ctxSelectedColor, selected]);
+  
 
   return (
     <div className="flex my-1">
