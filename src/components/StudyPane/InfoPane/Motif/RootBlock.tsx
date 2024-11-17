@@ -12,7 +12,9 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
+  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
+    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
+    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots } = useContext(FormatContext)
   
 
   const matchedColorScheme = descendants.every((dsd) => {
@@ -23,7 +25,6 @@ export const RootBlock = ({
     return matchesBorderColor && matchesColorFill && matchesTextColor;
   });
 
-  console.log(matchedColorScheme)
   const [colorFillLocal, setColorFillLocal] = useState(matchedColorScheme? descendants[0].colorFill: DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(matchedColorScheme? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
   const [textColorLocal, setTextColorLocal] = useState(matchedColorScheme? descendants[0].textColor: DEFAULT_TEXT_COLOR);
@@ -67,15 +68,22 @@ export const RootBlock = ({
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);
-
+    let updatedSelectedRoots = new Set<number>([])
     let updatedSelectedHebWords = [...ctxSelectedHebWords];
     if (!selected) {
+      if (!ctxSelectedRoots.has(descendants[0].strongNumber)) {
+        ctxSelectedRoots.add(descendants[0].strongNumber);
+        updatedSelectedRoots = new Set(ctxSelectedRoots);
+      }
       updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
     } else {
+      ctxSelectedRoots.delete(descendants[0].strongNumber);
+      updatedSelectedRoots = new Set(ctxSelectedRoots);
       descendants.forEach((dsd) => {
         updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
       })
     }
+    ctxSetSelectedRoots(updatedSelectedRoots);
     ctxSetSelectedHebWords(updatedSelectedHebWords);
     ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
