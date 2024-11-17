@@ -72,14 +72,12 @@ export const RootBlock = ({
         ctxSelectedRoots.add(descendants[0].strongNumber);
         let updatedSelectedRoots = new Set(ctxSelectedRoots);
         ctxSetSelectedRoots(updatedSelectedRoots);
-        console.log(updatedSelectedRoots);
       }
     }
     else {
       ctxSelectedRoots.delete(descendants[0].strongNumber);
       let updatedSelectedRoots = new Set(ctxSelectedRoots);
       ctxSetSelectedRoots(updatedSelectedRoots);
-      console.log(updatedSelectedRoots);
     }
   }, [selected])
 
