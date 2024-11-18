@@ -40,19 +40,17 @@ export const WordBlock = ({
 
   
   useEffect(() => {
-    if (hebWord.strongNumber === 4428) {
-      console.log(ctxSelectedRoots);
-      console.log(ctxSelectedRoots.has(hebWord.strongNumber));
-      if (ctxSelectedRoots.has(hebWord.strongNumber)===true) {
-        console.log('can be overriden')
-      }
-      else if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
-        console.log('cannot be overriden');
-        // colorOverride = undefined;
-        ctxRootsColorMap.delete(hebWord.strongNumber);
-        const newRootsColorMap = new Map(ctxRootsColorMap);
-        ctxSetRootsColorMap(newRootsColorMap);
-      }
+    console.log(ctxSelectedRoots);
+    console.log(ctxSelectedRoots.has(hebWord.strongNumber));
+    if (ctxSelectedRoots.has(hebWord.strongNumber)===true) {
+      console.log('can be overriden')
+    }
+    else if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
+      console.log('cannot be overriden');
+      // colorOverride = undefined;
+      ctxRootsColorMap.delete(hebWord.strongNumber);
+      const newRootsColorMap = new Map(ctxRootsColorMap);
+      ctxSetRootsColorMap(newRootsColorMap);
     }
   }, [ctxSelectedRoots]);
   
