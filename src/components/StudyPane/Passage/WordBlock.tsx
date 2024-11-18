@@ -38,7 +38,6 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots
   } = useContext(FormatContext)
 
-  
   useEffect(() => {
     console.log(ctxSelectedRoots);
     console.log(ctxSelectedRoots.has(hebWord.strongNumber));
