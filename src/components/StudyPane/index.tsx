@@ -47,6 +47,8 @@ export const FormatContext = createContext({
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   ctxRootsColorMap : {} as Map<number, ColorType>,
   ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{},
+  ctxRootColorRefMap: {} as Map<number, ColorType>,
+  ctxSetRootColorRefMap: (arg: Map<number, ColorType>) => {},
   ctxExpandedStrophes: [] as boolean[],
   ctxSetExpandedStrophes: (arg: boolean[]) => {},
   ctxExpandedStanzas: [] as boolean[],
@@ -90,6 +92,8 @@ const StudyPane = ({
   const [expandedStanzas, setExpandedStanzas] = useState([] as boolean[]);
 
   const [selectedRoots, setSelectedRoots] = useState(new Set<number>([]));
+
+  const [rootColorRefMap, setRootColorRefMap] = useState<Map<number, ColorType>>(new Map());
   
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -129,7 +133,9 @@ const StudyPane = ({
     ctxExpandedStanzas: expandedStanzas,
     ctxSetExpandedStanzas: setExpandedStanzas,
     ctxSetSelectedRoots: setSelectedRoots,
-    ctxSelectedRoots: selectedRoots
+    ctxSelectedRoots: selectedRoots,
+    ctxSetRootColorRefMap: setRootColorRefMap,
+    ctxRootColorRefMap: rootColorRefMap
   }
 
 

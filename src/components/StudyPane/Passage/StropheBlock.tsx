@@ -78,7 +78,6 @@ export const StropheBlock = ({
         return expandedState;
       })
       ctxSetExpandedStrophes(newExpandedStrophes);
-      console.log(newExpandedStrophes);
       setExpanded(prevState => !prevState);
       updateStropheState(ctxStudyId, strophe.id, !expanded && stanzaExpanded);
       if (expanded) {
@@ -153,6 +152,7 @@ export const StropheBlock = ({
                         <WordBlock
                           key={"word_" + word.id}
                           hebWord={word}
+                          visible={stanzaExpanded && expanded}
                         />
                       </div>           
                     )

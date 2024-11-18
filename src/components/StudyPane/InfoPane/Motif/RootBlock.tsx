@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 import { ColorActionType, ColorType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
+import { updateWordColor } from '@/lib/actions';
 
 export const RootBlock = ({
     id, count, descendants
@@ -12,9 +13,9 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
+  const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
-    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots } = useContext(FormatContext)
+    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootColorRefMap, ctxSetRootColorRefMap } = useContext(FormatContext)
   
 
   const matchedColorScheme = descendants.every((dsd) => {
@@ -33,6 +34,10 @@ export const RootBlock = ({
   useEffect(() => {
     const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
     const matchedColorScheme = descendants.every((dsd) => {
+      console.log(`${dsd} : ${ctxExpandedStanzas.at(dsd.stanzaId as number)}`)
+      if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
+        return true;
+      }
       const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
       const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
       const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
@@ -54,7 +59,7 @@ export const RootBlock = ({
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
-  },[ctxColorAction, ctxRootsColorMap, ctxSelectedHebWords])
+  },[ctxColorAction, ctxRootsColorMap, ctxSelectedHebWords, ctxSelectedColor])
 
   
   useEffect(() => {
@@ -75,16 +80,64 @@ export const RootBlock = ({
       }
     }
     else {
-      ctxRootsColorMap.delete(descendants[0].strongNumber);
-      const newRootsColorMap = new Map(ctxRootsColorMap);
-      ctxSetRootsColorMap(newRootsColorMap);
+      ctxRootColorRefMap.delete(descendants[0].strongNumber);
+      const newRootColorRefMap = new Map(ctxRootColorRefMap);
+      ctxSetRootsColorMap(newRootColorRefMap);
       ctxSelectedRoots.delete(descendants[0].strongNumber);
       const updatedSelectedRoots = new Set(ctxSelectedRoots);
       ctxSetSelectedRoots(updatedSelectedRoots);
     }
   }, [selected, ctxSelectedHebWords])
 
+  useEffect(() => {
+    if (selected){
+      const matchedColorScheme = descendants.every((dsd) => {
+        const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+        const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+        const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
+  
+        return matchesBorderColor && matchesColorFill && matchesTextColor;
+      });
+    let colorObject: ColorType = {} as ColorType;
+    colorObject.colorFill = matchedColorScheme && descendants[0].colorFill || DEFAULT_COLOR_FILL;
+    colorObject.borderColor = matchedColorScheme && descendants[0].borderColor || DEFAULT_BORDER_COLOR;
+    colorObject.textColor = matchedColorScheme && descendants[0].textColor || DEFAULT_TEXT_COLOR;
 
+    if (ctxColorAction !== ColorActionType.none && selected) {
+      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
+        setColorFillLocal(ctxSelectedColor);
+        colorObject.colorFill = ctxSelectedColor;
+        console.log('set colorfill');
+      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
+        setBorderColorLocal(ctxSelectedColor);
+        colorObject.borderColor = ctxSelectedColor;
+        console.log('set border color');
+      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
+        setTextColorLocal(ctxSelectedColor);
+        colorObject.textColor = ctxSelectedColor;
+        console.log('set text color');
+      } else if (ctxColorAction === ColorActionType.resetColor) {
+        console.log('reset colors');
+        setColorFillLocal(DEFAULT_COLOR_FILL);
+        setBorderColorLocal(DEFAULT_BORDER_COLOR);
+        setTextColorLocal(DEFAULT_TEXT_COLOR);
+        colorObject.colorFill = DEFAULT_COLOR_FILL;
+        colorObject.borderColor = DEFAULT_BORDER_COLOR;
+        colorObject.textColor = DEFAULT_TEXT_COLOR;
+      }
+      ctxRootsColorMap.set(descendants[0].strongNumber, colorObject);
+      const newRootsColorMap = new Map(ctxRootsColorMap);
+      ctxSetRootsColorMap(newRootsColorMap);
+      let descendantWordIds: number[] = [];
+      descendants.forEach((word) => {
+        descendantWordIds.push(word.id)
+      });
+      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
+      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
+      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
+    }
+    }
+  }, [ctxSelectedColor, ctxColorAction]);
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);
@@ -101,6 +154,12 @@ export const RootBlock = ({
     ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
 
+  // useEffect(() => {
+  //   const colorScheme: ColorType = { borderColor: borderColorLocal, colorFill: colorFillLocal, textColor: textColorLocal};
+  //   ctxRootColorRefMap.set(descendants[0].strongNumber, colorScheme);
+  //   const newRootColorRefMap = new Map(ctxRootColorRefMap);
+  //   ctxSetRootColorRefMap(newRootColorRefMap);
+  // }, [colorFillLocal, textColorLocal, borderColorLocal])
   
 
   return (

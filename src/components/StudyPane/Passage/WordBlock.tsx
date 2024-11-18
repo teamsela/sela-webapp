@@ -1,9 +1,10 @@
 import { HebWord } from '@/lib/data';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
+import { updateWordColor } from '@/lib/actions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -27,38 +28,34 @@ const zoomLevelMap: ZoomLevel = {
 const DEFAULT_ZOOM_LEVEL = 5;
 
 export const WordBlock = ({
-  hebWord
+  hebWord, visible
 }: {
-  hebWord: HebWord;
+  hebWord: HebWord, visible:boolean;
 }) => {
 
-  const { ctxIsHebrew, ctxUniformWidth,
+  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxRootColorRefMap
   } = useContext(FormatContext)
 
+
+  const [selected, setSelected] = useState(false);
+
   useEffect(() => {
-    console.log(ctxSelectedRoots);
-    console.log(ctxSelectedRoots.has(hebWord.strongNumber));
-    if (ctxSelectedRoots.has(hebWord.strongNumber)===true) {
-      console.log('can be overriden')
+    if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
+      ctxRootColorRefMap.delete(hebWord.strongNumber);
+      const newRootColorRefMap = new Map(ctxRootColorRefMap);
+      ctxSetRootsColorMap(newRootColorRefMap);
     }
-    else if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
-      console.log('cannot be overriden');
-      // colorOverride = undefined;
-      ctxRootsColorMap.delete(hebWord.strongNumber);
-      const newRootsColorMap = new Map(ctxRootsColorMap);
-      ctxSetRootsColorMap(newRootsColorMap);
-    }
-  }, [ctxSelectedRoots]);
+  }, [ctxSelectedRoots, selected]);
   
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
 
   const [colorFillLocal, setColorFillLocal] = useState((colorOverride && colorOverride.colorFill) || hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
   const [textColorLocal, setTextColorLocal] = useState((colorOverride && colorOverride.textColor) || hebWord.textColor || DEFAULT_TEXT_COLOR);
-  const [selected, setSelected] = useState(false);
+  const visibleRef = useRef(visible);
 
   if (ctxColorAction != ColorActionType.none && selected) {
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
@@ -137,6 +134,20 @@ export const WordBlock = ({
       }
     }
   }
+
+  //  run once to determine if there are colors that need to be written
+   useEffect(() => {
+    const colorScheme = ctxRootColorRefMap.get(hebWord.strongNumber)
+    if (colorScheme) {
+      setBorderColorLocal(colorScheme.borderColor !== DEFAULT_BORDER_COLOR && colorScheme.borderColor || borderColorLocal);
+      setColorFillLocal(colorScheme.colorFill !== DEFAULT_COLOR_FILL && colorScheme.colorFill || colorFillLocal);
+      setTextColorLocal(colorScheme.textColor !== DEFAULT_TEXT_COLOR && colorScheme.textColor || textColorLocal);
+    }
+    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.colorFill, colorFillLocal);
+    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.textColor, textColorLocal);
+    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.borderColor, borderColorLocal);
+
+  }, [])
 
 
   const verseNumStyles = {
