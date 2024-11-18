@@ -12,7 +12,7 @@ export const RootBlock = ({
   descendants: HebWord[]
 }) => {
 
-  const { ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
   
   let defaultColorFill = descendants[0].colorFill || DEFAULT_COLOR_FILL;
   let defaultBorderColor = descendants[0].borderColor || DEFAULT_BORDER_COLOR;
@@ -117,7 +117,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{descendants[0].ETCBCgloss}</span>
+          >{ctxIsHebrew ? descendants[0].rootData?.lemma : descendants[0].rootData?.gloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

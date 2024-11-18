@@ -21,17 +21,19 @@ const Root = ({
 
     const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
 
-    let rootWordsMap = new Map<number, HebWord[]>();
+    let rootWordsMap = new Map<string, HebWord[]>();
     content.stanzas.map((stanzas) => {
         stanzas.strophes.map((strophe) => {
             strophe.lines.map((line) => {
-                line.words.map((word) => {
-                    const currentWord = rootWordsMap.get(word.strongNumber);
-                    if (currentWord !== undefined) {
-                        currentWord.push(word);
-                    }
-                    else {
-                        rootWordsMap.set(word.strongNumber, [word]);
+                line.words.map((word) => {      
+                    if (word.rootData) {
+                        const currentWord = rootWordsMap.get(word.rootData.strongCode);
+                        if (currentWord !== undefined) {
+                            currentWord.push(word);
+                        }
+                        else {
+                            rootWordsMap.set(word.rootData.strongCode, [word]);
+                        }                            
                     }
                 })
             })
@@ -43,9 +45,9 @@ const Root = ({
         descendants: HebWord[]
     };
     let rootWords: HebWordProps[] = [];
-    rootWordsMap.forEach((rootWord) => {
-        if (rootWord.length > 1 && rootWord[0].strongNumber) {
-            rootWords.push({ count: rootWord.length, descendants: rootWord });
+    rootWordsMap.forEach((children) => {
+        if (children.length > 1 && children[0].strongNumber) {
+            rootWords.push({ count: children.length, descendants: children });
         }
     });
     rootWords.sort((a, b) => b.count - a.count);
