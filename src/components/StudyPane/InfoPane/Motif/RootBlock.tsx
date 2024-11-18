@@ -70,16 +70,36 @@ export const RootBlock = ({
     if (selected) {
       if (!ctxSelectedRoots.has(descendants[0].strongNumber)) {
         ctxSelectedRoots.add(descendants[0].strongNumber);
-        let updatedSelectedRoots = new Set(ctxSelectedRoots);
+        const updatedSelectedRoots = new Set(ctxSelectedRoots);
+        // const matchedColorScheme = descendants.every((dsd) => {
+        //   const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+        //   const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+        //   const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
+    
+        //   return matchesBorderColor && matchesColorFill && matchesTextColor;
+        // });
+        // const rootBlockColor: ColorType = {
+        //   colorFill: matchedColorScheme? descendants[0].colorFill && descendants[0].colorFill: DEFAULT_COLOR_FILL,
+        //   textColor: matchedColorScheme? descendants[0].textColor && descendants[0].textColor: DEFAULT_TEXT_COLOR,
+        //   borderColor: matchedColorScheme? descendants[0].borderColor && descendants[0].borderColor: DEFAULT_BORDER_COLOR
+        // };
+        // if (!ctxRootsColorMap.has(descendants[0].strongNumber) && matchedColorScheme){
+        //   ctxRootsColorMap.set(descendants[0].strongNumber, rootBlockColor);
+        //   const newRootsColorMap = new Map(ctxRootsColorMap);
+        //   ctxSetRootsColorMap(newRootsColorMap);
+        // }
         ctxSetSelectedRoots(updatedSelectedRoots);
       }
     }
     else {
+      ctxRootsColorMap.delete(descendants[0].strongNumber);
+      const newRootsColorMap = new Map(ctxRootsColorMap);
+      ctxSetRootsColorMap(newRootsColorMap);
       ctxSelectedRoots.delete(descendants[0].strongNumber);
-      let updatedSelectedRoots = new Set(ctxSelectedRoots);
+      const updatedSelectedRoots = new Set(ctxSelectedRoots);
       ctxSetSelectedRoots(updatedSelectedRoots);
     }
-  }, [selected])
+  }, [selected, ctxSelectedHebWords])
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);

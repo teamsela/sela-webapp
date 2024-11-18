@@ -35,9 +35,27 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxSetSelectedRoots
   } = useContext(FormatContext)
 
+  
+  useEffect(() => {
+    if (hebWord.strongNumber === 4428) {
+      console.log(ctxSelectedRoots);
+      console.log(ctxSelectedRoots.has(hebWord.strongNumber));
+      if (ctxSelectedRoots.has(hebWord.strongNumber)===true) {
+        console.log('can be overriden')
+      }
+      else if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
+        console.log('cannot be overriden');
+        // colorOverride = undefined;
+        ctxRootsColorMap.delete(hebWord.strongNumber);
+        const newRootsColorMap = new Map(ctxRootsColorMap);
+        ctxSetRootsColorMap(newRootsColorMap);
+      }
+    }
+  }, [ctxSelectedRoots]);
+  
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
 
   const [colorFillLocal, setColorFillLocal] = useState((colorOverride && colorOverride.colorFill) || hebWord.colorFill || DEFAULT_COLOR_FILL);
@@ -100,8 +118,7 @@ export const WordBlock = ({
       }
     }
   }, [ctxSelectedHebWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
-
-
+  
   const handleClick = () => {
     setSelected(prevState => !prevState);
     const newSelectedHebWords = [...ctxSelectedHebWords]; // Clone the array
