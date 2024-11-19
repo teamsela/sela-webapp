@@ -44,9 +44,8 @@ export const WordBlock = ({
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
 
   const [colorFillLocal, setColorFillLocal] = useState((colorOverride && colorOverride.colorFill) || hebWord.colorFill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(colorOverride && colorOverride.borderColor || hebWord.borderColor || DEFAULT_BORDER_COLOR);
   const [textColorLocal, setTextColorLocal] = useState((colorOverride && colorOverride.textColor) || hebWord.textColor || DEFAULT_TEXT_COLOR);
-  const visibleRef = useRef(visible);
 
   if (ctxColorAction != ColorActionType.none && selected) {
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
