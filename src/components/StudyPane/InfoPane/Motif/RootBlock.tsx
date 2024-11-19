@@ -17,17 +17,13 @@ export const RootBlock = ({
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
     ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
 
-  let displayedDescendant = descendants.find((dsd, index, array) => {
+  const displayedDescendant = descendants.find((dsd, index, array) => {
     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
       return true;
     }
   })
 
-  // used in case all strophes/stanzas are collapsed
-  let stubHebWord: HebWord = descendants[0];
-  stubHebWord.colorFill = DEFAULT_COLOR_FILL;
-  stubHebWord.borderColor = DEFAULT_BORDER_COLOR;
-  stubHebWord.textColor = DEFAULT_TEXT_COLOR;
+  let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy
 
   const availableDescendant = displayedDescendant || stubHebWord;
 
@@ -125,18 +121,20 @@ export const RootBlock = ({
   }, [ctxSelectedColor, ctxColorAction]);
 
   const handleClick = (e: React.MouseEvent) => {
-    setSelected(prevState => !prevState);
-    let updatedSelectedHebWords = [...ctxSelectedHebWords];
-    if (!selected) {
-      updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
-    } else {
-      descendants.forEach((dsd) => {
-        updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
-      })
+    if (displayedDescendant) {
+      setSelected(prevState => !prevState);
+      let updatedSelectedHebWords = [...ctxSelectedHebWords];
+      if (!selected) {
+        updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
+      } else {
+        descendants.forEach((dsd) => {
+          updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
+        })
+      }
+      
+      ctxSetSelectedHebWords(updatedSelectedHebWords);
+      ctxSetNumSelectedWords(updatedSelectedHebWords.length);
     }
-    
-    ctxSetSelectedHebWords(updatedSelectedHebWords);
-    ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
 
   return (
