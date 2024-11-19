@@ -19,6 +19,9 @@ export const RootBlock = ({
   
 
   const matchedColorScheme = descendants.every((dsd) => {
+    if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
+      return true;
+    }
     const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
     const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
     const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
@@ -59,7 +62,7 @@ export const RootBlock = ({
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
-  },[ctxColorAction, ctxRootsColorMap, ctxSelectedHebWords, ctxSelectedColor])
+  },[ctxColorAction, ctxSelectedHebWords, ctxSelectedColor])
 
   
   useEffect(() => {
@@ -79,14 +82,14 @@ export const RootBlock = ({
         ctxSetSelectedRoots(updatedSelectedRoots);
       }
     }
-    else {
-      ctxRootColorRefMap.delete(descendants[0].strongNumber);
-      const newRootColorRefMap = new Map(ctxRootColorRefMap);
-      ctxSetRootsColorMap(newRootColorRefMap);
-      ctxSelectedRoots.delete(descendants[0].strongNumber);
-      const updatedSelectedRoots = new Set(ctxSelectedRoots);
-      ctxSetSelectedRoots(updatedSelectedRoots);
-    }
+    // else {
+    //   ctxRootColorRefMap.delete(descendants[0].strongNumber);
+    //   const newRootColorRefMap = new Map(ctxRootColorRefMap);
+    //   ctxSetRootColorRefMap(newRootColorRefMap);
+    //   ctxSelectedRoots.delete(descendants[0].strongNumber);
+    //   const updatedSelectedRoots = new Set(ctxSelectedRoots);
+    //   ctxSetSelectedRoots(updatedSelectedRoots);
+    // }
   }, [selected, ctxSelectedHebWords])
 
   useEffect(() => {

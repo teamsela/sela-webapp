@@ -42,13 +42,13 @@ export const WordBlock = ({
 
   const [selected, setSelected] = useState(false);
 
-  useEffect(() => {
-    if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
-      ctxRootColorRefMap.delete(hebWord.strongNumber);
-      const newRootColorRefMap = new Map(ctxRootColorRefMap);
-      ctxSetRootsColorMap(newRootColorRefMap);
-    }
-  }, [ctxSelectedRoots, selected]);
+  // useEffect(() => {
+  //   if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
+  //     ctxRootColorRefMap.delete(hebWord.strongNumber);
+  //     const newRootColorRefMap = new Map(ctxRootColorRefMap);
+  //     ctxSetRootsColorMap(newRootColorRefMap);
+  //   }
+  // }, [ctxSelectedRoots, selected]);
   
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
 
@@ -136,18 +136,18 @@ export const WordBlock = ({
   }
 
   //  run once to determine if there are colors that need to be written
-   useEffect(() => {
-    const colorScheme = ctxRootColorRefMap.get(hebWord.strongNumber)
-    if (colorScheme) {
-      setBorderColorLocal(colorScheme.borderColor !== DEFAULT_BORDER_COLOR && colorScheme.borderColor || borderColorLocal);
-      setColorFillLocal(colorScheme.colorFill !== DEFAULT_COLOR_FILL && colorScheme.colorFill || colorFillLocal);
-      setTextColorLocal(colorScheme.textColor !== DEFAULT_TEXT_COLOR && colorScheme.textColor || textColorLocal);
-    }
-    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.colorFill, colorFillLocal);
-    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.textColor, textColorLocal);
-    updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.borderColor, borderColorLocal);
+  //  useEffect(() => {
+  //   const colorScheme = ctxRootColorRefMap.get(hebWord.strongNumber)
+  //   if (colorScheme) {
+  //     setBorderColorLocal(colorScheme.borderColor !== DEFAULT_BORDER_COLOR && colorScheme.borderColor || borderColorLocal);
+  //     setColorFillLocal(colorScheme.colorFill !== DEFAULT_COLOR_FILL && colorScheme.colorFill || colorFillLocal);
+  //     setTextColorLocal(colorScheme.textColor !== DEFAULT_TEXT_COLOR && colorScheme.textColor || textColorLocal);
+  //   }
+  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.colorFill, colorFillLocal);
+  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.textColor, textColorLocal);
+  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.borderColor, borderColorLocal);
 
-  }, [])
+  // }, [])
 
 
   const verseNumStyles = {
