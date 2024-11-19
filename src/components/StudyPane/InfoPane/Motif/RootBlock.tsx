@@ -22,7 +22,14 @@ export const RootBlock = ({
       return true;
     }
   })
-  const availableDescendant = displayedDescendant || descendants[0]
+
+  // used in case all strophes/stanzas are collapsed
+  let stubHebWord: HebWord = descendants[0];
+  stubHebWord.colorFill = DEFAULT_COLOR_FILL;
+  stubHebWord.borderColor = DEFAULT_BORDER_COLOR;
+  stubHebWord.textColor = DEFAULT_TEXT_COLOR;
+
+  const availableDescendant = displayedDescendant || stubHebWord;
 
   const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
