@@ -30,7 +30,6 @@ export const RootBlock = ({
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
-    console.log('rootblock useEffect called')
     const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
     const matchedColorScheme = descendants.every((dsd) => {
       if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
@@ -43,19 +42,16 @@ export const RootBlock = ({
       return matchesBorderColor && matchesColorFill && matchesTextColor;
     });
     if (rootBlockColor) {
-      console.log('rootblockcolor used')
       setColorFillLocal(rootBlockColor.colorFill);
       setBorderColorLocal(rootBlockColor.borderColor);
       setTextColorLocal(rootBlockColor.textColor);
     }
     else if (matchedColorScheme) {
-      console.log('matchedColorScheme used')
       setColorFillLocal(availableDescendant.colorFill);
       setBorderColorLocal(availableDescendant.borderColor);
       setTextColorLocal(availableDescendant.textColor);
     }
     else {
-      console.log('DEFAULTS USED')
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
