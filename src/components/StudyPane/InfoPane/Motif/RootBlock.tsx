@@ -15,7 +15,7 @@ export const RootBlock = ({
 
   const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
-    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots, ctxRootColorRefMap, ctxSetRootColorRefMap } = useContext(FormatContext)
+    ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
   
 
   const matchedColorScheme = descendants.every((dsd) => {
@@ -73,24 +73,6 @@ export const RootBlock = ({
 
     setSelected(hasChildren);
   }, [ctxSelectedHebWords, descendants]);
-
-  // useEffect(() => {
-  //   if (selected) {
-  //     if (!ctxSelectedRoots.has(descendants[0].strongNumber)) {
-  //       ctxSelectedRoots.add(descendants[0].strongNumber);
-  //       const updatedSelectedRoots = new Set(ctxSelectedRoots);
-  //       ctxSetSelectedRoots(updatedSelectedRoots);
-  //     }
-  //   }
-  //   else {
-  //   //   ctxRootColorRefMap.delete(descendants[0].strongNumber);
-  //   //   const newRootColorRefMap = new Map(ctxRootColorRefMap);
-  //   //   ctxSetRootColorRefMap(newRootColorRefMap);
-  //     ctxSelectedRoots.delete(descendants[0].strongNumber);
-  //     const updatedSelectedRoots = new Set(ctxSelectedRoots);
-  //     ctxSetSelectedRoots(updatedSelectedRoots);
-  //   }
-  // }, [selected, ctxSelectedHebWords])
 
   useEffect(() => {
     if (selected){
@@ -156,14 +138,6 @@ export const RootBlock = ({
     ctxSetSelectedHebWords(updatedSelectedHebWords);
     ctxSetNumSelectedWords(updatedSelectedHebWords.length);
   };
-
-  // useEffect(() => {
-  //   const colorScheme: ColorType = { borderColor: borderColorLocal, colorFill: colorFillLocal, textColor: textColorLocal};
-  //   ctxRootColorRefMap.set(descendants[0].strongNumber, colorScheme);
-  //   const newRootColorRefMap = new Map(ctxRootColorRefMap);
-  //   ctxSetRootColorRefMap(newRootColorRefMap);
-  // }, [colorFillLocal, textColorLocal, borderColorLocal])
-  
 
   return (
     <div className="flex my-1">

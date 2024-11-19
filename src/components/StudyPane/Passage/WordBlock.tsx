@@ -4,7 +4,6 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
-import { updateWordColor } from '@/lib/actions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, verseNumMl: string, verseNumMr: string, hbWidth: string, hbHeight: string, width: string, height: string, fontInPx: string, maxWidthPx: number };
@@ -36,19 +35,11 @@ export const WordBlock = ({
   const { ctxStudyId, ctxIsHebrew, ctxUniformWidth,
     ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap, ctxSetRootsColorMap, ctxSelectedRoots, ctxRootColorRefMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
 
   const [selected, setSelected] = useState(false);
-
-  // useEffect(() => {
-  //   if (!ctxSelectedRoots.has(hebWord.strongNumber)) {
-  //     ctxRootColorRefMap.delete(hebWord.strongNumber);
-  //     const newRootColorRefMap = new Map(ctxRootColorRefMap);
-  //     ctxSetRootsColorMap(newRootColorRefMap);
-  //   }
-  // }, [ctxSelectedRoots, selected]);
   
   const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
 
@@ -134,21 +125,6 @@ export const WordBlock = ({
       }
     }
   }
-
-  //  run once to determine if there are colors that need to be written
-  //  useEffect(() => {
-  //   const colorScheme = ctxRootColorRefMap.get(hebWord.strongNumber)
-  //   if (colorScheme) {
-  //     setBorderColorLocal(colorScheme.borderColor !== DEFAULT_BORDER_COLOR && colorScheme.borderColor || borderColorLocal);
-  //     setColorFillLocal(colorScheme.colorFill !== DEFAULT_COLOR_FILL && colorScheme.colorFill || colorFillLocal);
-  //     setTextColorLocal(colorScheme.textColor !== DEFAULT_TEXT_COLOR && colorScheme.textColor || textColorLocal);
-  //   }
-  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.colorFill, colorFillLocal);
-  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.textColor, textColorLocal);
-  //   updateWordColor(ctxStudyId, [hebWord.id], ColorActionType.borderColor, borderColorLocal);
-
-  // }, [])
-
 
   const verseNumStyles = {
     className: `${zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? zoomLevelMap[DEFAULT_ZOOM_LEVEL].verseNumMr : zoomLevelMap[DEFAULT_ZOOM_LEVEL].verseNumMl}`
