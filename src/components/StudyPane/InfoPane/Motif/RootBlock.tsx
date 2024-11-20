@@ -17,19 +17,22 @@ export const RootBlock = ({
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
     ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
 
-  const displayedDescendant = descendants.find((dsd, index, array) => {
+  const displayedDescendant = descendants.find((dsd) => {
     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
       return true;
     }
   })
 
-  let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy
+  let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
 
   const availableDescendant = displayedDescendant || stubHebWord;
 
-  const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(availableDescendant.textColor? availableDescendant.colorFill: DEFAULT_TEXT_COLOR);
+  // const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
+  // const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
+  // const [textColorLocal, setTextColorLocal] = useState(availableDescendant.textColor? availableDescendant.colorFill: DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
@@ -59,7 +62,7 @@ export const RootBlock = ({
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
-  },[ctxRootsColorMap, ctxSelectedHebWords, ctxSelectedColor, ctxColorAction])
+  },[ctxRootsColorMap, ctxSelectedHebWords, ctxSelectedColor, ctxColorAction, ctxExpandedStanzas, ctxExpandedStrophes])
 
   
   useEffect(() => {
