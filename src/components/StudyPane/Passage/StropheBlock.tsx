@@ -71,7 +71,8 @@ export const StropheBlock = ({
     }
 
     const handleCollapseBlockClick = () => {
-      const newExpandedStrophes = ctxExpandedStrophes.map((expandedState, index) => {
+      let newExpandedStrophes: boolean[];
+      newExpandedStrophes = ctxExpandedStrophes.map((expandedState, index) => {
         if (index === strophe.id) {
           return !expanded;
         }
@@ -84,7 +85,6 @@ export const StropheBlock = ({
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);
         ctxSetNumSelectedWords(0);
-        
       }
     }
   

@@ -15,7 +15,7 @@ export const RootBlock = ({
 
   const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
-    ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
+    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots } = useContext(FormatContext)
 
   const displayedDescendant = descendants.find((dsd) => {
     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
@@ -25,19 +25,16 @@ export const RootBlock = ({
 
   let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
 
-  const availableDescendant = displayedDescendant || stubHebWord;
+  const descendantDisplayed = displayedDescendant || stubHebWord;
 
-  // const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
-  // const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
-  // const [textColorLocal, setTextColorLocal] = useState(availableDescendant.textColor? availableDescendant.colorFill: DEFAULT_TEXT_COLOR);
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const [availableDescendant, setDescendantDisplayed] = useState(descendantDisplayed);
+  const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(availableDescendant.textColor? availableDescendant.colorFill: DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
-  useEffect(() => {
-    const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
-    const matchedColorScheme = descendants.every((dsd) => {
+  const matchExpandedWordsColorScheme = () => {
+    let match = descendants.every((dsd) => {
       if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
         return true;
       }
@@ -47,23 +44,35 @@ export const RootBlock = ({
 
       return matchesBorderColor && matchesColorFill && matchesTextColor;
     });
-    if (rootBlockColor) {
-      setColorFillLocal(rootBlockColor.colorFill);
-      setBorderColorLocal(rootBlockColor.borderColor);
-      setTextColorLocal(rootBlockColor.textColor);
+    return match;
+  }
+
+  useEffect(() => {
+    const displayedDescendant = descendants.find((dsd) => {
+      if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
+        return true;
+      }
+    })
+    let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
+    const availableDescendant = displayedDescendant || stubHebWord;
+    setDescendantDisplayed(availableDescendant)
+  }, [ctxExpandedStanzas, ctxExpandedStrophes])
+
+  useEffect(() => {
+    const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
+    const matchedColorScheme = matchExpandedWordsColorScheme();
+    if (rootBlockColor || matchedColorScheme) {
+      setColorFillLocal(rootBlockColor? rootBlockColor.colorFill: availableDescendant.colorFill);
+      setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor: availableDescendant.borderColor);
+      setTextColorLocal(rootBlockColor? rootBlockColor.textColor: availableDescendant.textColor);
     }
-    else if (matchedColorScheme) {
-      setColorFillLocal(availableDescendant.colorFill);
-      setBorderColorLocal(availableDescendant.borderColor);
-      setTextColorLocal(availableDescendant.textColor);
-    }
-    else {
+    if (!matchedColorScheme) {
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
-  },[ctxRootsColorMap, ctxSelectedHebWords, ctxSelectedColor, ctxColorAction, ctxExpandedStanzas, ctxExpandedStrophes])
 
+  },[ ctxRootsColorMap, ctxSelectedColor, ctxExpandedStanzas, ctxExpandedStrophes, availableDescendant])
   
   useEffect(() => {
     let hasChildren = true;
@@ -76,52 +85,46 @@ export const RootBlock = ({
 
   useEffect(() => {
     if (selected){
-      const matchedColorScheme = descendants.every((dsd) => {
-        if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
-          return true;
+      const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
+      const matchedColorScheme = matchExpandedWordsColorScheme()
+      let colorObject: ColorType = {} as ColorType;
+      colorObject.colorFill = matchedColorScheme && availableDescendant.colorFill || DEFAULT_COLOR_FILL;
+      colorObject.borderColor = matchedColorScheme && availableDescendant.borderColor || DEFAULT_BORDER_COLOR;
+      colorObject.textColor = matchedColorScheme && availableDescendant.textColor || DEFAULT_TEXT_COLOR;
+      if (ctxColorAction !== ColorActionType.none && selected) {
+        if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
+          setColorFillLocal(ctxSelectedColor);
+          colorObject.colorFill = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
+          setBorderColorLocal(ctxSelectedColor);
+          colorObject.borderColor = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
+          setTextColorLocal(ctxSelectedColor);
+          colorObject.textColor = ctxSelectedColor;
+        } else if (ctxColorAction === ColorActionType.resetColor) {
+          setColorFillLocal(DEFAULT_COLOR_FILL);
+          setBorderColorLocal(DEFAULT_BORDER_COLOR);
+          setTextColorLocal(DEFAULT_TEXT_COLOR);
+          colorObject.colorFill = DEFAULT_COLOR_FILL;
+          colorObject.borderColor = DEFAULT_BORDER_COLOR;
+          colorObject.textColor = DEFAULT_TEXT_COLOR;
         }
-        const matchesBorderColor = !dsd.borderColor || dsd.borderColor === availableDescendant.borderColor;
-        const matchesColorFill = !dsd.colorFill || dsd.colorFill === availableDescendant.colorFill;
-        const matchesTextColor = !dsd.textColor || dsd.textColor === availableDescendant.textColor;
-  
-        return matchesBorderColor && matchesColorFill && matchesTextColor;
-      });
-    let colorObject: ColorType = {} as ColorType;
-    colorObject.colorFill = matchedColorScheme && availableDescendant.colorFill || DEFAULT_COLOR_FILL;
-    colorObject.borderColor = matchedColorScheme && availableDescendant.borderColor || DEFAULT_BORDER_COLOR;
-    colorObject.textColor = matchedColorScheme && availableDescendant.textColor || DEFAULT_TEXT_COLOR;
-
-    if (ctxColorAction !== ColorActionType.none && selected) {
-      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-        setColorFillLocal(ctxSelectedColor);
-        colorObject.colorFill = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-        setBorderColorLocal(ctxSelectedColor);
-        colorObject.borderColor = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-        setTextColorLocal(ctxSelectedColor);
-        colorObject.textColor = ctxSelectedColor;
-      } else if (ctxColorAction === ColorActionType.resetColor) {
-        setColorFillLocal(DEFAULT_COLOR_FILL);
-        setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        setTextColorLocal(DEFAULT_TEXT_COLOR);
-        colorObject.colorFill = DEFAULT_COLOR_FILL;
-        colorObject.borderColor = DEFAULT_BORDER_COLOR;
-        colorObject.textColor = DEFAULT_TEXT_COLOR;
+        ctxRootsColorMap.set(availableDescendant.strongNumber, colorObject);
+        const newRootsColorMap = new Map(ctxRootsColorMap);
+        ctxSetRootsColorMap(newRootsColorMap);
+        let descendantWordIds: number[] = [];
+        descendants.forEach((word) => {
+          word.colorFill = colorObject.colorFill;
+          word.textColor = colorObject.textColor;
+          word.borderColor = colorObject.borderColor;
+          descendantWordIds.push(word.id)
+        });
+        updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
+        updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
+        updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
       }
-      ctxRootsColorMap.set(availableDescendant.strongNumber, colorObject);
-      const newRootsColorMap = new Map(ctxRootsColorMap);
-      ctxSetRootsColorMap(newRootsColorMap);
-      let descendantWordIds: number[] = [];
-      descendants.forEach((word) => {
-        descendantWordIds.push(word.id)
-      });
-      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
-      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
-      updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
     }
-    }
-  }, [ctxSelectedColor, ctxColorAction]);
+  }, [ctxSelectedColor, ctxColorAction, ctxExpandedStanzas, ctxExpandedStrophes]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (displayedDescendant) {
@@ -134,7 +137,6 @@ export const RootBlock = ({
           updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
         })
       }
-      
       ctxSetSelectedHebWords(updatedSelectedHebWords);
       ctxSetNumSelectedWords(updatedSelectedHebWords.length);
     }

@@ -15,7 +15,8 @@ export const  StanzaBlock = ({
     const [expanded, setExpanded] = useState(stanza.expanded != undefined ? stanza.expanded : true);
 
     const handleCollapseBlockClick = () => {
-      const newExpandedStanzas = ctxExpandedStanzas.map((collapsedStatus, index) => {
+      let newExpandedStanzas: boolean [];
+      newExpandedStanzas = ctxExpandedStanzas.map((collapsedStatus, index) => {
         if (index === stanza.id) {
           return !expanded;
         }
