@@ -51,8 +51,6 @@ export const FormatContext = createContext({
   ctxSetExpandedStrophes: (arg: boolean[]) => {},
   ctxExpandedStanzas: [] as boolean[],
   ctxSetExpandedStanzas: (arg: boolean[]) => {},
-  ctxSelectedRoots: new Set() as Set<number>,
-  ctxSetSelectedRoots: (arg: Set<number>) => {}
 });
 
 const StudyPane = ({
@@ -88,8 +86,6 @@ const StudyPane = ({
 
   const [expandedStrophes, setExpandedStrophes] = useState([] as boolean[]);
   const [expandedStanzas, setExpandedStanzas] = useState([] as boolean[]);
-
-  const [selectedRoots, setSelectedRoots] = useState(new Set() as Set<number>)
   
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -128,8 +124,6 @@ const StudyPane = ({
     ctxSetExpandedStrophes: setExpandedStrophes,
     ctxExpandedStanzas: expandedStanzas,
     ctxSetExpandedStanzas: setExpandedStanzas,
-    ctxSelectedRoots: selectedRoots,
-    ctxSetSelectedRoots: setSelectedRoots
   }
 
 

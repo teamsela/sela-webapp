@@ -15,7 +15,7 @@ export const RootBlock = ({
 
   const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
-    ctxExpandedStanzas, ctxExpandedStrophes, ctxSelectedRoots, ctxSetSelectedRoots } = useContext(FormatContext)
+    ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
 
   const displayedDescendant = descendants.find((dsd) => {
     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
