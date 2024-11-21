@@ -90,6 +90,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [ctxColorAction, refreshDisplayColor])
 
   const handleClick = () => {
+    setColorAction(ColorActionType.none);    
     if (buttonEnabled) {
       setColorAction((ctxColorAction != colorAction) ? colorAction : ColorActionType.none);
       setSelectedColor("");
@@ -149,7 +150,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker width={550} height={300} color={displayColor} onChange={handleChange} />
+              <SwatchesPicker className={`colorPicker`} width={550} height={300} color={displayColor} onChange={handleChange} />
             </div>
           </div>
         )
