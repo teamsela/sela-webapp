@@ -22,8 +22,9 @@ export default async function PublicTable({
   const search = await xataClient.db.study.search("", {
     filter: {
       $all:[
-        {public: true, model: false},
         {
+          model: false,
+          public: true,
           $any: [
             { name: {$iContains: query }},
             { passage: {$iContains: query }}
