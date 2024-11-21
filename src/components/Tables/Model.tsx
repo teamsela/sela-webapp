@@ -1,6 +1,5 @@
 import { getXataClient } from '@/xata';
-import { currentUser, clerkClient } from '@clerk/nextjs';
-import Image from 'next/image'
+import { clerkClient } from '@clerk/nextjs';
 
 import SearchBar from "@/components/Tables/Search";
 import Pagination from "@/components/Paginations/Pagination";
@@ -8,7 +7,7 @@ import Link from 'next/link';
 
 const xataClient = getXataClient();
 
-export default async function PublicTable({
+export default async function ModelTable({
   query,
   currentPage,
 }: {
@@ -22,7 +21,7 @@ export default async function PublicTable({
   const search = await xataClient.db.study.search("", {
     filter: {
       $all:[
-        {public: true, model: false},
+        {model: true},
         {
           $any: [
             { name: {$iContains: query }},
@@ -48,13 +47,6 @@ export default async function PublicTable({
   // fetch ids and sessions of owners from clerk
   const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
 
-  let mp = new Map();
-  for (let i = 0; i < users.length; i++) {
-    mp.set(users[i].id, users[i]);
-  }
-
-  const thisUser = await currentUser();
-
   return (
     <>
     <SearchBar placeholder="Search study by name or passage..." />
@@ -68,12 +60,6 @@ export default async function PublicTable({
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
                 Passage
-              </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Last Modified
-              </th>
-              <th className="min-w-[160px] py-4 px-4 font-medium text-black dark:text-white">
-                Owner
               </th>
             </tr>
           </thead>
@@ -91,19 +77,6 @@ export default async function PublicTable({
                   <p className="text-black dark:text-white">
                     Psalm {studyItem.passage}
                   </p>
-                </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                  <p className="text-black dark:text-white">
-                    {studyItem.xata.updatedAt.toLocaleString()}
-                  </p>
-                </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
-                  <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
-                    <Image src={mp.get(studyItem.owner)?.imageUrl} width="40" height="40" alt="Avatar" />
-                  </div>
-                    <p className="text-black dark:text-white">
-                      {thisUser?.id === studyItem.owner ? "me" : mp.get(studyItem.owner)?.firstName + " " + mp.get(studyItem.owner)?.lastName}
-                    </p>
                 </td>
               </tr>
             ))}

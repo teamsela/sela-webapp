@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
+import { PiBookBookmarkFill } from "react-icons/pi";
 
 import { UserButton } from '@clerk/nextjs';
 
@@ -90,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
 
             <ul className="mb-6 flex flex-col gap-1.5">
 
-              {/* <!-- Menu Item Home --> */}
+              {/* <!-- Menu Item Recent --> */}
               <li>
                 <Link
                   href="/dashboard/home"
@@ -101,7 +102,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                   Recent
                 </Link>
               </li>
-              {/* <!-- Menu Item Home --> */}
+              {/* <!-- Menu Item Recent --> */}
 
               {/* <!-- Menu Item Public --> */}
               <li>
@@ -116,6 +117,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
               </li>
               {/* <!-- Menu Item Public --> */}
 
+              {/* <!-- Menu Item Sample --> */}
+              <li>
+                <Link
+                  href="/dashboard/model"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("public") && "bg-graydark dark:bg-meta-4"
+                    }`}
+                >
+                  <PiBookBookmarkFill size="20px" />
+                  Pre-Marked Studies
+                </Link>
+              </li>
+              {/* <!-- Menu Item Sample --> */}
 
             </ul>
           </div>
