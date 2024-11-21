@@ -89,7 +89,7 @@ export const StropheBlock = ({
     return(
       <div 
         key={"strophe_" + strophe.id}
-        className={`relative flex-column px-5 py-2 mx-1 my-1 ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+        className={`relative flex-column px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
         style={
           {
             background: `${colorFillLocal}`,
@@ -127,12 +127,11 @@ export const StropheBlock = ({
         }
         </div>
         {
-          expanded && stanzaExpanded?
             strophe.lines.map((line, lineId) => {
               return (
                 <div
                   key={"line_" + lineId}
-                  className={`flex`}
+                  className={expanded && stanzaExpanded ? `flex` : `hidden`}
                 >
                 {
                   line.words.map((word) => {
@@ -152,12 +151,6 @@ export const StropheBlock = ({
                 </div>
               )
             })
-          :
-          <div
-            style={{minHeight: 25}}
-            key={"collapsed" + strophe.id}
-          >
-          </div>
         }
       </div>
     )
