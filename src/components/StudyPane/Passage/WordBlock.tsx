@@ -27,9 +27,9 @@ const zoomLevelMap: ZoomLevel = {
 const DEFAULT_ZOOM_LEVEL = 5;
 
 export const WordBlock = ({
-  hebWord, visible
+  hebWord
 }: {
-  hebWord: HebWord, visible:boolean;
+  hebWord: HebWord
 }) => {
 
   const { ctxIsHebrew, ctxUniformWidth,

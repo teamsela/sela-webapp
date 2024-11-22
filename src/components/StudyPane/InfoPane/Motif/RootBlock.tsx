@@ -14,57 +14,45 @@ export const RootBlock = ({
 }) => {
 
   const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
-    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, 
-    ctxExpandedStanzas, ctxExpandedStrophes } = useContext(FormatContext)
+    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap } = useContext(FormatContext)
 
-  const displayedDescendant = descendants.find((dsd) => {
-    if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
-      return true;
-    }
-  })
-
-  let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
-
-  const descendantDisplayed = displayedDescendant || stubHebWord;
-
-  const [availableDescendant, setDescendantDisplayed] = useState(descendantDisplayed);
-  const [colorFillLocal, setColorFillLocal] = useState(availableDescendant.colorFill? availableDescendant.colorFill: DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(availableDescendant.borderColor? availableDescendant.colorFill: DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(availableDescendant.textColor? availableDescendant.colorFill: DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(descendants[0].colorFill? descendants[0].colorFill: DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(descendants[0].borderColor? descendants[0].colorFill: DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(descendants[0].textColor? descendants[0].colorFill: DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   const matchExpandedWordsColorScheme = () => {
     let match = descendants.every((dsd) => {
-      if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
-        return true;
-      }
-      const matchesBorderColor = !dsd.borderColor || dsd.borderColor === availableDescendant.borderColor;
-      const matchesColorFill = !dsd.colorFill || dsd.colorFill === availableDescendant.colorFill;
-      const matchesTextColor = !dsd.textColor || dsd.textColor === availableDescendant.textColor;
+      // if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
+      //   return true;
+      // }
+      const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+      const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+      const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
 
       return matchesBorderColor && matchesColorFill && matchesTextColor;
     });
     return match;
   }
 
-  useEffect(() => {
-    const displayedDescendant = descendants.find((dsd) => {
-      if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
-        return true;
-      }
-    })
-    let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
-    const availableDescendant = displayedDescendant || stubHebWord;
-    setDescendantDisplayed(availableDescendant)
-  }, [ctxExpandedStanzas, ctxExpandedStrophes])
+  // useEffect(() => {
+  //   const displayedDescendant = descendants.find((dsd) => {
+  //     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
+  //       return true;
+  //     }
+  //   })
+  //   let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
+  //   const availableDescendant = displayedDescendant || stubHebWord;
+  //   setDescendantDisplayed(availableDescendant)
+  // }, [ctxExpandedStanzas, ctxExpandedStrophes])
 
   useEffect(() => {
-    const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
+    const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
     const matchedColorScheme = matchExpandedWordsColorScheme();
     if (rootBlockColor || matchedColorScheme) {
-      setColorFillLocal(rootBlockColor? rootBlockColor.colorFill: availableDescendant.colorFill);
-      setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor: availableDescendant.borderColor);
-      setTextColorLocal(rootBlockColor? rootBlockColor.textColor: availableDescendant.textColor);
+      setColorFillLocal(rootBlockColor? rootBlockColor.colorFill: descendants[0].colorFill);
+      setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor: descendants[0].borderColor);
+      setTextColorLocal(rootBlockColor? rootBlockColor.textColor: descendants[0].textColor);
     }
     if (!matchedColorScheme) {
       setColorFillLocal(DEFAULT_COLOR_FILL);
@@ -72,7 +60,7 @@ export const RootBlock = ({
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
 
-  },[ ctxRootsColorMap, ctxSelectedColor, ctxExpandedStanzas, ctxExpandedStrophes, availableDescendant])
+  },[ ctxRootsColorMap, ctxSelectedColor])
   
   useEffect(() => {
     let hasChildren = true;
@@ -85,12 +73,12 @@ export const RootBlock = ({
 
   useEffect(() => {
     if (selected){
-      const rootBlockColor = ctxRootsColorMap.get(availableDescendant.strongNumber);
+      const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
       const matchedColorScheme = matchExpandedWordsColorScheme()
       let colorObject: ColorType = {} as ColorType;
-      colorObject.colorFill = matchedColorScheme && availableDescendant.colorFill || DEFAULT_COLOR_FILL;
-      colorObject.borderColor = matchedColorScheme && availableDescendant.borderColor || DEFAULT_BORDER_COLOR;
-      colorObject.textColor = matchedColorScheme && availableDescendant.textColor || DEFAULT_TEXT_COLOR;
+      colorObject.colorFill = matchedColorScheme && descendants[0].colorFill || DEFAULT_COLOR_FILL;
+      colorObject.borderColor = matchedColorScheme && descendants[0].borderColor || DEFAULT_BORDER_COLOR;
+      colorObject.textColor = matchedColorScheme && descendants[0].textColor || DEFAULT_TEXT_COLOR;
       if (ctxColorAction !== ColorActionType.none && selected) {
         if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
           setColorFillLocal(ctxSelectedColor);
@@ -109,7 +97,7 @@ export const RootBlock = ({
           colorObject.borderColor = DEFAULT_BORDER_COLOR;
           colorObject.textColor = DEFAULT_TEXT_COLOR;
         }
-        ctxRootsColorMap.set(availableDescendant.strongNumber, colorObject);
+        ctxRootsColorMap.set(descendants[0].strongNumber, colorObject);
         const newRootsColorMap = new Map(ctxRootsColorMap);
         ctxSetRootsColorMap(newRootsColorMap);
         let descendantWordIds: number[] = [];
@@ -124,10 +112,9 @@ export const RootBlock = ({
         updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
       }
     }
-  }, [ctxSelectedColor, ctxColorAction, ctxExpandedStanzas, ctxExpandedStrophes]);
+  }, [ctxSelectedColor, ctxColorAction]);
 
   const handleClick = (e: React.MouseEvent) => {
-    if (displayedDescendant) {
       setSelected(prevState => !prevState);
       let updatedSelectedHebWords = [...ctxSelectedHebWords];
       if (!selected) {
@@ -139,7 +126,6 @@ export const RootBlock = ({
       }
       ctxSetSelectedHebWords(updatedSelectedHebWords);
       ctxSetNumSelectedWords(updatedSelectedHebWords.length);
-    }
   };
 
   return (
@@ -162,7 +148,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{availableDescendant.ETCBCgloss}</span>
+          >{descendants[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

@@ -15,8 +15,7 @@ export const StropheBlock = ({
   }) => {
   
     const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, 
-      ctxSetExpandedStrophes, ctxExpandedStrophes
+      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
@@ -71,14 +70,6 @@ export const StropheBlock = ({
     }
 
     const handleCollapseBlockClick = () => {
-      let newExpandedStrophes: boolean[];
-      newExpandedStrophes = ctxExpandedStrophes.map((expandedState, index) => {
-        if (index === strophe.id) {
-          return !expanded;
-        }
-        return expandedState;
-      })
-      ctxSetExpandedStrophes(newExpandedStrophes);
       setExpanded(prevState => !prevState);
       updateStropheState(ctxStudyId, strophe.id, !expanded && stanzaExpanded);
       if (expanded) {
@@ -151,7 +142,6 @@ export const StropheBlock = ({
                         <WordBlock
                           key={"word_" + word.id}
                           hebWord={word}
-                          visible={stanzaExpanded && expanded}
                         />
                       </div>           
                     )
