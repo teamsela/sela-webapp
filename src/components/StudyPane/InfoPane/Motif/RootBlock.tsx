@@ -23,32 +23,15 @@ export const RootBlock = ({
 
   const matchExpandedWordsColorScheme = () => {
     let match = descendants.every((dsd) => {
-      // if (ctxExpandedStanzas.at(dsd.stanzaId as number) === false || ctxExpandedStrophes.at(dsd.stropheId as number) === false) {
-      //   return true;
-      // }
-      const matchesBorderColor = !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
-      const matchesColorFill = !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
-      const matchesTextColor = !dsd.textColor || dsd.textColor === descendants[0].textColor;
-
-      return matchesBorderColor && matchesColorFill && matchesTextColor;
+      return !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
     });
     return match;
   }
 
-  // useEffect(() => {
-  //   const displayedDescendant = descendants.find((dsd) => {
-  //     if (ctxExpandedStanzas.at(dsd.stanzaId as number) === true && ctxExpandedStrophes.at(dsd.stropheId as number) === true) {
-  //       return true;
-  //     }
-  //   })
-  //   let stubHebWord: HebWord = descendants[0]; // used to satisfy type of availableDescendants, but not used because setSelected does not run unless displayedDescendant is not falsy;
-  //   const availableDescendant = displayedDescendant || stubHebWord;
-  //   setDescendantDisplayed(availableDescendant)
-  // }, [ctxExpandedStanzas, ctxExpandedStrophes])
-
   useEffect(() => {
     const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
     const matchedColorScheme = matchExpandedWordsColorScheme();
+
     if (rootBlockColor || matchedColorScheme) {
       setColorFillLocal(rootBlockColor? rootBlockColor.colorFill: descendants[0].colorFill);
       setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor: descendants[0].borderColor);
@@ -59,8 +42,7 @@ export const RootBlock = ({
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
-
-  },[ ctxRootsColorMap, ctxSelectedColor])
+  },[ ctxRootsColorMap, ctxSelectedColor, ctxColorAction, ctxSelectedHebWords])
   
   useEffect(() => {
     let hasChildren = true;
@@ -73,12 +55,9 @@ export const RootBlock = ({
 
   useEffect(() => {
     if (selected){
-      const rootBlockColor = ctxRootsColorMap.get(descendants[0].strongNumber);
       const matchedColorScheme = matchExpandedWordsColorScheme()
       let colorObject: ColorType = {} as ColorType;
       colorObject.colorFill = matchedColorScheme && descendants[0].colorFill || DEFAULT_COLOR_FILL;
-      colorObject.borderColor = matchedColorScheme && descendants[0].borderColor || DEFAULT_BORDER_COLOR;
-      colorObject.textColor = matchedColorScheme && descendants[0].textColor || DEFAULT_TEXT_COLOR;
       if (ctxColorAction !== ColorActionType.none && selected) {
         if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
           setColorFillLocal(ctxSelectedColor);
