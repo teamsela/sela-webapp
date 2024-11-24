@@ -1,5 +1,5 @@
 import { HebWord } from '@/lib/data';
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";

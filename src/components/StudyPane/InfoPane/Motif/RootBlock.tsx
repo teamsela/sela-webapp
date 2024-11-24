@@ -49,8 +49,8 @@ export const RootBlock = ({
 
     if (rootBlockColor || matchedFillColor) {
       setColorFillLocal(rootBlockColor? rootBlockColor.colorFill: descendants[0].colorFill);
-      setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor!==''?rootBlockColor.borderColor:BLACK:DEFAULT_BORDER_COLOR);
-      setTextColorLocal(rootBlockColor? rootBlockColor.textColor!==''?rootBlockColor.textColor:BLACK:DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(rootBlockColor? rootBlockColor.borderColor!==''?rootBlockColor.borderColor:DEFAULT_BORDER_COLOR:BLACK);
+      setTextColorLocal(rootBlockColor? rootBlockColor.textColor!==''?rootBlockColor.textColor:DEFAULT_TEXT_COLOR:BLACK);
     }
     if (!matchedFillColor) {
       setColorFillLocal(DEFAULT_COLOR_FILL);
