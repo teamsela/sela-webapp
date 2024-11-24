@@ -14,7 +14,7 @@ export const RootBlock = ({
 }) => {
 
   const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
-    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap } = useContext(FormatContext)
+    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetRootsColorMap, ctxInViewMode } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
@@ -77,6 +77,7 @@ export const RootBlock = ({
       let colorObject: ColorType = {} as ColorType;
       if (ctxColorAction !== ColorActionType.none && selected) {
         if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
+          
           setColorFillLocal(ctxSelectedColor);
           colorObject.colorFill = ctxSelectedColor;
           colorObject.textColor = matchedTextColor && rootBlockColor?rootBlockColor.textColor!==''?rootBlockColor.textColor:'':''
@@ -88,8 +89,9 @@ export const RootBlock = ({
             word.borderColor = word.borderColor;
             descendantWordIds.push(word.id)
           });
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
-
+          if (!ctxInViewMode) {
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
+          }
         } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
           setBorderColorLocal(ctxSelectedColor);
           colorObject.borderColor = ctxSelectedColor;
@@ -102,8 +104,9 @@ export const RootBlock = ({
             word.borderColor = colorObject.borderColor;
             descendantWordIds.push(word.id)
           });
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
-
+          if (!ctxInViewMode) {
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
+          }
         } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
           setTextColorLocal(ctxSelectedColor);
           colorObject.textColor = ctxSelectedColor;
@@ -115,8 +118,9 @@ export const RootBlock = ({
             word.borderColor = word.borderColor;
             descendantWordIds.push(word.id)
           });
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
-
+          if (!ctxInViewMode) {
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
+          }
         } else if (ctxColorAction === ColorActionType.resetColor) {
           setColorFillLocal(DEFAULT_COLOR_FILL);
           setBorderColorLocal(DEFAULT_BORDER_COLOR);
@@ -131,9 +135,11 @@ export const RootBlock = ({
             word.borderColor = colorObject.borderColor;
             descendantWordIds.push(word.id)
           });
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
-          updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
+          if (!ctxInViewMode) {
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
+            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
+          }
         }
         ctxRootsColorMap.set(descendants[0].strongNumber, colorObject);
         const newRootsColorMap = new Map(ctxRootsColorMap);

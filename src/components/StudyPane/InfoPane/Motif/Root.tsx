@@ -19,7 +19,7 @@ const Root = ({
     content: PassageData;
 }) => {
 
-    const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
+    const { ctxStudyId, ctxSetRootsColorMap, ctxInViewMode } = useContext(FormatContext);
 
     let rootWordsMap = new Map<number, HebWord[]>();
     content.stanzas.map((stanzas) => {
@@ -65,9 +65,10 @@ const Root = ({
                 textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
                 borderColor: "" // not used for root block
             };
-
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+            if (!ctxInViewMode) {
+                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
+                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+            }
             newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
         })
         ctxSetRootsColorMap(newMap);
