@@ -119,7 +119,7 @@ export async function updateWordColor(studyId: string, selectedWordIds: number[]
     return { message: 'Not a user' + studyId };
   }
   const study = await fetchStudyById(studyId);
-  if (user.id !== study.id) {
+  if (user.id !== study.owner) {
     return { message: 'Current user is not the author of study ' + studyId};
   }
 
@@ -245,7 +245,7 @@ export async function updateStropheState(studyId: string, stropheId: number, new
     return { message: 'Not a user' + studyId };
   }
   const study = await fetchStudyById(studyId);
-  if (user.id !== study.id) {
+  if (user.id !== study.owner) {
     return { message: 'Current user is not the author of study ' + studyId};
   }
 
@@ -278,7 +278,7 @@ export async function updateStanzaState(studyId: string, stanzaId: number, newSt
     return { message: 'Not a user' + studyId };
   }
   const study = await fetchStudyById(studyId);
-  if (user.id !== study.id) {
+  if (user.id !== study.owner) {
     return { message: 'Current user is not the author of study ' + studyId};
   }
 
