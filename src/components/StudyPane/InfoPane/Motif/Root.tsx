@@ -5,7 +5,7 @@ import { ColorActionType, ColorType } from "@/lib/types";
 import { updateWordColor } from "@/lib/actions";
 
 import { RootBlock } from "./RootBlock";
-import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
 const RootColorPalette = [
     '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',

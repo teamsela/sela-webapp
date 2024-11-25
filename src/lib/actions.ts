@@ -114,6 +114,14 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 
 export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
+  const user = await currentUser();
+  if (!user || !user.id) {
+    return { message: 'Not a user' + studyId };
+  }
+  const study = await fetchStudyById(studyId);
+  if (user.id !== study.id) {
+    return { message: 'Current user is not the author of study ' + studyId};
+  }
 
   let operations: any = [];
 
@@ -231,6 +239,15 @@ export async function updateStropheColor(studyId: string, selectedStropheIds: nu
 
 export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
   "use server";
+  
+  const user = await currentUser();
+  if (!user || !user.id) {
+    return { message: 'Not a user' + studyId };
+  }
+  const study = await fetchStudyById(studyId);
+  if (user.id !== study.id) {
+    return { message: 'Current user is not the author of study ' + studyId};
+  }
 
   const xataClient = getXataClient();
 
@@ -255,6 +272,16 @@ export async function updateStropheState(studyId: string, stropheId: number, new
 
 export async function updateStanzaState(studyId: string, stanzaId: number, newState: boolean) {
   "use server";
+
+  const user = await currentUser();
+  if (!user || !user.id) {
+    return { message: 'Not a user' + studyId };
+  }
+  const study = await fetchStudyById(studyId);
+  if (user.id !== study.id) {
+    return { message: 'Current user is not the author of study ' + studyId};
+  }
+
   const xataClient = getXataClient();
 
   let result : any;
