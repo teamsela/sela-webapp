@@ -3,7 +3,7 @@ const RelatedWord = ({
 }) => {
     return(
         <div>
-            "Related Word"
+            Related Word
         </div>
     )
 }
