@@ -42,4 +42,5 @@ export enum InfoPaneActionType {
 export enum MotifType {
     root,
     syn,
+    relword
 }

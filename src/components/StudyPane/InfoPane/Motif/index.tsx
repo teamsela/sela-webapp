@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import Root from "./Root";
 import Category from "./Category";
+import RelatedWord from "./RelatedWord";
 
 const Motif = ({
    content
@@ -12,44 +13,82 @@ const Motif = ({
    content: PassageData;
   }) => {
 
-  const [openTab, setOpenTab] = useState(MotifType.root);
+  const [expandedTab, setExpandedTab] = useState<MotifType | null>(null);
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
 
+  const toggleTab = (tab: MotifType) => {
+    if (expandedTab === tab) {
+      setExpandedTab(null);
+    } else {
+      setExpandedTab(tab);
+    }
+  };
 
   return (
     <div className="h-full">
-      <div className="mb-6 flex flex-wrap gap-5 border-b border-stroke dark:border-strokedark sm:gap-8">
-        <Link
-          href="#"
-          className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
-            openTab === MotifType.root ? activeClasses : inactiveClasses
-          }`}
-          onClick={() => setOpenTab(MotifType.root)}
-        >
-          Identical Roots
-        </Link>
-        <Link
-          href="#"
-          className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
-            openTab === MotifType.syn ? activeClasses : inactiveClasses
-          }`}
-          onClick={() => setOpenTab(MotifType.syn)}
-        >
-          Categories
-        </Link>
-      </div>
-      <div className="h-full">
+      <div className="mb-6 flex flex-col gap-2 sm:gap-3 pt-6">
         <div
-          className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
+          className={`border-b border-stroke dark:border-strokedark ${
+            expandedTab !== null && expandedTab !== MotifType.root ? 'hidden' : ''
+          }`}
         >
-          <Root content={content}/>
+          <Link
+            href="#"
+            className={`block border-b-2 py-2 text-sm font-medium hover:text-primary md:text-base ${
+              expandedTab === MotifType.root ? activeClasses : inactiveClasses
+            }`}
+            onClick={() => toggleTab(MotifType.root)}
+          >
+            Identical Roots
+          </Link>
+          {expandedTab === MotifType.root && (
+            <div className="py-4">
+              <Root content={content} />
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`border-b border-stroke dark:border-strokedark ${
+            expandedTab !== null && expandedTab !== MotifType.syn ? 'hidden' : ''
+          }`}
+        >
+          <Link
+            href="#"
+            className={`block border-b-2 py-2 text-sm font-medium hover:text-primary md:text-base ${
+              expandedTab === MotifType.syn ? activeClasses : inactiveClasses
+            }`}
+            onClick={() => toggleTab(MotifType.syn)}
+          >
+            Categories
+          </Link>
+          {expandedTab === MotifType.syn && (
+            <div className="py-4">
+              <Category content={content} />
+            </div>
+          )}
         </div>
         <div
-          className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"} h-full`}
+          className={`border-b border-stroke dark:border-strokedark ${
+            expandedTab !== null && expandedTab !== MotifType.relword ? 'hidden' : ''
+          }`}
         >
-          <Category content={content}/>
+          <Link
+            href="#"
+            className={`block border-b-2 py-2 text-sm font-medium hover:text-primary md:text-base ${
+              expandedTab === MotifType.relword ? activeClasses : inactiveClasses
+            }`}
+            onClick={() => toggleTab(MotifType.relword)}
+          >
+            Related Word
+          </Link>
+          {expandedTab === MotifType.relword && (
+            <div className="py-4">
+              <RelatedWord />
+            </div>
+          )}
         </div>
       </div>
     </div>
