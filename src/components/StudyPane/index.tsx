@@ -47,6 +47,8 @@ export const FormatContext = createContext({
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   ctxRootsColorMap : {} as Map<number, ColorType>,
   ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{},
+  ctxRelWordsColorMap : {} as Map<string, ColorType>,
+  ctxSetRelWordsColorMap : (arg: Map<string, ColorType>) =>{},
 });
 
 const StudyPane = ({
@@ -79,7 +81,7 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
-
+  const [relWordsColorMap, setRelWordsColorMap] = useState<Map<string, ColorType>>(new Map());
 
   const formatContextValue = {
     ctxStudyId: study.id,
@@ -114,6 +116,8 @@ const StudyPane = ({
     ctxSetStropheCount: setStropheCount,
     ctxRootsColorMap: rootsColorMap,
     ctxSetRootsColorMap: setRootsColorMap,
+    ctxRelWordsColorMap: relWordsColorMap,
+    ctxSetRelWordsColorMap: setRelWordsColorMap,
   }
 
 

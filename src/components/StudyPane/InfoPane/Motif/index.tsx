@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import Root from "./Root";
 import Category from "./Category";
+import RelatedWord from "./RelatedWord";
 
 const Motif = ({
    content
@@ -12,7 +13,7 @@ const Motif = ({
    content: PassageData;
   }) => {
 
-  const [openTab, setOpenTab] = useState(MotifType.root);
+  const [openTab, setOpenTab] = useState(MotifType.idc);
 
   const activeClasses = "text-primary border-primary";
   const inactiveClasses = "border-transparent";
@@ -24,11 +25,11 @@ const Motif = ({
         <Link
           href="#"
           className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
-            openTab === MotifType.root ? activeClasses : inactiveClasses
+            openTab === MotifType.idc ? activeClasses : inactiveClasses
           }`}
-          onClick={() => setOpenTab(MotifType.root)}
+          onClick={() => setOpenTab(MotifType.idc)}
         >
-          Identical Roots
+          Identical Words
         </Link>
         <Link
           href="#"
@@ -39,10 +40,19 @@ const Motif = ({
         >
           Categories
         </Link>
+        <Link
+          href="#"
+          className={`border-b-2 pt-4 py-2 text-sm font-medium hover:text-primary md:text-base ${
+            openTab === MotifType.rel ? activeClasses : inactiveClasses
+          }`}
+          onClick={() => setOpenTab(MotifType.rel)}
+        >
+          Related Words
+        </Link>
       </div>
       <div className="h-full">
         <div
-          className={`leading-relaxed ${openTab === MotifType.root ? "block" : "hidden"} h-full`}
+          className={`leading-relaxed ${openTab === MotifType.idc ? "block" : "hidden"} h-full`}
         >
           <Root content={content}/>
         </div>
@@ -50,6 +60,11 @@ const Motif = ({
           className={`leading-relaxed ${openTab === MotifType.syn ? "block" : "hidden"} h-full`}
         >
           <Category content={content}/>
+        </div>
+        <div
+          className={`leading-relaxed ${openTab === MotifType.rel ? "block" : "hidden"} h-full`}
+        >
+          <RelatedWord content={content}/>
         </div>
       </div>
     </div>
