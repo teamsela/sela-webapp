@@ -71,6 +71,8 @@ const Root = ({
             newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
         })
         ctxSetRootsColorMap(newMap);
+
+        alert("Warning: Smart highlight will remove custom colours on those blocks")
     }
 
     return (
