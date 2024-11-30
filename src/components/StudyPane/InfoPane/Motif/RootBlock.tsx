@@ -18,8 +18,8 @@ export const RootBlock = ({
 
   const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber);
   const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill:DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(rootsColorMap? rootsColorMap.borderColor:DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor:DEFAULT_TEXT_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(rootsColorMap? rootsColorMap.borderColor: DEFAULT_BORDER_COLOR);
   const [selected, setSelected] = useState(false);
 
   const matchFillColor = () => {
@@ -56,16 +56,17 @@ export const RootBlock = ({
     const matchedFillColor = matchFillColor();
     const matchedTextColor = matchTextColor();
     const matchedBorderColor = matchBorderColor();
-    if (rootsColorMap) {
-      setColorFillLocal(matchedFillColor? rootsColorMap.colorFill: DEFAULT_COLOR_FILL);
-      setTextColorLocal(matchedTextColor? rootsColorMap.textColor: DEFAULT_TEXT_COLOR);
-      setBorderColorLocal(matchedBorderColor? rootsColorMap.borderColor: DEFAULT_BORDER_COLOR);
-    }
-    // else {
-    //   setColorFillLocal(matchedFillColor? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-    //   setTextColorLocal(matchedTextColor? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-    //   setBorderColorLocal(matchedBorderColor? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
-    // }
+    
+    setColorFillLocal(matchedFillColor? descendants[0].colorFill: DEFAULT_COLOR_FILL);
+    setTextColorLocal(matchedTextColor? descendants[0].textColor: DEFAULT_TEXT_COLOR);
+    setBorderColorLocal(matchedBorderColor? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
+    descendants.forEach(dsd => {
+      dsd.colorFill = matchedFillColor? descendants[0].colorFill: dsd.colorFill;
+      dsd.textColor = matchedTextColor? descendants[0].textColor: dsd.textColor;
+      dsd.borderColor = matchedBorderColor? descendants[0].borderColor: dsd.borderColor;
+
+    })
+
   }, [ctxRootsColorMap])
 
   useEffect(() => {
