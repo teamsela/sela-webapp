@@ -12,7 +12,7 @@ export const RelatedWordBlock = ({
   relatedWords: HebWord[]
 }) => {
 
-  const { ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
   const [selected, setSelected] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -50,7 +50,7 @@ export const RelatedWordBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{rootData.gloss}</span>
+          > { ctxIsHebrew ? rootData.lemma : rootData.gloss } </span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>
