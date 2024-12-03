@@ -27,7 +27,7 @@
                 </h1>
 
                 <p className="font-medium">
-                Pardon our dust — we're crafting a digital experience worth the wait. Launching soon! Enter your email address
+                Pardon our dust — we&apos;re crafting a digital experience worth the wait. Launching soon! Enter your email address
                   to get latest updates and notifications about the website.
                 </p>
               </div>
