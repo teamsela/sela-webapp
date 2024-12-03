@@ -8,7 +8,7 @@
       <div className="relative z-10 overflow-hidden bg-white px-4 dark:bg-boxdark-2 sm:px-8">
         <div className="flex h-screen flex-col items-center justify-center overflow-hidden">
           <div className="no-scrollbar overflow-y-auto py-20">
-            <div className="mx-auto w-full max-w-[600px]">
+            <div className="mx-auto w-full max-w-[560px]">
               <div className="text-center">
                 <Link href="/" className="mx-auto mb-10 inline-flex">
                   <Image
@@ -27,7 +27,7 @@
                 </h1>
 
                 <p className="font-medium">
-                  Our website is currently under construction, enter your email address
+                Pardon our dust — we&apos;re crafting a digital experience worth the wait. Launching soon! Enter your email address
                   to get latest updates and notifications about the website.
                 </p>
               </div>
@@ -62,41 +62,47 @@
             </div>
             {/* <!-- subscription form end --> */}
 
+            {/* <!-- coming soon message --> */}
+            <div className="mt-10 mx-auto w-full max-w-[540px] text-center items-center">
+                <p className="mt-1.5 font-medium text-black dark:text-white">
+                  Our web app is almost ready to help you unearth the poetic treasures hidden in the Bible. Coming soon!
+                </p>
+            </div>
             {/* <!-- social link start --> */}
-            <div className="mt-10 text-center flex items-center justify-center gap-4">
-              <p className="mt-1.5 font-medium text-black dark:text-white">
-                Follow Us On
-              </p>
-              <Link
-                href="https://www.youtube.com/@Biblepoetry"
-                className="flex size-10 items-center justify-center rounded-full border border-[#DFE4EA] hover:bg-[#FF0000] hover:text-white dark:border-strokedark dark:hover:border-primary"
-              >
-              <svg
-                className="fill-current"
-                width="17"
-                height="16"
-                viewBox="0 0 17 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clipPath="url(#clip0_1878_14091)">
-                  <path
-                    d="M15.925 4.27495C15.75 3.59995 15.225 3.07495 14.55 2.89995C13.35 2.57495 8.5 2.57495 8.5 2.57495C8.5 2.57495 3.65 2.57495 2.45 2.89995C1.775 3.07495 1.25 3.59995 1.075 4.27495C0.75 5.49995 0.75 7.99995 0.75 7.99995C0.75 7.99995 0.75 10.525 1.075 11.7249C1.25 12.4 1.775 12.925 2.45 13.0999C3.65 13.425 8.5 13.4249 8.5 13.4249C8.5 13.4249 13.35 13.425 14.55 13.0999C15.225 12.925 15.75 12.4 15.925 11.7249C16.25 10.525 16.25 7.99995 16.25 7.99995C16.25 7.99995 16.25 5.49995 15.925 4.27495ZM6.95 10.325V5.67495L10.975 7.99995L6.95 10.325Z"
-                    fill=""
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_1878_14091">
-                    <rect
-                      width="16"
-                      height="16"
-                      fill="white"
-                      transform="translate(0.5)"
+            <div className="mt-2 text-center flex items-center justify-center gap-3">
+                <p className="mt-1.5 font-medium text-black dark:text-white">
+                  Follow Us On
+                </p>
+                <Link
+                  href="https://www.youtube.com/@Biblepoetry"
+                  className="flex size-9 items-center justify-center rounded-full border border-[#DFE4EA] hover:bg-[#FF0000] hover:text-white dark:border-strokedark dark:hover:border-primary"
+                >
+                <svg
+                  className="fill-current"
+                  width="17"
+                  height="16"
+                  viewBox="0 0 17 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g clipPath="url(#clip0_1878_14091)">
+                    <path
+                      d="M15.925 4.27495C15.75 3.59995 15.225 3.07495 14.55 2.89995C13.35 2.57495 8.5 2.57495 8.5 2.57495C8.5 2.57495 3.65 2.57495 2.45 2.89995C1.775 3.07495 1.25 3.59995 1.075 4.27495C0.75 5.49995 0.75 7.99995 0.75 7.99995C0.75 7.99995 0.75 10.525 1.075 11.7249C1.25 12.4 1.775 12.925 2.45 13.0999C3.65 13.425 8.5 13.4249 8.5 13.4249C8.5 13.4249 13.35 13.425 14.55 13.0999C15.225 12.925 15.75 12.4 15.925 11.7249C16.25 10.525 16.25 7.99995 16.25 7.99995C16.25 7.99995 16.25 5.49995 15.925 4.27495ZM6.95 10.325V5.67495L10.975 7.99995L6.95 10.325Z"
+                      fill=""
                     />
-                  </clipPath>
-                </defs>
-              </svg>
-              </Link>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_1878_14091">
+                      <rect
+                        width="16"
+                        height="16"
+                        fill="white"
+                        transform="translate(0.5)"
+                      />
+                    </clipPath>
+                  </defs>
+                </svg>
+                </Link>
             </div>
             {/* <!-- social link end --> */}
           </div>
