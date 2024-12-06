@@ -13,14 +13,10 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxStudyId, ctxRootsColorMap, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords,
+  const { ctxStudyId, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxInViewMode } = useContext(FormatContext)
 
-  const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber);
-  const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill:DEFAULT_COLOR_FILL);
-  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor:DEFAULT_TEXT_COLOR);
-  const [borderColorLocal, setBorderColorLocal] = useState(rootsColorMap? rootsColorMap.borderColor: DEFAULT_BORDER_COLOR);
-  const [selected, setSelected] = useState(false);
+
 
   const matchFillColor = () => {
     let match = descendants.every((dsd) => {
@@ -35,13 +31,19 @@ export const RootBlock = ({
     });
     return match;
   }
-
+  
   const matchBorderColor = () => {
     let match = descendants.every((dsd) => {
       return !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
     });
     return match;
   }
+  const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber);
+  const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill: matchFillColor()? descendants[0].colorFill: DEFAULT_COLOR_FILL);
+  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor: matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? descendants[0].textColor: DEFAULT_BORDER_COLOR);
+  const [selected, setSelected] = useState(false);
+
 
   useEffect(() => {
     let hasChildren = true;
@@ -53,20 +55,17 @@ export const RootBlock = ({
   }, [ctxSelectedHebWords, descendants]);
 
   useEffect(() => {
-    const matchedFillColor = matchFillColor();
-    const matchedTextColor = matchTextColor();
-    const matchedBorderColor = matchBorderColor();
-    
-    setColorFillLocal(matchedFillColor? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-    setTextColorLocal(matchedTextColor? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-    setBorderColorLocal(matchedBorderColor? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
-    descendants.forEach(dsd => {
-      dsd.colorFill = matchedFillColor? descendants[0].colorFill: dsd.colorFill;
-      dsd.textColor = matchedTextColor? descendants[0].textColor: dsd.textColor;
-      dsd.borderColor = matchedBorderColor? descendants[0].borderColor: dsd.borderColor;
-
-    })
-
+    const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber)
+    if (rootsColorMap) {
+      descendants.forEach(dsd => {
+        dsd.colorFill = rootsColorMap.colorFill;
+        dsd.textColor = rootsColorMap.textColor;
+        dsd.borderColor = rootsColorMap.borderColor;
+      });
+      setColorFillLocal(rootsColorMap.colorFill);
+      setTextColorLocal(rootsColorMap.textColor);
+      setBorderColorLocal(rootsColorMap.borderColor);
+    }
   }, [ctxRootsColorMap])
 
   useEffect(() => {

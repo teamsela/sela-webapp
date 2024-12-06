@@ -51,20 +51,22 @@ const Root = ({
     rootWords.sort((a, b) => b.count - a.count);
 
     const handleClick = () => {
-
         let newMap = new Map<number, ColorType>();
 
         rootWords.forEach((rootWord, index) => {
-            let descendantWordIds: number[] = [];
-            rootWord.descendants.forEach((word) => {
-                descendantWordIds.push(word.id)
-            });
-
+            
             let rootBlockColor: ColorType = {
                 colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
                 textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
                 borderColor: "" // not used for root block
             };
+            let descendantWordIds: number[] = [];
+            rootWord.descendants.forEach((word) => {
+                descendantWordIds.push(word.id)
+                word.colorFill = rootBlockColor.colorFill;
+                word.textColor = rootBlockColor.textColor;
+                word.borderColor = word.borderColor;
+            });
             if (!ctxInViewMode) {
                 updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
                 updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
