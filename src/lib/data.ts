@@ -31,7 +31,7 @@ export type HebWord = {
     lastStropheInStanza: boolean;
     stanzaId: number | undefined;
     stanzaDiv?: boolean;
-    rootData: LexiconData | undefined;
+    relatedWords: LexiconData | undefined;
     categories: string[];
 }
 
