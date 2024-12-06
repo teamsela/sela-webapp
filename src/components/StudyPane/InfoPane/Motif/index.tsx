@@ -14,7 +14,7 @@ const Motif = ({ content }: { content: PassageData }) => {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full overflow-y-auto flex flex-col">
       <div className="accordion">
         {/* Identical Words Accordion */}
         <div className="border-b border-stroke dark:border-strokedark">
