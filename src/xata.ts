@@ -139,6 +139,7 @@ const tables = [
       { name: "strongCode", type: "int" },
       { name: "categories", type: "multiple" },
       { name: "relatedLink", type: "link", link: { table: "lexicon" } },
+      { name: "lemmaLink", type: "link", link: { table: "lexicon" } },
     ],
     revLinks: [{ column: "motifLink", table: "heb_bible" }],
   },
@@ -148,7 +149,10 @@ const tables = [
       { name: "gloss", type: "text" },
       { name: "lemma", type: "text" },
     ],
-    revLinks: [{ column: "relatedLink", table: "motif" }],
+    revLinks: [
+      { column: "relatedLink", table: "motif" },
+      { column: "lemmaLink", table: "motif" },
+    ],
   },
   {
     name: "stepbible_tbesh",

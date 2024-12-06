@@ -557,7 +557,7 @@ export async function fetchPassageContent(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
-          .select(["*", "motifLink.categories", "motifLink.relatedLink.*"])
+          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma"])
           .sort("hebId", "asc")
           .getAll();
         
@@ -583,6 +583,9 @@ export async function fetchPassageContent(studyId: string) {
           hebWord.firstWordInStrophe = false;
           hebWord.firstStropheInStanza = false; 
           hebWord.lastStropheInStanza = false;
+          if (word.motifLink?.lemmaLink) {
+            hebWord.lemma = word.motifLink.lemmaLink.lemma || ""
+          }
           if (word.motifLink?.relatedLink) {
             hebWord.relatedWords = {
               strongCode: word.motifLink.relatedLink.id,
