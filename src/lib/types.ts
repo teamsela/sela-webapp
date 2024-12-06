@@ -40,6 +40,7 @@ export enum InfoPaneActionType {
 }
 
 export enum MotifType {
-    root,
+    idc,
     syn,
+    rel,
 }
