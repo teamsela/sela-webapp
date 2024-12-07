@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 import { ColorActionType, ColorType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
-import { updateWordColor } from '@/lib/actions';
 
 export const RootBlock = ({
     id, count, descendants
@@ -104,9 +103,6 @@ export const RootBlock = ({
             word.borderColor = word.borderColor;
             descendantWordIds.push(word.id)
           });
-          if (!ctxInViewMode) {
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
-          }
         } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
           setBorderColorLocal(ctxSelectedColor);
           colorObject.borderColor = ctxSelectedColor;
@@ -119,9 +115,6 @@ export const RootBlock = ({
             word.borderColor = colorObject.borderColor;
             descendantWordIds.push(word.id)
           });
-          if (!ctxInViewMode) {
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
-          }
         } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
           setTextColorLocal(ctxSelectedColor);
           colorObject.textColor = ctxSelectedColor;
@@ -134,9 +127,6 @@ export const RootBlock = ({
             word.borderColor = word.borderColor;
             descendantWordIds.push(word.id)
           });
-          if (!ctxInViewMode) {
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
-          }
         } else if (ctxColorAction === ColorActionType.resetColor) {
           setColorFillLocal(DEFAULT_COLOR_FILL);
           setBorderColorLocal(DEFAULT_BORDER_COLOR);
@@ -151,11 +141,6 @@ export const RootBlock = ({
             word.borderColor = colorObject.borderColor;
             descendantWordIds.push(word.id)
           });
-          if (!ctxInViewMode) {
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, colorObject.colorFill);
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, colorObject.textColor);
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.borderColor, colorObject.borderColor);
-          }
         }
       }
     }
