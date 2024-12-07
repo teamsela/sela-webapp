@@ -37,7 +37,7 @@ const InfoPane = ({
             </button>
 
             {/* Conditionally render the content based on infoPaneAction */}
-            <div className="h-full">
+            <div className="h-4/5">
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
                 {infoPaneAction === InfoPaneActionType.motif && <Motif content={content} />}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
