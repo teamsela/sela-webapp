@@ -138,7 +138,8 @@ const tables = [
     columns: [
       { name: "strongCode", type: "int" },
       { name: "categories", type: "multiple" },
-      { name: "rootLink", type: "link", link: { table: "lexicon" } },
+      { name: "relatedLink", type: "link", link: { table: "lexicon" } },
+      { name: "lemmaLink", type: "link", link: { table: "lexicon" } },
     ],
     revLinks: [{ column: "motifLink", table: "heb_bible" }],
   },
@@ -148,7 +149,23 @@ const tables = [
       { name: "gloss", type: "text" },
       { name: "lemma", type: "text" },
     ],
-    revLinks: [{ column: "rootLink", table: "motif" }],
+    revLinks: [
+      { column: "relatedLink", table: "motif" },
+      { column: "lemmaLink", table: "motif" },
+    ],
+  },
+  {
+    name: "stepbible_tbesh",
+    columns: [
+      { name: "eStrong", type: "text" },
+      { name: "dStrong", type: "text" },
+      { name: "uStrong", type: "text" },
+      { name: "Hebrew", type: "text" },
+      { name: "Transliteration", type: "text" },
+      { name: "Morph", type: "text" },
+      { name: "Gloss", type: "text" },
+      { name: "Meaning", type: "text" },
+    ],
   },
 ] as const;
 
@@ -182,6 +199,9 @@ export type MotifRecord = Motif & XataRecord;
 export type Lexicon = InferredTypes["lexicon"];
 export type LexiconRecord = Lexicon & XataRecord;
 
+export type StepbibleTbesh = InferredTypes["stepbible_tbesh"];
+export type StepbibleTbeshRecord = StepbibleTbesh & XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
   styling: StylingRecord;
@@ -192,6 +212,7 @@ export type DatabaseSchema = {
   heb_bible: HebBibleRecord;
   motif: MotifRecord;
   lexicon: LexiconRecord;
+  stepbible_tbesh: StepbibleTbeshRecord;
 };
 
 const DatabaseClient = buildClient();
