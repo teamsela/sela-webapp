@@ -13,7 +13,7 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxStudyId, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
+  const { ctxStudyId, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxInViewMode } = useContext(FormatContext)
 
 
@@ -195,7 +195,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{descendants[0].ETCBCgloss}</span>
+          >{ctxIsHebrew ? descendants[0].lemma : descendants[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

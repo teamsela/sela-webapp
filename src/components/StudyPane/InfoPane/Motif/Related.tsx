@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { PassageData, HebWord, LexiconData } from "@/lib/data";
-import { RelatedWordBlock } from "./RelatedWordBlock";
+import { RelatedWordBlock } from "./RelatedBlock";
 
 const RelatedWord = ({
     content
@@ -9,7 +9,7 @@ const RelatedWord = ({
     content: PassageData;
 }) => {
     /** 
-     * RootData is extracted from the related_words section in the StepBible heb word dictionary
+     * RelatedWords is extracted from the related_words section in the StepBible heb word dictionary
      * if word H0001, H0007, H0008, ... are related, 
      * then H0001, the word with the smallest strongNumber is the "root" word of all the related words
      * the root word is not necessarily the real root word of others in hebrew 
@@ -19,12 +19,12 @@ const RelatedWord = ({
         stanzas.strophes.forEach((strophe) => {
             strophe.lines.forEach((line) => {
                 line.words.forEach((word) => {
-                    if (word.rootData?.strongCode) {
-                        const currentWord = rootWordMap.get(word.rootData.strongCode);
+                    if (word.relatedWords?.strongCode) {
+                        const currentWord = rootWordMap.get(word.relatedWords.strongCode);
                         if (currentWord !== undefined) {
                             currentWord.push(word);
                         } else {
-                            rootWordMap.set(word.rootData.strongCode, [word]);
+                            rootWordMap.set(word.relatedWords.strongCode, [word]);
                         }
                     }
                 });
@@ -41,8 +41,8 @@ const RelatedWord = ({
     rootWordMap.forEach((groupedWords) => {
         // exclude identical words
         const distinctWords = new Set(groupedWords.map(word => word.strongNumber));
-        if (distinctWords.size > 1 && groupedWords[0].rootData) {
-            relWordGroups.push({ rootData: groupedWords[0].rootData, count: groupedWords.length, words: groupedWords });
+        if (distinctWords.size > 1 && groupedWords[0].relatedWords) {
+            relWordGroups.push({ rootData: groupedWords[0].relatedWords, count: groupedWords.length, words: groupedWords });
         }
     });
     relWordGroups.sort((a, b) => b.count - a.count);
