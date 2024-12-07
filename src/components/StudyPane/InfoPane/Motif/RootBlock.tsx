@@ -12,7 +12,7 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
+  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxInViewMode } = useContext(FormatContext)
 
 
@@ -69,7 +69,7 @@ export const RootBlock = ({
 
   useEffect(() => {
     if (ctxSelectedHebWords.length == 0) { return; }
-    
+
     if (selected) {
       if (ctxColorAction !== ColorActionType.none && selected) {
         if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
