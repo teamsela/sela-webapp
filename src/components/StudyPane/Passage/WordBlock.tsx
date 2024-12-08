@@ -1,7 +1,7 @@
 import { HebWord } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
@@ -38,14 +38,13 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
-  const colorOverride = ctxRootsColorMap.get(hebWord.strongNumber);
-
-  const [colorFillLocal, setColorFillLocal] = useState((colorOverride && colorOverride.colorFill) || hebWord.colorFill || DEFAULT_COLOR_FILL);
+  const [colorFillLocal, setColorFillLocal] = useState(hebWord.colorFill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(hebWord.borderColor || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState((colorOverride && colorOverride.textColor) || hebWord.textColor || DEFAULT_TEXT_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(hebWord.textColor || DEFAULT_TEXT_COLOR);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
+    ctxRootsColorMap.delete(hebWord.strongNumber);
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
       setColorFillLocal(ctxSelectedColor);
       hebWord.colorFill = ctxSelectedColor;
@@ -75,19 +74,14 @@ export const WordBlock = ({
   }
 
   useEffect(() => {
-    const rootBlockColor = ctxRootsColorMap.get(hebWord.strongNumber);
-    // Check if the current colors are different from the new colors before setting them
-    if (rootBlockColor) {
-      if (colorFillLocal !== rootBlockColor.colorFill) {
-        setColorFillLocal(rootBlockColor.colorFill);
-        hebWord.colorFill = rootBlockColor.colorFill;
-      }
-      if (textColorLocal !== rootBlockColor.textColor) {
-        setTextColorLocal(rootBlockColor.textColor);
-        hebWord.textColor = rootBlockColor.textColor;
-      }
+    const rootsColorMap = ctxRootsColorMap.get(hebWord.strongNumber)
+    if (rootsColorMap) {
+      hebWord.colorFill = rootsColorMap.colorFill;
+      hebWord.textColor = rootsColorMap.textColor;
+      setColorFillLocal(rootsColorMap.colorFill);
+      setTextColorLocal(rootsColorMap.textColor);
     }
-  }, [ctxRootsColorMap, colorFillLocal, textColorLocal, hebWord]);
+  }, [ctxRootsColorMap])
 
   useEffect(() => {
     setSelected(ctxSelectedHebWords.some(word => word.id === hebWord.id));

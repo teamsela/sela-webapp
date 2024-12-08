@@ -11,12 +11,14 @@ export const  StanzaBlock = ({
     stanza: StanzaData
 }) => {
 
-    const { ctxIsHebrew, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxStudyId } = useContext(FormatContext);
+    const { ctxIsHebrew, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
     const [expanded, setExpanded] = useState(stanza.expanded != undefined ? stanza.expanded : true);
 
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
-      updateStanzaState(ctxStudyId, stanza.id, !expanded);
+      if (!ctxInViewMode) {
+        updateStanzaState(ctxStudyId, stanza.id, !expanded);
+      }
       if (expanded) {
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);

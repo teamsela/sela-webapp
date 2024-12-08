@@ -15,7 +15,7 @@ export const StropheBlock = ({
   }) => {
   
     const { ctxStudyId, ctxIsHebrew, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, 
+      ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode
     } = useContext(FormatContext);
   
     const [selected, setSelected] = useState(false);
@@ -71,12 +71,13 @@ export const StropheBlock = ({
 
     const handleCollapseBlockClick = () => {
       setExpanded(prevState => !prevState);
-      updateStropheState(ctxStudyId, strophe.id, !expanded && stanzaExpanded);
+      if (!ctxInViewMode) {
+        updateStropheState(ctxStudyId, strophe.id, !expanded && stanzaExpanded);
+      }
       if (expanded) {
         // remove any selected word blocks if strophe block is collapsed
         ctxSetSelectedHebWords([]);
         ctxSetNumSelectedWords(0);
-        
       }
     }
   

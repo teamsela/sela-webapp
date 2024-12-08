@@ -19,7 +19,7 @@ const Root = ({
     content: PassageData;
 }) => {
 
-    const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
+    const { ctxStudyId, ctxSetRootsColorMap, ctxInViewMode } = useContext(FormatContext);
 
     let rootWordsMap = new Map<number, HebWord[]>();
     content.stanzas.map((stanzas) => {
@@ -51,30 +51,33 @@ const Root = ({
     rootWords.sort((a, b) => b.count - a.count);
 
     const handleClick = () => {
-
         let newMap = new Map<number, ColorType>();
 
         rootWords.forEach((rootWord, index) => {
-            let descendantWordIds: number[] = [];
-            rootWord.descendants.forEach((word) => {
-                descendantWordIds.push(word.id)
-            });
-
+            
             let rootBlockColor: ColorType = {
                 colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
                 textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
                 borderColor: "" // not used for root block
             };
-
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
-            updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+            let descendantWordIds: number[] = [];
+            rootWord.descendants.forEach((word) => {
+                descendantWordIds.push(word.id)
+                word.colorFill = rootBlockColor.colorFill;
+                word.textColor = rootBlockColor.textColor;
+                word.borderColor = word.borderColor;
+            });
+            if (!ctxInViewMode) {
+                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
+                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+            }
             newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
         })
         ctxSetRootsColorMap(newMap);
     }
 
     return (
-        <div className="flex-col h-full">
+        <div className="flex flex-col h-full">
             <div
                 style={{ height: '70%' }}
                 className=" gap-4 pb-8 overflow-y-auto">
@@ -86,9 +89,9 @@ const Root = ({
                     }
                 </div>
             </div>
-            <div className="w-full bottom-0 left-0 flex justify-center mt-3">
+            <div className="relative">
                 <button
-                    className="inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+                    className="absolute bottom-5 left-1/2 -translate-x-1/2 gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
                     onClick={() => handleClick()}
                 >
                     Smart Highlight
