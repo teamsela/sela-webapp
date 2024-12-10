@@ -77,7 +77,7 @@ const Root = ({
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex-col h-full">
             <div
                 style={{ height: '70%' }}
                 className=" gap-4 pb-8 overflow-y-auto">
@@ -89,9 +89,9 @@ const Root = ({
                     }
                 </div>
             </div>
-            <div className="relative">
+            <div className="w-full bottom-0 left-0 flex justify-center mt-3">
                 <button
-                    className="absolute bottom-5 left-1/2 -translate-x-1/2 gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+                    className="inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
                     onClick={() => handleClick()}
                 >
                     Smart Highlight
