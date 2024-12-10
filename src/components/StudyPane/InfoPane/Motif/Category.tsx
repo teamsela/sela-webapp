@@ -45,14 +45,14 @@ const Category = ({
             });
         });
     });
-    
+
     return (
         <div className="flex-col h-full">
             <div 
                 style={{ height: '80%' }}
                 className="gap-4 pb-8 overflow-y-auto">
                 <div className="flex flex-wrap">
-                    {Array.from(categoryCount.entries()).map(([key, value], index) => (
+                    {Array.from(categoryCount.entries()).sort((a, b) => b[1].count - a[1].count).map(([key, value], index) => (
                         (value.strongNumbers.length > 1) && (
                             <div key={index}>
                                 <CategoryBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} 
