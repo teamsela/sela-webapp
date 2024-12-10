@@ -40,11 +40,13 @@ const LanguageSwitcher = ({
               ctxIsHebrew && "!right-1 !translate-x-full"
             }`}
           >
-            <span className={`hidden ${ctxIsHebrew && "!block"}`}>
-            עִב
+          </div>
+          <div className='flex row absolute top-0 w-full h-full place-content-around items-center'>
+            <span className={` ${!ctxIsHebrew && "font-bold"}`}>
+              En
             </span>
-            <span className={`${ctxIsHebrew && "hidden"}`}>
-            En
+            <span className={` ${ctxIsHebrew && "font-bold"}`}>
+              עִב
             </span>
           </div>
         </div>
