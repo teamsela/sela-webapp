@@ -1,11 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { PassageData, HebWord } from "@/lib/data";
-import { ColorActionType, ColorType } from "@/lib/types";
-import { updateWordColor } from "@/lib/actions";
 
 import { RootBlock } from "./RootBlock";
-import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 import SmartHighlight from '@/components/Modals/SmartHighlight';
 
 export const RootColorPalette = [
@@ -24,8 +21,6 @@ const Root = ({
 }: {
     content: PassageData;
 }) => {
-
-    const { ctxStudyId, ctxSetRootsColorMap, ctxInViewMode } = useContext(FormatContext);
 
     let rootWordsMap = new Map<number, HebWord[]>();
     content.stanzas.map((stanzas) => {

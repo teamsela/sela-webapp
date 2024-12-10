@@ -118,10 +118,10 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
             </svg>
           </span>
           <h3 className="mt-5.5 pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-            Confirm Smart Highlight
+            Smart Highlight
           </h3>          
           <p className="mb-10">
-            Using smart highlight will overwrite your custom styles on identical words.
+            This operation will overwrite your existing colors
           </p>
           <div className="-mx-3 flex flex-wrap gap-y-4">
             <div className="w-full px-3 2xsm:w-1/2">

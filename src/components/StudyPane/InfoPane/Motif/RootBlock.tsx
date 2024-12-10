@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
-import { ColorActionType, ColorType } from "@/lib/types";
+import { ColorActionType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
@@ -68,35 +68,33 @@ export const RootBlock = ({
   }, [ctxRootsColorMap])
 
   useEffect(() => {
-    if (ctxSelectedHebWords.length == 0) { return; }
+    if (ctxSelectedHebWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
 
     if (selected) {
-      if (ctxColorAction !== ColorActionType.none && selected) {
-        if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-          setColorFillLocal(ctxSelectedColor);
-          descendants.forEach((word) => {
-            word.colorFill = ctxSelectedColor;
-          });
-        } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-          setBorderColorLocal(ctxSelectedColor);
-          descendants.forEach((word) => {
-            word.borderColor = ctxSelectedColor;
-          });
-        } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-          setTextColorLocal(ctxSelectedColor);
-          descendants.forEach((word) => {
-            word.textColor = ctxSelectedColor;
-          });
-        } else if (ctxColorAction === ColorActionType.resetColor) {
-          setColorFillLocal(DEFAULT_COLOR_FILL);
-          setBorderColorLocal(DEFAULT_BORDER_COLOR);
-          setTextColorLocal(DEFAULT_TEXT_COLOR);
-          descendants.forEach((word) => {
-            word.colorFill = DEFAULT_COLOR_FILL;
-            word.textColor = DEFAULT_TEXT_COLOR;
-            word.borderColor = DEFAULT_BORDER_COLOR;
-          });
-        }
+      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
+        setColorFillLocal(ctxSelectedColor);
+        descendants.forEach((word) => {
+          word.colorFill = ctxSelectedColor;
+        });
+      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
+        setBorderColorLocal(ctxSelectedColor);
+        descendants.forEach((word) => {
+          word.borderColor = ctxSelectedColor;
+        });
+      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
+        setTextColorLocal(ctxSelectedColor);
+        descendants.forEach((word) => {
+          word.textColor = ctxSelectedColor;
+        });
+      } else if (ctxColorAction === ColorActionType.resetColor) {
+        setColorFillLocal(DEFAULT_COLOR_FILL);
+        setBorderColorLocal(DEFAULT_BORDER_COLOR);
+        setTextColorLocal(DEFAULT_TEXT_COLOR);
+        descendants.forEach((word) => {
+          word.colorFill = DEFAULT_COLOR_FILL;
+          word.textColor = DEFAULT_TEXT_COLOR;
+          word.borderColor = DEFAULT_BORDER_COLOR;
+        });
       }
     }
     else {
@@ -115,7 +113,7 @@ export const RootBlock = ({
         setTextColorLocal(matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
         setBorderColorLocal(matchBorderColor()? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
       }
-      }
+    }
   }, [ctxSelectedColor, ctxColorAction, ctxSelectedHebWords]);
 
   const handleClick = (e: React.MouseEvent) => {
