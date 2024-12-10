@@ -243,10 +243,6 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
 
-  if (ctxIsHebrew) {
-    leftIndent = !leftIndent;
-  }
-
   useEffect(() => {
     ctxSetIndentNum((ctxSelectedHebWords.length === 1) ? ctxSelectedHebWords[0].numIndent : 0);
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
@@ -284,7 +280,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
             <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
         }
       </button>
-      <ToolTip text={(!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ? "Add indent" : "Remove indent"} />
+      <ToolTip text={(leftIndent) ? "Add indent" : "Remove indent"} />
     </div>
   );
 };
