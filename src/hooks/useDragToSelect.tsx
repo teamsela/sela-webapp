@@ -35,7 +35,7 @@ export const useDragToSelect = (content: PassageData) => {
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
     };
 
-
+    let rects;
     const handleMouseMove = useCallback((event: MouseEvent) => {
         if (!isDragging) return;
         if (!selectionStart) return;
@@ -49,7 +49,7 @@ export const useDragToSelect = (content: PassageData) => {
         /////////
         if (!selectionStart || !selectionEnd || !containerRef.current) return;
         // Get all elements with the class 'wordBlock' inside the container
-        const rects = containerRef.current.querySelectorAll('.wordBlock');
+        rects = containerRef.current.querySelectorAll('.wordBlock');
 
         rects.forEach(rect => {
             const rectBounds = rect.getBoundingClientRect();

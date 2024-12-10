@@ -6,12 +6,18 @@ import { updateWordColor } from "@/lib/actions";
 
 import { RootBlock } from "./RootBlock";
 import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+import SmartHighlight from '@/components/Modals/SmartHighlight';
 
-const RootColorPalette = [
+export const RootColorPalette = [
     '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
     '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
     '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
 ];
+
+export type HebWordProps = {
+    count: number,
+    descendants: HebWord[]
+};
 
 const Root = ({
     content
@@ -38,10 +44,6 @@ const Root = ({
         });
     })
 
-    type HebWordProps = {
-        count: number,
-        descendants: HebWord[]
-    };
     let rootWords: HebWordProps[] = [];
     rootWordsMap.forEach((rootWord) => {
         if (rootWord.length > 1 && rootWord[0].strongNumber) {
@@ -50,36 +52,10 @@ const Root = ({
     });
     rootWords.sort((a, b) => b.count - a.count);
 
-    const handleClick = () => {
-        let newMap = new Map<number, ColorType>();
-
-        rootWords.forEach((rootWord, index) => {
-            
-            let rootBlockColor: ColorType = {
-                colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
-                textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
-                borderColor: "" // not used for root block
-            };
-            let descendantWordIds: number[] = [];
-            rootWord.descendants.forEach((word) => {
-                descendantWordIds.push(word.id)
-                word.colorFill = rootBlockColor.colorFill;
-                word.textColor = rootBlockColor.textColor;
-                word.borderColor = word.borderColor;
-            });
-            if (!ctxInViewMode) {
-                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
-                updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
-            }
-            newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
-        })
-        ctxSetRootsColorMap(newMap);
-    }
-
     return (
         <div className="flex flex-col h-full">
             <div
-                style={{ height: '70%' }}
+                style={{ height: 'fit-content' }}
                 className=" gap-4 pb-8 overflow-y-auto">
                 <div className ="flex flex-wrap">
                     {rootWords.map((root, index) => (
@@ -89,13 +65,8 @@ const Root = ({
                     }
                 </div>
             </div>
-            <div className="relative">
-                <button
-                    className="absolute bottom-5 left-1/2 -translate-x-1/2 gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
-                    onClick={() => handleClick()}
-                >
-                    Smart Highlight
-                </button>
+            <div className="w-full bottom-0 left-0 flex justify-center mt-3">
+                <SmartHighlight rootWords={rootWords} />
             </div>
         </div>
     );
