@@ -12,7 +12,7 @@ const EsvPopover = ({
     verseNumStyles: { className: string }
   }) => {
 
-  const { ctxIsHebrew, ctxStropheCount, ctxStanzaCount, ctxStructureUpdateType, ctxSelectedHebWords } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(FormatContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
@@ -46,21 +46,6 @@ const EsvPopover = ({
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
-  useEffect(() => {
-    const localEsvData = localStorage.getItem(`${chapterNumber}:${verseNumber}`)
-    if (localEsvData) {
-      setEsvData(localEsvData);
-    }
-    else {
-      const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
-      esvContent.then((data) =>{
-        localStorage.setItem(`${chapterNumber}:${verseNumber}`, data);
-        setEsvData(data)
-      }
-      )
-    }
-  }, []);
-
   return (
     <div>
       <div>
@@ -68,6 +53,10 @@ const EsvPopover = ({
           <button
             ref={trigger}
             onClick={() => {
+              const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+              esvContent.then((data) =>
+                setEsvData(data)
+              )              
               setPopoversOpen(!popoversOpen);
             }}
             {...verseNumStyles}
