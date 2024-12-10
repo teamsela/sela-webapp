@@ -25,7 +25,7 @@ const Root = ({
     content: PassageData;
 }) => {
 
-    const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
+    const { ctxStudyId, ctxSetRootsColorMap, ctxInViewMode } = useContext(FormatContext);
 
     let rootWordsMap = new Map<number, HebWord[]>();
     content.stanzas.map((stanzas) => {
@@ -53,7 +53,7 @@ const Root = ({
     rootWords.sort((a, b) => b.count - a.count);
 
     return (
-        <div className="flex-col h-full">
+        <div className="flex flex-col h-full">
             <div
                 style={{ height: 'fit-content' }}
                 className=" gap-4 pb-8 overflow-y-auto">

@@ -79,8 +79,7 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
-
-
+  
   const formatContextValue = {
     ctxStudyId: study.id,
     ctxScaleValue: scaleValue,

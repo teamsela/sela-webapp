@@ -1,9 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
-import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { getWordById, wordsHasSameColor } from '@/lib/utils';
+import React, { useState, useEffect, useContext } from 'react';
+import { FormatContext } from '../index';
 import { PassageData } from '@/lib/data';
-import { ColorActionType, StructureUpdateType } from '@/lib/types';
-import { StropheBlock } from './StropheBlock';
+import { StructureUpdateType } from '@/lib/types';
 import { handleStructureUpdate } from './StructureUpdate';
 import { StanzaBlock } from './StanzaBlock';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
@@ -14,12 +12,12 @@ const Passage = ({
   content: PassageData;
 }) => {
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
   } = useContext(FormatContext)
 
   const [passageData, setPassageData] = useState<PassageData>(content);
 
-  const { isDragging, selectionStart, selectionEnd, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
+  const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(content);
   
   useEffect(() => {
     let stropheCount = 0;
