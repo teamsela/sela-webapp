@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 import Root from "./Root";
 import Category from "./Category";
-import RelatedWord from "./Related";
+// import RelatedWord from "./Related";
 
 const Motif = ({ content }: { content: PassageData }) => {
   const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.root);
@@ -75,7 +75,7 @@ const Motif = ({ content }: { content: PassageData }) => {
         </div>
 
         {/* Related Words Accordion */}
-        <div className="border-b border-stroke dark:border-strokedark">
+        {/* <div className="border-b border-stroke dark:border-strokedark">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
             onClick={() => toggleSection(MotifType.related)}
@@ -101,7 +101,7 @@ const Motif = ({ content }: { content: PassageData }) => {
               <RelatedWord content={content} />
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );
