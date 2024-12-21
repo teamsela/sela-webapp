@@ -117,6 +117,7 @@ export const RootBlock = ({
   }, [ctxSelectedColor, ctxColorAction, ctxSelectedHebWords]);
 
   const handleClick = (e: React.MouseEvent) => {
+    console.log(descendants)
       setSelected(prevState => !prevState);
       let updatedSelectedHebWords = [...ctxSelectedHebWords];
       if (!selected) {
