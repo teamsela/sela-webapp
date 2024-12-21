@@ -186,6 +186,13 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
 
     let currentStanzaData = newPassageData.stanzas[currentStanzaIdx];
     if (currentStanzaData === undefined || (word.stanzaDiv === true)) {
+      if (currentStropheIdx !== -1 && currentStanzaIdx !== -1) {
+        let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
+        let lastLineIdxInLastStrophe = currentStropheData.lines.length-1;
+        currentStropheData.lines[lastLineIdxInLastStrophe].words.forEach(word => {
+          word.lastLineInStrophe = true;
+        })
+      }
       newPassageData.stanzas.push({id: ++currentStanzaIdx, strophes: []});
       currentStanzaData = newPassageData.stanzas[currentStanzaIdx];
       const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
@@ -229,6 +236,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
     word.firstStropheInStanza = (currentStropheIdx === 0);
     word.stropheId = runningStropheIdx;
     word.stanzaId = currentStanzaIdx;
+    word.lineId = currentLineIdx;
     currentLineData.words.push(word);
   });
   let lastLineIdxInLastStrophe = newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines.length-1;
@@ -238,13 +246,11 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
   newPassageData.stanzas.map((stanza) => {
     stanza.strophes.map((strophe, stropheId) => {
       strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
-      if (strophe.lastStropheInStanza) {
-        strophe.lines.forEach((line) => {
-          line.words.forEach((word) => {
-            word.lastStropheInStanza = true;
-          })
+      strophe.lines.forEach((line) => {
+        line.words.forEach((word) => {
+          word.lastStropheInStanza = strophe.lastStropheInStanza?true:false;
         })
-      }      
+      })   
     })
   })
 
