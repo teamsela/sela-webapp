@@ -202,6 +202,7 @@ export const WordBlock = ({
               ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
+            {hebWord.lastLineInStrophe? "true": "false"}___
             {ctxIsHebrew ? hebWord.wlcWord : hebWord.gloss}
           </span>
         </span>

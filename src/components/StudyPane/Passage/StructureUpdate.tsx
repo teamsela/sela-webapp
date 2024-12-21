@@ -229,6 +229,7 @@ export const handleStructureUpdate = (content: PassageData, selectedWord: HebWor
     word.firstStropheInStanza = (currentStropheIdx === 0);
     word.stropheId = runningStropheIdx;
     word.stanzaId = currentStanzaIdx;
+    word.lineId = currentLineIdx;
     currentLineData.words.push(word);
   });
   let lastLineIdxInLastStrophe = newPassageData.stanzas[currentStanzaIdx].strophes[currentStropheIdx].lines.length-1;
