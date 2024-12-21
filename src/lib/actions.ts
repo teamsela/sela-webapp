@@ -635,6 +635,15 @@ export async function fetchPassageContent(studyId: string) {
 
           let currentStanzaData = passageData.stanzas[currentStanzaIdx];
           if (currentStanzaData === undefined || (hebWord.stanzaDiv !== undefined && hebWord.stanzaDiv)) {
+            if (currentStropheIdx !== -1 && currentStanzaIdx !== -1) {
+              let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
+              let lastLineIdxInLastStrophe = currentStropheData.lines.length-1;
+              currentStropheData.lines[lastLineIdxInLastStrophe].words.forEach(word => {
+                word.lastLineInStrophe = true;
+              })
+            }
+            
+            
             passageData.stanzas.push({id: ++currentStanzaIdx, strophes:[]});
             currentStanzaData = passageData.stanzas[currentStanzaIdx];
             const currentStanzaStyling = stanzaStylingMap.get(currentStanzaIdx);
@@ -691,13 +700,11 @@ export async function fetchPassageContent(studyId: string) {
         passageData.stanzas.map((stanza) => {
           stanza.strophes.map((strophe, stropheId) => {
             strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
-            if (strophe.lastStropheInStanza) {
-              strophe.lines.forEach((line) => {
-                line.words.forEach((word) => {
-                  word.lastStropheInStanza = true;
-                })
+            strophe.lines.forEach((line) => {
+              line.words.forEach((word) => {
+                word.lastStropheInStanza = strophe.lastStropheInStanza?true:false;
               })
-            }
+            })
           })
         })
       }
