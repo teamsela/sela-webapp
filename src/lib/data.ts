@@ -33,6 +33,7 @@ export type HebWord = {
     stanzaDiv?: boolean;
     lemma: string | undefined;
     relatedWords: LexiconData | undefined;
+    relatedStrongNums: number[] | undefined;
     categories: string[];
 }
 

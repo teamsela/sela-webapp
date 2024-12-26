@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { PassageData, HebWord } from "@/lib/data";
 
 import { RootBlock } from "./RootBlock";
+import RelatedWordSwitcher from "./RelatedWordSwitcher";
 import SmartHighlight from '@/components/Modals/SmartHighlight';
 
 export const RootColorPalette = [
@@ -13,7 +14,8 @@ export const RootColorPalette = [
 
 export type HebWordProps = {
     count: number,
-    descendants: HebWord[]
+    descendants: HebWord[],
+    relatedWords: HebWord[]
 };
 
 const Root = ({
@@ -21,6 +23,7 @@ const Root = ({
 }: {
     content: PassageData;
 }) => {
+    const [selectRelated, setSelectRelated] = useState(false);
 
     let rootWordsMap = new Map<number, HebWord[]>();
     content.stanzas.map((stanzas) => {
@@ -41,22 +44,33 @@ const Root = ({
 
     let rootWords: HebWordProps[] = [];
     rootWordsMap.forEach((rootWord) => {
-        if (rootWord.length > 1 && rootWord[0].strongNumber) {
-            rootWords.push({ count: rootWord.length, descendants: rootWord });
+        const leadWord = rootWord[0]; 
+        if (rootWord.length > 1 && leadWord.strongNumber) {
+            const relatedWords:HebWord[] = [];
+            if (leadWord.relatedStrongNums && leadWord.relatedStrongNums.length > 0) {
+                leadWord.relatedStrongNums.forEach(strongNum => {
+                    rootWordsMap.get(strongNum)?.forEach(word => relatedWords.push(word));
+                });
+            }
+            rootWords.push({ count: rootWord.length, descendants: rootWord, relatedWords: relatedWords });
         }
     });
     rootWords.sort((a, b) => b.count - a.count);
 
     return (
         <div className="flex flex-col h-full">
+            <div>
+                <RelatedWordSwitcher selectRelated={selectRelated} setSelectRelated={setSelectRelated}/>
+            </div>
             <div
                 style={{ height: 'fit-content' }}
                 className=" gap-4 pb-8 overflow-y-auto">
                 <div className ="flex flex-wrap">
                     {rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} count={root.count} descendants={root.descendants} />
+                        <RootBlock key={index} id={index} 
+                            count={root.count} descendants={root.descendants} relatedWords={root.relatedWords} 
+                            selectRelated={selectRelated}/>
                     ))
-
                     }
                 </div>
             </div>
