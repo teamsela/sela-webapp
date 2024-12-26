@@ -61,6 +61,7 @@ export type LexiconData = {
 
 export type MotifData = {
     relatedWords: LexiconData | undefined;
+    relatedStrongNums: number[] | undefined;
     categories: string[];
 }
 
@@ -152,6 +153,7 @@ export type HebWord = {
     lastStropheInStanza: boolean;
     lemma: string | undefined;
     relatedWords: LexiconData | undefined;
+    relatedStrongNums: number[] | undefined;
     categories: string[];
 }
 

@@ -577,9 +577,12 @@ export async function fetchPassageData(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
-          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma"])
+          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
+
+        const strongNumberSet = new Set<number>();
+        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));          
         passageContent.forEach(word => {
           let hebWord = {} as WordProps;
           hebWord.wordId = word.hebId || 0;
@@ -593,6 +596,8 @@ export async function fetchPassageData(studyId: string) {
           hebWord.newLine = (word.BSBnewLine) || false;
 
           if (word.motifLink) {
+            const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
+                                        .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
             hebWord.motifData = {
               //lemma: word.motifLink.lemmaLink?.lemma || "",
               relatedWords: (word.motifLink?.relatedLink) ? {
@@ -600,6 +605,7 @@ export async function fetchPassageData(studyId: string) {
                 lemma: word.motifLink.relatedLink.lemma || "",
                 gloss: word.motifLink.relatedLink.gloss || "",
               } : undefined,
+              relatedStrongNums: relatedStrongNums || [],
               categories: word.motifLink?.categories || []
             }
             //console.log(hebWord.motifData);
@@ -670,7 +676,7 @@ export async function fetchPassageContentOld(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
-          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma"])
+          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
         
@@ -679,7 +685,9 @@ export async function fetchPassageContentOld(studyId: string) {
         let runningStropheIdx = -1;
         let currentLineIdx = -1;
         let prevVerseNum = 0;
-
+        
+        const strongNumberSet = new Set<number>();
+        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
         passageContent.forEach(word => {
           let hebWord = {} as HebWord;
           hebWord.id = word.hebId || 0;
@@ -705,6 +713,11 @@ export async function fetchPassageContentOld(studyId: string) {
               lemma: word.motifLink.relatedLink.lemma || "",
               gloss: word.motifLink.relatedLink.gloss || "",
             };
+          }
+          const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
+                                      .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
+          if (relatedStrongNums && relatedStrongNums.length > 0) {
+            hebWord.relatedStrongNums = relatedStrongNums;
           }
           hebWord.categories = word.motifLink?.categories || [];
 
