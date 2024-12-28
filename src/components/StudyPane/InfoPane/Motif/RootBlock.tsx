@@ -5,58 +5,60 @@ import { ColorActionType } from "@/lib/types";
 import { HebWord } from '@/lib/data';
 
 export const RootBlock = ({
-    id, count, descendants
+  id, count, descendants, relatedWords, selectRelated
 }: {
-    id: number,
-    count: number,
-    descendants: HebWord[]
+  id: number,
+  count: number,
+  descendants: HebWord[],
+  relatedWords: HebWord[],
+  selectRelated: Boolean
 }) => {
 
   const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
     ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxInViewMode } = useContext(FormatContext)
 
-
+  const toSelect = selectRelated ? [...descendants, ...relatedWords] : descendants;
 
   const matchFillColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
+    let match = toSelect.every((dsd) => {
+      return !dsd.colorFill || dsd.colorFill === toSelect[0].colorFill;
     });
     return match;
   }
 
   const matchTextColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.textColor || dsd.textColor === descendants[0].textColor;
+    let match = toSelect.every((dsd) => {
+      return !dsd.textColor || dsd.textColor === toSelect[0].textColor;
     });
     return match;
   }
   
   const matchBorderColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
+    let match = toSelect.every((dsd) => {
+      return !dsd.borderColor || dsd.borderColor === toSelect[0].borderColor;
     });
     return match;
   }
-  const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber);
-  const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill: matchFillColor()? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor: matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? descendants[0].textColor: DEFAULT_BORDER_COLOR);
+  const rootsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
+  const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill: matchFillColor()? toSelect[0].colorFill: DEFAULT_COLOR_FILL);
+  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor: matchTextColor()? toSelect[0].textColor: DEFAULT_TEXT_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? toSelect[0].textColor: DEFAULT_BORDER_COLOR);
   const [selected, setSelected] = useState(false);
 
 
   useEffect(() => {
     let hasChildren = true;
-    descendants.forEach((dsd) => {
+    toSelect.forEach((dsd) => {
       hasChildren = hasChildren && ctxSelectedHebWords.includes(dsd);
     })
 
     setSelected(hasChildren);
-  }, [ctxSelectedHebWords, descendants]);
+  }, [ctxSelectedHebWords, toSelect]);
 
   useEffect(() => {
-    const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber)
+    const rootsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber)
     if (rootsColorMap) {
-      descendants.forEach(dsd => {
+      toSelect.forEach(dsd => {
         dsd.colorFill = rootsColorMap.colorFill;
         dsd.textColor = rootsColorMap.textColor;
         dsd.borderColor = rootsColorMap.borderColor;
@@ -73,24 +75,24 @@ export const RootBlock = ({
     if (selected) {
       if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
         setColorFillLocal(ctxSelectedColor);
-        descendants.forEach((word) => {
+        toSelect.forEach((word) => {
           word.colorFill = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
         setBorderColorLocal(ctxSelectedColor);
-        descendants.forEach((word) => {
+        toSelect.forEach((word) => {
           word.borderColor = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
         setTextColorLocal(ctxSelectedColor);
-        descendants.forEach((word) => {
+        toSelect.forEach((word) => {
           word.textColor = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.resetColor) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
         setTextColorLocal(DEFAULT_TEXT_COLOR);
-        descendants.forEach((word) => {
+        toSelect.forEach((word) => {
           word.colorFill = DEFAULT_COLOR_FILL;
           word.textColor = DEFAULT_TEXT_COLOR;
           word.borderColor = DEFAULT_BORDER_COLOR;
@@ -98,10 +100,10 @@ export const RootBlock = ({
       }
     }
     else {
-      if (ctxSelectedHebWords.some(word => word.strongNumber == descendants[0].strongNumber)) {
-        const selectedDescendants = ctxSelectedHebWords.filter(word => word.strongNumber == descendants[0].strongNumber);
+      if (ctxSelectedHebWords.some(word => word.strongNumber == toSelect[0].strongNumber)) {
+        const selectedDescendants = ctxSelectedHebWords.filter(word => word.strongNumber == toSelect[0].strongNumber);
         selectedDescendants.forEach(word => {
-          descendants.forEach((dsd) => {
+          toSelect.forEach((dsd) => {
             if (dsd.id === word.id) {
               dsd.colorFill = ctxColorAction === ColorActionType.colorFill && ctxSelectedColor? ctxSelectedColor: dsd.colorFill;
               dsd.borderColor = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.borderColor;
@@ -109,9 +111,9 @@ export const RootBlock = ({
             }
           })
         })
-        setColorFillLocal(matchFillColor()? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-        setTextColorLocal(matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-        setBorderColorLocal(matchBorderColor()? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
+        setColorFillLocal(matchFillColor()? toSelect[0].colorFill: DEFAULT_COLOR_FILL);
+        setTextColorLocal(matchTextColor()? toSelect[0].textColor: DEFAULT_TEXT_COLOR);
+        setBorderColorLocal(matchBorderColor()? toSelect[0].borderColor: DEFAULT_BORDER_COLOR);
       }
     }
   }, [ctxSelectedColor, ctxColorAction, ctxSelectedHebWords]);
@@ -120,9 +122,9 @@ export const RootBlock = ({
       setSelected(prevState => !prevState);
       let updatedSelectedHebWords = [...ctxSelectedHebWords];
       if (!selected) {
-        updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
+        updatedSelectedHebWords = ctxSelectedHebWords.concat(toSelect);
       } else {
-        descendants.forEach((dsd) => {
+        toSelect.forEach((dsd) => {
           updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
         })
       }
