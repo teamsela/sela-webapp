@@ -72,12 +72,6 @@ export async function updateStudyNameWithForm(
   }
   const { studyName } = validatedFields.data;
 
-  if (studyName.trim() == "") {
-    return {
-      message: 'Invalid Name. Study name cannot empty.',
-    };
-  }
-  
   const xataClient = getXataClient();
   try {
     await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
