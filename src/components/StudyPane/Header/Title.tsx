@@ -50,7 +50,7 @@ const Title = ({ study }:{
 
     const handleSaveClick = useCallback(() => {
         setIsEditing(false);
-        if (title.trim() == "") {
+        if (!title.trim()) {
             alert("Error: study title cannot be empty.")
             setTitle(study.name);
         } else {
