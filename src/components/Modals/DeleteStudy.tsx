@@ -113,6 +113,7 @@ const DeleteStudyModal = ({
               <div className="w-full px-3 2xsm:w-1/2">
                 <button
                   onClick={() => setModalOpen(false)}
+                  type="button"
                   className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
                 >
                   Cancel
