@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { FormEvent, useState, useRef } from "react";
 import { IconEdit } from "@tabler/icons-react";
-import { useFormState, useFormStatus } from "react-dom";
-import { State, updateStudyNameWithForm } from '@/lib/actions';
+import { updateStudyName } from '@/lib/actions';
 
 const EditStudyModal = ({
   studyId,
@@ -14,15 +13,34 @@ const EditStudyModal = ({
   studyName: string;
   setTriggerFetch: (arg: boolean) => void;
 } ) => {
-
-  const initialState = { message: null, errors: {} };
-  const updateStudyNameWithId = updateStudyNameWithForm.bind(null, studyId);
-  const [state, dispatch] = useFormState<State, FormData>(updateStudyNameWithId, initialState);
-
   const [modalOpen, setModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const trigger = useRef<any>(null);
   const modal = useRef<any>(null);
+
+  const onCancel = () => {
+    setModalOpen(false);
+    setError(null);
+  };
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const name = formData.get("name")?.toString().trim() || "";
+    if (!name) {
+      setError("Study title cannot be empty.");
+      return;
+    }
+    try {
+      await updateStudyName(studyId, name);
+      setModalOpen(false);
+      setTriggerFetch(true);
+    } catch (error) {
+      setError((error as Error).message);
+    }
+  };
 
   return (
     <>
@@ -49,7 +67,7 @@ const EditStudyModal = ({
             Rename to
           </h3>
           <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
-            <form action={dispatch}>
+            <form onSubmit={onSubmit}>
               <input type="hidden" name="id" value={studyId} />  
               <input
                 type="text"
@@ -64,9 +82,7 @@ const EditStudyModal = ({
               <div className="-mx-3 my-10 flex flex-wrap gap-y-4">
                 <div className="w-full px-3 2xsm:w-1/2">
                   <button type="reset"
-                    onClick={() => {
-                      setModalOpen(false);
-                    }}
+                    onClick={onCancel}
                     className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
                   >
                   Cancel
@@ -74,7 +90,6 @@ const EditStudyModal = ({
                 </div>
                 <div className="w-full px-3 2xsm:w-1/2">
                   <button type="submit"
-                    onClick={() => { setModalOpen(false); setTriggerFetch(true); }}
                     className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90"
                   >
                   OK
@@ -82,6 +97,16 @@ const EditStudyModal = ({
                 </div>
               </div>
             </form>
+            {error ?
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
+                  <span className="block sm:inline">{error}</span>
+                  <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+                      <button onClick={()=>{setError(null)}}>
+                          <svg className="fill-current h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" /></svg>
+                      </button>
+                  </span>
+              </div> : <div></div>
+            }
         </div>
       </div>
     </>
