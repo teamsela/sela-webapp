@@ -8,6 +8,7 @@ import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { continuityTest } from "@/lib/utils";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -115,6 +116,12 @@ const StudyPane = ({
     ctxSetRootsColorMap: setRootsColorMap,
   }
 
+  useEffect(() => {
+    if (selectedHebWords.length > 0) {
+      continuityTest(selectedHebWords);
+    }
+  },[selectedHebWords])
+
 
   const passageDivStyle = {
     className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
@@ -141,6 +148,7 @@ const StudyPane = ({
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
               setUniformWidth={setUniformWidth}
+              content={content}
             />
   
             <Passage content={content} />

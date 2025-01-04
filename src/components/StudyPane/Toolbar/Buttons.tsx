@@ -13,6 +13,7 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
+import { continuityTest } from "@/lib/utils";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -290,12 +291,15 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const { ctxIsHebrew, ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
 
   let buttonEnabled = false;
+  let buttonEnabled2 = false;
   let hasWordSelected = (ctxSelectedHebWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
   let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+  let continuousWords = continuityTest(ctxSelectedHebWords);
 
   if (updateType === StructureUpdateType.newLine) {
     buttonEnabled = hasWordSelected && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
+    buttonEnabled2 = continuousWords
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = hasWordSelected && (ctxSelectedHebWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
