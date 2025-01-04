@@ -53,35 +53,6 @@ export async function fetchStudyById(studyId: string) {
   }
 }
 
-const UpdateStudyName = RenameFormSchema.omit({ id: true });
-
-export async function updateStudyNameWithForm(
-  id: string,
-  prevState: State,
-  formData: FormData,
-  ) {
-
-  const validatedFields = UpdateStudyName.safeParse({
-    studyName: formData.get('name'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to update study.',
-    };
-  }
-  const { studyName } = validatedFields.data;
-
-  const xataClient = getXataClient();
-  try {
-    await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
-  } catch (error) {
-    return { message: 'Database Error: Failed to update study.' };
-  }
-  redirect('/dashboard/home');
-}
-
 export async function updateStudyName(id: string, studyName: string) {
 
   const xataClient = getXataClient();
