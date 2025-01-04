@@ -34,8 +34,8 @@ export const RootBlock = ({
   const initialTextColor = rootsColorMap?.text 
     || (matchColorProperty('text') ? toSelect[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) 
     || DEFAULT_TEXT_COLOR;
-    const initialBorderColor = rootsColorMap?.border 
-    || (matchColorProperty('border') ? toSelect[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) 
+  const initialBorderColor = 
+    (matchColorProperty('border') ? toSelect[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) 
     || DEFAULT_BORDER_COLOR;
 
   const [colorFillLocal, setColorFillLocal] = useState(initialColorFill);
