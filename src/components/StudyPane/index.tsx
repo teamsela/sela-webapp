@@ -240,6 +240,7 @@ const StudyPane = ({
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
               setUniformWidth={setUniformWidth}
+              content={content}
             />
   
             <Passage bibleData={passageData.bibleData} />
