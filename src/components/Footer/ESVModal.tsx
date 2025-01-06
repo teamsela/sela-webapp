@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import './footerComponent.css';
 
 const ESVModal: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,7 +38,7 @@ const ESVModal: React.FC = () => {
       <button
         ref={trigger}
         onClick={() => setModalOpen(!modalOpen)}
-        className="hover:underline focus:underline active:underline"
+        className="component-with-links"
       >
         ESV
       </button>
@@ -50,7 +51,7 @@ const ESVModal: React.FC = () => {
           ref={modal}
           onFocus={() => setModalOpen(true)}
           onBlur={() => setModalOpen(false)}
-          className="relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
+          className="component-with-links relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
         >
           <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
             English Standard Version
@@ -62,6 +63,7 @@ const ESVModal: React.FC = () => {
           <p className="text-left mb-10">
           Users may not copy or download more than 500 verses of the ESV Bible or more than one half of any book of the ESV Bible.
           </p>
+          <p><a href="https://www.esv.org">esv.org</a></p>
           <button
             onClick={() => setModalOpen(false)}
             className="absolute right-6 top-6 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"

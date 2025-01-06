@@ -2,6 +2,7 @@ import BSBModal from "./BSBModal";
 import DiscoveryModal from "./DiscoveryModal";
 import ESVModal from "./ESVModal";
 import OHBModal from "./OHBModal";
+import StepBibleModal from "./StepBibleModal";
 
 export const FooterComponent = () => {
     return (
@@ -10,10 +11,10 @@ export const FooterComponent = () => {
             Copyright Information for&nbsp;
           </div>
         <DiscoveryModal/>,&nbsp;
+        <StepBibleModal/>,&nbsp;
         <BSBModal/>,&nbsp;
         <ESVModal/>,&nbsp;
         <OHBModal/>,&nbsp;
-        <BSBModal/>
         </footer>
     )
 }
