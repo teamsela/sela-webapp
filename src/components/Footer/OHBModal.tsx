@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import './footerComponent.css';
 
 const OHBModal: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,7 +38,7 @@ const OHBModal: React.FC = () => {
       <button
         ref={trigger}
         onClick={() => setModalOpen(!modalOpen)}
-        className="hover:underline focus:underline active:underline"
+        className="component-with-links"
       >
         OHB
       </button>
@@ -50,7 +51,7 @@ const OHBModal: React.FC = () => {
           ref={modal}
           onFocus={() => setModalOpen(true)}
           onBlur={() => setModalOpen(false)}
-          className="relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
+          className="component-with-links relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
         >
           <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
             Open Scriptures Hebrew Bible
@@ -59,6 +60,7 @@ const OHBModal: React.FC = () => {
           <p className="text-left mb-10">
             Original Hebrew text based on the Westminster Leningrad Codex (WLC), which is in the <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>. Metadata for the WLC is maintained by <a href="https://openscriptures.org">OpenScriptures.org</a>
           </p>
+          <p><a href="https://hb.openscriptures.org">hb.openscriptures.org</a></p>
           <button
             onClick={() => setModalOpen(false)}
             className="absolute right-6 top-6 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"
