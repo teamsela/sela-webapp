@@ -42,7 +42,7 @@ export const RootBlock = ({
   const rootsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
   const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill: matchFillColor()? toSelect[0].colorFill: DEFAULT_COLOR_FILL);
   const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor: matchTextColor()? toSelect[0].textColor: DEFAULT_TEXT_COLOR);
-  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? toSelect[0].textColor: DEFAULT_BORDER_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? toSelect[0].borderColor: DEFAULT_BORDER_COLOR);
   const [selected, setSelected] = useState(false);
 
 
