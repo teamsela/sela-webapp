@@ -9,6 +9,7 @@ import InfoPane from "./InfoPane";
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
+import { FooterComponent } from "../Footer";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -257,6 +258,7 @@ const StudyPane = ({
             )
           }
         </main>
+        <FooterComponent/>
       </FormatContext.Provider>
     </>
   );
