@@ -50,7 +50,11 @@ const Title = ({ study }:{
 
     const handleSaveClick = useCallback(() => {
         setIsEditing(false);
-        updateStudyName(study.id, title);
+        if (!title.trim()) {
+            setTitle("Untitled Study");
+        } else {
+            updateStudyName(study.id, title);
+        }
     }, [study.id, title]);
         
     useEffect(() => {
