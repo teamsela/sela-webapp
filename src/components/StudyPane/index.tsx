@@ -8,6 +8,8 @@ import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { StudyData, PassageData, HebWord, StropheData } from '@/lib/data';
+import { continuityTest } from "@/lib/utils";
+import { FooterComponent } from "../Footer";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -115,13 +117,19 @@ const StudyPane = ({
     ctxSetRootsColorMap: setRootsColorMap,
   }
 
+  useEffect(() => {
+    if (selectedHebWords.length > 0) {
+      continuityTest(selectedHebWords);
+    }
+  },[selectedHebWords])
+
 
   const passageDivStyle = {
     className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
   };
   const studyPaneWrapperStyle = {
     className: `grid gap-x-2 ${infoPaneAction !== InfoPaneActionType.none ? 'grid-cols-[3fr_1fr]' : ''} relative h-full`
-  }
+  };
   
   return (
     <>
@@ -141,6 +149,7 @@ const StudyPane = ({
               setColorAction={setColorAction}
               setSelectedColor={setSelectedColor}
               setUniformWidth={setUniformWidth}
+              content={content}
             />
   
             <Passage content={content} />
@@ -158,6 +167,7 @@ const StudyPane = ({
             )
           }
         </main>
+        <FooterComponent/>
       </FormatContext.Provider>
     </>
   );

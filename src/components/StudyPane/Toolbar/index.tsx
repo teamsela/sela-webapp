@@ -5,20 +5,22 @@ import { useContext } from "react";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType } from "@/lib/types";
 import Structure from "../InfoPane/Structure";
+import { PassageData } from "@/lib/data";
 
 const Toolbar = ({
   setScaleValue,
   //color functions
   setColorAction,
   setSelectedColor,
-
-  setUniformWidth
+  setUniformWidth,
+  content
 }: {
   setScaleValue: (arg: number) => void;
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
   setUniformWidth: (arg: boolean) => void;
+  content: PassageData;
 } ) => {
   
   const { ctxInViewMode, ctxIsHebrew } = useContext(FormatContext);

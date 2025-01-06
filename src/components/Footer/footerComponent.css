@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.component-with-links a, button {
+    @apply hover:underline focus:underline active:underline;
+}

@@ -2,7 +2,7 @@ import { HebWord } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorType } from "@/lib/types";
-import { wrapText, wordsHasSameColor } from "@/lib/utils";
+import { wrapText, wordsHasSameColor, continuityTest } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
 type ZoomLevel = {

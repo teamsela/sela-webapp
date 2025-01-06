@@ -341,3 +341,13 @@ export function strophesHasSameColor(strophes: StropheData[], actionType: ColorA
 
   return true;
 }
+
+export function continuityTest(hebWordArray: HebWord[]) {
+  if (hebWordArray.length == 0) return false;
+  let idArray: number[] = []
+  hebWordArray.forEach((word) => {
+    idArray.push(word.id)
+  })
+  idArray.sort()
+  return idArray[idArray.length-1] - idArray[0] == idArray.length-1? true: false;
+}
