@@ -19,17 +19,17 @@ export const CategoryBlock = ({
     lastSelectedHebWords: HebWord[],
     setLastSelectedHebWords: React.Dispatch<React.SetStateAction<HebWord[]>>
 }) => {
-    const { ctxSelectedHebWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+    const { ctxSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext);
     const handleClick = () => {
         if (category === selectedCategory) {
-            const newSelectedHebWords = ctxSelectedHebWords.filter(
+            const newSelectedHebWords = ctxSelectedWords.filter(
                 word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
             );
             ctxSetSelectedHebWords(newSelectedHebWords);
             setLastSelectedHebWords([]);
             setSelectedCategory("");
         } else {
-            const wordsWithoutPrevCategory = ctxSelectedHebWords.filter(
+            const wordsWithoutPrevCategory = ctxSelectedWords.filter(
                 word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
             );
             

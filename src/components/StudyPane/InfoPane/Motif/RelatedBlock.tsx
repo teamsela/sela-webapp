@@ -12,15 +12,15 @@ export const RelatedWordBlock = ({
   relatedWords: HebWord[]
 }) => {
 
-  const { ctxIsHebrew, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
   const [selected, setSelected] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);
 
-    let updatedSelectedHebWords = [...ctxSelectedHebWords];
+    let updatedSelectedHebWords = [...ctxSelectedWords];
     if (!selected) {
-      updatedSelectedHebWords = ctxSelectedHebWords.concat(relatedWords);
+      updatedSelectedHebWords = ctxSelectedWords.concat(relatedWords);
     } else {
       relatedWords.forEach((dsd) => {
         updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)

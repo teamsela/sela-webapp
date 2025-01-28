@@ -1,4 +1,4 @@
-import { HebWord, PassageData, StanzaData, StropheData } from "./data";
+import { HebWord, PassageProps, WordProps, PassageData, StanzaData, StropheData } from "./data";
 import { ColorActionType } from "./types";
 
 type PsalmBook = {
@@ -250,12 +250,12 @@ export function wrapText(
   return lineCount;
 }
 
-export function getWordById(passage: PassageData, id: number) : HebWord | null {
-  for (let stanza of passage.stanzas) {
+export function getWordById(passage: PassageProps, id: number) : WordProps | null {
+  for (let stanza of passage.stanzaProps) {
     for (let strophe of stanza.strophes) {
       for (let line of strophe.lines) {
         for (let word of line.words) {
-          if (word.id === id) {
+          if (word.wordId === id) {
             return word;
           }
         }

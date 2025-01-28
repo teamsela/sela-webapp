@@ -8,7 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
@@ -42,7 +42,8 @@ export async function fetchStudyById(studyId: string) {
           name: study?.name || "",
           owner: study?.owner || "",
           passage: study?.passage || "",
-          public: study?.public || false
+          public: study?.public || false,
+          metadata: study?.metadata || {}
       };
 
       return result;
@@ -107,6 +108,20 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   const xataClient = getXataClient();
   try {
     await xataClient.db.study.updateOrThrow({ id: studyId, starred: isStarred });
+  } catch (error) {
+    return { message: 'Database Error: Failed to update study star.' };
+  }
+}
+
+export async function updateMetadata(studyId: string, studyMetadata: StudyMetadata) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    const metadataJson = JSON.stringify(studyMetadata);
+    if (metadataJson) {
+      await xataClient.db.study.updateOrThrow({ id: studyId, metadata: studyMetadata });
+    }
   } catch (error) {
     return { message: 'Database Error: Failed to update study star.' };
   }
@@ -526,13 +541,84 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt.toLocaleString() })
+      lastUpdated: studyRecord.xata.updatedAt.toLocaleString(), metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
   return searchResult;
 }
 
-export async function fetchPassageContent(studyId: string) {
+export async function fetchPassageData(studyId: string) {
+  const xataClient = getXataClient();
+
+  try {
+    // fetch a study by id from xata
+    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
+
+    let studyData : StudyData = {
+      id: studyId,
+      name: study?.name || "",
+      owner: study?.owner || "",
+      passage: study?.passage || "",
+      public: study?.public || false,
+      metadata: study?.metadata || {}
+    };
+
+    let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
+
+    if (study)
+    {
+      const passageInfo = parsePassageInfo(study.passage);
+
+      // fetch all words from xata by start/end chapter and verse
+      if (passageInfo instanceof Error === false)
+      {
+        const passageContent = await xataClient.db.heb_bible
+          .filter("chapter", ge(passageInfo.startChapter))
+          .filter("chapter", le(passageInfo.endChapter))
+          .filter("verse", ge(passageInfo.startVerse))
+          .filter("verse", le(passageInfo.endVerse))
+          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma"])
+          .sort("hebId", "asc")
+          .getAll();
+        passageContent.forEach(word => {
+          let hebWord = {} as WordProps;
+          hebWord.wordId = word.hebId || 0;
+          hebWord.chapter = word.chapter || 0;
+          hebWord.verse = word.verse || 0;
+          hebWord.strongNumber = word.strongNumber || 0;
+          hebWord.wlcWord = word.wlcWord || "";
+          hebWord.gloss = word.gloss?.trim() || "";
+          hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.showVerseNum = false;
+          hebWord.newLine = (word.BSBnewLine) || false;
+
+          if (word.motifLink) {
+            hebWord.motifData = {
+              //lemma: word.motifLink.lemmaLink?.lemma || "",
+              relatedWords: (word.motifLink?.relatedLink) ? {
+                strongCode: word.motifLink.relatedLink.id,
+                lemma: word.motifLink.relatedLink.lemma || "",
+                gloss: word.motifLink.relatedLink.gloss || "",
+              } : undefined,
+              categories: word.motifLink?.categories || []
+            }
+            //console.log(hebWord.motifData);
+          }
+
+          passageData.bibleData.push(hebWord);
+        })
+      }
+    }
+//    console.log(wordsInPassage);
+    return passageData;
+  }
+  catch (error) {
+    console.error('Database Error', error);
+    throw new Error('Failed to fetch passage data by study id');
+  }
+}
+
+export async function fetchPassageContentOld(studyId: string) {
   
   const xataClient = getXataClient();
 

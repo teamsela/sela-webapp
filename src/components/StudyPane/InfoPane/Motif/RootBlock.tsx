@@ -12,8 +12,8 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedHebWords, ctxRootsColorMap,
-    ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxInViewMode } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedWords, ctxRootsColorMap,
+    ctxSetNumSelectedWords, ctxSetSelectedWords, ctxInViewMode } = useContext(FormatContext)
 
 
 
@@ -47,11 +47,11 @@ export const RootBlock = ({
   useEffect(() => {
     let hasChildren = true;
     descendants.forEach((dsd) => {
-      hasChildren = hasChildren && ctxSelectedHebWords.includes(dsd);
+      //hasChildren = hasChildren && ctxSelectedWords.includes(dsd);
     })
 
     setSelected(hasChildren);
-  }, [ctxSelectedHebWords, descendants]);
+  }, [ctxSelectedWords, descendants]);
 
   useEffect(() => {
     const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber)
@@ -68,7 +68,7 @@ export const RootBlock = ({
   }, [ctxRootsColorMap])
 
   useEffect(() => {
-    if (ctxSelectedHebWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
+    if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
 
     if (selected) {
       if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
@@ -98,11 +98,11 @@ export const RootBlock = ({
       }
     }
     else {
-      if (ctxSelectedHebWords.some(word => word.strongNumber == descendants[0].strongNumber)) {
-        const selectedDescendants = ctxSelectedHebWords.filter(word => word.strongNumber == descendants[0].strongNumber);
+      if (ctxSelectedWords.some(word => word.strongNumber == descendants[0].strongNumber)) {
+        const selectedDescendants = ctxSelectedWords.filter(word => word.strongNumber == descendants[0].strongNumber);
         selectedDescendants.forEach(word => {
           descendants.forEach((dsd) => {
-            if (dsd.id === word.id) {
+            if (dsd.id === word.wordId) {
               dsd.colorFill = ctxColorAction === ColorActionType.colorFill && ctxSelectedColor? ctxSelectedColor: dsd.colorFill;
               dsd.borderColor = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.borderColor;
               dsd.textColor = ctxColorAction === ColorActionType.textColor && ctxSelectedColor? ctxSelectedColor: dsd.textColor;
@@ -114,20 +114,20 @@ export const RootBlock = ({
         setBorderColorLocal(matchBorderColor()? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
       }
     }
-  }, [ctxSelectedColor, ctxColorAction, ctxSelectedHebWords]);
+  }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords]);
 
   const handleClick = (e: React.MouseEvent) => {
       setSelected(prevState => !prevState);
-      let updatedSelectedHebWords = [...ctxSelectedHebWords];
+      let updatedSelectedWords = [...ctxSelectedWords];
       if (!selected) {
-        updatedSelectedHebWords = ctxSelectedHebWords.concat(descendants);
+        //updatedSelectedWords = ctxSelectedWords.concat(descendants);
       } else {
         descendants.forEach((dsd) => {
-          updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
+        //  ctxSetSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
         })
       }
-      ctxSetSelectedHebWords(updatedSelectedHebWords);
-      ctxSetNumSelectedWords(updatedSelectedHebWords.length);
+      ctxSetSelectedWords(updatedSelectedWords);
+      ctxSetNumSelectedWords(updatedSelectedWords.length);
   };
 
   return (
