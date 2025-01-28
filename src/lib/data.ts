@@ -41,23 +41,23 @@ export type Word = {
 }
 
 export type StudyMetadata = {
-    stanzas?: Stanza[];
-    strophes?: Strophe[];
-    words?: WordMap;
+    stanzas: StanzaMap;
+    strophes: StropheMap;
+    words: WordMap;
     zoomLevel?: number;
     uniformWidth?: boolean;
+}
+
+export type StanzaMap = {
+    [id: number]: StanzaMetadata
+}
+
+export type StropheMap = {
+    [id: number]: StropheMetadata
 }
 
 export type WordMap = {
     [id: number]: WordMetadata
-}
-
-export type StudyMetadataNew = {
-    stanzas?: Stanza[];
-    strophes?: Strophe[];
-    words?: WordMap;
-    zoomLevel?: number;
-    uniformWidth?: boolean;
 }
 
 export type LexiconData = {

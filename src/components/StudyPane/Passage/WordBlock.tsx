@@ -28,19 +28,16 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxUniformWidth,
+  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
-  // if (wordProps.metadata) {
-  //   console.log(wordProps.metadata.colorStyle);
-  // }
-
   const [colorFillLocal, setColorFillLocal] = useState(wordProps.metadata?.color?.fill || DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(wordProps.metadata?.color?.border || DEFAULT_BORDER_COLOR);
   const [textColorLocal, setTextColorLocal] = useState(wordProps.metadata?.color?.text || DEFAULT_TEXT_COLOR);
+  const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
@@ -74,6 +71,13 @@ export const WordBlock = ({
   }
 
   useEffect(() => {
+    if (selected && ctxIndentNum != indentsLocal) {
+      console.log("Change indent num to " + ctxIndentNum)
+      setIndentsLocal(ctxIndentNum);
+    }
+  }, [ctxIndentNum])
+
+  useEffect(() => {
     const rootsColorMap = ctxRootsColorMap.get(wordProps.strongNumber)
     if (rootsColorMap) {
       //hebWord.colorFill = rootsColorMap.colorFill;
@@ -87,11 +91,11 @@ export const WordBlock = ({
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
     if (ctxSelectedWords.length >= 1) {
       const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length-1);
-      // if (lastSelectedWord) {
-      //   wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.colorFill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
-      //   wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.borderColor || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-      //   wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
-      // }
+      if (lastSelectedWord) {
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
+      }
     }
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
 
@@ -108,14 +112,14 @@ export const WordBlock = ({
     ctxSetColorFill(DEFAULT_COLOR_FILL);
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
     ctxSetTextColor(DEFAULT_TEXT_COLOR);
-  //   if (ctxSelectedWords.length >= 1) {
-  //     const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
-  //     if (lastSelectedWord) {
-  //       wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.colorFill) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
-  //       wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.borderColor) : ctxSetColorFill(DEFAULT_BORDER_COLOR);
-  //       wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.textColor) : ctxSetColorFill(DEFAULT_TEXT_COLOR);
-  //     }
-  //   }
+    if (ctxSelectedWords.length >= 1) {
+      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
+      if (lastSelectedWord) {
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetColorFill(DEFAULT_BORDER_COLOR);
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetColorFill(DEFAULT_TEXT_COLOR);
+      }
+    }
   }
 
 
@@ -180,7 +184,7 @@ export const WordBlock = ({
 
   return (
     <div className="flex">
-      {ctxUniformWidth && wordProps.metadata && wordProps.metadata.indent && wordProps.metadata.indent > 0 && renderIndents(wordProps.metadata.indent)}
+      {ctxUniformWidth && indentsLocal > 0 && renderIndents(indentsLocal)}
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}

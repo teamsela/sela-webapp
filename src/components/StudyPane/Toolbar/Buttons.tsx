@@ -12,7 +12,7 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
+import { updateWordColor, updateIndented, updateStropheColor, updateMetadata } from "@/lib/actions";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -56,7 +56,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setSelectedColor,
   setColorAction
 }) => {
-  const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
+  const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
     ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes
   } = useContext(FormatContext);
 
@@ -101,20 +101,57 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     //console.log("Changing " + colorActionType + " color to " + color.hex);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
-    let wordIds : number[] = [];
-    ctxSelectedWords.map((word) => {
-      wordIds.push(word.wordId);
-    })
-    if (ctxSelectedWords.length > 0) {
-      //updateWordColor(ctxStudyId, wordIds, colorAction, color.hex);
+    let colorObj = {};
+    switch (colorAction) {
+      case (ColorActionType.colorFill): { colorObj = { fill: color.hex }; break; }
+      case (ColorActionType.borderColor): { colorObj = { border: color.hex }; break; }
+      case (ColorActionType.textColor): { colorObj = { text: color.hex }; break; }
     }
 
-    let stropheIds : number[] = [];
-    ctxSelectedStrophes.map((strophe) => {
-      stropheIds.push(strophe.id);
-    })
-    if (ctxNumSelectedStrophes > 0) {
-      //updateStropheColor(ctxStudyId, stropheIds, colorAction, color.hex);
+    if (ctxSelectedWords.length > 0) {
+      ctxSelectedWords.map((word) => {
+        const wordMetadata = ctxStudyMetadata.words[word.wordId];
+        if (wordMetadata) {
+          if (wordMetadata?.color) {
+            if (colorAction === ColorActionType.colorFill) {
+              wordMetadata.color.fill = color.hex;
+            }
+            else if (colorAction === ColorActionType.borderColor) {
+              wordMetadata.color.border = color.hex;
+            }
+            else if (colorAction === ColorActionType.textColor) {
+              wordMetadata.color.text = color.hex;
+            }  
+          }
+          else {
+            wordMetadata.color = colorObj;   
+          }
+        }
+        else {
+          ctxStudyMetadata.words[word.wordId] = { color: colorObj };
+        }
+      })
+      updateMetadata(ctxStudyId, ctxStudyMetadata);
+    }
+
+    if (ctxSelectedStrophes.length > 0) {
+      ctxSelectedStrophes.map((strophe) => {
+        const stropheMetadata = ctxStudyMetadata.strophes[strophe.stropheId];
+        if (stropheMetadata) {
+          if (stropheMetadata?.color) {
+            if (colorAction === ColorActionType.colorFill) {
+              stropheMetadata.color.fill = color.hex;
+            }
+            else if (colorAction === ColorActionType.borderColor) {
+              stropheMetadata.color.border = color.hex;
+            }
+          }
+          else {
+            stropheMetadata.color = colorObj;   
+          }
+        }
+      })
+      updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
   }
 
@@ -162,7 +199,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
 export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedWords, 
+  const { ctxStudyId, ctxStudyMetadata, 
+    ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
@@ -186,18 +224,22 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
       if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
-        let wordIds : number[] = [];
         ctxSelectedWords.map((word) => {
-          wordIds.push(word.wordId)
+          const wordMetadata = ctxStudyMetadata.words[word.wordId];
+          if (wordMetadata && wordMetadata?.color) {
+            delete wordMetadata["color"];
+          }
         })
-        updateWordColor(ctxStudyId, wordIds, ColorActionType.resetColor, null);
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
       }
       if (ctxSelectedStrophes.length > 0) {
-        let stropheIds : number[] = [];
         ctxSelectedStrophes.map((strophe) => {
-          stropheIds.push(strophe.id)
+          const stropheMetadata = ctxStudyMetadata.strophes[strophe.stropheId];
+          if (stropheMetadata && stropheMetadata?.color) {
+            delete stropheMetadata["color"];
+          }
         })
-        updateStropheColor(ctxStudyId, stropheIds, ColorActionType.resetColor, null);
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
       }
     }
   }
@@ -240,11 +282,17 @@ export const UniformWidthBtn = ({ setUniformWidth }: {
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxUniformWidth, ctxIndentNum, ctxSetIndentNum, 
+    ctxSelectedWords, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
 
   useEffect(() => {
-    ctxSetIndentNum((ctxSelectedWords.length === 1 && ctxSelectedWords[0].metadata !== undefined && ctxSelectedWords[0].metadata.indent !== undefined) ? ctxSelectedWords[0].metadata.indent : 0);
+    let indentNum : number = 0;
+    if (ctxSelectedWords.length === 1) {
+      const wordMetadata = ctxStudyMetadata.words[ctxSelectedWords[0].wordId];
+      indentNum = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
+      ctxSetIndentNum(indentNum);
+    }
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
     setButtonEnabled(ctxUniformWidth && (ctxNumSelectedWords === 1) && validIndent);
   }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedWords, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
@@ -252,20 +300,32 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   const handleClick = () => {
     if (!ctxUniformWidth || ctxSelectedWords.length === 0)
       return;
-
-    let numIndent = (ctxSelectedWords.length === 1 && ctxSelectedWords[0].metadata !== undefined && ctxSelectedWords[0].metadata.indent !== undefined) ? ctxSelectedWords[0].metadata.indent : 0;
+    
+    const selectedWordId = ctxSelectedWords[0].wordId;
+    const wordMetadata = ctxStudyMetadata.words[selectedWordId];
+    let indentNum : number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
     if (!leftIndent) {
-      if (numIndent > 0) {
-        updateIndented(ctxStudyId, ctxSelectedWords[0].wordId, --numIndent);
-        setButtonEnabled(numIndent > 0);
-        ctxSetIndentNum(numIndent)
+      if (indentNum > 0) {
+        ctxStudyMetadata.words[selectedWordId] = {
+          ...ctxStudyMetadata.words[selectedWordId],
+          indent: --indentNum,
+        };
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
+        ctxSetStudyMetadata(ctxStudyMetadata);
+        setButtonEnabled(indentNum > 0);
+        ctxSetIndentNum(indentNum);
       }
     }
     else {
-      if (numIndent < 3) {
-        updateIndented(ctxStudyId, ctxSelectedWords[0].wordId, ++numIndent);
-        setButtonEnabled(numIndent < 3);
-        ctxSetIndentNum(numIndent)
+      if (indentNum < 3) {
+        ctxStudyMetadata.words[selectedWordId] = {
+          ...ctxStudyMetadata.words[selectedWordId],
+          indent: ++indentNum,
+        };
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
+        ctxSetStudyMetadata(ctxStudyMetadata);
+        setButtonEnabled(indentNum < 3);
+        ctxSetIndentNum(indentNum)
       }
     }
   }

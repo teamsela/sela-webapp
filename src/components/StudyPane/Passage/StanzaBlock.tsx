@@ -3,7 +3,7 @@ import { useContext, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateStanzaState } from "@/lib/actions"
+import { updateMetadata, updateStanzaState } from "@/lib/actions"
 
 export const StanzaBlock = ({
   stanzaProps
@@ -11,19 +11,20 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxIsHebrew, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
-  const [expanded, setExpanded] = useState(stanzaProps.metadata != undefined ? (stanzaProps.metadata.expanded || false) : true);
+  const { ctxIsHebrew, ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
+  const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
 
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
-    // if (!ctxInViewMode) {
-    //   updateStanzaState(ctxStudyId, stanzaProps.stanzaId, !expanded);
-    // }
-    if (expanded) {
-      // remove any selected word blocks if strophe block is collapsed
-      ctxSetSelectedWords([]);
-      ctxSetNumSelectedWords(0);
+
+    if (!ctxInViewMode && ctxStudyMetadata.stanzas) {
+      ctxStudyMetadata.stanzas[stanzaProps.stanzaId].expanded = !expanded;
+      updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
+
+    // remove any selected word blocks if stanza block is collapsed or expanded
+    ctxSetSelectedWords([]);
+    ctxSetNumSelectedWords(0);
   }
 
   return(

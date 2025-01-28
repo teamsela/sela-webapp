@@ -1,4 +1,4 @@
-import { HebWord, PassageProps, WordProps, PassageData, StanzaData, StropheData } from "./data";
+import { PassageProps, StropheProps, WordProps, ColorData } from "./data";
 import { ColorActionType } from "./types";
 
 type PsalmBook = {
@@ -265,78 +265,50 @@ export function getWordById(passage: PassageProps, id: number) : WordProps | nul
   return null;
 }
 
-export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
+export function wordsHasSameColor(words: WordProps[], actionType: ColorActionType) : boolean {
 
   if (words.length <= 1) return true;
 
-  let previousColor : string = "";
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      previousColor = words[0].colorFill;
-      break;    
-    case ColorActionType.borderColor:
-      previousColor = words[0].borderColor;
-      break;    
-    case ColorActionType.textColor:
-      previousColor = words[0].textColor;
-      break;
-    default:
-      break;
-  }
+  let previousColor : ColorData | undefined = words[0].metadata?.color;
 
   for (let word of words) {
-      switch (actionType) {
-        case ColorActionType.colorFill:
-          if (word.colorFill != previousColor) { return false; }
-          previousColor = word.colorFill;
-          break;
-        case ColorActionType.borderColor:
-          if (word.borderColor != previousColor) { return false; }
-          previousColor = word.borderColor;
-          break;
-        case ColorActionType.textColor:
-          if (word.textColor != previousColor) { return false; }
-          previousColor = word.textColor;
-          break;
-        default:
-          break;
-      }
+    switch (actionType) {
+      case ColorActionType.colorFill:
+        if (word.metadata?.color?.fill != previousColor?.fill) { return false; }
+        break;
+      case ColorActionType.borderColor:
+        if (word.metadata?.color?.border != previousColor?.border) { return false; }
+        break;
+      case ColorActionType.textColor:
+        if (word.metadata?.color?.text != previousColor?.text) { return false; }
+        break;
+      default:
+        break;
+    }
+    previousColor = word.metadata?.color;
   }
 
   return true;
 }
 
-export function strophesHasSameColor(strophes: StropheData[], actionType: ColorActionType) : boolean {
+export function strophesHasSameColor(strophes: StropheProps[], actionType: ColorActionType) : boolean {
 
   if (strophes.length <= 1) return true;
 
-  let previousColor : any;
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      previousColor = strophes[0].colorFill;
-      break;    
-    case ColorActionType.borderColor:
-      previousColor = strophes[0].borderColor;
-      break;
-    default:
-      break;
-  }
+  let previousColor : ColorData | undefined = strophes[0].metadata?.color;
 
   for (let strophe of strophes) {
-      switch (actionType) {
-        case ColorActionType.colorFill:
-          if (strophe.colorFill != previousColor) { return false; }
-          previousColor = strophe.colorFill;
-          break;
-        case ColorActionType.borderColor:
-          if (strophe.borderColor != previousColor) { return false; }
-          previousColor = strophe.borderColor;
-          break;
-        default:
-          break;
-      }
+    switch (actionType) {
+      case ColorActionType.colorFill:
+        if (strophe.metadata.color?.fill != previousColor?.fill) { return false; }
+        break;
+      case ColorActionType.borderColor:
+        if (strophe.metadata.color?.border != previousColor?.border) { return false; }
+        break;
+      default:
+        break;
+    }
+    previousColor = strophe.metadata.color;
   }
 
   return true;

@@ -19,24 +19,24 @@ export const CategoryBlock = ({
     lastSelectedHebWords: HebWord[],
     setLastSelectedHebWords: React.Dispatch<React.SetStateAction<HebWord[]>>
 }) => {
-    const { ctxSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext);
+    const { ctxSelectedWords, ctxSetSelectedWords } = useContext(FormatContext);
     const handleClick = () => {
         if (category === selectedCategory) {
             const newSelectedHebWords = ctxSelectedWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.wordId)
             );
-            ctxSetSelectedHebWords(newSelectedHebWords);
+            ctxSetSelectedWords(newSelectedHebWords);
             setLastSelectedHebWords([]);
             setSelectedCategory("");
         } else {
             const wordsWithoutPrevCategory = ctxSelectedWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.wordId)
             );
             
             const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.hebWords]));
             
             setSelectedCategory(category);
-            ctxSetSelectedHebWords(newSelectedHebWords);
+            //ctxSetSelectedWords(newSelectedHebWords);
             setLastSelectedHebWords(value.hebWords);
         }
     };

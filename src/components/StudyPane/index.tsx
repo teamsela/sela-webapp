@@ -7,7 +7,7 @@ import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, PassageStaticData, PassageProps, WordProps, HebWord, StropheData, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { StudyData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, HebWord, StropheData, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -24,8 +24,8 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
-  ctxSelectedStrophes: [] as StropheData[],  
-  ctxSetSelectedStrophes: (arg: StropheData[]) => {},
+  ctxSelectedStrophes: [] as StropheProps[],  
+  ctxSetSelectedStrophes: (arg: StropheProps[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxStropheCount: 0 as number,
@@ -66,7 +66,7 @@ const StudyPane = ({
   
   const [numSelectedWords, setNumSelectedWords] = useState(0);
   const [selectedWords, setSelectedWords] = useState<WordProps[]>([]);
-  const [selectedStrophes, setSelectedStrophes] = useState<StropheData[]>([]);
+  const [selectedStrophes, setSelectedStrophes] = useState<StropheProps[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
   const [stropheCount, setStropheCount] = useState(0);
 
@@ -133,7 +133,7 @@ const StudyPane = ({
   if (!passageData.study.metadata.words) {
 
     // convert content to StudyMetadata
-    let studyMetadata1 : StudyMetadata = {};
+    let studyMetadata1 : StudyMetadata = { stanzas: {}, strophes: {}, words: {} };
 
     content.stanzas.forEach((stanza) => {
 
@@ -144,7 +144,7 @@ const StudyPane = ({
 
       stanza.strophes.forEach((strophe) => {
 
-        let stropheMetadata : StropheMetadata = (strophe.expanded === false) ? { expanded: false} : {};
+        let stropheMetadata : StropheMetadata = (strophe.expanded) ? {} : {expanded: false};
         if (strophe.borderColor) {
           stropheMetadata.color = { border: strophe.borderColor }
         }
@@ -212,21 +212,25 @@ const StudyPane = ({
           })
         })
 
-        if (studyMetadata1.strophes) {
-          studyMetadata1.strophes?.push({id: strophe.id, metadata: stropheMetadata});
+        if (!studyMetadata1.strophes) {
+          studyMetadata1.strophes = {};
+          //studyMetadata1.strophes?.push({id: strophe.id, metadata: stropheMetadata});
         }
-        else {
-          studyMetadata1.strophes = [ {id: strophe.id, metadata: stropheMetadata} ];
-        }
+        //else {
+        //  studyMetadata1.strophes = [ {id: strophe.id, metadata: stropheMetadata} ];
+       // }
+        studyMetadata1.strophes[strophe.id] = stropheMetadata;
 
       })
 
-      if (studyMetadata1.stanzas) {
-        studyMetadata1.stanzas?.push({id: stanza.id, metadata: stanzaMetadata});
+      if (!studyMetadata1.stanzas) {
+        studyMetadata1.stanzas = {};
+        //studyMetadata1.stanzas?.push({id: stanza.id, metadata: stanzaMetadata});
       }
-      else {
-        studyMetadata1.stanzas = [ {id: stanza.id, metadata: stanzaMetadata} ];
-      }
+      // else {
+      //   studyMetadata1.stanzas = [ {id: stanza.id, metadata: stanzaMetadata} ];
+      // }
+      studyMetadata1.stanzas[stanza.id] = stanzaMetadata;
 
     });
 
