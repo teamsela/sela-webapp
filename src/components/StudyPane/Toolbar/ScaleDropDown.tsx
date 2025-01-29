@@ -7,7 +7,7 @@ import { updateMetadata } from "@/lib/actions";
 const ScaleDropDown = ({setScaleValue}: {
   setScaleValue:(value:number) => void;
 }) => {
-  const { ctxStudyId, ctxIsHebrew, ctxScaleValue, ctxStudyMetadata } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxScaleValue, ctxStudyMetadata, ctxInViewMode } = useContext(FormatContext);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [fitScreen, setFitScreen] = useState(false);
@@ -70,8 +70,10 @@ const ScaleDropDown = ({setScaleValue}: {
     setScaleValue(scale);
 
     // persist the scale value in the database
-    ctxStudyMetadata.scaleValue = Math.round(scale * 100) / 100;
-    updateMetadata(ctxStudyId, ctxStudyMetadata);
+    if (!ctxInViewMode) {
+      ctxStudyMetadata.scaleValue = Math.round(scale * 100) / 100;
+      updateMetadata(ctxStudyId, ctxStudyMetadata);  
+    }
 
     const passageDiv = document.getElementById('selaPassage');
     if (!passageDiv) {
