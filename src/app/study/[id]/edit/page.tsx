@@ -24,7 +24,6 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
 
   const [thisUser, passageContentOld, result] = await Promise.all([
     currentUser(),
-    //fetchStudyById(studyId),
     fetchPassageContentOld(studyId),
     fetchPassageData(studyId)
   ]);

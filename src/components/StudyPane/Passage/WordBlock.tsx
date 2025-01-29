@@ -1,4 +1,4 @@
-import { HebWord, WordProps } from '@/lib/data';
+import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType } from "@/lib/types";
@@ -28,7 +28,7 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum,
+  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum, ctxStudyMetadata,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
@@ -41,33 +41,47 @@ export const WordBlock = ({
   const [selected, setSelected] = useState(false);
 
   if (ctxColorAction != ColorActionType.none && selected) {
+
     ctxRootsColorMap.delete(wordProps.strongNumber);
+
+    const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
+
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
       setColorFillLocal(ctxSelectedColor);
-      //wordProps.metadata.color.fill = ctxSelectedColor;
+      colorUpdates.fill = ctxSelectedColor;
     }
     else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
       setBorderColorLocal(ctxSelectedColor);
-      //hebWord.borderColor = ctxSelectedColor;
+      colorUpdates.border = ctxSelectedColor;
     }
     else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
       setTextColorLocal(ctxSelectedColor);
-      //hebWord.textColor = ctxSelectedColor;
+      colorUpdates.text = ctxSelectedColor;
     }
     else if (ctxColorAction === ColorActionType.resetColor) {
-      if (colorFillLocal != DEFAULT_COLOR_FILL) {
+
+      if (colorFillLocal !== DEFAULT_COLOR_FILL) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
-        //hebWord.colorFill = DEFAULT_COLOR_FILL;
+        colorUpdates.fill = DEFAULT_COLOR_FILL;
       }
-      if (borderColorLocal != DEFAULT_BORDER_COLOR) {
+      if (borderColorLocal !== DEFAULT_BORDER_COLOR) {
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        //hebWord.borderColor = DEFAULT_BORDER_COLOR;
+        colorUpdates.border = DEFAULT_BORDER_COLOR;
       }
-      if (textColorLocal != DEFAULT_TEXT_COLOR) {
+      if (textColorLocal !== DEFAULT_TEXT_COLOR) {
         setTextColorLocal(DEFAULT_TEXT_COLOR);
-        //hebWord.textColor = DEFAULT_TEXT_COLOR;
+        colorUpdates.text = DEFAULT_TEXT_COLOR;
       }
     }
+    if (Object.keys(colorUpdates).length > 0) {
+      wordProps.metadata = {
+        ...wordProps.metadata,
+        color: {
+          ...(wordProps.metadata?.color || {}),
+          ...colorUpdates,
+        },
+      };
+    }    
   }
 
   useEffect(() => {
@@ -116,8 +130,8 @@ export const WordBlock = ({
       const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
       if (lastSelectedWord) {
         wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetColorFill(DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetColorFill(DEFAULT_TEXT_COLOR);
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
     }
   }

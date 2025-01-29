@@ -12,8 +12,8 @@ export const RootBlock = ({
     descendants: HebWord[]
 }) => {
 
-  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxSelectedWords, ctxRootsColorMap,
-    ctxSetNumSelectedWords, ctxSetSelectedWords, ctxInViewMode } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap,
+    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
 
 
 

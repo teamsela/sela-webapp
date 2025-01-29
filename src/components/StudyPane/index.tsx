@@ -60,7 +60,7 @@ const StudyPane = ({
 }) => {
 
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
-  const [scaleValue, setScaleValue] = useState(DEFAULT_SCALE_VALUE);
+  const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
   

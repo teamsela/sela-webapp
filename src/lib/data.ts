@@ -44,7 +44,7 @@ export type StudyMetadata = {
     stanzas: StanzaMap;
     strophes: StropheMap;
     words: WordMap;
-    zoomLevel?: number;
+    scaleValue?: number;
     uniformWidth?: boolean;
 }
 

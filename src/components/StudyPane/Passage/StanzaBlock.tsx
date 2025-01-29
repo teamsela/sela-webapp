@@ -1,9 +1,9 @@
-import { StanzaData, StanzaProps } from "@/lib/data"
+import { StanzaProps } from "@/lib/data"
 import { useContext, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadata, updateStanzaState } from "@/lib/actions"
+import { updateMetadata } from "@/lib/actions"
 
 export const StanzaBlock = ({
   stanzaProps

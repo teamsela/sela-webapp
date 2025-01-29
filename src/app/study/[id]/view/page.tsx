@@ -24,7 +24,6 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
 
   const [thisUser, passageContent, result] = await Promise.all([
     currentUser(),
-    //fetchStudyById(studyId),
     fetchPassageContentOld(studyId),
     fetchPassageData(studyId)
   ]);
@@ -32,9 +31,12 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   if (!result.study || (thisUser?.id != result.study.owner && !result.study.public)) {
     notFound();
   }
+  else if (thisUser?.id == result.study.owner) {
+    return redirect(`/study/${params.id}/edit`);
+  }
 
   return (
-    <StudyPane study={result.study} passageData={result} content={passageContent} inViewMode={true}/>
+    <StudyPane passageData={result} content={passageContent} inViewMode={true}/>
   );
 
 }

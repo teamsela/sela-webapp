@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
-import { StropheData, StropheProps } from '@/lib/data';
+import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
-import { updateMetadata, updateStropheState } from '@/lib/actions';
+import { updateMetadata } from '@/lib/actions';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -87,11 +87,7 @@ export const StropheBlock = ({
     ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
   }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes]);
 
-    // console.log(stropheProps);
-    // console.log("stanza expanded: ", stanzaExpanded);
-    // console.log("strophe expanded: ", expanded);
-
-  return(
+  return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
       className={`relative flex-column px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
