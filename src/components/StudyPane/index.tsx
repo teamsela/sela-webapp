@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
+import { PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { StudyData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, HebWord, StropheData, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { mergeData } from "@/lib/utils";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -18,6 +19,8 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
+  ctxPassageProps: {} as PassageProps,
+  ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
   ctxIsHebrew: false,
   ctxSelectedWords: [] as WordProps[],
@@ -28,10 +31,6 @@ export const FormatContext = createContext({
   ctxSetSelectedStrophes: (arg: StropheProps[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
-  ctxStropheCount: 0 as number,
-  ctxSetStropheCount: (arg: number) => {},
-  ctxStanzaCount: -1 as number,
-  ctxSetStanzaCount: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
@@ -59,18 +58,16 @@ const StudyPane = ({
   inViewMode: boolean;
 }) => {
 
+  const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
+
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
-  
   const [numSelectedWords, setNumSelectedWords] = useState(0);
   const [selectedWords, setSelectedWords] = useState<WordProps[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheProps[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
-  const [stropheCount, setStropheCount] = useState(0);
-
-  const [stanzaCount, setStanzaCount] = useState(-1);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -89,6 +86,8 @@ const StudyPane = ({
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
     ctxSetStudyMetadata: setStudyMetadata,
+    ctxPassageProps: passageProps,
+    ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
     ctxIsHebrew: isHebrew,
     ctxSelectedWords: selectedWords,
@@ -99,8 +98,6 @@ const StudyPane = ({
     ctxSetSelectedStrophes: setSelectedStrophes,
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
-    ctxStanzaCount: stanzaCount,
-    ctxSetStanzaCount: setStanzaCount,
     ctxColorAction: colorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
@@ -116,11 +113,17 @@ const StudyPane = ({
     ctxInViewMode: inViewMode,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
-    ctxStropheCount: stropheCount,
-    ctxSetStropheCount: setStropheCount,
     ctxRootsColorMap: rootsColorMap,
     ctxSetRootsColorMap: setRootsColorMap,
   }
+
+  useEffect(() => {
+
+    // merge custom metadata with bible data
+    let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
+    setPassageProps(initPassageProps);
+  
+  }, [passageData.bibleData, studyMetadata]);
 
   const passageDivStyle = {
     className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
@@ -133,16 +136,13 @@ const StudyPane = ({
   if (!passageData.study.metadata.words) {
 
     // convert content to StudyMetadata
-    let studyMetadata1 : StudyMetadata = { stanzas: {}, strophes: {}, words: {} };
+    let studyMetadata1 : StudyMetadata = { words: {} };
 
-    content.stanzas.forEach((stanza) => {
+    content.stanzas.forEach((stanza, stanzaIdx) => {
 
       const stanzaMetadata : StanzaMetadata = (stanza.expanded === false) ? { expanded: false } : {};
 
-      stanzaMetadata.start = stanza.strophes[0].lines[0].words[0].id;
-      let prevStanzaBreakId : number = 0;
-
-      stanza.strophes.forEach((strophe) => {
+      stanza.strophes.forEach((strophe, stropheIdx) => {
 
         let stropheMetadata : StropheMetadata = (strophe.expanded) ? {} : {expanded: false};
         if (strophe.borderColor) {
@@ -156,14 +156,12 @@ const StudyPane = ({
           }
         }
       
-        stropheMetadata.start = strophe.lines[0].words[0].id;
-        let prevStropheBreakId : number = 0;
+        strophe.lines.forEach((line, lineIdx) => {
 
-        strophe.lines.forEach((line) => {
-
-          line.words.forEach((word) => {
+          line.words.forEach((word, wordIdx) => {
 
             let wordMetadata : WordMetadata = {};
+
             if (word.borderColor) {
               wordMetadata.color = { border: word.borderColor }
             }
@@ -184,54 +182,34 @@ const StudyPane = ({
             if (word.numIndent > 0) {
               wordMetadata.indent = word.numIndent;
             }
-            // if (word.lineBreak) {
-            //   wordMetadata.lineBreak = word.lineBreak;
-            // }
+            if (word.lineBreak) {
+               wordMetadata.lineBreak = word.lineBreak;
+            }
             if (word.stropheDiv) {
               wordMetadata.stropheDiv = word.stropheDiv;
-              prevStropheBreakId = word.id - 1;
+              if (Object.keys(stropheMetadata).length === 0) {
+                wordMetadata.stropheMd = stropheMetadata;
+              }
             }
             if (word.stanzaDiv) {
               wordMetadata.stanzaDiv = word.stanzaDiv;
-              prevStanzaBreakId = word.id - 1;
+              if (Object.keys(stanzaMetadata).length === 0) {
+                wordMetadata.stanzaMd = stanzaMetadata;
+              }
             }
 
             if (Object.keys(wordMetadata).length !== 0) {
-              //if (studyMeta1.words) {
-                //studyMetadata1.words?.push({id: word.id, metadata: wordMetadata});
-              //}
               if (!studyMetadata1.words) {
                 studyMetadata1.words = {};
               }
-              //else {
-                //studyMetadata1.words = [ {id: word.id, metadata: wordMetadata} ];
-              //}  
+
               studyMetadata1.words[word.id] = wordMetadata;
             }
 
           })
         })
 
-        if (!studyMetadata1.strophes) {
-          studyMetadata1.strophes = {};
-          //studyMetadata1.strophes?.push({id: strophe.id, metadata: stropheMetadata});
-        }
-        //else {
-        //  studyMetadata1.strophes = [ {id: strophe.id, metadata: stropheMetadata} ];
-       // }
-        studyMetadata1.strophes[strophe.id] = stropheMetadata;
-
       })
-
-      if (!studyMetadata1.stanzas) {
-        studyMetadata1.stanzas = {};
-        //studyMetadata1.stanzas?.push({id: stanza.id, metadata: stanzaMetadata});
-      }
-      // else {
-      //   studyMetadata1.stanzas = [ {id: stanza.id, metadata: stanzaMetadata} ];
-      // }
-      studyMetadata1.stanzas[stanza.id] = stanzaMetadata;
-
     });
 
     passageData.study.metadata = studyMetadata1;
@@ -264,7 +242,7 @@ const StudyPane = ({
               setUniformWidth={setUniformWidth}
             />
   
-            <Passage content={content} bibleData={passageData.bibleData}/>
+            <Passage bibleData={passageData.bibleData} passageProps={passageProps}/>
           </div>
   
           {

@@ -1,4 +1,4 @@
-import { PassageProps, StropheProps, WordProps, ColorData } from "./data";
+import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata } from "./data";
 import { ColorActionType } from "./types";
 
 type PsalmBook = {
@@ -312,4 +312,90 @@ export function strophesHasSameColor(strophes: StropheProps[], actionType: Color
   }
 
   return true;
+}
+
+export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata) : PassageProps => {
+
+  let passageProps : PassageProps = { stanzaProps: [], stanzaCount: 0, stropheCount: 0 }
+
+  let currentStanzaIdx = -1;
+  let currentStropheIdx = -1;
+  let runningStropheIdx = -1;
+  let currentLineIdx = -1;
+  let prevVerseNum = 0;
+
+  bibleData.forEach((hebWord) => {
+
+    hebWord.firstStropheInStanza = false;
+    hebWord.firstWordInStrophe = false;
+
+    const currentWordStyling = studyMetadata.words[hebWord.wordId];
+    if (currentWordStyling !== undefined) {
+      hebWord.metadata = currentWordStyling;
+    }
+
+    let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
+    if (currentStanzaData === undefined || (hebWord.metadata !== undefined && hebWord.metadata.stanzaDiv)) {
+      passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
+      currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
+
+      const currentStanzaStyling = studyMetadata.words[hebWord.wordId].stanzaMd;
+      if (currentStanzaStyling !== undefined) {
+        currentStanzaData.metadata = currentStanzaStyling;
+      }
+      currentStropheIdx = -1;
+      passageProps.stanzaCount++; 
+    }
+
+    let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
+    if (currentStropheData === undefined || (hebWord.metadata !== undefined && hebWord.metadata.stropheDiv)) {
+      passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
+      ++currentStropheIdx;
+      currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
+
+      const currentStropheStyling = studyMetadata.words[hebWord.wordId].stropheMd;
+      if (currentStropheStyling !== undefined) {
+        currentStropheData.metadata = currentStropheStyling;
+      }
+      currentLineIdx = -1;
+      passageProps.stropheCount++; 
+
+      currentStropheData.firstStropheInStanza = (currentStropheIdx === 0);
+      hebWord.firstWordInStrophe = true;      
+    } 
+
+    let currentLineData = currentStropheData.lines[currentLineIdx];
+    let ignoreNewLine = hebWord.metadata?.ignoreNewLine || false;
+    if (currentLineData === undefined || (!ignoreNewLine && (hebWord.newLine || (hebWord.metadata && hebWord.metadata.lineBreak)))) {
+      currentStropheData.lines.push({lineId: ++currentLineIdx, words: []})
+      currentLineData = currentStropheData.lines[currentLineIdx];
+    }
+
+    if (prevVerseNum !== hebWord.verse) {
+      hebWord.showVerseNum = true;
+    }
+    hebWord.firstStropheInStanza = (currentStropheIdx === 0);
+    hebWord.lastStropheInStanza = false;
+    hebWord.lineId = currentLineIdx;
+    hebWord.stropheId = currentStropheIdx;
+    hebWord.stanzaId = currentStanzaIdx;
+
+    currentLineData.words.push(hebWord);
+    prevVerseNum = hebWord.verse;
+  });
+
+  passageProps.stanzaProps.map((stanza) => {
+    stanza.strophes.map((strophe, stropheId) => {
+      strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
+      if (strophe.lastStropheInStanza) {
+        strophe.lines.forEach((line) => {
+          line.words.forEach((word) => {
+            word.lastStropheInStanza = true;
+          })
+        })
+      }      
+    })
+  })
+
+  return passageProps;
 }

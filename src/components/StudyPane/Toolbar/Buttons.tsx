@@ -135,22 +135,20 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     }
 
     if (ctxSelectedStrophes.length > 0) {
-      ctxSelectedStrophes.map((strophe) => {
-        const stropheMetadata = ctxStudyMetadata.strophes[strophe.stropheId];
-        if (stropheMetadata) {
-          if (stropheMetadata?.color) {
-            if (colorAction === ColorActionType.colorFill) {
-              stropheMetadata.color.fill = color.hex;
-            }
-            else if (colorAction === ColorActionType.borderColor) {
-              stropheMetadata.color.border = color.hex;
-            }
-          }
-          else {
-            stropheMetadata.color = colorObj;   
-          }
-        }
-      })
+
+      // find the index to the first word of the strophe
+      const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+
+      const wordMetadata = ctxStudyMetadata.words[selectedWordId];
+      wordMetadata.stropheMd ??= {};
+      wordMetadata.stropheMd.color ??= colorObj;
+      
+      if (colorAction === ColorActionType.colorFill) {
+        wordMetadata.stropheMd.color.fill = color.hex;
+      } else if (colorAction === ColorActionType.borderColor) {
+        wordMetadata.stropheMd.color.border = color.hex;
+      }
+      
       updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
   }
@@ -231,14 +229,10 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
           }
         })
         updateMetadata(ctxStudyId, ctxStudyMetadata);
-      }
+      }     
       if (ctxSelectedStrophes.length > 0) {
-        ctxSelectedStrophes.map((strophe) => {
-          const stropheMetadata = ctxStudyMetadata.strophes[strophe.stropheId];
-          if (stropheMetadata && stropheMetadata?.color) {
-            delete stropheMetadata["color"];
-          }
-        })
+        const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+        (ctxStudyMetadata.words[selectedWordId].color) && (delete ctxStudyMetadata.words[selectedWordId].color);
         updateMetadata(ctxStudyId, ctxStudyMetadata);
       }
     }
@@ -310,6 +304,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
           ...ctxStudyMetadata.words[selectedWordId],
           indent: --indentNum,
         };
+        (indentNum == 0) && (delete ctxStudyMetadata.words[selectedWordId].indent);
         updateMetadata(ctxStudyId, ctxStudyMetadata);
         ctxSetStudyMetadata(ctxStudyMetadata);
         setButtonEnabled(indentNum > 0);
@@ -347,19 +342,21 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
-  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
+    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-    buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].lastLineInStrophe);
+      buttonEnabled = hasWordSelected && 
+        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
+        .strophes[ctxSelectedWords[0].stropheId].lines.length-1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
@@ -371,7 +368,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount-1)
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };

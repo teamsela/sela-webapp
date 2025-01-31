@@ -72,8 +72,12 @@ export const StropheBlock = ({
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
 
-    if (!ctxInViewMode && ctxStudyMetadata.strophes) {
-      ctxStudyMetadata.strophes[stropheProps.stropheId].expanded = !expanded && stanzaExpanded;
+    stropheProps.metadata.expanded = !expanded;
+    const firstWordIdinStrophe = stropheProps.lines[0].words[0].wordId;
+    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd ??= {};
+    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd.expanded = stropheProps.metadata.expanded;
+
+    if (!ctxInViewMode) {
       updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
 
