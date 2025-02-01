@@ -9,7 +9,7 @@ const Category = () => {
 
     let categoryCount = new Map<String, { strongNumbers: number[], count: number, wordProps: WordProps[] }>();
     let [selectedCategory, setSelectedCategory] = useState<String>("");
-    let [lastSelectedHebWords, setLastSelectedHebWords] = useState<WordProps[]>([]);
+    let [lastSelectedWords, setLastSelectedWords] = useState<WordProps[]>([]);
 
     ctxPassageProps.stanzaProps.forEach(stanza => {
         stanza.strophes.forEach(strophe => {
@@ -55,7 +55,7 @@ const Category = () => {
                         (value.strongNumbers.length > 1) && (
                             <div key={index}>
                                 <CategoryBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} 
-                                value={value} lastSelectedHebWords={lastSelectedHebWords} setLastSelectedHebWords={setLastSelectedHebWords}/>
+                                value={value} lastSelectedWords={lastSelectedWords} setLastSelectedWords={setLastSelectedWords}/>
                             </div>
                         )
                     ))}
