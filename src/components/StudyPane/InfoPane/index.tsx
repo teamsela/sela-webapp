@@ -9,11 +9,9 @@ import { PassageData } from "@/lib/data";
 const InfoPane = ({
     infoPaneAction,
     setInfoPaneAction,
-    content
 }: {
     infoPaneAction: InfoPaneActionType;
     setInfoPaneAction: (arg: InfoPaneActionType) => void;
-    content: PassageData;
 }) => {
 
     const handleClick = () => {
@@ -39,7 +37,7 @@ const InfoPane = ({
             {/* Conditionally render the content based on infoPaneAction */}
             <div className="h-[90%]">
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
-                {infoPaneAction === InfoPaneActionType.motif && <Motif content={content} />}
+                {infoPaneAction === InfoPaneActionType.motif && <Motif />}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
                 {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
             </div>

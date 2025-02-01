@@ -6,7 +6,7 @@ import Root from "./Root";
 import Category from "./Category";
 import RelatedWord from "./Related";
 
-const Motif = ({ content }: { content: PassageData }) => {
+const Motif = () => {
   const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.root);
 
   const toggleSection = (section: MotifType) => {
