@@ -6,7 +6,7 @@ import StepBibleModal from "./StepBibleModal";
 
 export const FooterComponent = () => {
     return (
-        <footer className="pl-5 py-2 flex">
+        <footer className="pl-5 py-2 flex text-sm">
           <div>
             Copyright Information for&nbsp;
           </div>
@@ -14,7 +14,7 @@ export const FooterComponent = () => {
         <StepBibleModal/>,&nbsp;
         <BSBModal/>,&nbsp;
         <ESVModal/>,&nbsp;
-        <OHBModal/>,&nbsp;
+        <OHBModal/>
         </footer>
     )
 }

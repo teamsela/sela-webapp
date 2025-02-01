@@ -140,19 +140,20 @@ const Passage = ({
           // there should always be at least one line and one word in a strophe          
           selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
         }
-        if (selectedWordId !== 0) {
-          ctxStudyMetadata.words[selectedWordId] = {
-            ...(ctxStudyMetadata.words[selectedWordId] || {}),
-            stanzaDiv: undefined,
-            stanzaMd: undefined
-          };
+        // find the word with a stanza div marker for this stanza
+        const lastStanzaDiv = bibleData.findLastIndex(word =>
+          word.wordId <= selectedWordId && ctxStudyMetadata.words[word.wordId]?.stanzaDiv
+        );
+        if (lastStanzaDiv >= 0) {
+          delete ctxStudyMetadata.words[bibleData[lastStanzaDiv].wordId].stanzaDiv;
+          delete ctxStudyMetadata.words[bibleData[lastStanzaDiv].wordId].stanzaMd;
         }
+
         // find the index to the first word of the next strophe
         const foundIndex = bibleData.findIndex(word =>
            word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
         );
         if (foundIndex !== -1) {
-          console.log("Merge with previous stanza. Remove stanzaDiv to ", bibleData[foundIndex].wordId)
           ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
             ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
             stanzaDiv: true
@@ -161,7 +162,6 @@ const Passage = ({
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStanza) {
         if (ctxSelectedStrophes.length === 1) {
-          console.log(ctxSelectedStrophes[0])
           // there should always be at least one line and one word in a strophe          
           selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
         }
@@ -183,7 +183,7 @@ const Passage = ({
       
       const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
       ctxSetPassageProps(updatedPassageProps);
-      console.log("Updated", updatedPassageProps)
+      //console.log("Updated", updatedPassageProps)
 
       ctxSetStudyMetadata(ctxStudyMetadata);
       updateMetadata(ctxStudyId, ctxStudyMetadata);

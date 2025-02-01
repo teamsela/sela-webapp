@@ -40,7 +40,6 @@ export const CategoryBlock = ({
             hasChildren = hasChildren && ctxSelectedWords.includes(word);
         })
         setSelected(hasChildren);
-        console.log(hasChildren)
     }, [ctxSelectedWords, value.wordProps]);
 
     useEffect(() => {
