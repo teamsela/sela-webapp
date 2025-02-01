@@ -324,22 +324,22 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
   let currentLineIdx = -1;
   let prevVerseNum = 0;
 
-  bibleData.forEach((hebWord) => {
+  bibleData.forEach((wordProps) => {
 
-    hebWord.firstStropheInStanza = false;
-    hebWord.firstWordInStrophe = false;
+    wordProps.firstStropheInStanza = false;
+    wordProps.firstWordInStrophe = false;
 
-    const currentWordStyling = studyMetadata.words[hebWord.wordId];
+    const currentWordStyling = studyMetadata.words[wordProps.wordId];
     if (currentWordStyling !== undefined) {
-      hebWord.metadata = currentWordStyling;
+      wordProps.metadata = currentWordStyling;
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
-    if (currentStanzaData === undefined || (hebWord.metadata !== undefined && hebWord.metadata.stanzaDiv)) {
+    if (currentStanzaData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stanzaDiv)) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
 
-      const currentStanzaStyling = studyMetadata.words[hebWord.wordId].stanzaMd;
+      const currentStanzaStyling = studyMetadata.words[wordProps.wordId]?.stanzaMd;
       if (currentStanzaStyling !== undefined) {
         currentStanzaData.metadata = currentStanzaStyling;
       }
@@ -348,12 +348,12 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
     }
 
     let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
-    if (currentStropheData === undefined || (hebWord.metadata !== undefined && hebWord.metadata.stropheDiv)) {
+    if (currentStropheData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stropheDiv)) {
       passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
       ++currentStropheIdx;
       currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
 
-      const currentStropheStyling = studyMetadata.words[hebWord.wordId].stropheMd;
+      const currentStropheStyling = studyMetadata.words[wordProps.wordId]?.stropheMd;
       if (currentStropheStyling !== undefined) {
         currentStropheData.metadata = currentStropheStyling;
       }
@@ -361,27 +361,27 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
       passageProps.stropheCount++; 
 
       currentStropheData.firstStropheInStanza = (currentStropheIdx === 0);
-      hebWord.firstWordInStrophe = true;      
+      wordProps.firstWordInStrophe = true;      
     } 
 
     let currentLineData = currentStropheData.lines[currentLineIdx];
-    let ignoreNewLine = hebWord.metadata?.ignoreNewLine || false;
-    if (currentLineData === undefined || (!ignoreNewLine && (hebWord.newLine || (hebWord.metadata && hebWord.metadata.lineBreak)))) {
+    let ignoreNewLine = wordProps.metadata?.ignoreNewLine || false;
+    if (currentLineData === undefined || (!ignoreNewLine && (wordProps.newLine || (wordProps.metadata && wordProps.metadata.lineBreak)))) {
       currentStropheData.lines.push({lineId: ++currentLineIdx, words: []})
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 
-    if (prevVerseNum !== hebWord.verse) {
-      hebWord.showVerseNum = true;
+    if (prevVerseNum !== wordProps.verse) {
+      wordProps.showVerseNum = true;
     }
-    hebWord.firstStropheInStanza = (currentStropheIdx === 0);
-    hebWord.lastStropheInStanza = false;
-    hebWord.lineId = currentLineIdx;
-    hebWord.stropheId = currentStropheIdx;
-    hebWord.stanzaId = currentStanzaIdx;
+    wordProps.firstStropheInStanza = (currentStropheIdx === 0);
+    wordProps.lastStropheInStanza = false;
+    wordProps.lineId = currentLineIdx;
+    wordProps.stropheId = currentStropheIdx;
+    wordProps.stanzaId = currentStanzaIdx;
 
-    currentLineData.words.push(hebWord);
-    prevVerseNum = hebWord.verse;
+    currentLineData.words.push(wordProps);
+    prevVerseNum = wordProps.verse;
   });
 
   passageProps.stanzaProps.map((stanza) => {
