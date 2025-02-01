@@ -6,8 +6,8 @@ import Header from "./Header";
 import Toolbar from "./Toolbar";
 import Passage from "./Passage";
 import InfoPane from "./InfoPane";
-import { PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorType, ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
@@ -46,8 +46,8 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxRootsColorMap : {} as Map<number, ColorType>,
-  ctxSetRootsColorMap : (arg: Map<number, ColorType>) =>{},
+  ctxRootsColorMap : {} as Map<number, ColorData>,
+  ctxSetRootsColorMap : (arg: Map<number, ColorData>) =>{},
 });
 
 const StudyPane = ({
@@ -80,7 +80,7 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
-  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorType>>(new Map());
+  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
   
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
@@ -242,7 +242,7 @@ const StudyPane = ({
               setUniformWidth={setUniformWidth}
             />
   
-            <Passage bibleData={passageData.bibleData} passageProps={passageProps}/>
+            <Passage bibleData={passageData.bibleData} />
           </div>
   
           {

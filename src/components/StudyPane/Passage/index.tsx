@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
@@ -12,17 +12,16 @@ import { useDragToSelect } from '@/hooks/useDragToSelect';
 
 const Passage = ({
   bibleData,
-  passageProps
 }: {
   bibleData: WordProps[];
-  passageProps: PassageProps;
 }) => {
-  const { ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
-    ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetPassageProps
-  } = useContext(FormatContext)
+  const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
+    ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
+    ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+    ctxStructureUpdateType, ctxSetStructureUpdateType
+  } = useContext(FormatContext);
 
-  const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(passageProps);
+  const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
   useEffect(() => {
 
@@ -218,7 +217,7 @@ const Passage = ({
       >
         <div id="selaPassage" className='flex relative m-2 py-5 top-30 pb-2 z-10'>
           {
-            passageProps.stanzaProps.map((stanza) => {
+            ctxPassageProps.stanzaProps.map((stanza) => {
               return (
                 <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
               )

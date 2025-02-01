@@ -40,7 +40,7 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.root && (
             <div className="p-4">
-              <Root content={content} />
+              <Root />
             </div>
           )}
         </div>
@@ -69,7 +69,7 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.category && (
             <div className="p-4">
-              <Category content={content} />
+              <Category />
             </div>
           )}
         </div>
@@ -98,7 +98,7 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.related && (
             <div className="p-4">
-              <RelatedWord content={content} />
+              <RelatedWord />
             </div>
           )}
         </div>

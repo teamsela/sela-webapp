@@ -1,6 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from "../..";
-import { HebWord } from "@/lib/data";
+import { WordProps } from "@/lib/data";
 
 export const CategoryBlock = ({
     category,
@@ -15,29 +15,29 @@ export const CategoryBlock = ({
     index: number,
     selectedCategory: String,
     setSelectedCategory: React.Dispatch<React.SetStateAction<String>>,
-    value: { strongNumbers: number[], count: number, hebWords: HebWord[] },
-    lastSelectedHebWords: HebWord[],
-    setLastSelectedHebWords: React.Dispatch<React.SetStateAction<HebWord[]>>
+    value: { strongNumbers: number[], count: number, wordProps: WordProps[] },
+    lastSelectedHebWords: WordProps[],
+    setLastSelectedHebWords: React.Dispatch<React.SetStateAction<WordProps[]>>
 }) => {
     const { ctxSelectedWords, ctxSetSelectedWords } = useContext(FormatContext);
     const handleClick = () => {
         if (category === selectedCategory) {
             const newSelectedHebWords = ctxSelectedWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.wordId)
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.wordId === word.wordId)
             );
             ctxSetSelectedWords(newSelectedHebWords);
             setLastSelectedHebWords([]);
             setSelectedCategory("");
         } else {
             const wordsWithoutPrevCategory = ctxSelectedWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.wordId)
+                word => !lastSelectedHebWords.some(categoryWord => categoryWord.wordId === word.wordId)
             );
             
-            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.hebWords]));
+            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));
             
             setSelectedCategory(category);
             //ctxSetSelectedWords(newSelectedHebWords);
-            setLastSelectedHebWords(value.hebWords);
+            setLastSelectedHebWords(value.wordProps);
         }
     };
     return (

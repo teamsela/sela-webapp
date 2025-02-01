@@ -2,68 +2,62 @@ import React, { useState, useEffect, useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 import { ColorActionType } from "@/lib/types";
-import { HebWord } from '@/lib/data';
+import { WordProps } from '@/lib/data';
 
 export const RootBlock = ({
     id, count, descendants
 }: {
     id: number,
     count: number,
-    descendants: HebWord[]
+    descendants: WordProps[]
 }) => {
 
   const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap,
     ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
 
+  const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
+    return descendants.every(dsd =>
+      dsd.metadata.color &&
+      (!dsd.metadata.color[property] || dsd.metadata.color[property] === descendants[0].metadata.color?.[property])
+    );
+  };
 
-
-  const matchFillColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.colorFill || dsd.colorFill === descendants[0].colorFill;
-    });
-    return match;
-  }
-
-  const matchTextColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.textColor || dsd.textColor === descendants[0].textColor;
-    });
-    return match;
-  }
-  
-  const matchBorderColor = () => {
-    let match = descendants.every((dsd) => {
-      return !dsd.borderColor || dsd.borderColor === descendants[0].borderColor;
-    });
-    return match;
-  }
   const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber);
-  const [colorFillLocal, setColorFillLocal] = useState(rootsColorMap? rootsColorMap.colorFill: matchFillColor()? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-  const [textColorLocal, setTextColorLocal] = useState(rootsColorMap? rootsColorMap.textColor: matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-  const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? descendants[0].textColor: DEFAULT_BORDER_COLOR);
+
+  const initialColorFill = rootsColorMap?.fill 
+    || (matchColorProperty('fill') ? descendants[0]?.metadata.color?.fill : DEFAULT_COLOR_FILL) 
+    || DEFAULT_COLOR_FILL;
+  const initialTextColor = rootsColorMap?.text 
+    || (matchColorProperty('text') ? descendants[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) 
+    || DEFAULT_TEXT_COLOR;
+  const initialBorderColor = rootsColorMap?.border 
+    || (matchColorProperty('border') ? descendants[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) 
+    || DEFAULT_BORDER_COLOR;
+
+  const [colorFillLocal, setColorFillLocal] = useState(initialColorFill);
+  const [textColorLocal, setTextColorLocal] = useState(initialTextColor);
+  const [borderColorLocal, setBorderColorLocal] = useState(initialBorderColor);
   const [selected, setSelected] = useState(false);
 
 
   useEffect(() => {
     let hasChildren = true;
     descendants.forEach((dsd) => {
-      //hasChildren = hasChildren && ctxSelectedWords.includes(dsd);
+      hasChildren = hasChildren && ctxSelectedWords.includes(dsd);
     })
 
     setSelected(hasChildren);
   }, [ctxSelectedWords, descendants]);
 
   useEffect(() => {
-    const rootsColorMap = ctxRootsColorMap.get(descendants[0].strongNumber)
-    if (rootsColorMap) {
+    const rootsColor = ctxRootsColorMap.get(descendants[0].strongNumber)
+    if (rootsColor) {
       descendants.forEach(dsd => {
-        dsd.colorFill = rootsColorMap.colorFill;
-        dsd.textColor = rootsColorMap.textColor;
-        dsd.borderColor = rootsColorMap.borderColor;
+        dsd.metadata.color = rootsColor;
       });
-      setColorFillLocal(rootsColorMap.colorFill);
-      setTextColorLocal(rootsColorMap.textColor);
-      setBorderColorLocal(rootsColorMap.borderColor);
+      rootsColor.fill && setColorFillLocal(rootsColor.fill);
+      rootsColor.text && setTextColorLocal(rootsColor.text);
+      rootsColor.border && setBorderColorLocal(rootsColor.border);
     }
   }, [ctxRootsColorMap])
 
@@ -74,26 +68,27 @@ export const RootBlock = ({
       if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
         setColorFillLocal(ctxSelectedColor);
         descendants.forEach((word) => {
-          word.colorFill = ctxSelectedColor;
+          word.metadata.color ??= {};
+          word.metadata.color.fill = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
         setBorderColorLocal(ctxSelectedColor);
         descendants.forEach((word) => {
-          word.borderColor = ctxSelectedColor;
+          word.metadata.color ??= {};
+          word.metadata.color.border = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
         setTextColorLocal(ctxSelectedColor);
         descendants.forEach((word) => {
-          word.textColor = ctxSelectedColor;
+          word.metadata.color ??= {};
+          word.metadata.color.text = ctxSelectedColor;
         });
       } else if (ctxColorAction === ColorActionType.resetColor) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
         setTextColorLocal(DEFAULT_TEXT_COLOR);
         descendants.forEach((word) => {
-          word.colorFill = DEFAULT_COLOR_FILL;
-          word.textColor = DEFAULT_TEXT_COLOR;
-          word.borderColor = DEFAULT_BORDER_COLOR;
+          delete word.metadata.color;
         });
       }
     }
@@ -102,16 +97,18 @@ export const RootBlock = ({
         const selectedDescendants = ctxSelectedWords.filter(word => word.strongNumber == descendants[0].strongNumber);
         selectedDescendants.forEach(word => {
           descendants.forEach((dsd) => {
-            if (dsd.id === word.wordId) {
-              dsd.colorFill = ctxColorAction === ColorActionType.colorFill && ctxSelectedColor? ctxSelectedColor: dsd.colorFill;
-              dsd.borderColor = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.borderColor;
-              dsd.textColor = ctxColorAction === ColorActionType.textColor && ctxSelectedColor? ctxSelectedColor: dsd.textColor;
+            if (dsd.wordId === word.wordId) {
+              dsd.metadata.color ??= {};
+              dsd.metadata.color.fill = (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) ? ctxSelectedColor : dsd.metadata.color.fill;
+              dsd.metadata.color.border = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.border;
+              dsd.metadata.color.text = ctxColorAction === ColorActionType.textColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.text;
             }
           })
         })
-        setColorFillLocal(matchFillColor()? descendants[0].colorFill: DEFAULT_COLOR_FILL);
-        setTextColorLocal(matchTextColor()? descendants[0].textColor: DEFAULT_TEXT_COLOR);
-        setBorderColorLocal(matchBorderColor()? descendants[0].borderColor: DEFAULT_BORDER_COLOR);
+
+        setColorFillLocal(matchColorProperty('fill') ? descendants[0]?.metadata.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
+        setTextColorLocal(matchColorProperty('text') ? descendants[0]?.metadata.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
+        setTextColorLocal(matchColorProperty('border') ? descendants[0]?.metadata.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
       }
     }
   }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords]);
@@ -120,10 +117,10 @@ export const RootBlock = ({
       setSelected(prevState => !prevState);
       let updatedSelectedWords = [...ctxSelectedWords];
       if (!selected) {
-        //updatedSelectedWords = ctxSelectedWords.concat(descendants);
+        updatedSelectedWords = ctxSelectedWords.concat(descendants);
       } else {
         descendants.forEach((dsd) => {
-        //  ctxSetSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
+          updatedSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
         })
       }
       ctxSetSelectedWords(updatedSelectedWords);
@@ -150,7 +147,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{ctxIsHebrew ? descendants[0].lemma : descendants[0].ETCBCgloss}</span>
+          >{ctxIsHebrew ? descendants[0].motifData.relatedWords?.lemma : descendants[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

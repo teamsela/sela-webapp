@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
-import { HebWord, LexiconData } from '@/lib/data';
+import { WordProps, LexiconData } from '@/lib/data';
 
 export const RelatedWordBlock = ({
   id, count, rootData, relatedWords
@@ -9,7 +9,7 @@ export const RelatedWordBlock = ({
   id: number,
   count: number,
   rootData: LexiconData,
-  relatedWords: HebWord[]
+  relatedWords: WordProps[]
 }) => {
 
   const { ctxIsHebrew, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
@@ -20,10 +20,10 @@ export const RelatedWordBlock = ({
 
     let updatedSelectedWords = [...ctxSelectedWords];
     if (!selected) {
-      //updatedSelectedWords = ctxSelectedWords.concat(relatedWords);
+      updatedSelectedWords = ctxSelectedWords.concat(relatedWords);
     } else {
       relatedWords.forEach((dsd) => {
-        //updatedSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
+        updatedSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
       })
     }
     ctxSetSelectedWords(updatedSelectedWords);

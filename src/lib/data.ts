@@ -20,8 +20,6 @@ export type WordMap = {
 }
 
 export type StropheMetadata = {
-    //start?: number; // heb id
-    //end?: number;   // heb id
     expanded?: boolean;
     color?: ColorData
 }
