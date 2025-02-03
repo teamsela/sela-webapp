@@ -72,8 +72,7 @@ export default function CloneStudyModal({ originalStudy, open, setOpen }: CloneS
                         type="text"
                         min={2}
                         max={50}
-                        value={"Copy of " + originalStudy.name.trimEnd()}
-                        onFocus={e => { e.target.setSelectionRange(0, e.target.value.length); }}
+                        defaultValue={"Copy of " + originalStudy.name.trimEnd()}
                         onChange={e => { setClonedStudyName(e.target.value) }}
                         name="studyName"
                         id="studyName"

@@ -7,10 +7,9 @@ import Passage from "./Passage";
 import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
-import Toolbar from "./Toolbar";
 
-import { ColorData, StudyData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadata } from '@/lib/actions';
 
@@ -44,7 +43,7 @@ export const FormatContext = createContext({
   ctxSetBorderColor: (arg: string) => {},
   ctxTextColor: "" as string,
   ctxSetTextColor: (arg: string) => {},
-  ctxUniformWidth: false,
+  ctxBoxDisplayStyle: {} as BoxDisplayStyle,
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
@@ -79,7 +78,7 @@ const StudyPane = ({
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-  const [uniformWidth, setUniformWidth] = useState(false);
+  const [boxDisplayStyle, setBoxDisplayStyle] = useState(BoxDisplayStyle.noBox);
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
@@ -87,7 +86,6 @@ const StudyPane = ({
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
@@ -114,7 +112,7 @@ const StudyPane = ({
     ctxSetBorderColor: setBorderColor,
     ctxTextColor: textColor,
     ctxSetTextColor: setTextColor,
-    ctxUniformWidth: uniformWidth,
+    ctxBoxDisplayStyle: boxDisplayStyle,
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
@@ -129,22 +127,10 @@ const StudyPane = ({
     // merge custom metadata with bible data
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
-    setUniformWidth(studyMetadata.uniformWidth || false);
+    setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
   
   }, [passageData.bibleData, studyMetadata]);
-
-  useEffect(() => {
-    setSidebarOpen(infoPaneAction !== InfoPaneActionType.none);
-  }, [infoPaneAction])
-
-  const passageDivStyle = {
-    className: `flex h-full w-full ${isHebrew ? "hbFont" : ""}`
-  };
-  const studyPaneWrapperStyle = {
-    className: `grid gap-x-2 ${infoPaneAction !== InfoPaneActionType.none ? 'grid-cols-[3fr_1fr]' : ''} relative h-full`
-  }
-  
-  
+ 
   if (!passageData.study.metadata.words) {
 
     // convert content to StudyMetadata
@@ -245,7 +231,7 @@ const StudyPane = ({
           setScaleValue={setScaleValue}
           setColorAction={setColorAction}
           setSelectedColor={setSelectedColor}
-          setUniformWidth={setUniformWidth}
+          setBoxStyle={setBoxDisplayStyle}
           setCloneStudyOpen={setCloneStudyOpen}        
         />
 

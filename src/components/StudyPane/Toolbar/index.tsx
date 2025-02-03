@@ -4,7 +4,7 @@ import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn,
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn } from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
-import { ColorActionType, StructureUpdateType } from "@/lib/types";
+import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
 import { StudyData } from '@/lib/data';
 
 const Toolbar = ({
@@ -13,7 +13,7 @@ const Toolbar = ({
   //color functions
   setColorAction,
   setSelectedColor,
-  setUniformWidth,
+  setBoxStyle,
   setCloneStudyOpen
 }: {
   study: StudyData;
@@ -21,7 +21,7 @@ const Toolbar = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setUniformWidth: (arg: boolean) => void;
+  setBoxStyle: (arg: BoxDisplayStyle) => void,
   setCloneStudyOpen: (arg: boolean) => void;
 } ) => {
   
@@ -37,7 +37,7 @@ const Toolbar = ({
             <div className="flex flex-row space-x-4">
               <div className="flex h-8 basis-1/3 items-center justify-left">
                 <ScaleDropDown setScaleValue={setScaleValue} />
-                <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+                <UniformWidthBtn setBoxStyle={setBoxStyle}/>
               </div>
               {
                  (study.model) &&
@@ -62,7 +62,7 @@ const Toolbar = ({
             <ClearFormatBtn setColorAction={setColorAction} />          
           </div>
           <div className="border-r border-stroke flex flex-row">
-            <UniformWidthBtn setUniformWidth={setUniformWidth}/>
+            <UniformWidthBtn setBoxStyle={setBoxStyle}/>
             <IndentBtn leftIndent={true} />
             <IndentBtn leftIndent={false} />
           </div>

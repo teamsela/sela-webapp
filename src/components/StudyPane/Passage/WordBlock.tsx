@@ -1,7 +1,7 @@
 import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorType } from "@/lib/types";
+import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
@@ -28,7 +28,7 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum,
+  const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
@@ -147,7 +147,7 @@ export const WordBlock = ({
 
   let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
 
-  if (ctxUniformWidth && !ctxIsHebrew) {
+  if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
     if (canvas) {
       // Get the 2D rendering context
@@ -187,7 +187,7 @@ export const WordBlock = ({
               {<sup {...verseNumStyles}></sup>}
               <span
                 className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none
-                  ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+                  ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
               >
               </span>
             </span>
@@ -199,7 +199,7 @@ export const WordBlock = ({
 
   return (
     <div className="flex">
-      {ctxUniformWidth && indentsLocal > 0 && renderIndents(indentsLocal)}
+      {ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && indentsLocal > 0 && renderIndents(indentsLocal)}
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
@@ -215,10 +215,12 @@ export const WordBlock = ({
           className="flex"
           onClick={handleClick}
         >
-          {wordProps.showVerseNum ? <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> : ctxUniformWidth ? <sup {...verseNumStyles}></sup> : ''}
+          {wordProps.showVerseNum ? 
+            <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> : 
+              (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
             className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxUniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
             {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss}

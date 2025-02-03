@@ -13,8 +13,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
 import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
-import { useEffect } from "react";
-import { InfoPaneActionType } from "@/lib/types";
+import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 
 
 const Header = ({
@@ -26,7 +25,7 @@ const Header = ({
   //color functions
   setColorAction,
   setSelectedColor,
-  setUniformWidth,
+  setBoxStyle,
   setCloneStudyOpen  
 }: {
   study: StudyData;
@@ -37,7 +36,7 @@ const Header = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setUniformWidth: (arg: boolean) => void;  
+  setBoxStyle: (arg: BoxDisplayStyle) => void;  
   setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
@@ -91,7 +90,7 @@ const Header = ({
         //color functions
         setColorAction={setColorAction}
         setSelectedColor={setSelectedColor}
-        setUniformWidth={setUniformWidth}
+        setBoxStyle={setBoxStyle}
         setCloneStudyOpen={setCloneStudyOpen}
       />    
     </header>
