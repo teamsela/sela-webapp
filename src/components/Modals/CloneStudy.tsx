@@ -10,13 +10,13 @@ interface CloneStudyModalProps {
 
 export default function CloneStudyModal({ originalStudy, open, setOpen }: CloneStudyModalProps) {
 
-    const [clonedStudyName, setClonedStudyName] = useState('');
+    const [clonedStudyName, setClonedStudyName] = useState("Copy of " + originalStudy.name.trimEnd());
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
     const modal = useRef<any>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
+    
     const onCancel = () => {
         setClonedStudyName("");
         setOpen(false);
@@ -39,10 +39,10 @@ export default function CloneStudyModal({ originalStudy, open, setOpen }: CloneS
         setIsLoading(true);
         setError(null); // Clear previous errors when a new request starts
         setOpen(false);
-        setClonedStudyName('');
 
         try {
             cloneStudy(originalStudy, clonedStudyName);
+            setClonedStudyName('');
         } catch (e) {
             // Capture the error message to display to the user
             setError((e as Error).message);
@@ -72,7 +72,7 @@ export default function CloneStudyModal({ originalStudy, open, setOpen }: CloneS
                         type="text"
                         min={2}
                         max={50}
-                        defaultValue={"Copy of " + originalStudy.name.trimEnd()}
+                        defaultValue={clonedStudyName}
                         onChange={e => { setClonedStudyName(e.target.value) }}
                         name="studyName"
                         id="studyName"
