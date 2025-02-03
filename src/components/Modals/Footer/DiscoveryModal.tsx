@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import './footerComponent.css';
 
-const BSBModal: React.FC = () => {
+const DiscoveryModal: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const trigger = useRef<any>(null);
@@ -38,9 +37,9 @@ const BSBModal: React.FC = () => {
       <button
         ref={trigger}
         onClick={() => setModalOpen(!modalOpen)}
-        className="component-with-links"
+        className="hover:underline"
       >
-        BSB
+        Discovery Bible
       </button>
       <div
         className={`fixed left-0 top-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${
@@ -51,20 +50,16 @@ const BSBModal: React.FC = () => {
           ref={modal}
           onFocus={() => setModalOpen(true)}
           onBlur={() => setModalOpen(false)}
-          className="component-with-links relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
+          className="relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-base text-center dark:bg-boxdark md:px-17.5 md:py-15"
         >
           <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-            Berean Standard Bible
+            Discovery Bible
           </h3>
           <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
           <p className="text-left mb-10">
-            The line divisions found in the <a href="https://berean.bible/index.html">Berean Standard Bible</a> have been adapted for displaying the default lines found in the bible passages here. 
-            Some discrepancies remain due to word order differences in the Hebrew text and this translation.
+            Parts of the English and Hebrew text data were drawn from the Discovery Bible, available at <a href="https://discoverybible.com">discoverybible.com</a>, copyright &copy;2023, <a href="https://helpsministries.org">HELPS Ministries Inc.</a> Used by permission. All rights reserved.
           </p>
-          <p className="text-left mb-10">
-          The <a href="https://berean.bible/index.html">Berean Bible</a> is officially dedicated to the <a href="https://creativecommons.org/publicdomain/zero/1.0/">public domain</a> as of April 30, 2023
-          </p>
-          <p><a href="https://berean.bible/index.html">berean.bible</a></p>
+          <p><a href="https://discoverybible.com">discoverybible.com</a></p>
           <button
             onClick={() => setModalOpen(false)}
             className="absolute right-6 top-6 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"
@@ -88,4 +83,4 @@ const BSBModal: React.FC = () => {
   );
 };
 
-export default BSBModal;
+export default DiscoveryModal;

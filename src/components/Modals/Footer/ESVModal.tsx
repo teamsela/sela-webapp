@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import './footerComponent.css';
 
-const StepBibleModal: React.FC = () => {
+const ESVModal: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const trigger = useRef<any>(null);
@@ -38,9 +37,9 @@ const StepBibleModal: React.FC = () => {
       <button
         ref={trigger}
         onClick={() => setModalOpen(!modalOpen)}
-        className="component-with-links"
+        className="hover:underline"
       >
-        STEP Bible
+        ESV
       </button>
       <div
         className={`fixed left-0 top-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${
@@ -51,20 +50,19 @@ const StepBibleModal: React.FC = () => {
           ref={modal}
           onFocus={() => setModalOpen(true)}
           onBlur={() => setModalOpen(false)}
-          className="component-with-links relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
+          className="relative w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-base text-center dark:bg-boxdark md:px-17.5 md:py-15"
         >
           <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-            STEP Bible
+            English Standard Version
           </h3>
           <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
           <p className="text-left mb-10">
-            Related words data drawn from <a href="https://www.stepbible.org">STEP Bible&apos;s</a> data available under <a href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> 
+          Scripture quotations marked “ESV” are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved. The ESV text may not be quoted in any publication made available to the public by a Creative Commons license. The ESV may not be translated into any other language.
           </p>
           <p className="text-left mb-10">
-            Datasets from Step Bible is based on scholars&apos; work at <a href="https://tyndalehouse.com">Tyndale House</a>&mdash;an international Biblical Studies research Institute in Cambridge, UK.
+          Users may not copy or download more than 500 verses of the ESV Bible or more than one half of any book of the ESV Bible.
           </p>
-          <p><a href="https://www.stepbible.org">STEPBible.org</a></p>
-          <p><a href="https://tyndalehouse.com">TyndaleHouse.com</a></p>
+          <p><a href="https://www.esv.org">esv.org</a></p>
           <button
             onClick={() => setModalOpen(false)}
             className="absolute right-6 top-6 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white"
@@ -88,4 +86,4 @@ const StepBibleModal: React.FC = () => {
   );
 };
 
-export default StepBibleModal;
+export default ESVModal;

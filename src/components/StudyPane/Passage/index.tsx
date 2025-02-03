@@ -3,7 +3,7 @@ import React, { useEffect, useContext } from 'react';
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
 
-import { PassageData, PassageProps, WordProps, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { WordProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { updateMetadata } from '@/lib/actions';
 import { mergeData } from '@/lib/utils';
@@ -199,35 +199,31 @@ const Passage = ({
   
 
   const passageContentStyle = {
-    className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
+    className: `flex-1 relative w-3/4 h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
   }
 
   //console.log(passageProps);
 
-  return (
-    <main className="relative min-h-full w-full">
-    
-      <div
-        key={`passage`}
-        onMouseDown={handleMouseDown}
-        ref={containerRef}
-        style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-        {...passageContentStyle}
-        className="h-0"
-      >
-        <div id="selaPassage" className='flex relative m-2 py-5 top-30 pb-2 z-10'>
-          {
-            ctxPassageProps.stanzaProps.map((stanza) => {
-              return (
-                <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-              )
-            })
-          }
-        </div>
-        {isDragging && <div style={getSelectionBoxStyle()} />}
+  return (  
+    <div
+      key={`passage`}
+      onMouseDown={handleMouseDown}
+      ref={containerRef}
+      style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
+      {...passageContentStyle}
+      className="h-0 ml-4 mr-3"
+    >
+      <div id="selaPassage" className='flex overflow-y-auto relative py-4'>
+        {
+          ctxPassageProps.stanzaProps.map((stanza) => {
+            return (
+              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
+            )
+          })
+        }
       </div>
-
-    </main>
+      {isDragging && <div style={getSelectionBoxStyle()} />}
+    </div>
   );
 };
 

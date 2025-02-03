@@ -155,7 +155,7 @@ const ScaleDropDown = ({setScaleValue}: {
           onClick={scaleByDecrement}>
           <AiOutlineMinusCircle fontSize="1.4em" />
         </button>
-        <ToolTip text="Minus scale by 5%"/>
+        <ToolTip text="Reduce by 5%"/>
       </div>
 
       {/* scale input & dropdown */}
@@ -225,7 +225,7 @@ const ScaleDropDown = ({setScaleValue}: {
           onClick={scaleByIncrement}>
           <AiOutlinePlusCircle fontSize="1.4em" />
         </button>
-        <ToolTip text="Add scale by 5%"/>
+        <ToolTip text="Enlarge by 5%"/>
       </div>
     </div>
   );

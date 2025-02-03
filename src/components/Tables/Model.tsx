@@ -1,11 +1,13 @@
-import { getXataClient } from '@/xata';
-import { clerkClient } from '@clerk/nextjs';
+'use client';
+
+import { useState, useEffect } from 'react';
 
 import SearchBar from "@/components/Tables/Search";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
-
-const xataClient = getXataClient();
+import CloneStudyModal from '../Modals/CloneStudy';
+import { FetchStudiesResult, StudyData } from '@/lib/data';
+import { fetchModelStudies } from '@/lib/actions';
 
 export default async function ModelTable({
   query,
@@ -14,38 +16,20 @@ export default async function ModelTable({
   query: string;
   currentPage: number;
 }) {
-  // may make PAGINATION_SIZE editable by user later
-  const PAGINATION_SIZE = 10;
-  
-  // fetch all studies from xata
-  const search = await xataClient.db.study.search("", {
-    filter: {
-      $all:[
-        {model: true},
-        {
-          $any: [
-            { name: {$iContains: query }},
-            { passage: {$iContains: query }}
-          ]
-        },  
-      ]
-    },
-    page: {
-      size: PAGINATION_SIZE,
-      offset: (currentPage-1) * PAGINATION_SIZE
-    }
-  });
-  const studies = search.records;
-  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
 
-  // extract the ids from owner column and add them into a set
-  const uniqueIds = new Set<string>();
-  studies.forEach((study) => {
-    uniqueIds.add(study?.owner ? study.owner : "");
-  });
+  const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
+  const [selectedStudy, setSelectedStudy] = useState<StudyData | undefined>();
 
-  // fetch ids and sessions of owners from clerk
-  const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
+  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
+
+  async function fetchStudies() {
+    const [result] = await Promise.all([fetchModelStudies(query, currentPage)]);
+    setStudiesResult(result);
+  }
+
+  useEffect(() => {
+    fetchStudies();
+  }, []);
 
   return (
     <>
@@ -61,10 +45,12 @@ export default async function ModelTable({
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
                 Passage
               </th>
-            </tr>
+              <th className="min-w-[10px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+              </th>
+          </tr>
           </thead>
           <tbody>
-            {studies.map((studyItem) => (
+            {studiesResult.records.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
@@ -78,19 +64,33 @@ export default async function ModelTable({
                     Psalm {studyItem.passage}
                   </p>
                 </td>
+                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
+                  <button onClick={() => {
+                      setSelectedStudy(studyItem);
+                      setCloneStudyOpen(true);
+                    }} className="inline-flex justify-end rounded-lg bg-primary py-2 px-2 text-center font-medium text-white hover:bg-opacity-80 lg:px-8 xl:px-10">
+                    Start
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {
-        totalPages > 0 
-          ? <Pagination totalPages={ totalPages } /> 
+        studiesResult.totalPages > 0 
+          ? <Pagination totalPages={ studiesResult.totalPages } /> 
           : (<div className="text-center py-5">
             <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
           </div>)
       }
     </div>
+    {/* <!-- ===== Create Study Modal Start ===== --> */}
+    {
+      (selectedStudy !== undefined) && 
+      <CloneStudyModal originalStudy={selectedStudy} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
+    }
+    {/* <!-- ===== Create Study Modal End ===== --> */}    
     </>
   );
 };

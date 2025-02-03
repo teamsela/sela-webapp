@@ -3,13 +3,16 @@
 import { useState, createContext, useEffect } from "react";
 
 import Header from "./Header";
-import Toolbar from "./Toolbar";
 import Passage from "./Passage";
+import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { Footer } from "./Footer";
+import Toolbar from "./Toolbar";
+
+import { ColorData, StudyData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
-import { FooterComponent } from "../Footer";
+import { updateMetadata } from '@/lib/actions';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -83,6 +86,9 @@ const StudyPane = ({
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
   
+  const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
@@ -123,11 +129,16 @@ const StudyPane = ({
     // merge custom metadata with bible data
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
+    setUniformWidth(studyMetadata.uniformWidth || false);
   
   }, [passageData.bibleData, studyMetadata]);
 
+  useEffect(() => {
+    setSidebarOpen(infoPaneAction !== InfoPaneActionType.none);
+  }, [infoPaneAction])
+
   const passageDivStyle = {
-    className: `flex overflow-y-auto h-full w-full ${isHebrew ? "hbFont" : ""}`
+    className: `flex h-full w-full ${isHebrew ? "hbFont" : ""}`
   };
   const studyPaneWrapperStyle = {
     className: `grid gap-x-2 ${infoPaneAction !== InfoPaneActionType.none ? 'grid-cols-[3fr_1fr]' : ''} relative h-full`
@@ -188,13 +199,13 @@ const StudyPane = ({
             }
             if (word.stropheDiv) {
               wordMetadata.stropheDiv = word.stropheDiv;
-              if (Object.keys(stropheMetadata).length === 0) {
+              if (Object.keys(stropheMetadata).length > 0) {
                 wordMetadata.stropheMd = stropheMetadata;
               }
             }
-            if (word.stanzaDiv) {
+            if (word.stanzaDiv || (stanzaIdx == 0 && stropheIdx == 0 && lineIdx == 0 && wordIdx == 0)) {
               wordMetadata.stanzaDiv = word.stanzaDiv;
-              if (Object.keys(stanzaMetadata).length === 0) {
+              if (Object.keys(stanzaMetadata).length > 0) {
                 wordMetadata.stanzaMd = stanzaMetadata;
               }
             }
@@ -216,51 +227,54 @@ const StudyPane = ({
     passageData.study.metadata = studyMetadata1;
     setStudyMetadata(studyMetadata1)
     const jsonOutput = JSON.stringify(studyMetadata1);
+    //console.log(jsonOutput);
+    updateMetadata(passageData.study.id, studyMetadata1);
   }
-  else {
-    //console.log(passageData.study.metadata);
-  }
-
 
 
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <FormatContext.Provider value={formatContextValue}>
+
+        {/* Header */}
         <Header
           study={passageData.study}
           setLangToHebrew={setHebrew}
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
+          setScaleValue={setScaleValue}
+          setColorAction={setColorAction}
+          setSelectedColor={setSelectedColor}
+          setUniformWidth={setUniformWidth}
+          setCloneStudyOpen={setCloneStudyOpen}        
         />
-  
-        <main {...studyPaneWrapperStyle}>
-          <div {...passageDivStyle}>
-            <Toolbar
-              setScaleValue={setScaleValue}
-              //color functions
-              setColorAction={setColorAction}
-              setSelectedColor={setSelectedColor}
-              setUniformWidth={setUniformWidth}
-              content={content}
-            />
-  
-            <Passage bibleData={passageData.bibleData} />
-          </div>
-  
+
+        {/* Main Content */}
+        <div className="flex flex-1 overflow-hidden mt-1">
+          <main className={`flex-1 overflow-y-auto relative h-full ${isHebrew ? "hbFont" : ""} w-full ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+
+            {/* Scrollable Passage Pane */}
+              <Passage bibleData={passageData.bibleData} />
+            {
+            <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
+            }          
+          </main>
+
           {
-            infoPaneAction !== InfoPaneActionType.none && (
-              <div className="top-19 right-0 w-1/4 h-full z-30 bg-white border-l border-gray-300">
+              infoPaneAction !== InfoPaneActionType.none && (
+                /* Scrollable Info Pane */
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}
                 />
-              </div>
-            )
+              )
           }
-        </main>
-        <FooterComponent/>
+        </div>
+
+        {/* Footer */}
+        <Footer/>
       </FormatContext.Provider>
-    </>
+    </div>
   );
 
 };

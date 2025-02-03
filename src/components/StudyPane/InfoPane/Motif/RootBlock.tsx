@@ -21,7 +21,7 @@ export const RootBlock = ({
 
   const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
     return toSelect.every(dsd =>
-      dsd.metadata.color &&
+      dsd.metadata?.color &&
       (!dsd.metadata.color[property] || dsd.metadata.color[property] === toSelect[0].metadata.color?.[property])
     );
   };

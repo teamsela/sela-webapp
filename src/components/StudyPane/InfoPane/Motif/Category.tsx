@@ -15,7 +15,7 @@ const Category = () => {
         stanza.strophes.forEach(strophe => {
             strophe.lines.forEach(line => {
                 line.words.forEach(word => {
-                    if (word.motifData.categories && word.strongNumber) {
+                    if (word.motifData?.categories && word.strongNumber) {
                         word.motifData.categories.forEach(category => {
                             // Initialize category data if not in map
                             if (!categoryCount.has(category)) {

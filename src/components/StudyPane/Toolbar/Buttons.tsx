@@ -6,17 +6,19 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import CloneStudyModal from '@/components/Modals/CloneStudy';
 
 import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { updateWordColor, updateIndented, updateStropheColor, updateMetadata } from "@/lib/actions";
+import { StudyData } from '@/lib/data';
+import { updateMetadata } from "@/lib/actions";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+    <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
       {text}
     </div>
@@ -253,11 +255,15 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
 export const UniformWidthBtn = ({ setUniformWidth }: {
   setUniformWidth: (arg: boolean) => void,
 }) => {
-  const { ctxUniformWidth } = useContext(FormatContext);
+  const { ctxUniformWidth, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata } = useContext(FormatContext);
 
   const handleClick = () => {
+    ctxStudyMetadata.uniformWidth = !ctxUniformWidth;
     setUniformWidth(!ctxUniformWidth);
+    ctxSetStudyMetadata(ctxStudyMetadata);
+    (!ctxInViewMode) && updateMetadata(ctxStudyId, ctxStudyMetadata);
   }
+  
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
@@ -411,6 +417,25 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   );
 };
 
+export const StudyBtn = ({
+  setCloneStudyOpen
+} : {
+  setCloneStudyOpen: (arg: boolean) => void;
+}) => {
+
+  return (
+    <>
+    <div>
+      <button onClick={() => {
+          setCloneStudyOpen(true);
+        }} className="rounded-lg bg-primary py-2 px-2 text-center text-sm text-white hover:bg-opacity-90 lg:px-6 xl:px-8">
+        Start My Own Study
+      </button>
+    </div>
+    </>   
+  );
+};
+
 export const StructureBtn = ({
   setInfoPaneAction,
   infoPaneAction,
@@ -441,6 +466,7 @@ export const StructureBtn = ({
     </div>
   );
 };
+
 export const MotifBtn = ({
   setInfoPaneAction,
   infoPaneAction,
@@ -468,6 +494,7 @@ export const MotifBtn = ({
     </div>
   );
 };
+
 export const SyntaxBtn = ({
   setInfoPaneAction,
   infoPaneAction,
@@ -498,6 +525,7 @@ export const SyntaxBtn = ({
     </div>
   );
 };
+
 export const SoundsBtn = ({
   setInfoPaneAction,
   infoPaneAction,

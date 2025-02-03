@@ -1,7 +1,7 @@
 import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
@@ -28,7 +28,7 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum, ctxStudyMetadata,
+  const { ctxIsHebrew, ctxUniformWidth, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
@@ -86,7 +86,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
-      console.log("Change indent num to " + ctxIndentNum)
+      //console.log("Change indent num to " + ctxIndentNum)
       setIndentsLocal(ctxIndentNum);
     }
   }, [ctxIndentNum])

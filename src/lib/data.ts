@@ -118,6 +118,7 @@ export interface StudyData {
     passage: string;
     public: boolean;
     starred?: boolean;
+    model?: boolean;
     lastUpdated?: string;
     metadata: StudyMetadata;
 }

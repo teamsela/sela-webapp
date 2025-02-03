@@ -11,6 +11,7 @@ import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
+import Toolbar from "../Toolbar";
 import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
 import { useEffect } from "react";
 import { InfoPaneActionType } from "@/lib/types";
@@ -21,15 +22,27 @@ const Header = ({
   setLangToHebrew,
   setInfoPaneAction,
   infoPaneAction,
+  setScaleValue,
+  //color functions
+  setColorAction,
+  setSelectedColor,
+  setUniformWidth,
+  setCloneStudyOpen  
 }: {
   study: StudyData;
   setLangToHebrew: (arg: boolean) => void;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
+  setScaleValue: (arg: number) => void;
+  //color functions
+  setColorAction: (arg: number) => void,
+  setSelectedColor: (arg: string) => void;
+  setUniformWidth: (arg: boolean) => void;  
+  setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
   return (
-    <header id="selaHeader" className="overflow-hidden fixed left-0 top-0 z-9999 flex w-full bg-white drop-shadow-2 dark:bg-boxdark dark:drop-shadow-none">
+    <header id="selaHeader" className="flex flex-wrap w-full bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 md:px-6 2xl:px-8 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
         <div className="flex items-center 2xl:w-2/5 w-1/3">
           <Link className="block flex-shrink-0" href="/">
@@ -71,6 +84,16 @@ const Header = ({
           {/* <!-- User Area --> */}
         </div>
       </div>
+
+      <Toolbar
+        study={study}
+        setScaleValue={setScaleValue}
+        //color functions
+        setColorAction={setColorAction}
+        setSelectedColor={setSelectedColor}
+        setUniformWidth={setUniformWidth}
+        setCloneStudyOpen={setCloneStudyOpen}
+      />    
     </header>
   );
 };

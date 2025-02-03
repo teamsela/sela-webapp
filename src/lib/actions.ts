@@ -9,7 +9,6 @@ import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
-import { ColorActionType } from './types';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -43,6 +42,7 @@ export async function fetchStudyById(studyId: string) {
           owner: study?.owner || "",
           passage: study?.passage || "",
           public: study?.public || false,
+          model: study?.model || false,
           metadata: study?.metadata || {}
       };
 
@@ -98,6 +98,7 @@ export async function updateMetadata(studyId: string, studyMetadata: StudyMetada
   }
 }
 
+/*
 export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
   const user = await currentUser();
@@ -454,6 +455,7 @@ export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[
   }
 
 }
+*/
 
 export async function deleteStudy(studyId: string) {
 
@@ -477,6 +479,24 @@ export async function createStudy(passage: string) {
       record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, owner: user.id });
     } catch (error) {
       return { message: 'Database Error: Failed to Create Study.' };
+    }
+    if (record)
+      redirect('/study/' + record.id.replace("rec_", "") + '/edit');
+  }
+}
+
+export async function cloneStudy(originalStudy: StudyData, newName: string) {
+
+  const user = await currentUser();
+
+  if (user)
+  {
+    var record : StudyRecord;
+    const xataClient = getXataClient();
+    try {
+      record = await xataClient.db.study.create({ name: newName, passage: originalStudy.passage, owner: user.id, metadata: originalStudy.metadata });
+    } catch (error) {
+      return { message: 'Database Error: Failed to Clone Study.' };
     }
     if (record)
       redirect('/study/' + record.id.replace("rec_", "") + '/edit');
@@ -518,6 +538,41 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
   return searchResult;
 }
 
+export async function fetchModelStudies(query: string, currentPage: number) {
+  const PAGINATION_SIZE = 10;
+  let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
+
+  const user = await currentUser();
+
+  const xataClient = getXataClient();
+
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        {model: true},
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  search.records.map((studyRecord) => {   
+    searchResult.records.push({
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
+      public: studyRecord.public || false, starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xata.updatedAt.toLocaleString(), metadata: studyRecord.metadata })
+  });
+  searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  return searchResult;
+}
+
 export async function fetchPassageData(studyId: string) {
   const xataClient = getXataClient();
 
@@ -531,6 +586,7 @@ export async function fetchPassageData(studyId: string) {
       owner: study?.owner || "",
       passage: study?.passage || "",
       public: study?.public || false,
+      model: study?.model || false,
       metadata: study?.metadata || {}
     };
 

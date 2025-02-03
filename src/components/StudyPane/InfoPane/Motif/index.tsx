@@ -17,7 +17,7 @@ const Motif = () => {
     <div className="h-full overflow-y-auto flex flex-col">
       <div className="accordion">
         {/* Identical Words Accordion */}
-        <div className="border-b border-stroke dark:border-strokedark">
+        <div className="border-b border-stroke dark:border-strokedark mx-4">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
             onClick={() => toggleSection(MotifType.root)}
@@ -46,7 +46,7 @@ const Motif = () => {
         </div>
 
         {/* Categories Accordion */}
-        <div className="border-b border-stroke dark:border-strokedark">
+        <div className="border-b border-stroke dark:border-strokedark mx-4">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
             onClick={() => toggleSection(MotifType.category)}

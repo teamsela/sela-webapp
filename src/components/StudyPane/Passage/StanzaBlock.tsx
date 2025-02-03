@@ -19,8 +19,10 @@ export const StanzaBlock = ({
 
     stanzaProps.metadata.expanded = !expanded;
     const firstWordIdinStanza = stanzaProps.strophes[0].lines[0].words[0].wordId;
-    ctxStudyMetadata.words[firstWordIdinStanza].stanzaMd ??= {};
-    ctxStudyMetadata.words[firstWordIdinStanza].stanzaMd.expanded = stanzaProps.metadata.expanded;
+    if (ctxStudyMetadata.words[firstWordIdinStanza]) {
+      ctxStudyMetadata.words[firstWordIdinStanza].stanzaMd ??= {};
+      ctxStudyMetadata.words[firstWordIdinStanza].stanzaMd.expanded = stanzaProps.metadata.expanded;  
+    }
 
     if (!ctxInViewMode) {
       updateMetadata(ctxStudyId, ctxStudyMetadata);
