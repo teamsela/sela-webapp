@@ -100,7 +100,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                     }`}
                 >
                   <FaBookReader size="18px" />
-                  Personal
+                  My Studies
                 </Link>
               </li>
               {/* <!-- Menu Item Recent --> */}
@@ -113,7 +113,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                     }`}
                 >
                   <HiUserGroup size="20px" />
-                  Shared
+                  Public Studies
                 </Link>
               </li>
               {/* <!-- Menu Item Public --> */}
@@ -126,7 +126,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                     }`}
                 >
                   <PiBookBookmarkFill size="20px" />
-                  Pre-Marked
+                  Pre-Marked Studies
                 </Link>
               </li>
               {/* <!-- Menu Item Sample --> */}
