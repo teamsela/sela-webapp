@@ -42,7 +42,7 @@ const Header = ({
 
   return (
     <header id="selaHeader" className="flex flex-wrap w-full bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 md:px-6 2xl:px-8 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
+      <div className="flex flex-grow items-center justify-left pl-4 md:pr-6 2xl:pr-8 py-4 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
         <div className="flex items-center 2xl:w-2/5 w-1/3">
           <Link className="block flex-shrink-0" href="/">
             <Image
@@ -63,20 +63,19 @@ const Header = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 lg:gap-2 md:gap-1 sm:gap-0.5 2xsm:gap-0.25 2xl:w-2/5 w-1/3 justify-end">
-          <ul className="flex items-center flex-col md:flex-row gap-1 lg:gap-2 md:gap-1 sm:gap-0.5 2xsm:gap-0.25">
-            {/*<div className="hidden sm:block mr-2">*/}
-            {/* <Tabs /> */}  
-            {/*</div>*/}
+        <div className="flex items-center sm:gap-1 md:gap-2 lg:gap-4 2xl:w-2/5 w-1/3 justify-end">
+          <ul className="flex items-center flex-col md:flex-row gap-1 2xsm:gap-0.25 sm:gap-0.5 md:gap-1 lg:gap-2">
             <StructureBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
             <MotifBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction}/>
             <SyntaxBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
             <SoundsBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
-            {/* <!-- Dark Mode Toggler --> */}
-            {/*<DarkModeSwitcher />*/}
-            {/* <!-- Dark Mode Toggler --> */}
           </ul>
+
+          <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
+
+          {/* <!-- Dark Mode Toggler --> */}
+          {/*<DarkModeSwitcher />*/}
+          {/* <!-- Dark Mode Toggler --> */}
 
           {/* <!-- User Area --> */}
           {<DropdownUser />}

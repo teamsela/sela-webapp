@@ -29,7 +29,7 @@ const Toolbar = ({
  
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
-      <div className="relative mx-auto px-8 py-2 bg-white w-full hbFontExemption">
+      <div className="relative mx-auto pl-4 md:pr-6 2xl:pr-8 py-2 bg-white w-full hbFontExemption">
 
       { // only show zoom in/out & uniform width buttons in view only mode
         ctxInViewMode ? 
