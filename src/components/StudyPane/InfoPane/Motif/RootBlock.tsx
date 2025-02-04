@@ -58,7 +58,9 @@ export const RootBlock = ({
     const rootsColor = ctxRootsColorMap.get(toSelect[0].strongNumber)
     if (rootsColor) {
       toSelect.forEach(dsd => {
-        dsd.metadata.color = rootsColor;
+        dsd.metadata = dsd.metadata ? 
+        { ...dsd.metadata, color: rootsColor } : 
+        { color: rootsColor };
       });
       rootsColor.fill && setColorFillLocal(rootsColor.fill);
       rootsColor.text && setTextColorLocal(rootsColor.text);

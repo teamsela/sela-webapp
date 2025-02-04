@@ -93,7 +93,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     const rootsColorMap = ctxRootsColorMap.get(wordProps.strongNumber)
-    if (rootsColorMap) {
+    if (rootsColorMap && wordProps.metadata) {
       wordProps.metadata.color ??= {};
       wordProps.metadata.color.fill = rootsColorMap.fill;
       wordProps.metadata.color.text = rootsColorMap.text;
