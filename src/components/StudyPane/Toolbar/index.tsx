@@ -42,7 +42,7 @@ const Toolbar = ({
               {
                  (study.model) &&
                  (
-                  <div className="flex h-8 basis-1/3 items-center justify-center">
+                  <div className="flex h-8 basis-2/3 items-center justify-end">
                     <StudyBtn setCloneStudyOpen={setCloneStudyOpen} />
                   </div>
                  )
