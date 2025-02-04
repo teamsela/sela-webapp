@@ -5,8 +5,7 @@ import { useState, useEffect } from 'react';
 import SearchBar from "@/components/Tables/Search";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
-import CloneStudyModal from '../Modals/CloneStudy';
-import { FetchStudiesResult, StudyData } from '@/lib/data';
+import { FetchStudiesResult } from '@/lib/data';
 import { fetchModelStudies } from '@/lib/actions';
 
 export default async function PremarkedTable({
@@ -17,19 +16,23 @@ export default async function PremarkedTable({
   currentPage: number;
 }) {
 
-  const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
-  const [selectedStudy, setSelectedStudy] = useState<StudyData | undefined>();
-
-  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
-
-  async function fetchStudies() {
-    const [result] = await Promise.all([fetchModelStudies(query, currentPage)]);
-    setStudiesResult(result);
-  }
+  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({
+    records: [],
+    totalPages: 1,
+  });
 
   useEffect(() => {
+    const fetchStudies = async () => {
+      try {
+        const result = await fetchModelStudies(query, currentPage);
+        setStudiesResult(result);
+      } catch (error) {
+        console.error("Failed to fetch studies:", error);
+      }
+    };
+
     fetchStudies();
-  }, []);
+  }, [query, currentPage]);
 
   return (
     <>
@@ -64,14 +67,6 @@ export default async function PremarkedTable({
                     Psalm {studyItem.passage}
                   </p>
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
-                  <button onClick={() => {
-                      setSelectedStudy(studyItem);
-                      setCloneStudyOpen(true);
-                    }} className="inline-flex justify-end rounded-lg bg-primary py-2 px-2 text-center font-medium text-white hover:bg-opacity-80 lg:px-8 xl:px-10">
-                    Start
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -84,13 +79,7 @@ export default async function PremarkedTable({
             <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
           </div>)
       }
-    </div>
-    {/* <!-- ===== Create Study Modal Start ===== --> */}
-    {
-      (selectedStudy !== undefined) && 
-      <CloneStudyModal originalStudy={selectedStudy} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
-    }
-    {/* <!-- ===== Create Study Modal End ===== --> */}    
+    </div> 
     </>
   );
 };
