@@ -12,7 +12,6 @@ import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
-import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
 import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 
 
@@ -64,12 +63,7 @@ const Header = ({
         </div>
 
         <div className="flex items-center sm:gap-1 md:gap-2 lg:gap-4 2xl:w-2/5 w-1/3 justify-end">
-          <ul className="flex items-center flex-col md:flex-row gap-1 2xsm:gap-0.25 sm:gap-0.5 md:gap-1 lg:gap-2">
-            <StructureBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <MotifBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction}/>
-            <SyntaxBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <SoundsBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-          </ul>
+          <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
 
           <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
 
