@@ -9,7 +9,7 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import { FetchStudiesResult, StudyData } from '@/lib/data';
 import { fetchModelStudies } from '@/lib/actions';
 
-export default async function ModelTable({
+export default async function PremarkedTable({
   query,
   currentPage,
 }: {
