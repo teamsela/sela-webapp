@@ -180,9 +180,9 @@ const StudyPane = ({
             if (word.numIndent > 0) {
               wordMetadata.indent = word.numIndent;
             }
-            if (word.lineBreak) {
-               wordMetadata.lineBreak = word.lineBreak;
-            }
+            //if (word.lineBreak) {
+            //   wordMetadata.lineBreak = word.lineBreak;
+            //}
             if (word.stropheDiv) {
               wordMetadata.stropheDiv = word.stropheDiv;
               if (Object.keys(stropheMetadata).length > 0) {
