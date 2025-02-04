@@ -189,14 +189,14 @@ const StudyPane = ({
                 wordMetadata.stropheMd = stropheMetadata;
               }
             }
-            if (word.stanzaDiv || (stanzaIdx == 0 && stropheIdx == 0 && lineIdx == 0 && wordIdx == 0)) {
+            if (word.stanzaDiv) {
               wordMetadata.stanzaDiv = word.stanzaDiv;
               if (Object.keys(stanzaMetadata).length > 0) {
                 wordMetadata.stanzaMd = stanzaMetadata;
               }
             }
 
-            if (Object.keys(wordMetadata).length !== 0) {
+            if (Object.keys(wordMetadata).length > 0) {
               if (!studyMetadata1.words) {
                 studyMetadata1.words = {};
               }
