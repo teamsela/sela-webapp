@@ -92,13 +92,19 @@ export const WordBlock = ({
   }, [ctxIndentNum])
 
   useEffect(() => {
-    const rootsColorMap = ctxRootsColorMap.get(wordProps.strongNumber)
-    if (rootsColorMap && wordProps.metadata) {
-      wordProps.metadata.color ??= {};
-      wordProps.metadata.color.fill = rootsColorMap.fill;
-      wordProps.metadata.color.text = rootsColorMap.text;
-      (rootsColorMap.fill) && setColorFillLocal(rootsColorMap.fill);
-      (rootsColorMap.text) && setTextColorLocal(rootsColorMap.text);
+    const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
+    if (rootsColor) {
+      wordProps.metadata = {
+        ...wordProps.metadata,
+        color: {
+          fill: rootsColor.fill,
+          text: rootsColor.text,
+          ...(wordProps.metadata?.color || {}),
+        },
+      };
+
+      (rootsColor.fill) && setColorFillLocal(rootsColor.fill);
+      (rootsColor.text) && setTextColorLocal(rootsColor.text);
     }
   }, [ctxRootsColorMap])
 
