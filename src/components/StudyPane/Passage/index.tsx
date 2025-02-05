@@ -213,7 +213,7 @@ const Passage = ({
       {...passageContentStyle}
       className="h-0 ml-4 mr-3"
     >
-      <div id="selaPassage" className='flex overflow-y-auto relative py-4'>
+      <div id="selaPassage" className='flex relative py-4'>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (
