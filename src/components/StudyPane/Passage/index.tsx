@@ -198,9 +198,6 @@ const Passage = ({
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
   
 
-  const passageContentStyle = {
-    className: `flex-1 relative w-3/4 h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
-  }
 
   //console.log(passageProps);
 
@@ -210,8 +207,6 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      {...passageContentStyle}
-      className="h-0 ml-4 mr-3"
     >
       <div id="selaPassage" className='flex relative py-4'>
         {

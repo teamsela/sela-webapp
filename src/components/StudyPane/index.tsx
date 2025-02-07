@@ -219,7 +219,8 @@ const StudyPane = ({
 
 
   return (
-    <div className="flex flex-col h-screen">
+
+    <>
       <FormatContext.Provider value={formatContextValue}>
 
         {/* Header */}
@@ -236,14 +237,13 @@ const StudyPane = ({
         />
 
         {/* Main Content */}
-        <div className="flex flex-1 overflow-hidden mt-1">
+        <div className="flex flex-1 overflow-hidden pt-32">
           <main className={`flex-1 overflow-y-auto relative h-full ${isHebrew ? "hbFont" : ""} w-full ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
-
             {/* Scrollable Passage Pane */}
               <Passage bibleData={passageData.bibleData} />
             {
             <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
-            }          
+            }
           </main>
 
           {
@@ -260,7 +260,7 @@ const StudyPane = ({
         {/* Footer */}
         <Footer/>
       </FormatContext.Provider>
-    </div>
+    </>
   );
 
 };

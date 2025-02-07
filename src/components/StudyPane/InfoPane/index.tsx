@@ -21,7 +21,7 @@ const InfoPane = ({
 
     return (
         <aside
-            className={`h-full flex-col bg-white transition-all duration-300 ${
+            className={`h-full overflow-y-auto flex-col bg-white transition-all duration-300 ${
                 infoPaneAction !== InfoPaneActionType.none ? "w-1/4" : "w-0"
             } right-0 top-0 border-l-2`}
             style={{ borderColor: "rgb(203 213 225)" }}
