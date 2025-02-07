@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FormatContext } from '../index';
-import { PassageData } from '@/lib/data';
+import { HebWord, PassageData } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { handleStructureUpdate } from './StructureUpdate';
 import { StanzaBlock } from './StanzaBlock';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+
+import { getWordById } from '@/lib/utils';
 
 const Passage = ({
   content,
@@ -55,15 +57,17 @@ const Passage = ({
     className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
   }
 
-  console.log(passageData);
+  // console.log(passageData);
 
-  const useSelectAll = (array:any) :any[] => {
-    let result:any = []
-    const findWordsArrays = (item: any) => {
+  const useSelectAll = (array:any[]) :any[] => {
+    let result:object[] = []
+    const findWordsArrays = (item: object[]) => {
       for (const [key, value] of Object.entries(item)) {
         if (Array.isArray(value)) {
           if (key === "words") {
-            result.push(value);
+            for(let i = 0; i < value.length; i++) {
+              result.push(value[i]);
+            }
           }
           else {
             value.flatMap(findWordsArrays)
@@ -74,9 +78,10 @@ const Passage = ({
     array.flatMap(findWordsArrays);
     return result ?? [];
   }
-
-  console.log(useSelectAll(passageData.stanzas));
-  // console.log(passageData.stanzas[0]['strophes'])
+  let allWordsArr:any[] = useSelectAll(passageData.stanzas);
+  // ctxSetSelectedHebWords(allWordsArr);
+  // ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+  console.log(allWordsArr);
 
   return (
     <main className="relative min-h-full w-full">
