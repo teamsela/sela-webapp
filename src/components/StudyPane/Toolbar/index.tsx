@@ -70,8 +70,8 @@ const Toolbar = ({
           </div>
           <div className="border-r border-stroke flex flex-row">
             <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
-            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Move to previous line" />
-            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Move to next line" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
+            <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
           </div>
           <div className="border-r px-3 border-stroke flex flex-row">
             <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
