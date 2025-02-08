@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
-import { PassageData, HebWord } from "@/lib/data";
+import { PassageData, HebWord, WordProps } from "@/lib/data";
 
 import { RootBlock } from "./RootBlock";
 import RelatedWordSwitcher from "./RelatedWordSwitcher";
+import { FormatContext } from '../../index';
+
 import SmartHighlight from '@/components/Modals/SmartHighlight';
 
 export const RootColorPalette = [
@@ -12,21 +14,18 @@ export const RootColorPalette = [
     '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
 ];
 
-export type HebWordProps = {
+export type RootWordProps = {
     count: number,
-    descendants: HebWord[],
-    relatedWords: HebWord[]
+    descendants: WordProps[],
+    relatedWords: WordProps[]
 };
 
-const Root = ({
-    content
-}: {
-    content: PassageData;
-}) => {
+const Root = () => {
+    const { ctxPassageProps } = useContext(FormatContext)
     const [selectRelated, setSelectRelated] = useState(false);
 
-    let rootWordsMap = new Map<number, HebWord[]>();
-    content.stanzas.map((stanzas) => {
+    let rootWordsMap = new Map<number, WordProps[]>();
+    ctxPassageProps.stanzaProps.map((stanzas) => {
         stanzas.strophes.map((strophe) => {
             strophe.lines.map((line) => {
                 line.words.map((word) => {
@@ -42,13 +41,13 @@ const Root = ({
         });
     })
 
-    let rootWords: HebWordProps[] = [];
+    let rootWords: RootWordProps[] = [];
     rootWordsMap.forEach((rootWord) => {
         const leadWord = rootWord[0]; 
         if (rootWord.length > 1 && leadWord.strongNumber) {
-            const relatedWords:HebWord[] = [];
-            if (leadWord.relatedStrongNums && leadWord.relatedStrongNums.length > 0) {
-                leadWord.relatedStrongNums.forEach(strongNum => {
+            const relatedWords:WordProps[] = [];
+            if (leadWord.motifData.relatedStrongNums && leadWord.motifData.relatedStrongNums.length > 0) {
+                leadWord.motifData.relatedStrongNums.forEach(strongNum => {
                     rootWordsMap.get(strongNum)?.forEach(word => relatedWords.push(word));
                 });
             }

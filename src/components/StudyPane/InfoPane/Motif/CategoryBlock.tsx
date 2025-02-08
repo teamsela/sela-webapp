@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from "../..";
-import { HebWord } from "@/lib/data";
+import { WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
 
 export const CategoryBlock = ({
@@ -9,55 +9,41 @@ export const CategoryBlock = ({
     selectedCategory,
     setSelectedCategory,
     value,
-    lastSelectedHebWords,
-    setLastSelectedHebWords
+    lastSelectedWords,
+    setLastSelectedWords
 }: {
     category: String,
     index: number,
     selectedCategory: String,
     setSelectedCategory: React.Dispatch<React.SetStateAction<String>>,
-    value: { strongNumbers: number[], count: number, hebWords: HebWord[] },
-    lastSelectedHebWords: HebWord[],
-    setLastSelectedHebWords: React.Dispatch<React.SetStateAction<HebWord[]>>
+    value: { strongNumbers: number[], count: number, wordProps: WordProps[] },
+    lastSelectedWords: WordProps[],
+    setLastSelectedWords: React.Dispatch<React.SetStateAction<WordProps[]>>
 }) => {
+    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
 
-    const matchFillColor = () => {
-        let match = value.hebWords.every((dsd) => {
-          return !dsd.colorFill || dsd.colorFill === value.hebWords[0].colorFill;
-        });
-        return match;
-      }
-    
-      const matchTextColor = () => {
-        let match = value.hebWords.every((dsd) => {
-          return !dsd.textColor || dsd.textColor === value.hebWords[0].textColor;
-        });
-        return match;
-      }
-      
-      const matchBorderColor = () => {
-        let match = value.hebWords.every((dsd) => {
-          return !dsd.borderColor || dsd.borderColor === value.hebWords[0].borderColor;
-        });
-        return match;
-    }
-    const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
-    const [colorFillLocal, setColorFillLocal] = useState(matchFillColor()? value.hebWords[0].colorFill: DEFAULT_COLOR_FILL);
-    const [textColorLocal, setTextColorLocal] = useState(matchTextColor()? value.hebWords[0].textColor: DEFAULT_TEXT_COLOR);
-    const [borderColorLocal, setBorderColorLocal] = useState(matchBorderColor()? value.hebWords[0].textColor: DEFAULT_BORDER_COLOR);
+    const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
+        return value.wordProps.every(dsd =>
+          dsd.metadata?.color &&
+          (!dsd.metadata.color[property] || dsd.metadata.color[property] === value.wordProps[0].metadata.color?.[property])
+        );
+      };
+
+    const [colorFillLocal, setColorFillLocal] = useState(matchColorProperty('fill') ? value.wordProps[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
+    const [textColorLocal, setTextColorLocal] = useState(matchColorProperty('text') ? value.wordProps[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
+    const [borderColorLocal, setBorderColorLocal] = useState(matchColorProperty('border') ? value.wordProps[0].metadata?.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
     const [selected, setSelected] = useState(false);
 
     useEffect(() => {
         let hasChildren = true;
-        value.hebWords.forEach((eachWord) => {
-            hasChildren = hasChildren && ctxSelectedHebWords.includes(eachWord);
+        value.wordProps.forEach((word) => {
+            hasChildren = hasChildren && ctxSelectedWords.includes(word);
         })
         setSelected(hasChildren);
-        console.log(hasChildren)
-    }, [ctxSelectedHebWords, value.hebWords]);
+    }, [ctxSelectedWords, value.wordProps]);
 
     useEffect(() => {
-        if (ctxSelectedHebWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
+        if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
     
         if (selected) {
             if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
@@ -72,28 +58,27 @@ export const CategoryBlock = ({
                 setTextColorLocal(DEFAULT_TEXT_COLOR);
             }
         }
-    }, [ctxSelectedColor, ctxColorAction, ctxSelectedHebWords])
+    }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords])
 
     const handleClick = () => {
-        console.log(value);
         setSelected(prevState => !prevState);
         if (category === selectedCategory) {
-            const newSelectedHebWords = ctxSelectedHebWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+            const newSelectedHebWords = ctxSelectedWords.filter(
+                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
             );
-            ctxSetSelectedHebWords(newSelectedHebWords);
+            ctxSetSelectedWords(newSelectedHebWords);
             ctxSetNumSelectedWords(newSelectedHebWords.length);
-            setLastSelectedHebWords([]);
+            setLastSelectedWords([]);
         } else {
-            const wordsWithoutPrevCategory = ctxSelectedHebWords.filter(
-                word => !lastSelectedHebWords.some(categoryWord => categoryWord.id === word.id)
+            const wordsWithoutPrevCategory = ctxSelectedWords.filter(
+                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
             );
             
-            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.hebWords]));
+            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));
             
-            ctxSetSelectedHebWords(newSelectedHebWords);
-            ctxSetNumSelectedWords(newSelectedHebWords.length);
-            setLastSelectedHebWords(value.hebWords);
+            setSelectedCategory(category);
+            ctxSetSelectedWords(newSelectedHebWords);
+            setLastSelectedWords(value.wordProps);
         }
     };
     return (

@@ -6,6 +6,12 @@ export enum ColorActionType {
     resetColor
 }
 
+export enum BoxDisplayStyle {
+    noBox,
+    box,
+    uniformBoxes
+}
+
 export interface ColorPickerProps {
     colorAction: ColorActionType,
     setSelectedColor: (arg: string) => void;

@@ -1,29 +1,28 @@
 import { useContext, useState } from "react";
-import { HebWord, PassageData } from "@/lib/data";
+import { WordProps } from "@/lib/data";
 import { CategoryBlock } from "./CategoryBlock";
 import { FormatContext } from "../..";
 
-const Category = ({
-    content
-}: {
-    content: PassageData;
-}) => {
-    let categoryCount = new Map<String, { strongNumbers: number[], count: number, hebWords: HebWord[] }>();
-    let [selectedCategory, setSelectedCategory] = useState<String>("");
-    let [lastSelectedHebWords, setLastSelectedHebWords] = useState<HebWord[]>([]);
+const Category = () => {
 
-    content.stanzas.forEach(stanza => {
+  const { ctxPassageProps } = useContext(FormatContext);
+
+    let categoryCount = new Map<String, { strongNumbers: number[], count: number, wordProps: WordProps[] }>();
+    let [selectedCategory, setSelectedCategory] = useState<String>("");
+    let [lastSelectedWords, setLastSelectedWords] = useState<WordProps[]>([]);
+
+    ctxPassageProps.stanzaProps.forEach(stanza => {
         stanza.strophes.forEach(strophe => {
             strophe.lines.forEach(line => {
                 line.words.forEach(word => {
-                    if (word.categories && word.strongNumber) {
-                        word.categories.forEach(category => {
+                    if (word.motifData?.categories && word.strongNumber) {
+                        word.motifData.categories.forEach(category => {
                             // Initialize category data if not in map
                             if (!categoryCount.has(category)) {
                                 categoryCount.set(category, {
                                     strongNumbers: [],
                                     count: 0,
-                                    hebWords: []
+                                    wordProps: []
                                 });
                             }
                             
@@ -35,7 +34,7 @@ const Category = ({
                             }
                             
                             // Add the Hebrew word to hebWords array
-                            categoryData.hebWords.push(word);
+                            categoryData.wordProps.push(word);
                             
                             // Increment the overall count for this category
                             categoryData.count++;
@@ -56,7 +55,7 @@ const Category = ({
                         (value.strongNumbers.length > 1) && (
                             <div key={index}>
                                 <CategoryBlock category={key} index={index} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} 
-                                value={value} lastSelectedHebWords={lastSelectedHebWords} setLastSelectedHebWords={setLastSelectedHebWords}/>
+                                value={value} lastSelectedWords={lastSelectedWords} setLastSelectedWords={setLastSelectedWords}/>
                             </div>
                         )
                     ))}

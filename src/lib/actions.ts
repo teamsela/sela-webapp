@@ -8,8 +8,7 @@ import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
-import { StudyData, PassageData, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
-import { ColorActionType } from './types';
+import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -42,7 +41,9 @@ export async function fetchStudyById(studyId: string) {
           name: study?.name || "",
           owner: study?.owner || "",
           passage: study?.passage || "",
-          public: study?.public || false
+          public: study?.public || false,
+          model: study?.model || false,
+          metadata: study?.metadata || {}
       };
 
       return result;
@@ -83,6 +84,21 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   }
 }
 
+export async function updateMetadata(studyId: string, studyMetadata: StudyMetadata) {
+  "use server";
+
+  const xataClient = getXataClient();
+  try {
+    const metadataJson = JSON.stringify(studyMetadata);
+    if (metadataJson) {
+      await xataClient.db.study.updateOrThrow({ id: studyId, metadata: studyMetadata });
+    }
+  } catch (error) {
+    return { message: 'Database Error: Failed to update study star.' };
+  }
+}
+
+/*
 export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
   "use server";
   const user = await currentUser();
@@ -439,6 +455,7 @@ export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[
   }
 
 }
+*/
 
 export async function deleteStudy(studyId: string) {
 
@@ -462,6 +479,24 @@ export async function createStudy(passage: string) {
       record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, owner: user.id });
     } catch (error) {
       return { message: 'Database Error: Failed to Create Study.' };
+    }
+    if (record)
+      redirect('/study/' + record.id.replace("rec_", "") + '/edit');
+  }
+}
+
+export async function cloneStudy(originalStudy: StudyData, newName: string) {
+
+  const user = await currentUser();
+
+  if (user)
+  {
+    var record : StudyRecord;
+    const xataClient = getXataClient();
+    try {
+      record = await xataClient.db.study.create({ name: newName, passage: originalStudy.passage, owner: user.id, metadata: originalStudy.metadata });
+    } catch (error) {
+      return { message: 'Database Error: Failed to Clone Study.' };
     }
     if (record)
       redirect('/study/' + record.id.replace("rec_", "") + '/edit');
@@ -497,13 +532,126 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt.toLocaleString() })
+      lastUpdated: studyRecord.xata.updatedAt.toLocaleString(), metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
   return searchResult;
 }
 
-export async function fetchPassageContent(studyId: string) {
+export async function fetchModelStudies(query: string, currentPage: number) {
+  const PAGINATION_SIZE = 10;
+  let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
+
+  const user = await currentUser();
+
+  const xataClient = getXataClient();
+
+  const search = await xataClient.db.study.search("", {
+    filter: {
+      $all:[
+        {model: true},
+        {
+          $any: [
+            { name: {$iContains: query }},
+            { passage: {$iContains: query }}
+          ]
+        },  
+      ]
+    },
+    page: {
+      size: PAGINATION_SIZE,
+      offset: (currentPage-1) * PAGINATION_SIZE
+    }
+  });
+  search.records.map((studyRecord) => {   
+    searchResult.records.push({
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
+      public: studyRecord.public || false, starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xata.updatedAt.toLocaleString(), metadata: studyRecord.metadata })
+  });
+  searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  return searchResult;
+}
+
+export async function fetchPassageData(studyId: string) {
+  const xataClient = getXataClient();
+
+  try {
+    // fetch a study by id from xata
+    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
+
+    let studyData : StudyData = {
+      id: studyId,
+      name: study?.name || "",
+      owner: study?.owner || "",
+      passage: study?.passage || "",
+      public: study?.public || false,
+      model: study?.model || false,
+      metadata: study?.metadata || {}
+    };
+
+    let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
+
+    if (study)
+    {
+      const passageInfo = parsePassageInfo(study.passage);
+
+      // fetch all words from xata by start/end chapter and verse
+      if (passageInfo instanceof Error === false)
+      {
+        const passageContent = await xataClient.db.heb_bible
+          .filter("chapter", ge(passageInfo.startChapter))
+          .filter("chapter", le(passageInfo.endChapter))
+          .filter("verse", ge(passageInfo.startVerse))
+          .filter("verse", le(passageInfo.endVerse))
+          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
+          .sort("hebId", "asc")
+          .getAll();
+
+        const strongNumberSet = new Set<number>();
+        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));          
+        passageContent.forEach(word => {
+          let hebWord = {} as WordProps;
+          hebWord.wordId = word.hebId || 0;
+          hebWord.chapter = word.chapter || 0;
+          hebWord.verse = word.verse || 0;
+          hebWord.strongNumber = word.strongNumber || 0;
+          hebWord.wlcWord = word.wlcWord || "";
+          hebWord.gloss = word.gloss?.trim() || "";
+          hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.showVerseNum = false;
+          hebWord.newLine = (word.BSBnewLine) || false;
+
+          if (word.motifLink) {
+            const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
+                                        .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
+            hebWord.motifData = {
+              //lemma: word.motifLink.lemmaLink?.lemma || "",
+              relatedWords: (word.motifLink?.relatedLink) ? {
+                strongCode: word.motifLink.relatedLink.id,
+                lemma: word.motifLink.relatedLink.lemma || "",
+                gloss: word.motifLink.relatedLink.gloss || "",
+              } : undefined,
+              relatedStrongNums: relatedStrongNums || [],
+              categories: word.motifLink?.categories || []
+            }
+            //console.log(hebWord.motifData);
+          }
+
+          passageData.bibleData.push(hebWord);
+        })
+      }
+    }
+//    console.log(wordsInPassage);
+    return passageData;
+  }
+  catch (error) {
+    console.error('Database Error', error);
+    throw new Error('Failed to fetch passage data by study id');
+  }
+}
+
+export async function fetchPassageContentOld(studyId: string) {
   
   const xataClient = getXataClient();
 

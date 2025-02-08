@@ -1,51 +1,38 @@
-import { getXataClient } from '@/xata';
-import { clerkClient } from '@clerk/nextjs';
+'use client';
+
+import { useState, useEffect } from 'react';
 
 import SearchBar from "@/components/Tables/Search";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
+import { FetchStudiesResult } from '@/lib/data';
+import { fetchModelStudies } from '@/lib/actions';
 
-const xataClient = getXataClient();
-
-export default async function ModelTable({
+export default async function PremarkedTable({
   query,
   currentPage,
 }: {
   query: string;
   currentPage: number;
 }) {
-  // may make PAGINATION_SIZE editable by user later
-  const PAGINATION_SIZE = 10;
-  
-  // fetch all studies from xata
-  const search = await xataClient.db.study.search("", {
-    filter: {
-      $all:[
-        {model: true},
-        {
-          $any: [
-            { name: {$iContains: query }},
-            { passage: {$iContains: query }}
-          ]
-        },  
-      ]
-    },
-    page: {
-      size: PAGINATION_SIZE,
-      offset: (currentPage-1) * PAGINATION_SIZE
-    }
-  });
-  const studies = search.records;
-  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
 
-  // extract the ids from owner column and add them into a set
-  const uniqueIds = new Set<string>();
-  studies.forEach((study) => {
-    uniqueIds.add(study?.owner ? study.owner : "");
+  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({
+    records: [],
+    totalPages: 1,
   });
 
-  // fetch ids and sessions of owners from clerk
-  const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
+  useEffect(() => {
+    const fetchStudies = async () => {
+      try {
+        const result = await fetchModelStudies(query, currentPage);
+        setStudiesResult(result);
+      } catch (error) {
+        console.error("Failed to fetch studies:", error);
+      }
+    };
+
+    fetchStudies();
+  }, [query, currentPage]);
 
   return (
     <>
@@ -61,10 +48,12 @@ export default async function ModelTable({
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
                 Passage
               </th>
-            </tr>
+              <th className="min-w-[10px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+              </th>
+          </tr>
           </thead>
           <tbody>
-            {studies.map((studyItem) => (
+            {studiesResult.records.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
@@ -84,13 +73,13 @@ export default async function ModelTable({
         </table>
       </div>
       {
-        totalPages > 0 
-          ? <Pagination totalPages={ totalPages } /> 
+        studiesResult.totalPages > 0 
+          ? <Pagination totalPages={ studiesResult.totalPages } /> 
           : (<div className="text-center py-5">
             <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
           </div>)
       }
-    </div>
+    </div> 
     </>
   );
 };

@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useContext, useRef } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../components/StudyPane/index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
-import { PassageData } from '@/lib/data';
+import { PassageData, PassageProps } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
 
-export const useDragToSelect = (content: PassageData) => {
+export const useDragToSelect = (passageProps: PassageProps) => {
 
-    const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
+    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
         ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
     } = useContext(FormatContext)
 
@@ -68,11 +68,11 @@ export const useDragToSelect = (content: PassageData) => {
                 adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
             ) {
                 const wordId = Number(rect.getAttribute('id'));
-                const selectedWord = getWordById(content, wordId);
-                if (selectedWord !== null && !ctxSelectedHebWords.includes(selectedWord)) {
-                    const newArray = [...ctxSelectedHebWords, selectedWord];
-                    ctxSetSelectedHebWords(newArray);
-                    ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+                const selectedWord = getWordById(passageProps, wordId);
+                if (selectedWord !== null && !ctxSelectedWords.includes(selectedWord)) {
+                    const newArray = [...ctxSelectedWords, selectedWord];
+                    ctxSetSelectedWords(newArray);
+                    ctxSetNumSelectedWords(ctxSelectedWords.length);
                 }
             }
         });
@@ -81,17 +81,17 @@ export const useDragToSelect = (content: PassageData) => {
         ctxSetBorderColor(DEFAULT_BORDER_COLOR);
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
-        if (ctxSelectedHebWords.length >= 1) {
-            const lastSelectedWord = ctxSelectedHebWords.at(ctxSelectedHebWords.length - 1);
-            if (lastSelectedWord) {
-                wordsHasSameColor(ctxSelectedHebWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill);
-                wordsHasSameColor(ctxSelectedHebWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
-                wordsHasSameColor(ctxSelectedHebWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
-            }
+        if (ctxSelectedWords.length >= 1) {
+            const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
+            // if (lastSelectedWord) {
+            //     wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill);
+            //     wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
+            //     wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) && ctxSetTextColor(lastSelectedWord?.textColor);
+            // }
             ctxSetSelectedStrophes([]);
         }
 
-    }, [isDragging, selectionStart, selectionEnd, content, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+    }, [isDragging, selectionStart, selectionEnd, passageProps, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
 
     const handleMouseUp = useCallback((event: MouseEvent) => {
@@ -110,10 +110,10 @@ export const useDragToSelect = (content: PassageData) => {
         }
         if (!selectionEnd && clickToDeSelect) {
             ctxSetNumSelectedWords(0);
-            ctxSetSelectedHebWords([]);
+            ctxSetSelectedWords([]);
             ctxSetSelectedStrophes([]);
         }
-    }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
+    }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
 
 
     useEffect(() => {

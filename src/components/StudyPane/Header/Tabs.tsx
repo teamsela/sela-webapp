@@ -1,53 +1,58 @@
 'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React from "react";
 
-const Tabs: React.FC = () => {
-  const [openTab, setOpenTab] = useState(1);
+import { InfoPaneActionType } from "@/lib/types";
 
-  const activeClasses = "bg-theme text-black dark:text-white font-bold";
-  const inactiveClasses = "bg-gray dark:bg-meta-4 text-black dark:text-white font-medium";
+export const Tabs = ({
+  setInfoPaneAction,
+  infoPaneAction,
+}: {
+  setInfoPaneAction: (arg: InfoPaneActionType) => void;
+  infoPaneAction: InfoPaneActionType;
+}) => {
+  
+  const activeClasses = "bg-primary text-white dark:text-white";
+  const inactiveClasses = "dark:bg-meta-4 text-black dark:text-white";
+
+  const handleClick = (actionType : InfoPaneActionType) => {
+    if (infoPaneAction != actionType) {
+      setInfoPaneAction(actionType);
+    } else {
+      setInfoPaneAction(InfoPaneActionType.none);
+    }
+  }
 
   return (
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="#"
-          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
-            openTab === 1 ? activeClasses : inactiveClasses
+    <div className="flex items-center rounded-full">
+      <button
+        className="inline-flex rounded-l-full border border-stroke border-primary font-medium text-meta-9 dark:hover:border-primary sm:px-4 sm:py-[6px]"
+        disabled={true}
+      >
+        Structure
+      </button>
+      <button
+        className={`inline-flex border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+          ${
+            infoPaneAction === InfoPaneActionType.motif ? activeClasses : inactiveClasses
           }`}
-          onClick={() => setOpenTab(1)}
-        >
-          Structure
-        </Link>
-        <Link
-          href="#"
-          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
-            openTab === 2 ? activeClasses : inactiveClasses
-          }`}
-          onClick={() => setOpenTab(2)}
-        >
-          Motif
-        </Link>
-        <Link
-          href="#"
-          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
-            openTab === 3 ? activeClasses : inactiveClasses
-          }`}
-          onClick={() => setOpenTab(3)}
-        >
-          Syntax
-        </Link>
-        <Link
-          href="#"
-          className={`rounded-md py-3 text-sm hover:bg-theme hover:text-black dark:hover:bg-theme md:text-base md:px-2 lg:px-6 ${
-            openTab === 4 ? activeClasses : inactiveClasses
-          }`}
-          onClick={() => setOpenTab(4)}
-        >
-          Sounds
-        </Link>
-      </div>
+        onClick={() => handleClick(InfoPaneActionType.motif)}
+      >
+        Motif
+      </button>
+      <button
+        className="inline-flex border-y border-stroke border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
+        disabled={true}
+      >
+        Syntax
+      </button>
+      <button
+        className="inline-flex rounded-r-full border border-stroke border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
+        disabled={true}
+      >
+        Sounds
+      </button>
+    </div>
   );
 };
 
