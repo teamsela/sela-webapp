@@ -1,6 +1,7 @@
 import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { eventBus } from '@/lib/eventBus';
 import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
@@ -40,6 +41,7 @@ export const WordBlock = ({
   const [textColorLocal, setTextColorLocal] = useState(wordProps.metadata?.color?.text || DEFAULT_TEXT_COLOR);
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const [selected, setSelected] = useState(false);
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   if (ctxColorAction != ColorActionType.none ) {
 
@@ -123,6 +125,21 @@ export const WordBlock = ({
 
 
   const handleClick = () => {
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+      setClickTimeout(null);
+      handleDoubleClick();
+    } else {
+      const timeout = setTimeout(() => {
+        handleSingleClick();
+        setClickTimeout(null);
+      }, 200);
+      setClickTimeout(timeout);
+    }
+  }
+
+  // select or deselect word block
+  const handleSingleClick = () => {
     setSelected(prevState => !prevState);
     const newSelectedWords = [...ctxSelectedWords]; // Clone the array
     (!selected) ? newSelectedWords.push(wordProps) : newSelectedWords.splice(newSelectedWords.indexOf(wordProps), 1);
@@ -142,8 +159,11 @@ export const WordBlock = ({
         wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
     }
-  }
+  };
 
+  const handleDoubleClick = () => {
+    eventBus.emit("selectAllIdenticalWords", wordProps);
+  }
 
   const verseNumStyles = {
     className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'mr-1' : 'ml-1'}`

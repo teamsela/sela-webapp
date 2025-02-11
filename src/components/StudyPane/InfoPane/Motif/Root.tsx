@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 
-import { PassageData, HebWord, WordProps } from "@/lib/data";
+import { WordProps } from "@/lib/data";
+import { extractIdenticalWordsFromPassage } from "@/lib/utils";
 
 import { RootBlock } from "./RootBlock";
 import RelatedWordSwitcher from "./RelatedWordSwitcher";
@@ -24,24 +25,8 @@ const Root = () => {
     const { ctxPassageProps } = useContext(FormatContext)
     const [selectRelated, setSelectRelated] = useState(false);
 
-    let rootWordsMap = new Map<number, WordProps[]>();
-    ctxPassageProps.stanzaProps.map((stanzas) => {
-        stanzas.strophes.map((strophe) => {
-            strophe.lines.map((line) => {
-                line.words.map((word) => {
-                    const currentWord = rootWordsMap.get(word.strongNumber);
-                    if (currentWord !== undefined) {
-                        currentWord.push(word);
-                    }
-                    else {
-                        rootWordsMap.set(word.strongNumber, [word]);
-                    }
-                })
-            })
-        });
-    })
-
-    let rootWords: RootWordProps[] = [];
+    const rootWordsMap = extractIdenticalWordsFromPassage(ctxPassageProps);
+    const rootWords: RootWordProps[] = [];
     rootWordsMap.forEach((rootWord) => {
         const leadWord = rootWord[0]; 
         if (rootWord.length > 1 && leadWord.strongNumber) {
