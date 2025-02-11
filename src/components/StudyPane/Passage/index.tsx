@@ -6,7 +6,8 @@ import { StanzaBlock } from './StanzaBlock';
 import { WordProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { updateMetadata } from '@/lib/actions';
-import { mergeData } from '@/lib/utils';
+import { eventBus } from "@/lib/eventBus";
+import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
@@ -197,7 +198,28 @@ const Passage = ({
 
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
   
+  const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
+  useEffect(() => { // handler select/deselect identical words
+    const handler = (word: WordProps) => {
+      const identicalWords = strongNumWordMap.get(word.strongNumber);
+      if (!identicalWords) {
+        return;
+      }
+      const newSelectedHebWords = [...ctxSelectedWords];
 
+      const toSelect = identicalWords.filter(word => newSelectedHebWords.indexOf(word) < 0);
+      if (toSelect.length > 0) { // select all if some are not selected
+        toSelect.forEach(word => newSelectedHebWords.push(word));
+      } else { // deselect if all are selected
+        identicalWords.forEach(word => newSelectedHebWords.splice(newSelectedHebWords.indexOf(word), 1))
+      }
+      ctxSetSelectedWords(newSelectedHebWords);
+      ctxSetNumSelectedWords(newSelectedHebWords.length);
+    };
+
+    eventBus.on("selectAllIdenticalWords", handler);
+    return () => eventBus.off("selectAllIdenticalWords", handler);
+  }, [ctxSelectedWords]);
 
   //console.log(passageProps);
 

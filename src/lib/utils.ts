@@ -202,6 +202,27 @@ export function parsePassageInfo(inputString: string) : PassageInfo | Error {
   return result;
 }
 
+export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : Map<number, WordProps[]>  {
+  const strongNumWordsMap = new Map<number, WordProps[]>();
+  passageProps.stanzaProps.forEach((stanzas) => {
+    stanzas.strophes.forEach((strophe) => {
+        strophe.lines.forEach((line) => {
+            line.words.forEach((word) => {
+                const currentWord = strongNumWordsMap.get(word.strongNumber);
+                if (currentWord !== undefined) {
+                    currentWord.push(word);
+                }
+                else {
+                  strongNumWordsMap.set(word.strongNumber, [word]);
+                }
+            })
+        })
+    });
+  });
+
+  return strongNumWordsMap;
+}
+
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
   // Measure the width of the text
   const metrics = context.measureText(text);
