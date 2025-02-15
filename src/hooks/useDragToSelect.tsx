@@ -146,6 +146,47 @@ export const useDragToSelect = (content: PassageData) => {
         };
     };
 
+
+    //pull all word blocks from passageData ////////////////////////////////////////
+    const useSelectAll = (array: any[]): any[] => {
+        let result: object[] = []
+        const findWordsArrays = (item: object[]) => {
+            for (const [key, value] of Object.entries(item)) {
+                if (Array.isArray(value)) {
+                    if (key === "words") {
+                        for (let i = 0; i < value.length; i++) {
+                            result.push(value[i]);
+                        }
+                    }
+                    else {
+                        value.flatMap(findWordsArrays)
+                    }
+                }
+            }
+        };
+        array.flatMap(findWordsArrays);
+        return result ?? [];
+    }
+    /////////////////////////////////////////////////////////////
+    // ctrl+A////////////////////////////////
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.key === "a") {
+                event.preventDefault(); // Prevent default select all action
+                //select all word blocks
+                let allWordsArr: any[] = useSelectAll(content.stanzas);
+                ctxSetSelectedHebWords(allWordsArr);
+                ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+    ///////////////////////////////////////////////////
+
+
     return {
         isDragging,
         selectionStart,

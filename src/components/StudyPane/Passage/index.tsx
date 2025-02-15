@@ -57,31 +57,6 @@ const Passage = ({
     className: `flex-1 relative w-full h-full overflow-hidden transition-all duration-300 mx-auto max-w-screen-3xl p-2 md:p-4 2xl:p-6 pt-6 mt-10`
   }
 
-  // console.log(passageData);
-
-  const useSelectAll = (array:any[]) :any[] => {
-    let result:object[] = []
-    const findWordsArrays = (item: object[]) => {
-      for (const [key, value] of Object.entries(item)) {
-        if (Array.isArray(value)) {
-          if (key === "words") {
-            for(let i = 0; i < value.length; i++) {
-              result.push(value[i]);
-            }
-          }
-          else {
-            value.flatMap(findWordsArrays)
-          }
-        }
-      }
-    };
-    array.flatMap(findWordsArrays);
-    return result ?? [];
-  }
-  let allWordsArr:any[] = useSelectAll(passageData.stanzas);
-  // ctxSetSelectedHebWords(allWordsArr);
-  // ctxSetNumSelectedWords(ctxSelectedHebWords.length);
-  console.log(allWordsArr);
 
   return (
     <main className="relative min-h-full w-full">
