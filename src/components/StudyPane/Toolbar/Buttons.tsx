@@ -68,7 +68,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
     (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
-  
+
   useEffect(() => {
     const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
@@ -121,10 +121,10 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
             }
             else if (colorAction === ColorActionType.textColor) {
               wordMetadata.color.text = color.hex;
-            }  
+            }
           }
           else {
-            wordMetadata.color = colorObj;   
+            wordMetadata.color = colorObj;
           }
         }
         else {
@@ -142,13 +142,13 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       const wordMetadata = ctxStudyMetadata.words[selectedWordId];
       wordMetadata.stropheMd ??= {};
       wordMetadata.stropheMd.color ??= colorObj;
-      
+
       if (colorAction === ColorActionType.colorFill) {
         wordMetadata.stropheMd.color.fill = color.hex;
       } else if (colorAction === ColorActionType.borderColor) {
         wordMetadata.stropheMd.color.border = color.hex;
       }
-      
+
       updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
   }
@@ -197,8 +197,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
 export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxStudyMetadata, 
-    ctxNumSelectedWords, ctxSelectedWords, 
+  const { ctxStudyId, ctxStudyMetadata,
+    ctxNumSelectedWords, ctxSelectedWords,
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
@@ -223,13 +223,15 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
         ctxSelectedWords.map((word) => {
+          console.log("good")
           const wordMetadata = ctxStudyMetadata.words[word.wordId];
           if (wordMetadata && wordMetadata?.color) {
+            console.log("gg")
             delete wordMetadata["color"];
           }
         })
         updateMetadata(ctxStudyId, ctxStudyMetadata);
-      }     
+      }
       if (ctxSelectedStrophes.length > 0) {
         const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
         (ctxStudyMetadata.words[selectedWordId].color) && (delete ctxStudyMetadata.words[selectedWordId].color);
@@ -266,7 +268,7 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
     ctxSetStudyMetadata(ctxStudyMetadata);
     (!ctxInViewMode) && updateMetadata(ctxStudyId, ctxStudyMetadata);
   }
-  
+
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
@@ -284,19 +286,19 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
       }
       {
         (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <ToolTip text="Enable uniform width" />
-      }      
+      }
     </div>
   );
 };
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum,
     ctxSelectedWords, ctxNumSelectedWords } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
   useEffect(() => {
-    let indentNum : number = 0;
+    let indentNum: number = 0;
     if (ctxSelectedWords.length === 1) {
       const wordMetadata = ctxStudyMetadata.words[ctxSelectedWords[0].wordId];
       indentNum = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
@@ -309,10 +311,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   const handleClick = () => {
     if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
       return;
-    
+
     const selectedWordId = ctxSelectedWords[0].wordId;
     const wordMetadata = ctxStudyMetadata.words[selectedWordId];
-    let indentNum : number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
+    let indentNum: number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
     if (!leftIndent) {
       if (indentNum > 0) {
         ctxStudyMetadata.words[selectedWordId] = {
@@ -369,9 +371,9 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-      buttonEnabled = hasWordSelected && 
-        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
-        .strophes[ctxSelectedWords[0].stropheId].lines.length-1 !== ctxSelectedWords[0].lineId;
+    buttonEnabled = hasWordSelected &&
+      ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
+        .strophes[ctxSelectedWords[0].stropheId].lines.length - 1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
@@ -383,7 +385,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount-1)
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1)
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
@@ -393,33 +395,33 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
-          {
-            (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }  
-          {
-            (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          } 
-          {
-            ((updateType == StructureUpdateType.mergeWithPrevStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && ctxIsHebrew) && <LuArrowDownWideNarrow style={{transform:'rotate(90deg)'}} opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
-          {
-            ((updateType == StructureUpdateType.mergeWithNextStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && ctxIsHebrew) && <LuArrowUpNarrowWide style={{transform:'rotate(90deg)'}} opacity={(buttonEnabled)?`1`:`0.4`} fontSize="1.5em" />
-          }
+        {
+          (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          ((updateType == StructureUpdateType.mergeWithPrevStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && ctxIsHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
+        {
+          ((updateType == StructureUpdateType.mergeWithNextStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && ctxIsHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+        }
         <ToolTip text={toolTip} />
       </button>
     </div>
@@ -428,20 +430,57 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
 
 export const StudyBtn = ({
   setCloneStudyOpen
-} : {
+}: {
   setCloneStudyOpen: (arg: boolean) => void;
 }) => {
 
   return (
     <>
-    <div>
-      <button onClick={() => {
+      <div>
+        <button onClick={() => {
           setCloneStudyOpen(true);
         }} className="rounded-lg bg-primary py-2 px-2 text-center text-sm text-white hover:bg-opacity-90 lg:px-6 xl:px-8">
           Copy to My Studies
+        </button>
+      </div>
+    </>
+  );
+};
+
+export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
+
+  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+  } = useContext(FormatContext);
+
+  useEffect(() => {
+
+  }, [setColorAction])
+  const handleClick = () => {
+    setColorAction(ColorActionType.resetColor);
+    ctxSetColorFill(DEFAULT_COLOR_FILL);
+    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+    ctxSetTextColor(DEFAULT_TEXT_COLOR);
+    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
+      if (wordMetadata && wordMetadata?.color) {
+        delete wordMetadata["color"];
+      }
+      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
+        delete wordMetadata.stropheMd.color;
+      }
+    })
+    updateMetadata(ctxStudyId, ctxStudyMetadata);
+  }
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className={`hover:text-primary`}
+        onClick={handleClick} >
+        <AiOutlineClear className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
       </button>
+      <ToolTip text="Clear All Format" />
     </div>
-    </>   
   );
 };
 

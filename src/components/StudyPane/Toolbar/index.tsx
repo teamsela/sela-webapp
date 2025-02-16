@@ -1,7 +1,8 @@
 import { useContext } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
-  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn } from "./Buttons";
+  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
+  ClearAllFormatBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
@@ -59,7 +60,8 @@ const Toolbar = ({
             <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
             <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
             <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-            <ClearFormatBtn setColorAction={setColorAction} />          
+            <ClearFormatBtn setColorAction={setColorAction} />     
+            <ClearAllFormatBtn setColorAction={setColorAction}/> 
           </div>
           <div className="border-r border-stroke flex flex-row">
             <UniformWidthBtn setBoxStyle={setBoxStyle}/>
