@@ -148,7 +148,7 @@ export const useDragToSelect = (content: PassageData) => {
 
 
     //pull all word blocks from passageData ////////////////////////////////////////
-    const useSelectAll = (array: any[]): any[] => {
+    const selectAll = (array: any[]): any[] => {
         let result: object[] = []
         const findWordsArrays = (item: object[]) => {
             for (const [key, value] of Object.entries(item)) {
@@ -174,7 +174,7 @@ export const useDragToSelect = (content: PassageData) => {
             if (event.ctrlKey && event.key === "a") {
                 event.preventDefault(); // Prevent default select all action
                 //select all word blocks
-                let allWordsArr: any[] = useSelectAll(content.stanzas);
+                let allWordsArr: any[] = selectAll(content.stanzas);
                 ctxSetSelectedHebWords(allWordsArr);
                 ctxSetNumSelectedWords(ctxSelectedHebWords.length);
             }
