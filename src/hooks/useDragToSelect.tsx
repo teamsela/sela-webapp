@@ -32,7 +32,15 @@ export const useDragToSelect = (content: PassageData) => {
         //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
+        console.log(clickedTarget)
+        console.log("clicked")
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+        if (clickToDeSelect) {
+            ctxSetNumSelectedWords(0);
+            ctxSetSelectedHebWords([]);
+            ctxSetSelectedStrophes([]);
+            console.log("clicked up")
+        }
     };
 
     let rects;
@@ -107,11 +115,6 @@ export const useDragToSelect = (content: PassageData) => {
         );
         if (shouldSkip) {
             return;
-        }
-        if (!selectionEnd && clickToDeSelect) {
-            ctxSetNumSelectedWords(0);
-            ctxSetSelectedHebWords([]);
-            ctxSetSelectedStrophes([]);
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetSelectedStrophes]);
 
