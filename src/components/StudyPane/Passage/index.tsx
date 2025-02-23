@@ -4,7 +4,7 @@ import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
 
 import { WordProps } from '@/lib/data';
-import { StructureUpdateType } from '@/lib/types';
+import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { updateMetadata } from '@/lib/actions';
 import { mergeData } from '@/lib/utils';
 
@@ -18,7 +18,7 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxColorAction
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -197,7 +197,22 @@ const Passage = ({
 
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
   
-
+  useEffect(() => {
+    if (ctxColorAction === ColorActionType.resetAllColor) {
+      ctxPassageProps.stanzaProps.forEach((stanza) => {
+        stanza.strophes.forEach((strophes) => {
+          strophes.lines.forEach((line) => {
+            line.words.forEach((word) => {
+              if (word.metadata?.color) {
+                delete word.metadata.color;
+              }
+            });
+          });
+        });
+      });
+      ctxSetPassageProps(ctxPassageProps);
+    }
+  }, [ctxColorAction]); // Only run when ctxColorAction changes
 
   //console.log(passageProps);
 

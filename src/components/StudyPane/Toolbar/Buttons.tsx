@@ -223,10 +223,8 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
         ctxSelectedWords.map((word) => {
-          console.log("good")
           const wordMetadata = ctxStudyMetadata.words[word.wordId];
           if (wordMetadata && wordMetadata?.color) {
-            console.log("gg")
             delete wordMetadata["color"];
           }
         })
@@ -449,15 +447,12 @@ export const StudyBtn = ({
 
 export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes,
+  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedWords,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
-  useEffect(() => {
-
-  }, [setColorAction])
   const handleClick = () => {
-    setColorAction(ColorActionType.resetColor);
+    setColorAction(ColorActionType.resetAllColor);
     ctxSetColorFill(DEFAULT_COLOR_FILL);
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
     ctxSetTextColor(DEFAULT_TEXT_COLOR);

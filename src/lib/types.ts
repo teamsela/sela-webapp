@@ -3,7 +3,8 @@ export enum ColorActionType {
     colorFill,
     borderColor,
     textColor,
-    resetColor
+    resetColor,
+    resetAllColor
 }
 
 export enum BoxDisplayStyle {
