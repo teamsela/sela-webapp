@@ -80,6 +80,8 @@ export const useDragToSelect = (content: PassageData) => {
                 if (selectedWord !== null && !ctxSelectedHebWords.includes(selectedWord)) {
                     const newArray = [...ctxSelectedHebWords, selectedWord];
                     ctxSetSelectedHebWords(newArray);
+
+                    console.log(ctxSelectedHebWords.length)
                     ctxSetNumSelectedWords(ctxSelectedHebWords.length);
                 }
             }
@@ -179,14 +181,18 @@ export const useDragToSelect = (content: PassageData) => {
                 //select all word blocks
                 let allWordsArr: any[] = selectAll(content.stanzas);
                 ctxSetSelectedHebWords(allWordsArr);
-                ctxSetNumSelectedWords(ctxSelectedHebWords.length);
+                console.log(allWordsArr.length)
+                ctxSetNumSelectedWords(allWordsArr.length);       
+                // ctxSetColorFill(DEFAULT_COLOR_FILL);
+                // ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+                // ctxSetTextColor(DEFAULT_TEXT_COLOR);       
             }
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, []);
+    }, [ ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
     ///////////////////////////////////////////////////
 
 

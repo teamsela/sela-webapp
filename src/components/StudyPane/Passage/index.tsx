@@ -14,7 +14,7 @@ const Passage = ({
   content: PassageData;
 }) => {
   const { ctxSelectedHebWords, ctxSetSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxSetStropheCount, ctxSetStanzaCount, ctxNumSelectedWords
   } = useContext(FormatContext)
 
   const [passageData, setPassageData] = useState<PassageData>(content);
@@ -30,6 +30,11 @@ const Passage = ({
     ctxSetStanzaCount(passageData.stanzas.length);
   }, [passageData]);
 
+  //testing
+  useEffect(() => {
+    // console.log(ctxSelectedHebWords.length);
+    // console.log("number of selected people: " + ctxNumSelectedWords)
+  },[ctxSelectedHebWords, ctxNumSelectedWords])
 
   useEffect(() => {
     let actionedContent : PassageData | null = null;
