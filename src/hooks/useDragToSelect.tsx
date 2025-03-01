@@ -176,7 +176,7 @@ export const useDragToSelect = (content: PassageData) => {
     // ctrl+A////////////////////////////////
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.ctrlKey && event.key === "a") {
+            if ((event.ctrlKey || event.metaKey) && event.key === "a") {
                 event.preventDefault(); // Prevent default select all action
                 //select all word blocks
                 let allWordsArr: any[] = selectAll(content.stanzas);
