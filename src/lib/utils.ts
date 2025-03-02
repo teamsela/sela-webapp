@@ -1,4 +1,4 @@
-import { HebWord, PassageData, StanzaData, StropheData } from "./data";
+import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata } from "./data";
 import { ColorActionType } from "./types";
 
 type PsalmBook = {
@@ -202,6 +202,27 @@ export function parsePassageInfo(inputString: string) : PassageInfo | Error {
   return result;
 }
 
+export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : Map<number, WordProps[]>  {
+  const strongNumWordsMap = new Map<number, WordProps[]>();
+  passageProps.stanzaProps.forEach((stanzas) => {
+    stanzas.strophes.forEach((strophe) => {
+        strophe.lines.forEach((line) => {
+            line.words.forEach((word) => {
+                const currentWord = strongNumWordsMap.get(word.strongNumber);
+                if (currentWord !== undefined) {
+                    currentWord.push(word);
+                }
+                else {
+                  strongNumWordsMap.set(word.strongNumber, [word]);
+                }
+            })
+        })
+    });
+  });
+
+  return strongNumWordsMap;
+}
+
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
   // Measure the width of the text
   const metrics = context.measureText(text);
@@ -250,12 +271,12 @@ export function wrapText(
   return lineCount;
 }
 
-export function getWordById(passage: PassageData, id: number) : HebWord | null {
-  for (let stanza of passage.stanzas) {
+export function getWordById(passage: PassageProps, id: number) : WordProps | null {
+  for (let stanza of passage.stanzaProps) {
     for (let strophe of stanza.strophes) {
       for (let line of strophe.lines) {
         for (let word of line.words) {
-          if (word.id === id) {
+          if (word.wordId === id) {
             return word;
           }
         }
@@ -265,89 +286,137 @@ export function getWordById(passage: PassageData, id: number) : HebWord | null {
   return null;
 }
 
-export function wordsHasSameColor(words: HebWord[], actionType: ColorActionType) : boolean {
+export function wordsHasSameColor(words: WordProps[], actionType: ColorActionType) : boolean {
 
   if (words.length <= 1) return true;
 
-  let previousColor : string = "";
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      previousColor = words[0].colorFill;
-      break;    
-    case ColorActionType.borderColor:
-      previousColor = words[0].borderColor;
-      break;    
-    case ColorActionType.textColor:
-      previousColor = words[0].textColor;
-      break;
-    default:
-      break;
-  }
+  let previousColor : ColorData | undefined = words[0].metadata?.color;
 
   for (let word of words) {
-      switch (actionType) {
-        case ColorActionType.colorFill:
-          if (word.colorFill != previousColor) { return false; }
-          previousColor = word.colorFill;
-          break;
-        case ColorActionType.borderColor:
-          if (word.borderColor != previousColor) { return false; }
-          previousColor = word.borderColor;
-          break;
-        case ColorActionType.textColor:
-          if (word.textColor != previousColor) { return false; }
-          previousColor = word.textColor;
-          break;
-        default:
-          break;
-      }
+    switch (actionType) {
+      case ColorActionType.colorFill:
+        if (word.metadata?.color?.fill != previousColor?.fill) { return false; }
+        break;
+      case ColorActionType.borderColor:
+        if (word.metadata?.color?.border != previousColor?.border) { return false; }
+        break;
+      case ColorActionType.textColor:
+        if (word.metadata?.color?.text != previousColor?.text) { return false; }
+        break;
+      default:
+        break;
+    }
+    previousColor = word.metadata?.color;
   }
 
   return true;
 }
 
-export function strophesHasSameColor(strophes: StropheData[], actionType: ColorActionType) : boolean {
+export function strophesHasSameColor(strophes: StropheProps[], actionType: ColorActionType) : boolean {
 
   if (strophes.length <= 1) return true;
 
-  let previousColor : any;
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      previousColor = strophes[0].colorFill;
-      break;    
-    case ColorActionType.borderColor:
-      previousColor = strophes[0].borderColor;
-      break;
-    default:
-      break;
-  }
+  let previousColor : ColorData | undefined = strophes[0].metadata?.color;
 
   for (let strophe of strophes) {
-      switch (actionType) {
-        case ColorActionType.colorFill:
-          if (strophe.colorFill != previousColor) { return false; }
-          previousColor = strophe.colorFill;
-          break;
-        case ColorActionType.borderColor:
-          if (strophe.borderColor != previousColor) { return false; }
-          previousColor = strophe.borderColor;
-          break;
-        default:
-          break;
-      }
+    switch (actionType) {
+      case ColorActionType.colorFill:
+        if (strophe.metadata.color?.fill != previousColor?.fill) { return false; }
+        break;
+      case ColorActionType.borderColor:
+        if (strophe.metadata.color?.border != previousColor?.border) { return false; }
+        break;
+      default:
+        break;
+    }
+    previousColor = strophe.metadata.color;
   }
 
   return true;
 }
 
-export function continuityTest(hebWordArray: HebWord[]) {
-  if (hebWordArray.length == 0) return false;
-  let idArray: number[] = []
-  hebWordArray.forEach((word) => {
-    idArray.push(word.id)
+export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata) : PassageProps => {
+
+  let passageProps : PassageProps = { stanzaProps: [], stanzaCount: 0, stropheCount: 0 }
+
+  let currentStanzaIdx = -1;
+  let currentStropheIdx = -1;
+  let runningStropheIdx = -1;
+  let currentLineIdx = -1;
+  let prevVerseNum = 0;
+
+  bibleData.forEach((wordProps) => {
+
+    wordProps.firstStropheInStanza = false;
+    wordProps.firstWordInStrophe = false;
+
+    const currentWordStyling = studyMetadata.words[wordProps.wordId];
+    if (currentWordStyling !== undefined) {
+      wordProps.metadata = currentWordStyling;
+    }
+
+    let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
+    if (currentStanzaData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stanzaDiv)) {
+      passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
+      currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
+
+      const currentStanzaStyling = studyMetadata.words[wordProps.wordId]?.stanzaMd;
+      if (currentStanzaStyling !== undefined) {
+        currentStanzaData.metadata = currentStanzaStyling;
+      }
+      currentStropheIdx = -1;
+      passageProps.stanzaCount++; 
+    }
+
+    let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
+    if (currentStropheData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stropheDiv)) {
+      passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
+      ++currentStropheIdx;
+      currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
+
+      const currentStropheStyling = studyMetadata.words[wordProps.wordId]?.stropheMd;
+      if (currentStropheStyling !== undefined) {
+        currentStropheData.metadata = currentStropheStyling;
+      }
+      currentLineIdx = -1;
+      passageProps.stropheCount++; 
+
+      currentStropheData.firstStropheInStanza = (currentStropheIdx === 0);
+      wordProps.firstWordInStrophe = true;      
+    } 
+
+    let currentLineData = currentStropheData.lines[currentLineIdx];
+    let ignoreNewLine = wordProps.metadata?.ignoreNewLine || false;
+    if (currentLineData === undefined || (!ignoreNewLine && (wordProps.newLine || (wordProps.metadata && wordProps.metadata.lineBreak)))) {
+      currentStropheData.lines.push({lineId: ++currentLineIdx, words: []})
+      currentLineData = currentStropheData.lines[currentLineIdx];
+    }
+
+    if (prevVerseNum !== wordProps.verse) {
+      wordProps.showVerseNum = true;
+    }
+    wordProps.firstStropheInStanza = (currentStropheIdx === 0);
+    wordProps.lastStropheInStanza = false;
+    wordProps.lineId = currentLineIdx;
+    wordProps.stropheId = currentStropheIdx;
+    wordProps.stanzaId = currentStanzaIdx;
+
+    currentLineData.words.push(wordProps);
+    prevVerseNum = wordProps.verse;
+  });
+
+  passageProps.stanzaProps.map((stanza) => {
+    stanza.strophes.map((strophe, stropheId) => {
+      strophe.lastStropheInStanza = (stropheId === stanza.strophes.length-1);
+      if (strophe.lastStropheInStanza) {
+        strophe.lines.forEach((line) => {
+          line.words.forEach((word) => {
+            word.lastStropheInStanza = true;
+          })
+        })
+      }      
+    })
   })
-  idArray.sort()
-  return idArray[idArray.length-1] - idArray[0] == idArray.length-1? true: false;
+
+  return passageProps;
 }

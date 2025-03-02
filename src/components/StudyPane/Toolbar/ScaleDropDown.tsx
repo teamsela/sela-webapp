@@ -2,21 +2,32 @@ import React, { useContext, useState, useRef, useEffect } from "react";
 import { FormatContext } from '../index';
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { ToolTip } from "./Buttons";
+import { updateMetadata } from "@/lib/actions";
 
 const ScaleDropDown = ({setScaleValue}: {
   setScaleValue:(value:number) => void;
 }) => {
-  const { ctxIsHebrew, ctxScaleValue } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxScaleValue, ctxStudyMetadata, ctxInViewMode } = useContext(FormatContext);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [fitScreen, setFitScreen] = useState(false);
-  const [displayScaleLevel, setDisplayScaleLevel] = useState(`${ctxScaleValue * 100}%`); 
+  const [displayScaleLevel, setDisplayScaleLevel] = useState(`${Math.round(ctxScaleValue * 100)}%`); 
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
 
   const PRESET_SCALE_LEVELS:[number,string][] = [[0.25, '25%'], [0.5, '50%'], [0.75, '75%'],
         [0.9, '90%'], [1, '100%'], [1.25, '125%'], [1.5, '150%'], [2, '200%']];
+
+  const passageDiv = document.getElementById('selaPassage');
+  if (passageDiv) {
+    if (ctxScaleValue >= 1) { // override the width of the passage to avoid
+      passageDiv.style.width = `${Math.round(1/ctxScaleValue*100)}%`;  
+    }
+    passageDiv.style.height = `${passageDiv.offsetHeight * ctxScaleValue}`;
+    passageDiv.style.transform = `scale(${ctxScaleValue})`;
+    passageDiv.style.transformOrigin = ctxIsHebrew ? "100% 0": "0 0";
+  }
 
   // close dropdown on click outside
   useEffect(() => {
@@ -57,6 +68,13 @@ const ScaleDropDown = ({setScaleValue}: {
 
   const setScaleValueAndScalePassage = (scale:number) => {
     setScaleValue(scale);
+
+    // persist the scale value in the database
+    if (!ctxInViewMode) {
+      ctxStudyMetadata.scaleValue = Math.round(scale * 100) / 100;
+      updateMetadata(ctxStudyId, ctxStudyMetadata);  
+    }
+
     const passageDiv = document.getElementById('selaPassage');
     if (!passageDiv) {
       console.error("Can not find the passage division.");
@@ -137,7 +155,7 @@ const ScaleDropDown = ({setScaleValue}: {
           onClick={scaleByDecrement}>
           <AiOutlineMinusCircle fontSize="1.4em" />
         </button>
-        <ToolTip text="Minus scale by 5%"/>
+        <ToolTip text="Reduce by 5%"/>
       </div>
 
       {/* scale input & dropdown */}
@@ -207,7 +225,7 @@ const ScaleDropDown = ({setScaleValue}: {
           onClick={scaleByIncrement}>
           <AiOutlinePlusCircle fontSize="1.4em" />
         </button>
-        <ToolTip text="Add scale by 5%"/>
+        <ToolTip text="Enlarge by 5%"/>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import Root from "./Root";
 import Category from "./Category";
 // import RelatedWord from "./Related";
 
-const Motif = ({ content }: { content: PassageData }) => {
+const Motif = () => {
   const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.root);
 
   const toggleSection = (section: MotifType) => {
@@ -17,7 +17,7 @@ const Motif = ({ content }: { content: PassageData }) => {
     <div className="h-full overflow-y-auto flex flex-col">
       <div className="accordion">
         {/* Identical Words Accordion */}
-        <div className="border-b border-stroke dark:border-strokedark">
+        <div className="border-b border-stroke dark:border-strokedark mx-4">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
             onClick={() => toggleSection(MotifType.root)}
@@ -40,13 +40,13 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.root && (
             <div className="p-4">
-              <Root content={content} />
+              <Root />
             </div>
           )}
         </div>
 
         {/* Categories Accordion */}
-        <div className="border-b border-stroke dark:border-strokedark">
+        <div className="border-b border-stroke dark:border-strokedark mx-4">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
             onClick={() => toggleSection(MotifType.category)}
@@ -69,7 +69,7 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.category && (
             <div className="p-4">
-              <Category content={content} />
+              <Category />
             </div>
           )}
         </div>
@@ -98,7 +98,7 @@ const Motif = ({ content }: { content: PassageData }) => {
           </button>
           {openSection === MotifType.related && (
             <div className="p-4">
-              <RelatedWord content={content} />
+              <RelatedWord />
             </div>
           )}
         </div> */}

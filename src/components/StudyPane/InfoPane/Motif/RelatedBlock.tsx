@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
-import { HebWord, LexiconData } from '@/lib/data';
+import { WordProps, LexiconData } from '@/lib/data';
 
 export const RelatedWordBlock = ({
   id, count, rootData, relatedWords
@@ -9,25 +9,25 @@ export const RelatedWordBlock = ({
   id: number,
   count: number,
   rootData: LexiconData,
-  relatedWords: HebWord[]
+  relatedWords: WordProps[]
 }) => {
 
-  const { ctxIsHebrew, ctxSelectedHebWords, ctxSetNumSelectedWords, ctxSetSelectedHebWords } = useContext(FormatContext)
+  const { ctxIsHebrew, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
   const [selected, setSelected] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     setSelected(prevState => !prevState);
 
-    let updatedSelectedHebWords = [...ctxSelectedHebWords];
+    let updatedSelectedWords = [...ctxSelectedWords];
     if (!selected) {
-      updatedSelectedHebWords = ctxSelectedHebWords.concat(relatedWords);
+      updatedSelectedWords = ctxSelectedWords.concat(relatedWords);
     } else {
       relatedWords.forEach((dsd) => {
-        updatedSelectedHebWords.splice(updatedSelectedHebWords.indexOf(dsd), 1)
+        updatedSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
       })
     }
-    ctxSetSelectedHebWords(updatedSelectedHebWords);
-    ctxSetNumSelectedWords(updatedSelectedHebWords.length);
+    ctxSetSelectedWords(updatedSelectedWords);
+    ctxSetNumSelectedWords(updatedSelectedWords.length);
   };
 
   return (

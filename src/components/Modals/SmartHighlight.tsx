@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { ColorActionType, ColorType } from "@/lib/types";
+import { ColorData } from "@/lib/data";
 import { RootColorPalette } from "../StudyPane/InfoPane/Motif/Root";
 import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../StudyPane/index';
-import { updateWordColor } from "@/lib/actions";
-import { HebWordProps } from "../StudyPane/InfoPane/Motif/Root";
+import { RootWordProps } from "../StudyPane/InfoPane/Motif/Root";
 
 interface SmartHighlightProps {
-    rootWords: HebWordProps[]; // Property with a type of an empty array
+    rootWords: RootWordProps[]; // Property with a type of an empty array
 }
 
 const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
@@ -47,22 +46,22 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
   
   const handleClick = () => {
 
-    let newMap = new Map<number, ColorType>();
+    let newMap = new Map<number, ColorData>();
 
     rootWords.forEach((rootWord, index) => {
         let descendantWordIds: number[] = [];
         rootWord.descendants.forEach((word) => {
-            descendantWordIds.push(word.id)
+            descendantWordIds.push(word.wordId)
         });
 
-        let rootBlockColor: ColorType = {
-            colorFill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
-            textColor: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
-            borderColor: "" // not used for root block
+        let rootBlockColor: ColorData = {
+            fill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
+            text: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
+            border: "" // not used for root block
         };
 
-        updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
-        updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
+        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
+        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
         newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
     })
     ctxSetRootsColorMap(newMap);

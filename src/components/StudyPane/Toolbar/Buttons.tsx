@@ -11,13 +11,12 @@ import { SwatchesPicker } from 'react-color'
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { updateWordColor, updateIndented, updateStropheColor } from "@/lib/actions";
-import { continuityTest } from "@/lib/utils";
+import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { updateMetadata } from "@/lib/actions";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100">
+    <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
       {text}
     </div>
@@ -57,8 +56,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setSelectedColor,
   setColorAction
 }) => {
-  const { ctxStudyId, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedHebWords, ctxNumSelectedStrophes, ctxSelectedStrophes
+  const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -103,20 +102,55 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     //console.log("Changing " + colorActionType + " color to " + color.hex);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
-    let wordIds : number[] = [];
-    ctxSelectedHebWords.map((word) => {
-      wordIds.push(word.id);
-    })
-    if (ctxSelectedHebWords.length > 0) {
-      updateWordColor(ctxStudyId, wordIds, colorAction, color.hex);
+    let colorObj = {};
+    switch (colorAction) {
+      case (ColorActionType.colorFill): { colorObj = { fill: color.hex }; break; }
+      case (ColorActionType.borderColor): { colorObj = { border: color.hex }; break; }
+      case (ColorActionType.textColor): { colorObj = { text: color.hex }; break; }
     }
 
-    let stropheIds : number[] = [];
-    ctxSelectedStrophes.map((strophe) => {
-      stropheIds.push(strophe.id);
-    })
-    if (ctxNumSelectedStrophes > 0) {
-      updateStropheColor(ctxStudyId, stropheIds, colorAction, color.hex);
+    if (ctxSelectedWords.length > 0) {
+      ctxSelectedWords.map((word) => {
+        const wordMetadata = ctxStudyMetadata.words[word.wordId];
+        if (wordMetadata) {
+          if (wordMetadata?.color) {
+            if (colorAction === ColorActionType.colorFill) {
+              wordMetadata.color.fill = color.hex;
+            }
+            else if (colorAction === ColorActionType.borderColor) {
+              wordMetadata.color.border = color.hex;
+            }
+            else if (colorAction === ColorActionType.textColor) {
+              wordMetadata.color.text = color.hex;
+            }  
+          }
+          else {
+            wordMetadata.color = colorObj;   
+          }
+        }
+        else {
+          ctxStudyMetadata.words[word.wordId] = { color: colorObj };
+        }
+      })
+      updateMetadata(ctxStudyId, ctxStudyMetadata);
+    }
+
+    if (ctxSelectedStrophes.length > 0) {
+
+      // find the index to the first word of the strophe
+      const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+
+      const wordMetadata = ctxStudyMetadata.words[selectedWordId];
+      wordMetadata.stropheMd ??= {};
+      wordMetadata.stropheMd.color ??= colorObj;
+      
+      if (colorAction === ColorActionType.colorFill) {
+        wordMetadata.stropheMd.color.fill = color.hex;
+      } else if (colorAction === ColorActionType.borderColor) {
+        wordMetadata.stropheMd.color.border = color.hex;
+      }
+      
+      updateMetadata(ctxStudyId, ctxStudyMetadata);
     }
   }
 
@@ -164,7 +198,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
 export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxNumSelectedWords, ctxSelectedHebWords, 
+  const { ctxStudyId, ctxStudyMetadata, 
+    ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
@@ -186,20 +221,20 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       setColorAction(ColorActionType.resetColor);
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-      if (ctxSelectedHebWords.length > 0) {
+      if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
-        let wordIds : number[] = [];
-        ctxSelectedHebWords.map((word) => {
-          wordIds.push(word.id)
+        ctxSelectedWords.map((word) => {
+          const wordMetadata = ctxStudyMetadata.words[word.wordId];
+          if (wordMetadata && wordMetadata?.color) {
+            delete wordMetadata["color"];
+          }
         })
-        updateWordColor(ctxStudyId, wordIds, ColorActionType.resetColor, null);
-      }
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
+      }     
       if (ctxSelectedStrophes.length > 0) {
-        let stropheIds : number[] = [];
-        ctxSelectedStrophes.map((strophe) => {
-          stropheIds.push(strophe.id)
-        })
-        updateStropheColor(ctxStudyId, stropheIds, ColorActionType.resetColor, null);
+        const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+        (ctxStudyMetadata.words[selectedWordId].color) && (delete ctxStudyMetadata.words[selectedWordId].color);
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
       }
     }
   }
@@ -216,58 +251,92 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   );
 };
 
-export const UniformWidthBtn = ({ setUniformWidth }: {
-  setUniformWidth: (arg: boolean) => void,
+export const UniformWidthBtn = ({ setBoxStyle }: {
+  setBoxStyle: (arg: BoxDisplayStyle) => void,
 }) => {
-  const { ctxUniformWidth } = useContext(FormatContext);
+  const { ctxBoxDisplayStyle, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata } = useContext(FormatContext);
 
   const handleClick = () => {
-    setUniformWidth(!ctxUniformWidth);
+    if (ctxBoxDisplayStyle === BoxDisplayStyle.box) {
+      ctxStudyMetadata.boxStyle = BoxDisplayStyle.uniformBoxes;
+      setBoxStyle(BoxDisplayStyle.uniformBoxes);
+    } else if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) {
+      ctxStudyMetadata.boxStyle = BoxDisplayStyle.box;
+      setBoxStyle(BoxDisplayStyle.box);
+    }
+    ctxSetStudyMetadata(ctxStudyMetadata);
+    (!ctxInViewMode) && updateMetadata(ctxStudyId, ctxStudyMetadata);
   }
+  
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
         className="hover:text-primary"
         onClick={handleClick} >
         {
-         (ctxUniformWidth) ? <TbArrowAutofitContentFilled fontSize="1.5em" /> : <TbArrowAutofitContent fontSize="1.5em" />
+          (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && <TbArrowAutofitContentFilled fontSize="1.5em" />
+        }
+        {
+          (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <TbArrowAutofitContent fontSize="1.5em" />
         }
       </button>
       {
-        ctxUniformWidth ? (<ToolTip text="Disable uniform width" />) : (<ToolTip text="Enable uniform width" />)
+        (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && <ToolTip text="Disable uniform width" />
       }
+      {
+        (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <ToolTip text="Enable uniform width" />
+      }      
     </div>
   );
 };
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxUniformWidth, ctxSelectedHebWords, ctxIndentNum, ctxSetIndentNum, ctxNumSelectedWords } = useContext(FormatContext);
-  const [buttonEnabled, setButtonEnabled] = useState(ctxUniformWidth && (ctxNumSelectedWords === 1));
+  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+    ctxSelectedWords, ctxNumSelectedWords } = useContext(FormatContext);
+  const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
   useEffect(() => {
-    ctxSetIndentNum((ctxSelectedHebWords.length === 1) ? ctxSelectedHebWords[0].numIndent : 0);
+    let indentNum : number = 0;
+    if (ctxSelectedWords.length === 1) {
+      const wordMetadata = ctxStudyMetadata.words[ctxSelectedWords[0].wordId];
+      indentNum = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
+      ctxSetIndentNum(indentNum);
+    }
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
-    setButtonEnabled(ctxUniformWidth && (ctxNumSelectedWords === 1) && validIndent);
-  }, [ctxUniformWidth, ctxNumSelectedWords, ctxSelectedHebWords, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
+    setButtonEnabled((ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && (ctxNumSelectedWords === 1) && validIndent);
+  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
 
   const handleClick = () => {
-    if (!ctxUniformWidth || ctxSelectedHebWords.length === 0)
+    if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
       return;
-
-    let numIndent = ctxSelectedHebWords[0].numIndent;
+    
+    const selectedWordId = ctxSelectedWords[0].wordId;
+    const wordMetadata = ctxStudyMetadata.words[selectedWordId];
+    let indentNum : number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
     if (!leftIndent) {
-      if (numIndent > 0) {
-        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, --ctxSelectedHebWords[0].numIndent);
-        setButtonEnabled(ctxSelectedHebWords[0].numIndent > 0);
-        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
+      if (indentNum > 0) {
+        ctxStudyMetadata.words[selectedWordId] = {
+          ...ctxStudyMetadata.words[selectedWordId],
+          indent: --indentNum,
+        };
+        (indentNum == 0) && (delete ctxStudyMetadata.words[selectedWordId].indent);
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
+        ctxSetStudyMetadata(ctxStudyMetadata);
+        setButtonEnabled(indentNum > 0);
+        ctxSetIndentNum(indentNum);
       }
     }
     else {
-      if (numIndent < 3) {
-        updateIndented(ctxStudyId, ctxSelectedHebWords[0].id, ++ctxSelectedHebWords[0].numIndent);
-        setButtonEnabled(ctxSelectedHebWords[0].numIndent < 3);
-        ctxSetIndentNum(ctxSelectedHebWords[0].numIndent)
+      if (indentNum < 3) {
+        ctxStudyMetadata.words[selectedWordId] = {
+          ...ctxStudyMetadata.words[selectedWordId],
+          indent: ++indentNum,
+        };
+        updateMetadata(ctxStudyId, ctxStudyMetadata);
+        ctxSetStudyMetadata(ctxStudyMetadata);
+        setButtonEnabled(indentNum < 3);
+        ctxSetIndentNum(indentNum)
       }
     }
   }
@@ -289,34 +358,33 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxIsHebrew, ctxSelectedHebWords, ctxSetStructureUpdateType, ctxStropheCount, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxStanzaCount } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
-  let buttonEnabled2 = false;
-  let hasWordSelected = (ctxSelectedHebWords.length === 1);
+  let hasWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
-  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxStropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
-  let continuousWords = continuityTest(ctxSelectedHebWords);
+  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !ctxSelectedHebWords[0].lineBreak && !ctxSelectedHebWords[0].firstWordInStrophe;
-    buttonEnabled2 = continuousWords
+    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && (ctxSelectedHebWords[0].lineId !== 0);
+    buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-    buttonEnabled = hasWordSelected && (!ctxSelectedHebWords[0].lastLineInStrophe);
+      buttonEnabled = hasWordSelected && 
+        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
+        .strophes[ctxSelectedWords[0].stropheId].lines.length-1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && (!ctxSelectedHebWords[0].firstWordInStrophe);
+    buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedHebWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedHebWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
+    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
     buttonEnabled = hasStrophesSelected && (!ctxSelectedStrophes[0].firstStropheInStanza);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxStanzaCount-1)
+    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount-1)
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
@@ -359,121 +427,23 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   );
 };
 
-export const StructureBtn = ({
-  setInfoPaneAction,
-  infoPaneAction,
-}: {
-  setInfoPaneAction: (arg: InfoPaneActionType) => void;
-  infoPaneAction: InfoPaneActionType;
+export const StudyBtn = ({
+  setCloneStudyOpen
+} : {
+  setCloneStudyOpen: (arg: boolean) => void;
 }) => {
 
-  const handleClick = () => {
-    if (infoPaneAction != InfoPaneActionType.structure) {
-      setInfoPaneAction(InfoPaneActionType.structure);
-    } else {
-      setInfoPaneAction(InfoPaneActionType.none);
-    }
-  }
   return (
+    <>
     <div>
-      <button className="text-gray-200 border-gray-400 font-semibold 
-        py-1 px-2 border rounded shadow cursor-not-allowed
-        text-xs sm:text-sm lg:text-base 
-        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ color: '#d6dadf' }}
-        disabled={true}
-        onClick={handleClick} >
-        Structure
+      <button onClick={() => {
+          setCloneStudyOpen(true);
+        }} className="rounded-lg bg-primary py-2 px-2 text-center text-sm text-white hover:bg-opacity-90 lg:px-6 xl:px-8">
+          Copy to My Studies
       </button>
-      <ToolTip text="Structure" />
     </div>
+    </>   
   );
 };
-export const MotifBtn = ({
-  setInfoPaneAction,
-  infoPaneAction,
-}: {
-  setInfoPaneAction: (arg: InfoPaneActionType) => void;
-  infoPaneAction: InfoPaneActionType;
-}) => {
-  const handleClick = () => {
-    if (infoPaneAction != InfoPaneActionType.motif) {
-      setInfoPaneAction(InfoPaneActionType.motif);
-    } else {
-      setInfoPaneAction(InfoPaneActionType.none);
-    }
-  }
-  return (
-    <div>
-      <button className="bg-white hover:bg-gray-100 text-gray-800 
-        font-semibold py-1 px-2 border border-gray-400 rounded shadow
-        text-xs sm:text-sm lg:text-base
-        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        onClick={handleClick} >
-        Motif
-      </button>
-      <ToolTip text="Motif" />
-    </div>
-  );
-};
-export const SyntaxBtn = ({
-  setInfoPaneAction,
-  infoPaneAction,
-}: {
-  setInfoPaneAction: (arg: InfoPaneActionType) => void;
-  infoPaneAction: InfoPaneActionType;
-}) => {
-  const handleClick = () => {
-    if (infoPaneAction != InfoPaneActionType.syntax) {
-      setInfoPaneAction(InfoPaneActionType.syntax);
-    } else {
-      setInfoPaneAction(InfoPaneActionType.none);
-    }
-  }
-  return (
-    <div>
-      <button
-        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
-        py-1 px-4 border rounded shadow cursor-not-allowed
-        text-xs sm:text-sm lg:text-base
-        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ color: '#d6dadf' }}
-        disabled={true}
-        onClick={handleClick} >
-        Syntax
-      </button>
-      <ToolTip text="Syntax" />
-    </div>
-  );
-};
-export const SoundsBtn = ({
-  setInfoPaneAction,
-  infoPaneAction,
-}: {
-  setInfoPaneAction: (arg: InfoPaneActionType) => void;
-  infoPaneAction: InfoPaneActionType;
-}) => {
-  const handleClick = () => {
-    if (infoPaneAction != InfoPaneActionType.sounds) {
-      setInfoPaneAction(InfoPaneActionType.sounds);
-    } else {
-      setInfoPaneAction(InfoPaneActionType.none);
-    }
-  }
-  return (
-    <div>
-      <button
-        className="bg-white hover:bg-gray-100 text-gray-800 font-semibold
-        py-1 px-2 border rounded shadow 
-        text-xs sm:text-sm lg:text-base
-        sm:py-0.25 sm:px-0.5 md:py-0.5 md:px-1 lg:py-1 lg:x-2 xl:py-2 xl:px-4"
-        style={{ color: '#d6dadf' }}
-        disabled={true}
-        onClick={handleClick} >
-        Sounds
-      </button>
-      <ToolTip text="Sounds" />
-    </div>
-  );
-};
+
 

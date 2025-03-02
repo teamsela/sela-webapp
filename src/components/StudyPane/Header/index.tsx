@@ -11,9 +11,8 @@ import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
-import { MotifBtn, SoundsBtn, StructureBtn, SyntaxBtn } from "../Toolbar/Buttons";
-import { useEffect } from "react";
-import { InfoPaneActionType } from "@/lib/types";
+import Toolbar from "../Toolbar";
+import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 
 
 const Header = ({
@@ -21,54 +20,77 @@ const Header = ({
   setLangToHebrew,
   setInfoPaneAction,
   infoPaneAction,
+  setScaleValue,
+  //color functions
+  setColorAction,
+  setSelectedColor,
+  setBoxStyle,
+  setCloneStudyOpen  
 }: {
   study: StudyData;
   setLangToHebrew: (arg: boolean) => void;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
+  setScaleValue: (arg: number) => void;
+  //color functions
+  setColorAction: (arg: number) => void,
+  setSelectedColor: (arg: string) => void;
+  setBoxStyle: (arg: BoxDisplayStyle) => void;  
+  setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
   return (
-    <header id="selaHeader" className="overflow-hidden fixed left-0 top-0 z-9999 flex w-full bg-white drop-shadow-2 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 md:px-6 2xl:px-8 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
-        <div className="flex items-center 2xl:w-2/5 w-1/3">
-          <Link className="block flex-shrink-0" href="/">
-            <Image
-              width={46}
-              height={46}
-              src={"/images/logo/logo-icon.svg"}
-              alt="Logo"
-            />
-          </Link>
-          <div className="text-primary font-bold ml-6 pr-6">
-            <Title study={study} />
+    <header id="selaHeader" className="fixed top-0 left-0 w-full z-50 bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
+      <div className="flex justify-between items-center px-6 py-4 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
+        <div className="flex-1 justify-left">        
+          <div className="flex items-center">
+            <Link className="block flex-shrink-0" href="/">
+              <Image
+                width={46}
+                height={46}
+                src={"/images/logo/logo-icon.svg"}
+                alt="Logo"
+              />
+            </Link>
+            <div className="text-primary font-bold ml-6 pr-6">
+              <Title study={study} />
+            </div>
           </div>
         </div>
-        <div className="flex items-center justify-center w-1/3 2xl:w-1/5 2xl:justify-center ">
-          <div className="flex items-center gap-4 sm:gap-4 px-4">
+        <div className="flex-1">
+          <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
             <div className="text-black text-md md:text-lg dark:text-white">Psalm {study.passage}</div>
           </div>
         </div>
+        <div className="flex-1">
+          <div className="flex justify-end items-center sm:gap-1 md:gap-2 lg:gap-4">
+              <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
 
-        <div className="flex items-center gap-1 lg:gap-2 md:gap-1 sm:gap-0.5 2xsm:gap-0.25 2xl:w-2/5 w-1/3 justify-end">
-          <ul className="flex items-center flex-col md:flex-row gap-1 lg:gap-2 md:gap-1 sm:gap-0.5 2xsm:gap-0.25">
-            {/*<div className="hidden sm:block mr-2">*/}
-            {/* <Tabs /> */}  
-            {/*</div>*/}
-            <StructureBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <MotifBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction}/>
-            <SyntaxBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <SoundsBtn setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
-            <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
-            {/* <!-- Dark Mode Toggler --> */}
-            {/*<DarkModeSwitcher />*/}
-            {/* <!-- Dark Mode Toggler --> */}
-          </ul>
+              <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
 
-          {/* <!-- User Area --> */}
-          {<DropdownUser />}
-          {/* <!-- User Area --> */}
+              {/* <!-- Dark Mode Toggler --> */}
+              {/*<DarkModeSwitcher />*/}
+              {/* <!-- Dark Mode Toggler --> */}
+
+              {/* <!-- User Area --> */}
+              {<DropdownUser />}
+              {/* <!-- User Area --> */}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <div className="flex-1">
+          <Toolbar
+            study={study}
+            setScaleValue={setScaleValue}
+            //color functions
+            setColorAction={setColorAction}
+            setSelectedColor={setSelectedColor}
+            setBoxStyle={setBoxStyle}
+            setCloneStudyOpen={setCloneStudyOpen}
+          />        
         </div>
       </div>
     </header>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
+import { FaBookReader } from "react-icons/fa";
 import { PiBookBookmarkFill } from "react-icons/pi";
 
 import { UserButton } from '@clerk/nextjs';
@@ -98,8 +99,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("home") && "bg-graydark dark:bg-meta-4"
                     }`}
                 >
-                  <HiOutlineClock size="20px" />
-                  Recent
+                  <FaBookReader size="18px" />
+                  My Studies
                 </Link>
               </li>
               {/* <!-- Menu Item Recent --> */}
@@ -112,7 +113,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                     }`}
                 >
                   <HiUserGroup size="20px" />
-                  Public
+                  Public Studies
                 </Link>
               </li>
               {/* <!-- Menu Item Public --> */}
@@ -120,7 +121,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
               {/* <!-- Menu Item Sample --> */}
               <li>
                 <Link
-                  href="/dashboard/model"
+                  href="/dashboard/premarked"
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("model") && "bg-graydark dark:bg-meta-4"
                     }`}
                 >
