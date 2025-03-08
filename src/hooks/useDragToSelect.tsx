@@ -182,7 +182,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             if ((event.ctrlKey || event.metaKey) && event.key === "a") {
                 event.preventDefault(); // Prevent default select all action
                 //select all word blocks
-                let allWordsArr: any[] = selectAll(content.stanzas);
+                let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
                 ctxSetSelectedWords(allWordsArr);
                 console.log(allWordsArr.length)
                 ctxSetNumSelectedWords(allWordsArr.length);       
