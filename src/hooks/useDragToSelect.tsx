@@ -32,8 +32,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
         const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
-        console.log(clickedTarget)
-        console.log("clicked")
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
     };
 
@@ -117,7 +115,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
 
-
+  
     useEffect(() => {
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
@@ -180,9 +178,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
                 ctxSetSelectedWords(allWordsArr);
                 console.log(allWordsArr.length)
                 ctxSetNumSelectedWords(allWordsArr.length);       
-                // ctxSetColorFill(DEFAULT_COLOR_FILL);
-                // ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-                // ctxSetTextColor(DEFAULT_TEXT_COLOR);       
             }
         };
         document.addEventListener("keydown", handleKeyDown);
