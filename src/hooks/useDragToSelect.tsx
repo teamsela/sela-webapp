@@ -35,12 +35,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         console.log(clickedTarget)
         console.log("clicked")
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
-        if (clickToDeSelect) {
-            ctxSetNumSelectedWords(0);
-            ctxSetSelectedWords([]);
-            ctxSetSelectedStrophes([]);
-            console.log("clicked up")
-        }
     };
 
     let rects;
