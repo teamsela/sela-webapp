@@ -71,8 +71,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   
   useEffect(() => {
     const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
+    
     setButtonEnabled(hasSelectedItems);
-
+    ctxSelectedHebWords
     // make sure the colour picker turns off completely when user de-selects everything
     if (!hasSelectedItems) {
       setColorAction(ColorActionType.none);
