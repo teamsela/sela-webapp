@@ -1,4 +1,5 @@
 import { getXataClient } from '@/xata';
+import { formatToPacificTime } from '@/lib/utils';
 import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
@@ -95,7 +96,7 @@ export default async function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {studyItem.xata.updatedAt.toLocaleString()}
+                    {formatToPacificTime(studyItem.xata.updatedAt)}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
