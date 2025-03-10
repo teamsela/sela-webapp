@@ -229,6 +229,7 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
+      className="h-0"
     >
       <div id="selaPassage" className='flex relative py-4'>
         {
