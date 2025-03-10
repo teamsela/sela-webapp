@@ -1,6 +1,7 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
+import { HebWord, PassageData } from '@/lib/data';
 import { StanzaBlock } from './StanzaBlock';
 
 import { WordProps } from '@/lib/data';
@@ -10,6 +11,8 @@ import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+
+import { getWordById } from '@/lib/utils';
 
 const Passage = ({
   bibleData,
