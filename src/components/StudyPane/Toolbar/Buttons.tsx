@@ -4,6 +4,7 @@ import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWi
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
+import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
@@ -447,7 +448,7 @@ export const StudyBtn = ({
 
 export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedWords,
+  const { ctxStudyId, ctxStudyMetadata,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
@@ -472,7 +473,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
       <button
         className={`hover:text-primary`}
         onClick={handleClick} >
-        <AiOutlineClear className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
+        <VscClearAll className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
       </button>
       <ToolTip text="Clear All Format" />
     </div>

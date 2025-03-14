@@ -5,7 +5,6 @@ import { eventBus } from '@/lib/eventBus';
 import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
-import { updateMetadata } from '@/lib/actions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
