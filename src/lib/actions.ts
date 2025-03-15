@@ -7,7 +7,7 @@ import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
 import { ge, le } from "@xata.io/client";
 import { currentUser } from '@clerk/nextjs';
 
-import { formatToPacificTime, parsePassageInfo } from './utils';
+import { formatToLocalTime, parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 
 const RenameFormSchema = z.object({
@@ -532,7 +532,7 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: formatToPacificTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
+      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
   return searchResult;
@@ -567,7 +567,7 @@ export async function fetchModelStudies(query: string, currentPage: number) {
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: formatToPacificTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
+      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
   return searchResult;

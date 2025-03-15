@@ -421,6 +421,7 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
   return passageProps;
 }
 
-export const formatToPacificTime = (date: Date) => {
-  return date.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+export const formatToLocalTime = (date: Date) => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return date.toLocaleString("en-US", { timeZone });
 };
