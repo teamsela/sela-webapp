@@ -4,6 +4,7 @@ import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
 import SearchBar from "@/components/Tables/Search";
+import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
 
@@ -12,34 +13,38 @@ const xataClient = getXataClient();
 export default async function PublicTable({
   query,
   currentPage,
+  sortBy,
+  sortAsc
 }: {
   query: string;
   currentPage: number;
+  sortBy: string;
+  sortAsc: boolean;
 }) {
+  
   // may make PAGINATION_SIZE editable by user later
   const PAGINATION_SIZE = 10;
+  const sortDict: Record<string, any> = {
+    name: "name",
+    passage: "passage",
+    created_at: "xata.createdAt",
+    last_modified: "xata.updatedAt",
+  };
   
+  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
   // fetch all studies from xata
-  const search = await xataClient.db.study.search("", {
-    filter: {
-      $all:[
-        {
-          model: false,
-          public: true,
-          $any: [
-            { name: {$iContains: query }},
-            { passage: {$iContains: query }}
-          ]
-        },  
-      ]
-    },
-    page: {
-      size: PAGINATION_SIZE,
-      offset: (currentPage-1) * PAGINATION_SIZE
-    }
-  });
+  const filter = {
+    model: { $is: false }, public: { $is: true },
+    $any: [{ name: { $contains: query } }, { name: { $contains: query } }]
+  };
+  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
+    .getPaginated({
+      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
+    }));
+  const dbQuery = await xataClient.db.study.filter(filter).getAll();
+ 
   const studies = search.records;
-  const totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  const totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
 
   // extract the ids from owner column and add them into a set
   const uniqueIds = new Set<string>();
@@ -65,14 +70,17 @@ export default async function PublicTable({
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Name
+              <th className="min-w-[220px] flex py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                < SortableColumnHeader displayHeader={"Name"} sortKey={"name"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Passage
+                < SortableColumnHeader displayHeader={"Passage"} sortKey={"passage"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Last Modified
+                < SortableColumnHeader displayHeader={"Created At"} sortKey={"created_at"}/>
+              </th>
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                < SortableColumnHeader displayHeader={"Last Modified"} sortKey={"last_modified"}/>
               </th>
               <th className="min-w-[160px] py-4 px-4 font-medium text-black dark:text-white">
                 Owner
@@ -92,6 +100,11 @@ export default async function PublicTable({
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
                     Psalm {studyItem.passage}
+                  </p>
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <p className="text-black dark:text-white">
+                    {formatToLocalTime(studyItem.xata.createdAt)}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

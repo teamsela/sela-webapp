@@ -15,18 +15,22 @@ const PublicPage = ({
   searchParams?: {
     query?: string;
     page?: string;
+    sortBy?: string;
+    sortAsc?: string;
   };
 }) => {
   const query = searchParams?.query || '';
   const currentPage = Number(searchParams?.page) || 1;
-    
+  const sortBy = searchParams?.sortBy || '';
+  const sortAsc = Boolean(searchParams?.sortAsc);
+
   return (
     <>
       <Breadcrumb pageName="Shared Studies" />
 
       <div className="flex flex-col gap-10">
         <Suspense key={query + currentPage}>
-          <PublicTable query={query} currentPage={currentPage} />
+          <PublicTable query={query} currentPage={currentPage} sortBy={sortBy} sortAsc={sortAsc}/>
         </Suspense>        
       </div>
     </>
