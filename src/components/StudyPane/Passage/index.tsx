@@ -5,7 +5,7 @@ import { HebWord, PassageData } from '@/lib/data';
 import { StanzaBlock } from './StanzaBlock';
 
 import { WordProps } from '@/lib/data';
-import { StructureUpdateType } from '@/lib/types';
+import { ColorActionType, StructureUpdateType } from '@/lib/types';
 import { updateMetadata } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
@@ -22,7 +22,7 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxColorAction
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
