@@ -115,7 +115,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         }
     }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
 
-
+  
     useEffect(() => {
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
@@ -145,6 +145,48 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             zIndex: 100,
         };
     };
+
+
+    //pull all word blocks from passageData ////////////////////////////////////////
+    const selectAll = (array: any[]): any[] => {
+        let result: object[] = []
+        const findWordsArrays = (item: object[]) => {
+            for (const [key, value] of Object.entries(item)) {
+                if (Array.isArray(value)) {
+                    if (key === "words") {
+                        for (let i = 0; i < value.length; i++) {
+                            result.push(value[i]);
+                        }
+                    }
+                    else {
+                        value.flatMap(findWordsArrays)
+                    }
+                }
+            }
+        };
+        array.flatMap(findWordsArrays);
+        return result ?? [];
+    }
+    /////////////////////////////////////////////////////////////
+    // ctrl+A////////////////////////////////
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "a") {
+                event.preventDefault(); // Prevent default select all action
+                //select all word blocks
+                let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
+                ctxSetSelectedWords(allWordsArr);
+                console.log(allWordsArr.length)
+                ctxSetNumSelectedWords(allWordsArr.length);       
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [ ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+    ///////////////////////////////////////////////////
+
 
     return {
         isDragging,

@@ -25,16 +25,16 @@ export const StropheBlock = ({
   const [borderColorLocal, setBorderColorLocal] = useState(stropheProps.metadata?.color?.border || DEFAULT_BORDER_COLOR);
 
   useEffect(() => {
-    if (ctxColorAction != ColorActionType.none && selected) {
-      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+    if (ctxColorAction != ColorActionType.none ) {
+      if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
         setColorFillLocal(ctxSelectedColor);
         (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = ctxSelectedColor);
       }
-      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+      else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
         setBorderColorLocal(ctxSelectedColor);
         (stropheProps.metadata.color) && (stropheProps.metadata.color.border = ctxSelectedColor);
       }
-      else if (ctxColorAction === ColorActionType.resetColor) {
+      else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
         if (colorFillLocal != DEFAULT_COLOR_FILL) {
           setColorFillLocal(DEFAULT_COLOR_FILL);
           (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = DEFAULT_COLOR_FILL);

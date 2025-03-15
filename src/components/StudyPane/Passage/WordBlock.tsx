@@ -42,25 +42,25 @@ export const WordBlock = ({
   const [selected, setSelected] = useState(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  if (ctxColorAction != ColorActionType.none && selected) {
+  if (ctxColorAction != ColorActionType.none ) {
 
     ctxRootsColorMap.delete(wordProps.strongNumber);
 
     const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
 
-    if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "") {
+    if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
       setColorFillLocal(ctxSelectedColor);
       colorUpdates.fill = ctxSelectedColor;
     }
-    else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+    else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
       setBorderColorLocal(ctxSelectedColor);
       colorUpdates.border = ctxSelectedColor;
     }
-    else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "") {
+    else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
       setTextColorLocal(ctxSelectedColor);
       colorUpdates.text = ctxSelectedColor;
     }
-    else if (ctxColorAction === ColorActionType.resetColor) {
+    else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
 
       if (colorFillLocal !== DEFAULT_COLOR_FILL) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
@@ -113,9 +113,9 @@ export const WordBlock = ({
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
     if (ctxSelectedWords.length >= 1) {
-      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length-1);
+      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
       if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
         wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
         wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
@@ -153,7 +153,7 @@ export const WordBlock = ({
     if (ctxSelectedWords.length >= 1) {
       const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
       if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL); 
+        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
         wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
         wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
       }
@@ -241,9 +241,9 @@ export const WordBlock = ({
           className="flex"
           onClick={handleClick}
         >
-          {wordProps.showVerseNum ? 
-            <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> : 
-              (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
+          {wordProps.showVerseNum ?
+            <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
+            (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
             className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
