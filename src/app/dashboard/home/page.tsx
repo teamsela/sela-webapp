@@ -5,7 +5,7 @@ import RecentTable from "@/components/Tables/Recent";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Personal Studies | Sela Bible Poetry"
+  title: "My Studies | Sela Bible Poetry"
   // other metadata
 };
 
@@ -22,7 +22,7 @@ const HomePage = ({
     
   return (
     <>
-      <Breadcrumb pageName="Personal Studies" />
+      <Breadcrumb pageName="My Studies" />
 
       <div className="flex flex-col gap-10">
         <Suspense key={query + currentPage}>

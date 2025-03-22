@@ -5,7 +5,7 @@ import PublicTable from "@/components/Tables/Public";
 
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Shared Studies | Sela Bible Poetry"
+  title: "Public Studies | Sela Bible Poetry"
   // other metadata
 };
 
@@ -26,7 +26,7 @@ const PublicPage = ({
 
   return (
     <>
-      <Breadcrumb pageName="Shared Studies" />
+      <Breadcrumb pageName="Public Studies" />
 
       <div className="flex flex-col gap-10">
         <Suspense key={query + currentPage}>
