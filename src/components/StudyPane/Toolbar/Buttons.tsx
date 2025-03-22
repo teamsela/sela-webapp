@@ -452,7 +452,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
-  const handleClick = () => {
+  const clearColour = () => {
     setColorAction(ColorActionType.resetAllColor);
     ctxSetColorFill(DEFAULT_COLOR_FILL);
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
@@ -467,6 +467,25 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     })
     updateMetadata(ctxStudyId, ctxStudyMetadata);
   }
+  
+  const handleClick = () => {
+    clearColour();
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Delete') {
+            event.preventDefault();
+            console.log("delete key pressed");
+            clearColour();
+        }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ clearColour ]);
+
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
