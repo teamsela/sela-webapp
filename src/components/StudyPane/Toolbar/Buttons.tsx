@@ -475,7 +475,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
         onClick={handleClick} >
         <VscClearAll className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
       </button>
-      <ToolTip text="Clear All Format" />
+      <ToolTip text="Clear all format" />
     </div>
   );
 };
