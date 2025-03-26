@@ -503,7 +503,7 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
   }
 }
 
-export async function fetchRecentStudies(query: string, currentPage: number) {
+export async function fetchRecentStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
   const PAGINATION_SIZE = 10;
   let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
@@ -511,30 +511,27 @@ export async function fetchRecentStudies(query: string, currentPage: number) {
 
   const xataClient = getXataClient();
 
-  const search = await xataClient.db.study.search("", {
-    filter: {
-      $all:[
-        { owner: user?.id },
-        {
-          $any: [
-            { name: {$iContains: query }},
-            { passage: {$iContains: query }}
-          ]
-        },  
-      ]
-    },
-    page: {
-      size: PAGINATION_SIZE,
-      offset: (currentPage-1) * PAGINATION_SIZE
-    }
-  });
+  const filter = {
+    $all:[
+      { owner: user?.id },
+      { $any: [{ name: { $contains: query } }, { name: { $contains: query } }] }
+    ]
+  };
+  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
+    .getPaginated({
+      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
+    }));
+  const dbQuery = await xataClient.db.study.filter(filter).getAll();
+
   search.records.map((studyRecord) => {   
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
+      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), 
+      createdAt: formatToLocalTime(studyRecord.xata.createdAt), 
+      metadata: studyRecord.metadata })
   });
-  searchResult.totalPages = Math.ceil(search.totalCount/PAGINATION_SIZE);
+  searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
 }
 

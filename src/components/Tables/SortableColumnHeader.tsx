@@ -22,7 +22,7 @@ export default function SortableColumnHeader({displayHeader, sortKey} : {display
         }
         return `${pathname}?${params.toString()}`;  
     };
-    return (<Link className="flex items-center w-full" href={createSortUrl()}>
+    return (<Link className="flex hover:bg-meta-2 hover:text-primary items-center" href={createSortUrl()}>
         <span> {displayHeader} </span>
         <div className="ml-2 inline-flex flex-col space-y-[2px]">
           <span className="inline-block">
