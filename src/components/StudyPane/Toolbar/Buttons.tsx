@@ -476,7 +476,6 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Delete') {
             event.preventDefault();
-            console.log("delete key pressed");
             clearColour();
         }
     };
