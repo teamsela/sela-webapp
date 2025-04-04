@@ -200,21 +200,19 @@ export const WordBlock = ({
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`mx-1 rounded border'}
-          `}
+            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]'}`}
             style={
               {
-                border: `2px solid transparent`,
+                background: `${colorFillLocal}`,
+                boxSizing: 'border-box',
+                border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid transparent`,
+                padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
               }
             }>
-            <span
-              className="flex"
-            >
+            <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
-              <span
-                className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none
-                  ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-              >
+              <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
+              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
