@@ -452,7 +452,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
 
-  const handleClick = () => {
+  const clearColour = () => {
     setColorAction(ColorActionType.resetAllColor);
     ctxSetColorFill(DEFAULT_COLOR_FILL);
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
@@ -467,6 +467,24 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     })
     updateMetadata(ctxStudyId, ctxStudyMetadata);
   }
+  
+  const handleClick = () => {
+    clearColour();
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Delete') {
+            event.preventDefault();
+            clearColour();
+        }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ clearColour ]);
+
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
@@ -475,7 +493,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
         onClick={handleClick} >
         <VscClearAll className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
       </button>
-      <ToolTip text="Clear All Format" />
+      <ToolTip text="Clear all format" />
     </div>
   );
 };

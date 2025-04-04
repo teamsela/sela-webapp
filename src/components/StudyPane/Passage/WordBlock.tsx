@@ -233,7 +233,9 @@ export const WordBlock = ({
         style={
           {
             background: `${colorFillLocal}`,
-            border: `2px solid ${borderColorLocal}`,
+            boxSizing: 'border-box',
+            border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid ${borderColorLocal}`,
+            padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
             color: `${textColorLocal}`,
           }
         }>

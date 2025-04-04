@@ -6,6 +6,7 @@ import Link from 'next/link';
 import SearchBar from "@/components/Tables/Search";
 import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
+import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
 import Pagination from "@/components/Paginations/Pagination";
@@ -15,22 +16,34 @@ import { fetchRecentStudies } from '@/lib/actions';
 export default function RecentTable({
   query,
   currentPage,
+  sortBy,
+  sortAsc
 }: {
   query: string;
   currentPage: number;
+  sortBy: string;
+  sortAsc: boolean;
 }) {
 
   const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
   const [triggerFetch, setTriggerFetch] = useState<boolean>(false);
 
+  const sortDict: Record<string, any> = {
+    name: "name",
+    passage: "passage",
+    created_at: "xata.createdAt",
+    last_modified: "xata.updatedAt",
+  };
+  
+  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
   async function fetchStudies() {
-    const [result] = await Promise.all([fetchRecentStudies(query, currentPage)]);
+    const [result] = await Promise.all([fetchRecentStudies(query, currentPage, sortKey, sortAsc)]);
     setStudiesResult(result);
   }
 
   useEffect(() => {
     fetchStudies();
-  }, []);
+  }, [currentPage, sortBy, sortAsc]);
 
   useEffect(() => {
     if (triggerFetch) {
@@ -48,13 +61,16 @@ export default function RecentTable({
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Name
+                < SortableColumnHeader displayHeader={"Name"} sortKey={"name"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Passage
+                < SortableColumnHeader displayHeader={"Passage"} sortKey={"passage"}/>
+              </th>
+              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                < SortableColumnHeader displayHeader={"Created At"} sortKey={"created_at"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Last Modified
+                < SortableColumnHeader displayHeader={"Last Modified"} sortKey={"last_modified"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 Shared to Public
@@ -77,6 +93,11 @@ export default function RecentTable({
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
                     Psalm {studyItem.passage}
+                  </p>
+                </td>
+                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                  <p className="text-black dark:text-white">
+                    {studyItem.createdAt}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
