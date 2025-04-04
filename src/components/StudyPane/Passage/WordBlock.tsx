@@ -203,7 +203,6 @@ export const WordBlock = ({
             className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]'}`}
             style={
               {
-                background: `${colorFillLocal}`,
                 boxSizing: 'border-box',
                 border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid transparent`,
                 padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
