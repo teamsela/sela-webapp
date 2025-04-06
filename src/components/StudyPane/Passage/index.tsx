@@ -1,18 +1,15 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
-import { HebWord, PassageData } from '@/lib/data';
 import { StanzaBlock } from './StanzaBlock';
 
 import { WordProps, PassageProps } from '@/lib/data';
-import { ColorActionType, StructureUpdateType } from '@/lib/types';
+import { StructureUpdateType } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
 import { useDragToSelect } from '@/hooks/useDragToSelect';
-
-import { getWordById } from '@/lib/utils';
 
 const Passage = ({
   bibleData,
@@ -22,7 +19,7 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxColorAction
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -185,11 +182,12 @@ const Passage = ({
         }
       }
       
-      const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
-      ctxSetPassageProps(updatedPassageProps);
+      ctxAddToHistory(ctxStudyMetadata);
+//      const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
+//      ctxSetPassageProps(updatedPassageProps);
       //console.log("Updated", updatedPassageProps)
 
-      ctxSetStudyMetadata(ctxStudyMetadata);
+//      ctxSetStudyMetadata(ctxStudyMetadata);
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
 
       ctxSetSelectedStrophes([]);

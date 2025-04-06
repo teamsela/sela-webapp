@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useEffect } from "react";
 import { FormatContext } from '../index';
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { ToolTip } from "./Buttons";
-import { updateMetadata } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/actions";
 
 const ScaleDropDown = ({setScaleValue}: {
   setScaleValue:(value:number) => void;
@@ -72,7 +72,7 @@ const ScaleDropDown = ({setScaleValue}: {
     // persist the scale value in the database
     if (!ctxInViewMode) {
       ctxStudyMetadata.scaleValue = Math.round(scale * 100) / 100;
-      updateMetadata(ctxStudyId, ctxStudyMetadata);  
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);  
     }
 
     const passageDiv = document.getElementById('selaPassage');
