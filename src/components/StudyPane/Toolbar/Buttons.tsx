@@ -13,7 +13,9 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { updateMetadata } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/actions";
+
+import { StudyMetadata } from '@/lib/data';
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -24,14 +26,39 @@ export const ToolTip = ({ text }: { text: string }) => {
   )
 }
 
+  const printHistory = (history: StudyMetadata[]) => {
+    history.forEach((metadata, idx) => {
+      for (const [key, value] of Object.entries(metadata.words)) {
+        if (key === "201883") {
+          console.log(`History ${idx}: ${key} Fill: ${value.color?.fill} Border: ${value.color?.border} Text: ${value.color?.text}`);
+        }
+      }
+    });
+  };
+
 export const UndoBtn = () => {
+  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
+
+  const buttonEnabled = (ctxPointer !== 0);
+
+  const handleClick = () => {
+    if (buttonEnabled) {
+      console.log("Clicked undo button")
+      const newPointer = ctxPointer - 1;
+      ctxSetPointer(newPointer);
+      console.log("Set ctxPointer to ", newPointer)
+      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
+      printHistory(ctxHistory);
+      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+    }
+  }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center pl-3 px-1 xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("Undo Clicked")} >
-        <LuUndo2 fontSize="1.5em" />
+        onClick={handleClick} >
+        <LuUndo2 fontSize="1.5em" opacity={(buttonEnabled) ? `1` : `0.4`} />
       </button>
       <ToolTip text="Undo" />
     </div>
@@ -39,13 +66,27 @@ export const UndoBtn = () => {
 };
 
 export const RedoBtn = () => {
+  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
 
+  const buttonEnabled = (ctxPointer !== ctxHistory.length - 1);
+
+  const handleClick = () => {
+    if (buttonEnabled) {
+      console.log("Clicked redo button")
+      const newPointer = ctxPointer + 1;
+      ctxSetPointer(newPointer);
+      console.log("Set ctxPointer to ", newPointer);
+      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
+      printHistory(ctxHistory);
+      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+    }
+  }
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 px-4 dark:border-strokedark xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-3 dark:border-strokedark xsm:flex-row">
       <button
         className="hover:text-primary"
-        onClick={() => console.log("Redo Clicked")} >
-        <LuRedo2 fontSize="1.5em" />
+        onClick={handleClick} >
+        <LuRedo2 fontSize="1.5em" opacity={buttonEnabled ? `1` : `0.4`} />
       </button>
       <ToolTip text="Redo" />
     </div>
@@ -58,26 +99,34 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
   const [displayColor, setDisplayColor] = useState("");
+  const [stagedMetadata, setStagedMetadata] = useState<StudyMetadata | undefined>(undefined);
 
   const refreshDisplayColor = useCallback(() => {
     (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
     (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
     (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
-
+  
   useEffect(() => {
     const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
-    ctxSelectedWords
+
     // make sure the colour picker turns off completely when user de-selects everything
     if (!hasSelectedItems) {
+      console.log("No more selected items")
       setColorAction(ColorActionType.none);
       setSelectedColor("");
+      if (stagedMetadata !== undefined) {
+        console.log("Save staged metadata now")
+        ctxAddToHistory(stagedMetadata);
+        updateMetadataInDb(ctxStudyId, stagedMetadata);
+        setStagedMetadata(undefined);
+      }      
     }
     else {
       refreshDisplayColor();
@@ -85,8 +134,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [ctxNumSelectedWords, ctxNumSelectedStrophes, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
 
   useEffect(() => {
-    if (ctxColorAction === ColorActionType.resetColor) {
-      refreshDisplayColor();
+    if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
+      refreshDisplayColor();            
+      setColorAction(ColorActionType.none);
     }
   }, [ctxColorAction, refreshDisplayColor])
 
@@ -98,8 +148,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     }
   }
 
-  const handleChange = (color: any) => {
+  const handleColorPickerChange = (color: any) => {
     //console.log("Changing " + colorActionType + " color to " + color.hex);
+    setColorAction(colorAction);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
     let colorObj = {};
@@ -109,31 +160,47 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       case (ColorActionType.textColor): { colorObj = { text: color.hex }; break; }
     }
 
-    if (ctxSelectedWords.length > 0) {
-      ctxSelectedWords.map((word) => {
-        const wordMetadata = ctxStudyMetadata.words[word.wordId];
-        if (wordMetadata) {
-          if (wordMetadata?.color) {
-            if (colorAction === ColorActionType.colorFill) {
-              wordMetadata.color.fill = color.hex;
-            }
-            else if (colorAction === ColorActionType.borderColor) {
-              wordMetadata.color.border = color.hex;
-            }
-            else if (colorAction === ColorActionType.textColor) {
-              wordMetadata.color.text = color.hex;
-            }
+    let isChanged = false;
+
+    ctxSelectedWords.forEach((word) => {
+      const wordId = word.wordId;
+      const wordMetadata = ctxStudyMetadata.words[wordId];
+    
+      if (!wordMetadata) {
+        isChanged = true;
+        ctxStudyMetadata.words[wordId] = { color: colorObj };
+        return;
+      }
+    
+      if (!wordMetadata.color) {
+        isChanged = (wordMetadata.color !== colorObj);
+        wordMetadata.color = colorObj;
+        return;
+      }
+    
+      const currentColor = wordMetadata.color;
+    
+      switch (colorAction) {
+        case ColorActionType.colorFill:
+          if (currentColor.fill !== color.hex) {
+            isChanged = true;
+            currentColor.fill = color.hex;
           }
-          else {
-            wordMetadata.color = colorObj;
+          break;
+        case ColorActionType.borderColor:
+          if (currentColor.border !== color.hex) {
+            isChanged = true;
+            currentColor.border = color.hex;
           }
-        }
-        else {
-          ctxStudyMetadata.words[word.wordId] = { color: colorObj };
-        }
-      })
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
-    }
+          break;
+        case ColorActionType.textColor:
+          if (currentColor.text !== color.hex) {
+            isChanged = true;
+            currentColor.text = color.hex;
+          }
+          break;
+      }
+    });
 
     if (ctxSelectedStrophes.length > 0) {
 
@@ -143,14 +210,20 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       const wordMetadata = ctxStudyMetadata.words[selectedWordId];
       wordMetadata.stropheMd ??= {};
       wordMetadata.stropheMd.color ??= colorObj;
-
+      
       if (colorAction === ColorActionType.colorFill) {
+        isChanged = isChanged || (wordMetadata.stropheMd.color.fill !== color.hex);
         wordMetadata.stropheMd.color.fill = color.hex;
       } else if (colorAction === ColorActionType.borderColor) {
+        isChanged = isChanged || (wordMetadata.stropheMd.color.border !== color.hex);
         wordMetadata.stropheMd.color.border = color.hex;
       }
+    }
 
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
+    if (isChanged) {
+      console.log("Something has changed")
+
+      setStagedMetadata(ctxStudyMetadata);
     }
   }
 
@@ -186,7 +259,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker className={`colorPicker`} width={550} height={300} color={displayColor} onChange={handleChange} />
+              <SwatchesPicker className={`colorPicker`} width={550} height={300} color={displayColor} onChange={handleColorPickerChange} />
             </div>
           </div>
         )
@@ -195,11 +268,10 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   );
 };
 
-
 export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
-  const { ctxStudyId, ctxStudyMetadata,
-    ctxNumSelectedWords, ctxSelectedWords,
+  const { ctxStudyId, ctxStudyMetadata, ctxAddToHistory,
+    ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
   } = useContext(FormatContext);
@@ -221,20 +293,33 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       setColorAction(ColorActionType.resetColor);
       ctxSetColorFill(DEFAULT_COLOR_FILL);
       ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+
+      let isChanged = false;
       if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
         ctxSelectedWords.map((word) => {
           const wordMetadata = ctxStudyMetadata.words[word.wordId];
           if (wordMetadata && wordMetadata?.color) {
+            isChanged = 
+              (wordMetadata?.color?.fill !== undefined && wordMetadata?.color?.fill != DEFAULT_COLOR_FILL) ||
+              (wordMetadata?.color?.border !== undefined && wordMetadata?.color?.border != DEFAULT_BORDER_COLOR) ||
+              (wordMetadata?.color?.text !== undefined && wordMetadata?.color?.text != DEFAULT_TEXT_COLOR);
             delete wordMetadata["color"];
           }
         })
-        updateMetadata(ctxStudyId, ctxStudyMetadata);
-      }
+      }     
       if (ctxSelectedStrophes.length > 0) {
         const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
-        (ctxStudyMetadata.words[selectedWordId].color) && (delete ctxStudyMetadata.words[selectedWordId].color);
-        updateMetadata(ctxStudyId, ctxStudyMetadata);
+        if (ctxStudyMetadata.words[selectedWordId].color) {
+          isChanged = isChanged ||
+            (ctxStudyMetadata.words[selectedWordId].color?.fill != DEFAULT_COLOR_FILL) ||
+            (ctxStudyMetadata.words[selectedWordId].color?.border != DEFAULT_BORDER_COLOR);
+          delete ctxStudyMetadata.words[selectedWordId].color;
+        }
+      }
+      if (isChanged) {
+        ctxAddToHistory(ctxStudyMetadata);
+        updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
     }
   }
@@ -251,10 +336,72 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   );
 };
 
+export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
+
+  const { ctxStudyId, ctxStudyMetadata, ctxNumSelectedWords,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxAddToHistory
+  } = useContext(FormatContext);
+
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+
+  useEffect(() => {
+
+    let hasCustomColor : boolean = false;
+    console.log("Clearallformat Button update")
+    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
+      if (wordMetadata && wordMetadata?.color) {
+        hasCustomColor = true;
+      }
+      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
+        hasCustomColor = true;
+      }
+    });
+
+    setButtonEnabled(hasCustomColor);
+  }, [ctxNumSelectedWords, ctxStudyMetadata, setColorAction]);
+
+  const handleClick = () => {
+    setColorAction(ColorActionType.resetAllColor);
+    ctxSetColorFill(DEFAULT_COLOR_FILL);
+    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
+    ctxSetTextColor(DEFAULT_TEXT_COLOR);
+
+    let isChanged = false;
+
+    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
+      if (wordMetadata && wordMetadata?.color) {
+        isChanged = true;
+        delete wordMetadata["color"];
+      }
+      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
+        isChanged = true;
+        delete wordMetadata.stropheMd.color;
+      }
+    });
+
+    if (isChanged) {
+      ctxAddToHistory(ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+      setButtonEnabled(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className={`hover:text-primary`}
+        onClick={handleClick} >
+        <VscClearAll className="ClickBlock" fontSize="1.4em" opacity={(buttonEnabled) ? `1` : `0.4`} />
+      </button>
+      <ToolTip text="Clear all format" />
+    </div>
+  );
+};
+
 export const UniformWidthBtn = ({ setBoxStyle }: {
   setBoxStyle: (arg: BoxDisplayStyle) => void,
 }) => {
-  const { ctxBoxDisplayStyle, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata } = useContext(FormatContext);
+  const { ctxBoxDisplayStyle, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
   const handleClick = () => {
     if (ctxBoxDisplayStyle === BoxDisplayStyle.box) {
@@ -265,9 +412,12 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
       setBoxStyle(BoxDisplayStyle.box);
     }
     ctxSetStudyMetadata(ctxStudyMetadata);
-    (!ctxInViewMode) && updateMetadata(ctxStudyId, ctxStudyMetadata);
+    if (!ctxInViewMode) {
+      //ctxAddToHistory(ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    }
   }
-
+  
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
@@ -285,19 +435,19 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
       }
       {
         (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <ToolTip text="Enable uniform width" />
-      }
+      }      
     </div>
   );
 };
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum,
-    ctxSelectedWords, ctxNumSelectedWords } = useContext(FormatContext);
+  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+    ctxSelectedWords, ctxNumSelectedWords, ctxAddToHistory } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
   useEffect(() => {
-    let indentNum: number = 0;
+    let indentNum : number = 0;
     if (ctxSelectedWords.length === 1) {
       const wordMetadata = ctxStudyMetadata.words[ctxSelectedWords[0].wordId];
       indentNum = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
@@ -310,10 +460,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   const handleClick = () => {
     if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
       return;
-
+    
     const selectedWordId = ctxSelectedWords[0].wordId;
     const wordMetadata = ctxStudyMetadata.words[selectedWordId];
-    let indentNum: number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
+    let indentNum : number = (wordMetadata) ? (wordMetadata?.indent || 0) : 0;
     if (!leftIndent) {
       if (indentNum > 0) {
         ctxStudyMetadata.words[selectedWordId] = {
@@ -321,8 +471,9 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
           indent: --indentNum,
         };
         (indentNum == 0) && (delete ctxStudyMetadata.words[selectedWordId].indent);
-        updateMetadata(ctxStudyId, ctxStudyMetadata);
-        ctxSetStudyMetadata(ctxStudyMetadata);
+        ctxAddToHistory(ctxStudyMetadata);
+        updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+        //ctxSetStudyMetadata(ctxStudyMetadata);
         setButtonEnabled(indentNum > 0);
         ctxSetIndentNum(indentNum);
       }
@@ -333,10 +484,11 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
           ...ctxStudyMetadata.words[selectedWordId],
           indent: ++indentNum,
         };
-        updateMetadata(ctxStudyId, ctxStudyMetadata);
-        ctxSetStudyMetadata(ctxStudyMetadata);
+        ctxAddToHistory(ctxStudyMetadata);
+        updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+        //ctxSetStudyMetadata(ctxStudyMetadata);
         setButtonEnabled(indentNum < 3);
-        ctxSetIndentNum(indentNum)
+        ctxSetIndentNum(indentNum);
       }
     }
   }
@@ -370,8 +522,8 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-    buttonEnabled = hasWordSelected &&
-      ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
+      buttonEnabled = hasWordSelected && 
+        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
         .strophes[ctxSelectedWords[0].stropheId].lines.length - 1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
@@ -435,49 +587,13 @@ export const StudyBtn = ({
 
   return (
     <>
-      <div>
-        <button onClick={() => {
+    <div>
+      <button onClick={() => {
           setCloneStudyOpen(true);
         }} className="rounded-lg bg-primary py-2 px-2 text-center text-sm text-white hover:bg-opacity-90 lg:px-6 xl:px-8">
           Copy to My Studies
-        </button>
-      </div>
-    </>
-  );
-};
-
-export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
-
-  const { ctxStudyId, ctxStudyMetadata,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
-  } = useContext(FormatContext);
-
-  const handleClick = () => {
-    setColorAction(ColorActionType.resetAllColor);
-    ctxSetColorFill(DEFAULT_COLOR_FILL);
-    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-    ctxSetTextColor(DEFAULT_TEXT_COLOR);
-    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
-      if (wordMetadata && wordMetadata?.color) {
-        delete wordMetadata["color"];
-      }
-      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
-        delete wordMetadata.stropheMd.color;
-      }
-    })
-    updateMetadata(ctxStudyId, ctxStudyMetadata);
-  }
-
-  return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary`}
-        onClick={handleClick} >
-        <VscClearAll className="ClickBlock" fillOpacity="1" fontSize="1.4em" />
       </button>
-      <ToolTip text="Clear all format" />
     </div>
+    </>   
   );
 };
-
-

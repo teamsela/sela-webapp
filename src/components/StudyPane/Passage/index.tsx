@@ -4,9 +4,9 @@ import { FormatContext } from '../index';
 import { HebWord, PassageData } from '@/lib/data';
 import { StanzaBlock } from './StanzaBlock';
 
-import { WordProps } from '@/lib/data';
+import { WordProps, PassageProps } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
-import { updateMetadata } from '@/lib/actions';
+import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
@@ -190,7 +190,7 @@ const Passage = ({
       //console.log("Updated", updatedPassageProps)
 
       ctxSetStudyMetadata(ctxStudyMetadata);
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
 
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
@@ -224,7 +224,7 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  //console.log(passageProps);
+  //console.log("Triggered update on Passage", ctxPassageProps);
 
   return (  
     <div
@@ -234,7 +234,7 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className="h-0"
     >
-      <div id="selaPassage" className='flex relative py-4'>
+      <div id="selaPassage" className='flex relative pl-2 py-4'>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (

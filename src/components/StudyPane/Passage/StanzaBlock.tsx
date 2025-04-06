@@ -3,7 +3,7 @@ import { useContext, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadata } from "@/lib/actions"
+import { updateMetadataInDb } from "@/lib/actions"
 
 export const StanzaBlock = ({
   stanzaProps
@@ -25,7 +25,7 @@ export const StanzaBlock = ({
     }
 
     if (!ctxInViewMode) {
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
     }
 
     // remove any selected word blocks if stanza block is collapsed or expanded
@@ -33,6 +33,8 @@ export const StanzaBlock = ({
     ctxSetNumSelectedWords(0);
   }
 
+//  console.log("Triggered stanza block update");
+  
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}

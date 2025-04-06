@@ -31,18 +31,18 @@ export const WordBlock = ({
 
   const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
-    ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
+    ctxSetSelectedStrophes, ctxColorAction, ctxSetColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
   } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(wordProps.metadata?.color?.fill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(wordProps.metadata?.color?.border || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(wordProps.metadata?.color?.text || DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const [selected, setSelected] = useState(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  if (ctxColorAction != ColorActionType.none ) {
+  if (ctxColorAction != ColorActionType.none) {
 
     ctxRootsColorMap.delete(wordProps.strongNumber);
 
@@ -61,7 +61,6 @@ export const WordBlock = ({
       colorUpdates.text = ctxSelectedColor;
     }
     else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
-
       if (colorFillLocal !== DEFAULT_COLOR_FILL) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         colorUpdates.fill = DEFAULT_COLOR_FILL;
@@ -83,15 +82,37 @@ export const WordBlock = ({
           ...colorUpdates,
         },
       };
-    }    
+    }
   }
+
+  useEffect(() => {
+ 
+    if (wordProps.metadata?.color) {
+      const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
+      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
+
+      const selectedBorderColor = wordProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
+      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
+
+      const selectedTextColor = wordProps.metadata?.color?.text ?? DEFAULT_TEXT_COLOR;
+      (textColorLocal !== selectedTextColor) && setTextColorLocal(selectedTextColor);
+    }
+    else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
+      setTextColorLocal(DEFAULT_TEXT_COLOR);  
+    }
+  }, [wordProps.metadata?.color]);
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
       //console.log("Change indent num to " + ctxIndentNum)
       setIndentsLocal(ctxIndentNum);
     }
-  }, [ctxIndentNum])
+    if (wordProps.metadata?.indent != undefined && wordProps.metadata?.indent != indentsLocal) {
+      setIndentsLocal(wordProps.metadata?.indent);
+    }
+  }, [ctxIndentNum, wordProps.metadata])
 
   useEffect(() => {
     const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
@@ -121,7 +142,6 @@ export const WordBlock = ({
       }
     }
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
-
 
   const handleClick = () => {
     if (clickTimeout) {
