@@ -3,7 +3,7 @@ import React, { useEffect, useContext } from 'react';
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
 
-import { WordProps, PassageProps } from '@/lib/data';
+import { WordProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
@@ -16,7 +16,7 @@ const Passage = ({
 }: {
   bibleData: WordProps[];
 }) => {
-  const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
+  const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
@@ -183,11 +183,9 @@ const Passage = ({
       }
       
       ctxAddToHistory(ctxStudyMetadata);
-//      const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
-//      ctxSetPassageProps(updatedPassageProps);
-      //console.log("Updated", updatedPassageProps)
+      const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
+      ctxSetPassageProps(updatedPassageProps);
 
-//      ctxSetStudyMetadata(ctxStudyMetadata);
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
 
       ctxSetSelectedStrophes([]);
@@ -198,7 +196,7 @@ const Passage = ({
     ctxSetStructureUpdateType(StructureUpdateType.none);
 
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
-  
+
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect identical words
     const handler = (word: WordProps) => {

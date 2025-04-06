@@ -349,6 +349,7 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
     wordProps.firstStropheInStanza = false;
     wordProps.firstWordInStrophe = false;
+    wordProps.metadata = {};
 
     if (studyMetadata?.words) {
       const currentWordStyling = studyMetadata.words[wordProps.wordId];

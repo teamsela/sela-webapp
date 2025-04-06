@@ -35,7 +35,6 @@ export const FormatContext = createContext({
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
-  ctxSetColorAction: (arg: ColorActionType) => {},
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
   ctxColorFill: "" as string,
@@ -98,8 +97,14 @@ const StudyPane = ({
   const printHistory = (history: StudyMetadata[]) => {
     history.forEach((metadata, idx) => {
       for (const [key, value] of Object.entries(metadata.words)) {
-        if (key === "201883") {
+        if (key === "199702" || key === "199712") {
           console.log(`History ${idx}: ${key} Fill: ${value.color?.fill} Border: ${value.color?.border} Text: ${value.color?.text}`);
+          // if (value.indent !== undefined) {
+          //   console.log(`History ${idx}: ${key} Indent: ${value.indent}`);
+          // }
+          // else {
+          //   console.log(`History ${idx}: ${key} Indent: undefined`);
+          // }
         }
       }
     });
@@ -135,7 +140,6 @@ const StudyPane = ({
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxColorAction: colorAction,
-    ctxSetColorAction: setColorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
     ctxColorFill: colorFill,
@@ -161,8 +165,11 @@ const StudyPane = ({
   useEffect(() => {
 
     // merge custom metadata with bible data
+    console.log("Metata before merge", studyMetadata);
+
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
+    console.log("Merged data", initPassageProps);
     setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
   
   }, [passageData.bibleData, studyMetadata]);

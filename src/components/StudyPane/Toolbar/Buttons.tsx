@@ -29,8 +29,14 @@ export const ToolTip = ({ text }: { text: string }) => {
   const printHistory = (history: StudyMetadata[]) => {
     history.forEach((metadata, idx) => {
       for (const [key, value] of Object.entries(metadata.words)) {
-        if (key === "201883") {
+        if (key === "199702" || key === "199712") {
           console.log(`History ${idx}: ${key} Fill: ${value.color?.fill} Border: ${value.color?.border} Text: ${value.color?.text}`);
+          // if (value.indent != undefined) {
+          //   console.log(`History ${idx}: ${key} Indent: ${value.indent}`);
+          // }
+          // else {
+          //   console.log(`History ${idx}: ${key} Indent: undefined`);
+          // }
         }
       }
     });
@@ -56,7 +62,7 @@ export const UndoBtn = () => {
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center pl-3 px-1 xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         <LuUndo2 fontSize="1.5em" opacity={(buttonEnabled) ? `1` : `0.4`} />
       </button>
@@ -84,7 +90,7 @@ export const RedoBtn = () => {
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-3 dark:border-strokedark xsm:flex-row">
       <button
-        className="hover:text-primary"
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         <LuRedo2 fontSize="1.5em" opacity={buttonEnabled ? `1` : `0.4`} />
       </button>
@@ -118,11 +124,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
     // make sure the colour picker turns off completely when user de-selects everything
     if (!hasSelectedItems) {
-      console.log("No more selected items")
       setColorAction(ColorActionType.none);
       setSelectedColor("");
       if (stagedMetadata !== undefined) {
-        console.log("Save staged metadata now")
         ctxAddToHistory(stagedMetadata);
         updateMetadataInDb(ctxStudyId, stagedMetadata);
         setStagedMetadata(undefined);
@@ -339,7 +343,8 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
 export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: number) => void }) => {
 
   const { ctxStudyId, ctxStudyMetadata, ctxNumSelectedWords,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxAddToHistory
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
+    ctxAddToHistory, ctxSetRootsColorMap
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -347,7 +352,6 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
   useEffect(() => {
 
     let hasCustomColor : boolean = false;
-    console.log("Clearallformat Button update")
     Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
       if (wordMetadata && wordMetadata?.color) {
         hasCustomColor = true;
@@ -380,6 +384,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     });
 
     if (isChanged) {
+      ctxSetRootsColorMap(new Map());
       ctxAddToHistory(ctxStudyMetadata);
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       setButtonEnabled(false);
@@ -389,7 +394,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
-        className={`hover:text-primary`}
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         <VscClearAll className="ClickBlock" fontSize="1.4em" opacity={(buttonEnabled) ? `1` : `0.4`} />
       </button>
@@ -442,7 +447,7 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSetStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
     ctxSelectedWords, ctxNumSelectedWords, ctxAddToHistory } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
@@ -455,7 +460,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
     setButtonEnabled((ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && (ctxNumSelectedWords === 1) && validIndent);
-  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
+  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxStudyMetadata, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
 
   const handleClick = () => {
     if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
@@ -471,11 +476,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
           indent: --indentNum,
         };
         (indentNum == 0) && (delete ctxStudyMetadata.words[selectedWordId].indent);
+        ctxSetIndentNum(indentNum);
         ctxAddToHistory(ctxStudyMetadata);
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-        //ctxSetStudyMetadata(ctxStudyMetadata);
         setButtonEnabled(indentNum > 0);
-        ctxSetIndentNum(indentNum);
       }
     }
     else {
@@ -484,11 +488,10 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
           ...ctxStudyMetadata.words[selectedWordId],
           indent: ++indentNum,
         };
+        ctxSetIndentNum(indentNum);
         ctxAddToHistory(ctxStudyMetadata);
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-        //ctxSetStudyMetadata(ctxStudyMetadata);
         setButtonEnabled(indentNum < 3);
-        ctxSetIndentNum(indentNum);
       }
     }
   }
@@ -524,7 +527,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
       buttonEnabled = hasWordSelected && 
         ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
-        .strophes[ctxSelectedWords[0].stropheId].lines.length - 1 !== ctxSelectedWords[0].lineId;
+        .strophes[ctxSelectedWords[0].stropheId]?.lines?.length - 1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {

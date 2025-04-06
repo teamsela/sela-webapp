@@ -31,8 +31,9 @@ export const WordBlock = ({
 
   const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
-    ctxSetSelectedStrophes, ctxColorAction, ctxSetColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
+    ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
+    ctxRootsColorMap, ctxSetRootsColorMap
   } = useContext(FormatContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
@@ -86,7 +87,11 @@ export const WordBlock = ({
   }
 
   useEffect(() => {
- 
+
+    // if (wordProps.wordId === 199702) {
+    // console.log("What is my metadata", wordProps);
+    // }
+
     if (wordProps.metadata?.color) {
       const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
       (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
@@ -100,19 +105,25 @@ export const WordBlock = ({
     else {
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
-      setTextColorLocal(DEFAULT_TEXT_COLOR);  
+      setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
+
+    ctxSetRootsColorMap(new Map());
   }, [wordProps.metadata?.color]);
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
-      //console.log("Change indent num to " + ctxIndentNum)
       setIndentsLocal(ctxIndentNum);
+      wordProps.metadata.indent = ctxIndentNum;
     }
-    if (wordProps.metadata?.indent != undefined && wordProps.metadata?.indent != indentsLocal) {
-      setIndentsLocal(wordProps.metadata?.indent);
+  }, [ctxIndentNum])
+
+  useEffect(() => {
+    const indent = wordProps.metadata?.indent ?? 0;
+    if (indentsLocal !== indent) {
+      setIndentsLocal(indent);
     }
-  }, [ctxIndentNum, wordProps.metadata])
+  }, [wordProps.metadata?.indent]);
 
   useEffect(() => {
     const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
