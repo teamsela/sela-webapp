@@ -51,17 +51,17 @@ const Toolbar = ({
             </div>
           )
         : (<div className="flex">
-          {/*<div className="border-r border-stroke flex flex-row">
+          <ScaleDropDown setScaleValue={setScaleValue} />
+          <div className="border-r border-stroke flex flex-row">
             <UndoBtn />
             <RedoBtn />
-          </div>*/}
-          <ScaleDropDown setScaleValue={setScaleValue} />
+          </div>
           <div className="border-r border-stroke flex flex-row">
             <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
             <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
             <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor}/>
-            <ClearFormatBtn setColorAction={setColorAction} />     
-            <ClearAllFormatBtn setColorAction={setColorAction}/> 
+            <ClearFormatBtn setColorAction={setColorAction} />
+            <ClearAllFormatBtn setColorAction={setColorAction}/>
           </div>
           <div className="border-r border-stroke flex flex-row">
             <UniformWidthBtn setBoxStyle={setBoxStyle}/>

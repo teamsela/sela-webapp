@@ -3,6 +3,7 @@ import { ColorData } from "@/lib/data";
 import { RootColorPalette } from "../StudyPane/InfoPane/Motif/Root";
 import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../StudyPane/index';
 import { RootWordProps } from "../StudyPane/InfoPane/Motif/Root";
+import { updateMetadataInDb } from '@/lib/actions';
 
 interface SmartHighlightProps {
     rootWords: RootWordProps[]; // Property with a type of an empty array
@@ -10,7 +11,7 @@ interface SmartHighlightProps {
 
 const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
 
-  const { ctxStudyId, ctxSetRootsColorMap } = useContext(FormatContext);
+  const { ctxStudyId, ctxSetRootsColorMap, ctxStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -43,30 +44,49 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
-  
   const handleClick = () => {
 
     let newMap = new Map<number, ColorData>();
 
     rootWords.forEach((rootWord, index) => {
-        let descendantWordIds: number[] = [];
-        rootWord.descendants.forEach((word) => {
-            descendantWordIds.push(word.wordId)
-        });
 
-        let rootBlockColor: ColorData = {
-            fill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
-            text: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
-            border: "" // not used for root block
-        };
+      let rootBlockColor: ColorData = {
+        fill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
+        text: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
+        border: "" // not used for root block
+      };
+
+//      let descendantWordIds: number[] = [];
+      rootWord.descendants.forEach((word) => {
+        const wordId = word.wordId;
+        const wordMetadata = ctxStudyMetadata.words[wordId];
+    
+        if (!wordMetadata) {
+          ctxStudyMetadata.words[wordId] = { color: rootBlockColor };
+          return;
+        }
+    
+        if (!wordMetadata.color) {
+          wordMetadata.color = rootBlockColor;
+          return;
+        }
+    
+        wordMetadata.color.fill = rootBlockColor.fill;
+        wordMetadata.color.text = rootBlockColor.text;
+    
+//        descendantWordIds.push(word.wordId)
+      });
 
         //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
         //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
-        newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
-    })
+      newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
+    });
+
     ctxSetRootsColorMap(newMap);
-    setModalOpen(false);
-    
+    ctxAddToHistory(ctxStudyMetadata);
+    updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+
+    //setModalOpen(false);
 }
 
   
@@ -75,7 +95,8 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
 
       <button
         ref={trigger}
-        onClick={() => setModalOpen(!modalOpen)}
+        //onClick={() => setModalOpen(!modalOpen)}
+        onClick={handleClick}
         className="inline-flex items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
       >
         Smart Highlight
@@ -87,9 +108,9 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
         }`}
       >
         <div
-          ref={modal}
-          onFocus={() => setModalOpen(true)}
-          onBlur={() => setModalOpen(false)}
+          //ref={modal}
+          //onFocus={() => setModalOpen(true)}
+          //onBlur={() => setModalOpen(false)}
           className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
         >
           <span className="mx-auto inline-block">
@@ -125,7 +146,7 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
           <div className="-mx-3 flex flex-wrap gap-y-4">
             <div className="w-full px-3 2xsm:w-1/2">
               <button
-                onClick={() => setModalOpen(false)}
+                //onClick={() => setModalOpen(false)}
                 className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
               >
                 Cancel
@@ -134,7 +155,6 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
             <div className="w-full px-3 2xsm:w-1/2">
               <button 
                 className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90"
-                onClick={() => handleClick()}
                >
                 Confirm
               </button>

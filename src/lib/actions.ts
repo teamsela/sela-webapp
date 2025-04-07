@@ -84,7 +84,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
   }
 }
 
-export async function updateMetadata(studyId: string, studyMetadata: StudyMetadata) {
+export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
 
   const xataClient = getXataClient();

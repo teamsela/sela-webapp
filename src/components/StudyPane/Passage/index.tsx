@@ -1,28 +1,25 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
-import { HebWord, PassageData } from '@/lib/data';
 import { StanzaBlock } from './StanzaBlock';
 
 import { WordProps } from '@/lib/data';
-import { ColorActionType, StructureUpdateType } from '@/lib/types';
-import { updateMetadata } from '@/lib/actions';
+import { StructureUpdateType } from '@/lib/types';
+import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
 import { useDragToSelect } from '@/hooks/useDragToSelect';
-
-import { getWordById } from '@/lib/utils';
 
 const Passage = ({
   bibleData,
 }: {
   bibleData: WordProps[];
 }) => {
-  const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, ctxSetStudyMetadata, 
+  const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxColorAction
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -185,12 +182,11 @@ const Passage = ({
         }
       }
       
+      ctxAddToHistory(ctxStudyMetadata);
       const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
       ctxSetPassageProps(updatedPassageProps);
-      //console.log("Updated", updatedPassageProps)
 
-      ctxSetStudyMetadata(ctxStudyMetadata);
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
 
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
@@ -200,7 +196,7 @@ const Passage = ({
     ctxSetStructureUpdateType(StructureUpdateType.none);
 
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
-  
+
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect identical words
     const handler = (word: WordProps) => {
@@ -224,8 +220,6 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  //console.log(passageProps);
-
   return (  
     <div
       key={`passage`}
@@ -234,7 +228,7 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className="h-0"
     >
-      <div id="selaPassage" className='flex relative py-4'>
+      <div id="selaPassage" className='flex relative pl-2 py-4'>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (

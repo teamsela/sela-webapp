@@ -349,10 +349,13 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
     wordProps.firstStropheInStanza = false;
     wordProps.firstWordInStrophe = false;
+    wordProps.metadata = {};
 
-    const currentWordStyling = studyMetadata.words[wordProps.wordId];
-    if (currentWordStyling !== undefined) {
-      wordProps.metadata = currentWordStyling;
+    if (studyMetadata?.words) {
+      const currentWordStyling = studyMetadata.words[wordProps.wordId];
+      if (currentWordStyling !== undefined) {
+        wordProps.metadata = currentWordStyling;
+      }  
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
@@ -360,10 +363,11 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
 
-      const currentStanzaStyling = studyMetadata.words[wordProps.wordId]?.stanzaMd;
+      const currentStanzaStyling = studyMetadata.words?.[wordProps.wordId]?.stanzaMd || undefined;
       if (currentStanzaStyling !== undefined) {
         currentStanzaData.metadata = currentStanzaStyling;
       }
+
       currentStropheIdx = -1;
       passageProps.stanzaCount++; 
     }
@@ -374,7 +378,7 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
       ++currentStropheIdx;
       currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
 
-      const currentStropheStyling = studyMetadata.words[wordProps.wordId]?.stropheMd;
+      const currentStropheStyling = studyMetadata.words?.[wordProps.wordId]?.stropheMd || undefined;
       if (currentStropheStyling !== undefined) {
         currentStropheData.metadata = currentStropheStyling;
       }

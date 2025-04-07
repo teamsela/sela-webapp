@@ -6,7 +6,7 @@ import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
-import { updateMetadata } from '@/lib/actions';
+import { updateMetadataInDb } from '@/lib/actions';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -78,7 +78,7 @@ export const StropheBlock = ({
     ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd.expanded = stropheProps.metadata.expanded;
 
     if (!ctxInViewMode) {
-      updateMetadata(ctxStudyId, ctxStudyMetadata);
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
     }
 
     // remove any selected word blocks if strophe block is collapsed or expanded
