@@ -122,6 +122,7 @@ export interface StudyData {
     starred?: boolean;
     model?: boolean;
     lastUpdated?: string;
+    createdAt?: string;
     metadata: StudyMetadata;
 }
 
