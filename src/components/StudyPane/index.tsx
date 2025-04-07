@@ -94,33 +94,12 @@ const StudyPane = ({
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
 
-  const printHistory = (history: StudyMetadata[]) => {
-    history.forEach((metadata, idx) => {
-      for (const [key, value] of Object.entries(metadata.words)) {
-        if (key === "199702" || key === "199712") {
-          console.log(`History ${idx}: ${key} Fill: ${value.color?.fill} Border: ${value.color?.border} Text: ${value.color?.text}`);
-          // if (value.indent !== undefined) {
-          //   console.log(`History ${idx}: ${key} Indent: ${value.indent}`);
-          // }
-          // else {
-          //   console.log(`History ${idx}: ${key} Indent: undefined`);
-          // }
-        }
-      }
-    });
-  };
-
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
-    console.log("History before update::::");
-    printHistory(history);
     const newHistory = history.slice(0, pointer + 1);
     newHistory.push(clonedObj);
-    console.log("History after update::::");
-    printHistory(newHistory);
     setHistory(newHistory);
     setPointer(pointer + 1);
-    console.log("Set pointer to ", pointer+1);
   };
 
   const formatContextValue = {
@@ -165,11 +144,8 @@ const StudyPane = ({
   useEffect(() => {
 
     // merge custom metadata with bible data
-    console.log("Metata before merge", studyMetadata);
-
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
-    console.log("Merged data", initPassageProps);
     setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
   
   }, [passageData.bibleData, studyMetadata]);

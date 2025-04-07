@@ -220,8 +220,6 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  //console.log("Triggered update on Passage", ctxPassageProps);
-
   return (  
     <div
       key={`passage`}

@@ -20,7 +20,7 @@ export const CategoryBlock = ({
     lastSelectedWords: WordProps[],
     setLastSelectedWords: React.Dispatch<React.SetStateAction<WordProps[]>>
 }) => {
-    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
+    const { ctxStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
 
     const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
         return value.wordProps.every(dsd =>
@@ -60,6 +60,12 @@ export const CategoryBlock = ({
         }
     }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords])
 
+    useEffect(() => {
+        setColorFillLocal(matchColorProperty('fill') ? value.wordProps[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
+        setTextColorLocal(matchColorProperty('text') ? value.wordProps[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
+        setBorderColorLocal(matchColorProperty('border') ? value.wordProps[0].metadata?.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
+    }, [value, ctxStudyMetadata]);
+
     const handleClick = () => {
         setSelected(prevState => !prevState);
         if (category === selectedCategory) {
@@ -74,10 +80,11 @@ export const CategoryBlock = ({
                 word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
             );
             
-            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));
+            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));           
             
-            setSelectedCategory(category);
+            //setSelectedCategory(category);
             ctxSetSelectedWords(newSelectedHebWords);
+            ctxSetNumSelectedWords(newSelectedHebWords.length);            
             setLastSelectedWords(value.wordProps);
         }
     };

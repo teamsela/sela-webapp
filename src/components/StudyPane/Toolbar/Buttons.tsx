@@ -26,22 +26,6 @@ export const ToolTip = ({ text }: { text: string }) => {
   )
 }
 
-  const printHistory = (history: StudyMetadata[]) => {
-    history.forEach((metadata, idx) => {
-      for (const [key, value] of Object.entries(metadata.words)) {
-        if (key === "199702" || key === "199712") {
-          console.log(`History ${idx}: ${key} Fill: ${value.color?.fill} Border: ${value.color?.border} Text: ${value.color?.text}`);
-          // if (value.indent != undefined) {
-          //   console.log(`History ${idx}: ${key} Indent: ${value.indent}`);
-          // }
-          // else {
-          //   console.log(`History ${idx}: ${key} Indent: undefined`);
-          // }
-        }
-      }
-    });
-  };
-
 export const UndoBtn = () => {
   const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
 
@@ -49,12 +33,9 @@ export const UndoBtn = () => {
 
   const handleClick = () => {
     if (buttonEnabled) {
-      console.log("Clicked undo button")
       const newPointer = ctxPointer - 1;
       ctxSetPointer(newPointer);
-      console.log("Set ctxPointer to ", newPointer)
       ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      printHistory(ctxHistory);
       updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
     }
   }
@@ -78,12 +59,9 @@ export const RedoBtn = () => {
 
   const handleClick = () => {
     if (buttonEnabled) {
-      console.log("Clicked redo button")
       const newPointer = ctxPointer + 1;
       ctxSetPointer(newPointer);
-      console.log("Set ctxPointer to ", newPointer);
       ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      printHistory(ctxHistory);
       updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
     }
   }
@@ -224,11 +202,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
     }
 
-    if (isChanged) {
-      console.log("Something has changed")
-
-      setStagedMetadata(ctxStudyMetadata);
-    }
+    (isChanged) && setStagedMetadata(ctxStudyMetadata);
   }
 
   return (

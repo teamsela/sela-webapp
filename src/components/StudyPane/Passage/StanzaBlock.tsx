@@ -32,8 +32,6 @@ export const StanzaBlock = ({
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
   }
-
-//  console.log("Triggered stanza block update");
   
   return(
       <div
