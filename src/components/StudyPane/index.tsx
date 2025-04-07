@@ -11,7 +11,7 @@ import { Footer } from "./Footer";
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
-import { updateMetadata } from '@/lib/actions';
+import { updateMetadataInDb } from '@/lib/actions';
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
@@ -49,8 +49,12 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxRootsColorMap : {} as Map<number, ColorData>,
-  ctxSetRootsColorMap : (arg: Map<number, ColorData>) =>{},
+  ctxRootsColorMap: {} as Map<number, ColorData>,
+  ctxSetRootsColorMap: (arg: Map<number, ColorData>) => {},
+  ctxHistory: [] as StudyMetadata[],
+  ctxPointer: {} as number,
+  ctxSetPointer: (arg: number) => {},
+  ctxAddToHistory: (arg: StudyMetadata) => {}
 });
 
 const StudyPane = ({
@@ -87,6 +91,17 @@ const StudyPane = ({
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
+  const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
+  const [pointer, setPointer] = useState(0);
+
+  const addToHistory = (updatedMetadata: StudyMetadata) => { 
+    const clonedObj = structuredClone(updatedMetadata);
+    const newHistory = history.slice(0, pointer + 1);
+    newHistory.push(clonedObj);
+    setHistory(newHistory);
+    setPointer(pointer + 1);
+  };
+
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
@@ -120,7 +135,11 @@ const StudyPane = ({
     ctxSetStructureUpdateType: setStructureUpdateType,
     ctxRootsColorMap: rootsColorMap,
     ctxSetRootsColorMap: setRootsColorMap,
-  }
+    ctxHistory: history,
+    ctxPointer: pointer,
+    ctxSetPointer: setPointer,
+    ctxAddToHistory: addToHistory
+  };
 
   useEffect(() => {
 
@@ -130,7 +149,7 @@ const StudyPane = ({
     setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
   
   }, [passageData.bibleData, studyMetadata]);
- 
+   
   if (!passageData.study.metadata.words) {
 
     // convert content to StudyMetadata
@@ -212,9 +231,7 @@ const StudyPane = ({
 
     passageData.study.metadata = studyMetadata1;
     setStudyMetadata(studyMetadata1)
-    const jsonOutput = JSON.stringify(studyMetadata1);
-    //console.log(jsonOutput);
-    updateMetadata(passageData.study.id, studyMetadata1);
+    updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
 

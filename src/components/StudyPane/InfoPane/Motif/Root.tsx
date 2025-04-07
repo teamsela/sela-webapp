@@ -16,6 +16,7 @@ export const RootColorPalette = [
 ];
 
 export type RootWordProps = {
+    wordId: number,
     count: number,
     descendants: WordProps[],
     relatedWords: WordProps[]
@@ -36,7 +37,7 @@ const Root = () => {
                     rootWordsMap.get(strongNum)?.forEach(word => relatedWords.push(word));
                 });
             }
-            rootWords.push({ count: rootWord.length, descendants: rootWord, relatedWords: relatedWords });
+            rootWords.push({ wordId: rootWord[0].wordId, count: rootWord.length, descendants: rootWord, relatedWords: relatedWords });
         }
     });
     rootWords.sort((a, b) => b.count - a.count);
@@ -51,7 +52,7 @@ const Root = () => {
                 className=" gap-4 pb-8 overflow-y-auto">
                 <div className ="flex flex-wrap">
                     {rootWords.map((root, index) => (
-                        <RootBlock key={index} id={index} 
+                        <RootBlock key={index} id={root.wordId} 
                             count={root.count} descendants={root.descendants} relatedWords={root.relatedWords} 
                             selectRelated={selectRelated}/>
                     ))

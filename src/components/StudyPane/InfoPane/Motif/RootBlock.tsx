@@ -14,7 +14,7 @@ export const RootBlock = ({
   selectRelated: boolean
 }) => {
 
-  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap,
+  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
     ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
 
   const toSelect = selectRelated ? [...descendants, ...relatedWords] : descendants;
@@ -66,7 +66,14 @@ export const RootBlock = ({
       rootsColor.text && setTextColorLocal(rootsColor.text);
       rootsColor.border && setBorderColorLocal(rootsColor.border);
     }
-  }, [ctxRootsColorMap])
+    else if (ctxStudyMetadata.words[id]) {
+
+      let updatedColor = (ctxStudyMetadata.words[toSelect[0].wordId].color) ? ctxStudyMetadata.words[toSelect[0].wordId].color : {};
+      setColorFillLocal(updatedColor?.fill || DEFAULT_COLOR_FILL);
+      setTextColorLocal(updatedColor?.text || DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(updatedColor?.border || DEFAULT_BORDER_COLOR);
+    }
+  }, [ctxRootsColorMap, ctxStudyMetadata])
 
   useEffect(() => {
     if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
