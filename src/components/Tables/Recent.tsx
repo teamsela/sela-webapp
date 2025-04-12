@@ -33,6 +33,7 @@ export default function RecentTable({
     passage: "passage",
     created_at: "xata.createdAt",
     last_modified: "xata.updatedAt",
+    shared_to_public: "public"
   };
   
   const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
@@ -73,7 +74,7 @@ export default function RecentTable({
                 < SortableColumnHeader displayHeader={"Last Modified"} sortKey={"last_modified"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                Shared to Public
+              < SortableColumnHeader displayHeader={"Shared to Public"} sortKey={"shared_to_public"}/>
               </th>
               <th className="py-4 px-4 font-medium text-black dark:text-white">
                 Actions
