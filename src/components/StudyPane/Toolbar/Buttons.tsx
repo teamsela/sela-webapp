@@ -8,7 +8,7 @@ import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
-import { SwatchesPicker } from 'react-color'
+import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
@@ -117,7 +117,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
-      refreshDisplayColor();            
+      refreshDisplayColor();
       setColorAction(ColorActionType.none);
     }
   }, [ctxColorAction, refreshDisplayColor])
@@ -203,7 +203,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     }
 
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
-  }
+  } 
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
@@ -237,7 +237,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker className={`colorPicker`} width={550} height={300} color={displayColor} onChange={handleColorPickerChange} />
+              <SwatchesPicker width={580} height={160} color={displayColor} onChange={handleColorPickerChange} />
             </div>
           </div>
         )
