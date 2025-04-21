@@ -424,8 +424,3 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
   return passageProps;
 }
-
-export const formatToLocalTime = (date: Date) => {
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return date.toLocaleString("en-US", { timeZone });
-};
