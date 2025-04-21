@@ -1,5 +1,4 @@
 import { getXataClient } from '@/xata';
-import { formatToLocalTime } from '@/lib/utils';
 import { currentUser, clerkClient } from '@clerk/nextjs';
 import Image from 'next/image'
 
@@ -104,12 +103,12 @@ export default async function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {formatToLocalTime(studyItem.xata.createdAt)}
+                    {studyItem.xata.createdAt.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {formatToLocalTime(studyItem.xata.updatedAt)}
+                    {studyItem.xata.updatedAt.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
