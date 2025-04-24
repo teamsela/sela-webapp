@@ -21,8 +21,24 @@ export const StropheBlock = ({
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
 
-  const [colorFillLocal, setColorFillLocal] = useState(stropheProps.metadata?.color?.fill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(stropheProps.metadata?.color?.border || DEFAULT_BORDER_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+
+  useEffect(() => {
+
+    if (stropheProps.metadata?.color) {
+      const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
+      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
+
+      const selectedBorderColor = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
+      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
+    }
+    else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
+    }
+
+  }, [stropheProps.metadata?.color]);
 
   useEffect(() => {
     if (ctxColorAction != ColorActionType.none ) {

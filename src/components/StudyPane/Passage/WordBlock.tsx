@@ -88,10 +88,6 @@ export const WordBlock = ({
 
   useEffect(() => {
 
-    // if (wordProps.wordId === 199702) {
-    // console.log("What is my metadata", wordProps);
-    // }
-
     if (wordProps.metadata?.color) {
       const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
       (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
