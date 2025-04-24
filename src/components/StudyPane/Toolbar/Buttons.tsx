@@ -108,7 +108,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxAddToHistory(stagedMetadata);
         updateMetadataInDb(ctxStudyId, stagedMetadata);
         setStagedMetadata(undefined);
-      }      
+      }
     }
     else {
       refreshDisplayColor();
@@ -190,15 +190,18 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
 
       const wordMetadata = ctxStudyMetadata.words[selectedWordId];
-      wordMetadata.stropheMd ??= {};
-      wordMetadata.stropheMd.color ??= colorObj;
-      
-      if (colorAction === ColorActionType.colorFill) {
-        isChanged = isChanged || (wordMetadata.stropheMd.color.fill !== color.hex);
-        wordMetadata.stropheMd.color.fill = color.hex;
-      } else if (colorAction === ColorActionType.borderColor) {
-        isChanged = isChanged || (wordMetadata.stropheMd.color.border !== color.hex);
-        wordMetadata.stropheMd.color.border = color.hex;
+
+      if (wordMetadata.stropheMd && wordMetadata.stropheMd.color) {
+        const colorProp = colorAction === ColorActionType.colorFill ? "fill" : colorAction === ColorActionType.borderColor ? "border" : null;
+        if (colorProp && wordMetadata.stropheMd.color[colorProp] !== color.hex) {
+          wordMetadata.stropheMd.color[colorProp] = color.hex;
+          isChanged = true;
+        }
+      }
+      else {
+        wordMetadata.stropheMd ??= {};
+        wordMetadata.stropheMd.color ??= colorObj;
+        isChanged = true;
       }
     }
 
