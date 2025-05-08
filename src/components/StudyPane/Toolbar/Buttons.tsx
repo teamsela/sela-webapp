@@ -8,7 +8,7 @@ import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 
-import { SwatchesPicker } from 'react-color'
+import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
@@ -108,7 +108,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxAddToHistory(stagedMetadata);
         updateMetadataInDb(ctxStudyId, stagedMetadata);
         setStagedMetadata(undefined);
-      }      
+      }
     }
     else {
       refreshDisplayColor();
@@ -117,7 +117,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
-      refreshDisplayColor();            
+      refreshDisplayColor();
       setColorAction(ColorActionType.none);
     }
   }, [ctxColorAction, refreshDisplayColor])
@@ -190,20 +190,23 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       const selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
 
       const wordMetadata = ctxStudyMetadata.words[selectedWordId];
-      wordMetadata.stropheMd ??= {};
-      wordMetadata.stropheMd.color ??= colorObj;
-      
-      if (colorAction === ColorActionType.colorFill) {
-        isChanged = isChanged || (wordMetadata.stropheMd.color.fill !== color.hex);
-        wordMetadata.stropheMd.color.fill = color.hex;
-      } else if (colorAction === ColorActionType.borderColor) {
-        isChanged = isChanged || (wordMetadata.stropheMd.color.border !== color.hex);
-        wordMetadata.stropheMd.color.border = color.hex;
+
+      if (wordMetadata.stropheMd && wordMetadata.stropheMd.color) {
+        const colorProp = colorAction === ColorActionType.colorFill ? "fill" : colorAction === ColorActionType.borderColor ? "border" : null;
+        if (colorProp && wordMetadata.stropheMd.color[colorProp] !== color.hex) {
+          wordMetadata.stropheMd.color[colorProp] = color.hex;
+          isChanged = true;
+        }
+      }
+      else {
+        wordMetadata.stropheMd ??= {};
+        wordMetadata.stropheMd.color ??= colorObj;
+        isChanged = true;
       }
     }
 
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
-  }
+  } 
 
   return (
     <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
@@ -237,7 +240,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker className={`colorPicker`} width={550} height={300} color={displayColor} onChange={handleColorPickerChange} />
+              <SwatchesPicker width={580} height={160} color={displayColor} onChange={handleColorPickerChange} />
             </div>
           </div>
         )

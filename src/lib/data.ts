@@ -117,12 +117,14 @@ export interface StudyData {
     id: string;
     name: string;
     owner: string | undefined;
+    ownerDisplayName?: string;
+    ownerAvatarUrl?: string;
     passage: string;
     public: boolean;
     starred?: boolean;
     model?: boolean;
-    lastUpdated?: string;
-    createdAt?: string;
+    lastUpdated?: Date;
+    createdAt?: Date;
     metadata: StudyMetadata;
 }
 

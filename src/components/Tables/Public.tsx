@@ -1,6 +1,7 @@
-import { getXataClient } from '@/xata';
-import { formatToLocalTime } from '@/lib/utils';
-import { currentUser, clerkClient } from '@clerk/nextjs';
+"use client";
+
+import { useState, useEffect } from 'react';
+
 import Image from 'next/image'
 
 import SearchBar from "@/components/Tables/Search";
@@ -8,9 +9,11 @@ import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
 
-const xataClient = getXataClient();
+import { FetchStudiesResult } from '@/lib/data';
+import { fetchPublicStudies } from '@/lib/actions';
 
-export default async function PublicTable({
+
+export default function PublicTable({
   query,
   currentPage,
   sortBy,
@@ -22,45 +25,25 @@ export default async function PublicTable({
   sortAsc: boolean;
 }) {
   
-  // may make PAGINATION_SIZE editable by user later
-  const PAGINATION_SIZE = 10;
   const sortDict: Record<string, any> = {
     name: "name",
     passage: "passage",
     created_at: "xata.createdAt",
     last_modified: "xata.updatedAt",
   };
-  
+  const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
+
   const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
-  // fetch all studies from xata
-  const filter = {
-    model: { $is: false }, public: { $is: true },
-    $any: [{ name: { $contains: query } }, { name: { $contains: query } }]
-  };
-  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
-    .getPaginated({
-      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
-    }));
-  const dbQuery = await xataClient.db.study.filter(filter).getAll();
- 
-  const studies = search.records;
-  const totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
 
-  // extract the ids from owner column and add them into a set
-  const uniqueIds = new Set<string>();
-  studies.forEach((study) => {
-    uniqueIds.add(study?.owner ? study.owner : "");
-  });
-
-  // fetch ids and sessions of owners from clerk
-  const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
-
-  let mp = new Map();
-  for (let i = 0; i < users.length; i++) {
-    mp.set(users[i].id, users[i]);
+  async function fetchStudies() {
+    const [result] = await Promise.all([fetchPublicStudies(query, currentPage, sortKey, sortAsc)]);
+    setStudiesResult(result);
   }
 
-  const thisUser = await currentUser();
+  useEffect(() => {
+    fetchStudies();
+  }, [currentPage, sortBy, sortAsc]);
+
 
   return (
     <>
@@ -88,7 +71,7 @@ export default async function PublicTable({
             </tr>
           </thead>
           <tbody>
-            {studies.map((studyItem) => (
+            {studiesResult.records.map((studyItem) => (
               <tr key={studyItem.id}>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <Link href={"/study/" + studyItem.id.replace("rec_", "") + "/view"}>
@@ -104,20 +87,20 @@ export default async function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {formatToLocalTime(studyItem.xata.createdAt)}
+                    {studyItem.createdAt?.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {formatToLocalTime(studyItem.xata.updatedAt)}
+                    {studyItem.lastUpdated?.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark flex items-center">
                   <div className="mr-3 h-8 w-full max-w-8 overflow-hidden rounded-full">
-                    <Image src={mp.get(studyItem.owner)?.imageUrl} width="40" height="40" alt="Avatar" />
+                    <Image src={studyItem.ownerAvatarUrl ? studyItem.ownerAvatarUrl : ""} width="40" height="40" alt="Avatar" />
                   </div>
                     <p className="text-black dark:text-white">
-                      {thisUser?.id === studyItem.owner ? "me" : mp.get(studyItem.owner)?.firstName + " " + mp.get(studyItem.owner)?.lastName}
+                      {studyItem.ownerDisplayName}
                     </p>
                 </td>
               </tr>
@@ -126,8 +109,8 @@ export default async function PublicTable({
         </table>
       </div>
       {
-        totalPages > 0 
-          ? <Pagination totalPages={ totalPages } /> 
+        studiesResult.totalPages > 0 
+          ? <Pagination totalPages={ studiesResult.totalPages } /> 
           : (<div className="text-center py-5">
             <h2 className="text-xl"> Oops, we have nothing like that in our database...</h2>
           </div>)

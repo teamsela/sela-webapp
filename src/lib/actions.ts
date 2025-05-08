@@ -5,9 +5,9 @@ import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
 import { ge, le } from "@xata.io/client";
-import { currentUser } from '@clerk/nextjs';
+import { currentUser, clerkClient } from '@clerk/nextjs';
 
-import { formatToLocalTime, parsePassageInfo } from './utils';
+import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 
 const RenameFormSchema = z.object({
@@ -503,8 +503,57 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
   }
 }
 
+const PAGINATION_SIZE = 10;
+
+export async function fetchPublicStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
+  const searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
+
+  const user = await currentUser();
+
+  const xataClient = getXataClient();
+
+  const filter = {
+    model: { $is: false }, public: { $is: true },
+    $any: [{ name: { $contains: query } }, { name: { $contains: query } }]
+  };
+  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
+    .getPaginated({
+      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
+    }));
+  const dbQuery = await xataClient.db.study.filter(filter).getAll();
+
+  // extract the ids from owner column and add them into a set
+  const uniqueIds = new Set<string>();
+  search.records.forEach((study) => {
+    uniqueIds.add(study?.owner ? study.owner : "");
+  });
+
+  // fetch ids and sessions of owners from clerk
+  const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
+
+  let mp = new Map();
+  for (let i = 0; i < users.length; i++) {
+    mp.set(users[i].id, users[i]);
+  }
+
+  const thisUser = await currentUser();
+
+  search.records.map((studyRecord) => {   
+    searchResult.records.push({
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, 
+      ownerDisplayName: thisUser?.id === studyRecord.owner ? "me" : mp.get(studyRecord.owner)?.firstName + " " + mp.get(studyRecord.owner)?.lastName,  
+      ownerAvatarUrl: mp.get(studyRecord.owner)?.imageUrl,
+      passage: studyRecord.passage, 
+      public: studyRecord.public || false, starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xata.updatedAt, 
+      createdAt: studyRecord.xata.createdAt, 
+      metadata: studyRecord.metadata })
+  });
+  searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
+  return searchResult;
+}
+
 export async function fetchRecentStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
-  const PAGINATION_SIZE = 10;
   let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
   const user = await currentUser();
@@ -527,8 +576,8 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), 
-      createdAt: formatToLocalTime(studyRecord.xata.createdAt), 
+      lastUpdated: studyRecord.xata.updatedAt, 
+      createdAt: studyRecord.xata.createdAt, 
       metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
@@ -537,6 +586,7 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
 
 export async function fetchModelStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
   const PAGINATION_SIZE = 10;
+  
   let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
   const user = await currentUser();
@@ -566,7 +616,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: formatToLocalTime(studyRecord.xata.updatedAt), metadata: studyRecord.metadata })
+      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;

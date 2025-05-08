@@ -98,12 +98,12 @@ export default function RecentTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {studyItem.createdAt}
+                    {studyItem.createdAt?.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <p className="text-black dark:text-white">
-                    {studyItem.lastUpdated}
+                    {studyItem.lastUpdated?.toLocaleString()}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

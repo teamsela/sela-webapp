@@ -16,7 +16,6 @@
     "mitt": "^3.0.1",
     "next": "^14.2.6",
     "react": "^18.3.1",
-    "react-color": "^2.19.3",
     "react-dom": "^18.3.1",
     "react-icons": "^5.0.1",
     "tailwindcss-opentype": "^1.1.0",
@@ -32,6 +31,7 @@
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.2.6",
     "postcss": "^8.4.34",
+    "react-color": "github:teamsela/react-color#master",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
