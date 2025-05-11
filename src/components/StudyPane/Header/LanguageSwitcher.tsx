@@ -35,15 +35,18 @@ const LanguageSwitcher = ({
             }}
           />
           <div className="block h-10 w-18 lg:w-22 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
-          <div
+          {/* <div
             className={`dot absolute left-1 top-1 flex h-8 w-8 lg:w-10 items-center justify-center rounded-full bg-white transition font-semibold ${
               ctxIsHebrew && "!right-1 !translate-x-full"
             }`}
           >
-          </div>
-          <div className='flex row absolute top-0 w-full h-full place-content-around items-center'>
+          </div> */}
+          <div className='flex flex-row absolute top-0 w-full h-full place-content-around items-center'>
             <span className={` ${!ctxIsHebrew && "font-bold"}`}>
               En
+            </span>
+            <span className={` ${ctxIsHebrew && "font-bold"}`}>
+              A/עִ
             </span>
             <span className={` ${ctxIsHebrew && "font-bold"}`}>
               עִב

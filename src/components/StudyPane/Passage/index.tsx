@@ -25,7 +25,7 @@ const Passage = ({
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
   useEffect(() => {
-
+    console.log(bibleData)
     if (ctxStructureUpdateType !== StructureUpdateType.none && 
       (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
 
@@ -228,7 +228,7 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className="h-0"
     >
-      <div id="selaPassage" className='flex relative pl-2 py-4'>
+      <div id="selaPassage" className='flex flex-col relative pl-2 py-4 max-w-[600px]'>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (
