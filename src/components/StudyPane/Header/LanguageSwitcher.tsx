@@ -6,7 +6,7 @@ const LanguageSwitcher = ({
 } : {
   setLangToHebrew: (arg: boolean) => void;
 }) => {
-  const { ctxIsHebrew } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxSetLanguageMode } = useContext(FormatContext);
 
   const updateScaleOrigin = () => {
     const passageDiv = document.getElementById('selaPassage');
@@ -17,6 +17,21 @@ const LanguageSwitcher = ({
     // ctxIsHebrew is not updated yet, so reversed origin 
     passageDiv.style.transformOrigin = ctxIsHebrew ? "0 0" : "100% 0";
   };
+
+  const handleSwitcherClick = (mode: string) => {
+    console.log(mode);
+    // ctxSetLanguageMode({ English: false, Parallel: false, Hebrew: false })
+    switch(mode){
+      case "en":
+        console.log('set en');
+        break;
+      case "both":
+        console.log('set both');
+        break;
+      case "heb":
+        console.log("set heb")
+    }
+  }
 
   return (
     <div>
@@ -41,14 +56,14 @@ const LanguageSwitcher = ({
             }`}
           >
           </div> */}
-          <div className='flex flex-row absolute top-0 w-full h-full place-content-around items-center'>
-            <span className={` ${!ctxIsHebrew && "font-bold"}`}>
+          <div className='flex flex-row gap-[16px] absolute top-0 w-full h-full place-content-around items-center'>
+            <span onClick={ () => { handleSwitcherClick('en') } } className={` ${!ctxIsHebrew && "font-bold"}`}>
               En
             </span>
-            <span className={` ${ctxIsHebrew && "font-bold"}`}>
+            <span onClick={ () => { handleSwitcherClick('both') }} className={` ${ctxIsHebrew && "font-bold"}`}>
               A/עִ
             </span>
-            <span className={` ${ctxIsHebrew && "font-bold"}`}>
+            <span onClick={ () => { handleSwitcherClick('heb') } } className={` ${ctxIsHebrew && "font-bold"}`}>
               עִב
             </span>
           </div>

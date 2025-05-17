@@ -8,7 +8,7 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LanguageModes } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -54,7 +54,9 @@ export const FormatContext = createContext({
   ctxHistory: [] as StudyMetadata[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
-  ctxAddToHistory: (arg: StudyMetadata) => {}
+  ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxLanguageMode: ({}),
+  ctxSetLanguageMode: ({})
 });
 
 const StudyPane = ({
@@ -93,6 +95,9 @@ const StudyPane = ({
 
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
+
+  //parallel
+  const [languageMode, setLanguageMode] = useState<LanguageModes>({ English: true, Parallel: false, Hebrew: false })
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -138,7 +143,9 @@ const StudyPane = ({
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
-    ctxAddToHistory: addToHistory
+    ctxAddToHistory: addToHistory,
+    ctxLanguageMode: languageMode,
+    ctxSetLanguageMode: setLanguageMode
   };
 
   useEffect(() => {
