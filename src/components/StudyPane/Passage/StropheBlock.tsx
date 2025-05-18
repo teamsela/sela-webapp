@@ -7,6 +7,7 @@ import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { LanguageContext } from '.';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -14,9 +15,10 @@ export const StropheBlock = ({
     stropheProps: StropheProps, stanzaExpanded: boolean
   }) => {
   
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode
   } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);

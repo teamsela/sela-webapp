@@ -4,6 +4,7 @@ import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateMetadataInDb } from "@/lib/actions"
+import { LanguageContext } from ".";
 
 export const StanzaBlock = ({
   stanzaProps
@@ -11,7 +12,8 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxIsHebrew, ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
 
   const handleCollapseBlockClick = () => {

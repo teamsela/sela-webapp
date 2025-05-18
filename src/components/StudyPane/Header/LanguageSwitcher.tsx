@@ -20,16 +20,19 @@ const LanguageSwitcher = ({
 
   const handleSwitcherClick = (mode: string) => {
     console.log(mode);
-    // ctxSetLanguageMode({ English: false, Parallel: false, Hebrew: false })
+    
     switch(mode){
       case "en":
         console.log('set en');
+        ctxSetLanguageMode({ English: true, Parallel: false, Hebrew: false })
         break;
       case "both":
         console.log('set both');
+        ctxSetLanguageMode({ English: false, Parallel: true, Hebrew: false })
         break;
       case "heb":
         console.log("set heb")
+        ctxSetLanguageMode({ English: false, Parallel: false, Hebrew: true })
     }
   }
 

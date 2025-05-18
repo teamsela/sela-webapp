@@ -55,8 +55,8 @@ export const FormatContext = createContext({
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
   ctxAddToHistory: (arg: StudyMetadata) => {},
-  ctxLanguageMode: ({}),
-  ctxSetLanguageMode: ({})
+  ctxLanguageMode: {} as LanguageModes,
+  ctxSetLanguageMode: (arg: LanguageModes) => {}
 });
 
 const StudyPane = ({
@@ -147,6 +147,11 @@ const StudyPane = ({
     ctxLanguageMode: languageMode,
     ctxSetLanguageMode: setLanguageMode
   };
+
+  useEffect(() => {
+    console.log(languageMode)
+    console.log(languageMode.English)
+  }, [languageMode])
 
   useEffect(() => {
 
@@ -264,8 +269,8 @@ const StudyPane = ({
         <div className="flex flex-1 overflow-hidden pt-32">
           <main className={`flex flex-row overflow-y-auto relative h-full ${isHebrew ? "hbFont" : ""} w-full ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
             {/* Scrollable Passage Pane */}
-              <Passage bibleData={passageData.bibleData} />
-              <Passage bibleData={passageData.bibleData} />
+              <Passage bibleData={passageData.bibleData} isHeb={true}/>
+              <Passage bibleData={passageData.bibleData} isHeb={false}/>
             {
             <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
             }

@@ -8,14 +8,28 @@ import { StructureUpdateType } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
-
+import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+import { createContext } from 'react';
+
+export const LanguageContext = createContext({
+  ctxIsHebrew: false
+})
 
 const Passage = ({
   bibleData,
+  isHeb,
 }: {
   bibleData: WordProps[];
+  isHeb: boolean;
 }) => {
+
+  const [isHebrew, setHebrew] = useState(false);
+  const languageContextValue = {
+    ctxIsHebrew: isHebrew
+  }
+
+
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
@@ -23,6 +37,10 @@ const Passage = ({
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
+
+  useEffect(() => {
+    isHeb ? setHebrew(true) : setHebrew(false);
+  }, [isHeb])
 
   useEffect(() => {
     console.log(bibleData)
@@ -221,6 +239,7 @@ const Passage = ({
   }, [ctxSelectedWords]);
 
   return (  
+    <LanguageContext.Provider value={languageContextValue}>
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
@@ -239,6 +258,7 @@ const Passage = ({
       </div>
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
+    </LanguageContext.Provider>
   );
 };
 
