@@ -83,18 +83,18 @@ const Passage = ({
         };
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStrophe) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(-1)?.words.at(-1)?.wordId || 0;
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+        const lastStrophe = sortedStrophes.at(-1);
+        if (lastStrophe) {
+          selectedWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || 0;
         }
-
-        const foundIndex = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
-        );
-        if (foundIndex !== -1) {
-          delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheDiv;
-          delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheMd;
-        }
+        sortedStrophes.forEach(s => {
+          const firstWordId = s.lines.at(0)?.words.at(0)?.wordId;
+          if (firstWordId !== undefined && ctxStudyMetadata.words[firstWordId]) {
+            delete ctxStudyMetadata.words[firstWordId].stropheDiv;
+            delete ctxStudyMetadata.words[firstWordId].stropheMd;
+          }
+        });
         const nextWordId = selectedWordId + 1;
         ctxStudyMetadata.words[nextWordId] = {
           ...(ctxStudyMetadata.words[nextWordId] || {}),
@@ -102,18 +102,27 @@ const Passage = ({
         };
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStrophe) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+        const firstStrophe = sortedStrophes[0];
+        const lastStrophe = sortedStrophes.at(-1);
+        if (firstStrophe) {
+          selectedWordId = firstStrophe.lines.at(0)?.words.at(0)?.wordId || 0;
         }
         ctxStudyMetadata.words[selectedWordId] = {
           ...(ctxStudyMetadata.words[selectedWordId] || {}),
           stropheDiv: true
         };
+        sortedStrophes.slice(1).forEach(s => {
+          const firstWordId = s.lines.at(0)?.words.at(0)?.wordId;
+          if (firstWordId !== undefined && ctxStudyMetadata.words[firstWordId]) {
+            delete ctxStudyMetadata.words[firstWordId].stropheDiv;
+            delete ctxStudyMetadata.words[firstWordId].stropheMd;
+          }
+        });
+        const lastWordId = lastStrophe?.lines.at(-1)?.words.at(-1)?.wordId || selectedWordId;
         const foundIndex = bibleData.findIndex(word =>
-          word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+          word.wordId > lastWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
         );
-
         if (foundIndex !== -1) {
           ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
             ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
@@ -282,16 +291,18 @@ const Passage = ({
       };
     }
     else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStrophe) {
-      if (ctxSelectedStrophes.length === 1) {
-        selectedWordId = ctxSelectedStrophes[0].lines.at(-1)?.words.at(-1)?.wordId || 0;
+      const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+      const lastStrophe = sortedStrophes.at(-1);
+      if (lastStrophe) {
+        selectedWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || 0;
       }
-      const foundIndex = bibleData.findLastIndex(word =>
-        word.wordId <= selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
-      );
-      if (foundIndex !== -1) {
-        delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheDiv;
-        delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheMd;
-      }
+      sortedStrophes.forEach(s => {
+        const firstWordId = s.lines.at(0)?.words.at(0)?.wordId;
+        if (firstWordId !== undefined && ctxStudyMetadata.words[firstWordId]) {
+          delete ctxStudyMetadata.words[firstWordId].stropheDiv;
+          delete ctxStudyMetadata.words[firstWordId].stropheMd;
+        }
+      });
       const nextWordId = selectedWordId + 1;
       ctxStudyMetadata.words[nextWordId] = {
         ...(ctxStudyMetadata.words[nextWordId] || {}),
@@ -299,15 +310,26 @@ const Passage = ({
       };
     }
     else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStrophe) {
-      if (ctxSelectedStrophes.length === 1) {
-        selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+      const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+      const firstStrophe = sortedStrophes[0];
+      const lastStrophe = sortedStrophes.at(-1);
+      if (firstStrophe) {
+        selectedWordId = firstStrophe.lines.at(0)?.words.at(0)?.wordId || 0;
       }
       ctxStudyMetadata.words[selectedWordId] = {
         ...(ctxStudyMetadata.words[selectedWordId] || {}),
         stropheDiv: true
       };
+      sortedStrophes.slice(1).forEach(s => {
+        const firstWordId = s.lines.at(0)?.words.at(0)?.wordId;
+        if (firstWordId !== undefined && ctxStudyMetadata.words[firstWordId]) {
+          delete ctxStudyMetadata.words[firstWordId].stropheDiv;
+          delete ctxStudyMetadata.words[firstWordId].stropheMd;
+        }
+      });
+      const lastWordId = lastStrophe?.lines.at(-1)?.words.at(-1)?.wordId || selectedWordId;
       const foundIndex = bibleData.findIndex(word =>
-        word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+        word.wordId > lastWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
       );
       if (foundIndex !== -1) {
         ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
