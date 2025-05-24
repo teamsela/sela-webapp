@@ -6,7 +6,7 @@ const LanguageSwitcher = ({
 } : {
   setLangToHebrew: (arg: boolean) => void;
 }) => {
-  const { ctxIsHebrew, ctxSetLanguageMode } = useContext(FormatContext);
+  const { ctxIsHebrew, ctxLanguageMode, ctxSetLanguageMode } = useContext(FormatContext);
 
   const updateScaleOrigin = () => {
     const passageDiv = document.getElementById('selaPassage');
@@ -60,13 +60,13 @@ const LanguageSwitcher = ({
           >
           </div> */}
           <div className='flex flex-row gap-[16px] absolute top-0 w-full h-full place-content-around items-center'>
-            <span onClick={ () => { handleSwitcherClick('en') } } className={` ${!ctxIsHebrew && "font-bold"}`}>
+            <span onClick={ () => { handleSwitcherClick('en') } } className={` ${ctxLanguageMode.English && "font-bold"}`}>
               En
             </span>
-            <span onClick={ () => { handleSwitcherClick('both') }} className={` ${ctxIsHebrew && "font-bold"}`}>
+            <span onClick={ () => { handleSwitcherClick('both') }} className={` ${ctxLanguageMode.Parallel && "font-bold"}`}>
               A/עִ
             </span>
-            <span onClick={ () => { handleSwitcherClick('heb') } } className={` ${ctxIsHebrew && "font-bold"}`}>
+            <span onClick={ () => { handleSwitcherClick('heb') } } className={` ${ctxLanguageMode.Hebrew && "font-bold"}`}>
               עִב
             </span>
           </div>

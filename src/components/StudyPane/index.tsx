@@ -246,6 +246,21 @@ const StudyPane = ({
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
+  // const PassageWrapper = (mode: LanguageModes) => {
+  //   if(mode.English) {
+  //     return (
+  //       <Passage bibleData={passageData.bibleData} isHeb={false}/>
+  //     )
+  //   }
+  //   if(mode.Parallel) {
+  //     return (
+  //       <>
+  //       <Passage bibleData={passageData.bibleData} isHeb={true}/>
+  //       <Passage bibleData={passageData.bibleData} isHeb={false}/>
+  //       </> 
+  //     )
+  //   }
+  // }
 
   return (
 
@@ -267,10 +282,16 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32">
-          <main className={`flex flex-row overflow-y-auto relative h-full ${isHebrew ? "hbFont" : ""} w-full ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
             {/* Scrollable Passage Pane */}
-              <Passage bibleData={passageData.bibleData} isHeb={true}/>
-              <Passage bibleData={passageData.bibleData} isHeb={false}/>
+            { languageMode.English && <Passage bibleData={passageData.bibleData} isHeb={false}/> }
+            { languageMode.Parallel && 
+              <div className="mx-auto w-[100%] flex flex-row">
+                <Passage bibleData={passageData.bibleData} isHeb={true}/>
+                <Passage bibleData={passageData.bibleData} isHeb={false}/>
+              </div> 
+            }
+            { languageMode.Hebrew && <Passage bibleData={passageData.bibleData} isHeb={true}/> }
             {
             <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
             }

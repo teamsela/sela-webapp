@@ -33,7 +33,7 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -245,9 +245,9 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className="h-0"
+      className={`h-0 ${isHebrew ? "hbFont w-[70%]" : "w-[100%]"}`}
     >
-      <div id="selaPassage" className='flex flex-col relative pl-2 py-4 max-w-[600px]'>
+      <div id="selaPassage" className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (
