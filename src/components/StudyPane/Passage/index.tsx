@@ -18,10 +18,10 @@ export const LanguageContext = createContext({
 
 const Passage = ({
   bibleData,
-  isHeb,
+  // isHeb,
 }: {
   bibleData: WordProps[];
-  isHeb: boolean;
+  // isHeb: boolean;
 }) => {
 
   const [isHebrew, setHebrew] = useState(false);
@@ -38,9 +38,9 @@ const Passage = ({
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
-  useEffect(() => {
-    isHeb ? setHebrew(true) : setHebrew(false);
-  }, [isHeb])
+  // useEffect(() => {
+  //   isHeb ? setHebrew(true) : setHebrew(false);
+  // }, [isHeb])
 
   useEffect(() => {
     // console.log(bibleData)
@@ -247,6 +247,15 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className={`h-0 ${isHebrew ? "hbFont w-[70%]" : "w-[100%]"}`}
     >
+      <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
+        {
+          ctxPassageProps.stanzaProps.map((stanza) => {
+            return (
+              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
+            )
+          })
+        }
+      </div>
       <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
