@@ -3,6 +3,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
 import { PassageData, PassageProps } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
+import { LanguageContext } from '@/components/StudyPane/Passage';
 
 export const useDragToSelect = (passageProps: PassageProps) => {
 
@@ -93,11 +94,12 @@ export const useDragToSelect = (passageProps: PassageProps) => {
 
     }, [isDragging, selectionStart, selectionEnd, passageProps, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
-
+    const { ctxIsHebrew } = useContext(LanguageContext)
     const handleMouseUp = useCallback((event: MouseEvent) => {
         const target = event.target as HTMLTextAreaElement;
         document.body.style.userSelect = 'text';
         setIsDragging(false);
+        console.log('mouseup ' + ctxIsHebrew)
         // List of class names to skip
         const skipClasses = ["ClickBlock"];
 

@@ -246,22 +246,6 @@ const StudyPane = ({
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
-  // const PassageWrapper = (mode: LanguageModes) => {
-  //   if(mode.English) {
-  //     return (
-  //       <Passage bibleData={passageData.bibleData} isHeb={false}/>
-  //     )
-  //   }
-  //   if(mode.Parallel) {
-  //     return (
-  //       <>
-  //       <Passage bibleData={passageData.bibleData} isHeb={true}/>
-  //       <Passage bibleData={passageData.bibleData} isHeb={false}/>
-  //       </> 
-  //     )
-  //   }
-  // }
-
   return (
 
     <>

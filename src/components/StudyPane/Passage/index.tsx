@@ -43,7 +43,7 @@ const Passage = ({
   }, [isHeb])
 
   useEffect(() => {
-    console.log(bibleData)
+    // console.log(bibleData)
     if (ctxStructureUpdateType !== StructureUpdateType.none && 
       (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
 
@@ -247,7 +247,7 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className={`h-0 ${isHebrew ? "hbFont w-[70%]" : "w-[100%]"}`}
     >
-      <div id="selaPassage" className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
+      <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
         {
           ctxPassageProps.stanzaProps.map((stanza) => {
             return (
