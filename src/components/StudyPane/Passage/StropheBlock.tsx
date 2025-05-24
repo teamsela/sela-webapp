@@ -7,7 +7,7 @@ import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
-import { LanguageContext } from '.';
+import { LanguageContext } from './PassageBlock';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded

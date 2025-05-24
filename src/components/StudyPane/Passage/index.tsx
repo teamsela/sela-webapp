@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
+import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
@@ -12,9 +13,7 @@ import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 import { createContext } from 'react';
 
-export const LanguageContext = createContext({
-  ctxIsHebrew: false
-})
+
 
 const Passage = ({
   bibleData,
@@ -23,11 +22,6 @@ const Passage = ({
   bibleData: WordProps[];
   // isHeb: boolean;
 }) => {
-
-  const [isHebrew, setHebrew] = useState(false);
-  const languageContextValue = {
-    ctxIsHebrew: isHebrew
-  }
 
 
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
@@ -38,9 +32,6 @@ const Passage = ({
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
-  // useEffect(() => {
-  //   isHeb ? setHebrew(true) : setHebrew(false);
-  // }, [isHeb])
 
   useEffect(() => {
     // console.log(bibleData)
@@ -239,35 +230,27 @@ const Passage = ({
   }, [ctxSelectedWords]);
 
   return (  
-    <LanguageContext.Provider value={languageContextValue}>
+    
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className={`h-0 ${isHebrew ? "hbFont w-[70%]" : "w-[100%]"}`}
+      className={`h-0`}
     >
-      <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
-        {
-          ctxPassageProps.stanzaProps.map((stanza) => {
-            return (
-              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-            )
-          })
-        }
-      </div>
-      <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`flex ${ctxLanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'} relative pl-2 py-4`}>
-        {
-          ctxPassageProps.stanzaProps.map((stanza) => {
-            return (
-              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-            )
-          })
-        }
-      </div>
+
+      { ctxLanguageMode.English && <PassageBlock isHeb={false}/> }
+      { ctxLanguageMode.Parallel && 
+        <div className='flex flex-row mx-auto w-[100%]'>
+          <PassageBlock isHeb={true}/>
+          <PassageBlock isHeb={false}/>
+        </div> 
+      }
+      { ctxLanguageMode.Hebrew && <PassageBlock isHeb={true}/> }
+      
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
-    </LanguageContext.Provider>
+    
   );
 };
 

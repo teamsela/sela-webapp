@@ -4,7 +4,7 @@ import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateMetadataInDb } from "@/lib/actions"
-import { LanguageContext } from ".";
+import { LanguageContext } from "./PassageBlock";
 
 export const StanzaBlock = ({
   stanzaProps
