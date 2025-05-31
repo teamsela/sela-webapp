@@ -17,7 +17,7 @@ import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 
 const Header = ({
   study,
-  setLangToHebrew,
+  // setLangToHebrew,
   setInfoPaneAction,
   infoPaneAction,
   setScaleValue,
@@ -28,7 +28,7 @@ const Header = ({
   setCloneStudyOpen  
 }: {
   study: StudyData;
-  setLangToHebrew: (arg: boolean) => void;
+  // setLangToHebrew: (arg: boolean) => void;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
   setScaleValue: (arg: number) => void;
@@ -67,7 +67,7 @@ const Header = ({
           <div className="flex justify-end items-center sm:gap-1 md:gap-2 lg:gap-4">
               <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
 
-              <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
+              {/* <LanguageSwitcher /> */}
 
               {/* <!-- Dark Mode Toggler --> */}
               {/*<DarkModeSwitcher />*/}

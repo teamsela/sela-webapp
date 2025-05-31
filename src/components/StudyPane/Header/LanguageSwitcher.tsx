@@ -1,11 +1,7 @@
 import { useContext } from 'react';
 import { FormatContext } from '../index';
 
-const LanguageSwitcher = ({
-  setLangToHebrew
-}: {
-  setLangToHebrew: (arg: boolean) => void;
-}) => {
+const LanguageSwitcher = () => {
   const { ctxIsHebrew, ctxLanguageMode, ctxSetLanguageMode } = useContext(FormatContext);
 
   const updateScaleOrigin = () => {
