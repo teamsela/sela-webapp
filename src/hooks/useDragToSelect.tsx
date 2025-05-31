@@ -98,7 +98,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         const target = event.target as HTMLTextAreaElement;
         document.body.style.userSelect = 'text';
         setIsDragging(false);
-        console.log('mouseup ')
         // List of class names to skip
         const skipClasses = ["ClickBlock"];
 
@@ -133,7 +132,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
         const width = Math.abs(selectionStart.x - selectionEnd.x);
         const height = Math.abs(selectionStart.y - selectionEnd.y);
-        //console.log(`height is ${height}, width is ${width}`);
         return {
             left,
             top,
@@ -177,7 +175,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
                 //select all word blocks
                 let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
                 ctxSetSelectedWords(allWordsArr);
-                console.log(allWordsArr.length)
                 ctxSetNumSelectedWords(allWordsArr.length);       
             }
         };

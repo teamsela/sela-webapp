@@ -236,7 +236,7 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className={`h-0`}
+      className='h-0 w-[100%]'
     >
 
       { ctxLanguageMode.English && <PassageBlock isHeb={false}/> }

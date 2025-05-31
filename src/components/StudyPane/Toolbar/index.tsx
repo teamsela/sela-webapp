@@ -8,6 +8,8 @@ import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
 import { StudyData } from '@/lib/data';
 
+import LanguageSwitcher from "../Header/LanguageSwitcher";
+
 const Toolbar = ({
   study,
   setScaleValue,
