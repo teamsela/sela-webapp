@@ -17,6 +17,7 @@ const tables = [
       { name: "passage", type: "text", notNull: true, defaultValue: "1" },
       { name: "model", type: "bool", defaultValue: "false" },
       { name: "metadata", type: "json", defaultValue: "{}" },
+      { name: "book", type: "text" },
     ],
     revLinks: [
       { column: "studyId", table: "styling" },
@@ -37,31 +38,6 @@ const tables = [
       { name: "stropheDiv", type: "bool" },
       { name: "lineBreak", type: "bool" },
       { name: "stanzaDiv", type: "bool" },
-    ],
-  },
-  {
-    name: "heb_bible_bsb_old2",
-    columns: [
-      { name: "hebId", type: "int" },
-      { name: "book", type: "string" },
-      { name: "chapter", type: "int" },
-      { name: "verse", type: "int" },
-      { name: "wlcWord", type: "string" },
-      { name: "hebUnicode", type: "string" },
-      { name: "strongNumber", type: "float" },
-      { name: "gloss", type: "string" },
-      { name: "morphology", type: "string" },
-      { name: "WLCsort", type: "int" },
-      { name: "poetryMarker", type: "bool" },
-      { name: "paragraphMarker", type: "bool" },
-      { name: "verseBreak", type: "bool" },
-      { name: "BSBnewStanza", type: "bool" },
-      {
-        name: "stropheBreak",
-        type: "bool",
-        notNull: true,
-        defaultValue: "false",
-      },
     ],
   },
   {
@@ -143,14 +119,18 @@ const tables = [
       { name: "lemmaLink", type: "link", link: { table: "lexicon" } },
       { name: "relatedStrongCodes", type: "multiple" },
     ],
-    revLinks: [{ column: "motifLink", table: "heb_bible" }],
+    revLinks: [
+      { column: "motifLink", table: "heb_bible" },
+      { column: "motifLink", table: "heb_bible_genesis_and_psalms_old" },
+      { column: "motifLink", table: "heb_bible_genesis_and_psalms" },
+    ],
   },
   {
     name: "lexicon",
     columns: [
       { name: "gloss", type: "text" },
       { name: "lemma", type: "text" },
-      { name: "relatedStrongCodes", type: "multiple" }, // need to ask realtea remove this
+      { name: "relatedStrongCodes", type: "multiple" },
     ],
     revLinks: [
       { column: "relatedLink", table: "motif" },
@@ -170,6 +150,64 @@ const tables = [
       { name: "Meaning", type: "text" },
     ],
   },
+  {
+    name: "heb_bible_genesis_and_psalms_old",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "book", type: "text" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "wlcWord", type: "text" },
+      { name: "hebUnicode", type: "text" },
+      { name: "strongNumber", type: "float" },
+      { name: "gloss", type: "text" },
+      { name: "morphology", type: "text" },
+      { name: "WLCsort", type: "float" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+      { name: "stropheBreak", type: "bool" },
+      { name: "verseBreak", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
+      { name: "ETCBCgloss", type: "text" },
+      { name: "HebSort", type: "float" },
+      { name: "BSBSort", type: "float" },
+      { name: "Vs", type: "int" },
+      { name: "BSBVersion", type: "text" },
+      { name: "mergecolumn", type: "float" },
+      { name: "BSBnewLine", type: "bool" },
+      { name: "motifLink_old", type: "float" },
+      { name: "motifLink", type: "link", link: { table: "motif" } },
+    ],
+  },
+  {
+    name: "heb_bible_genesis_and_psalms",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "book", type: "text" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "wlcWord", type: "text" },
+      { name: "hebUnicode", type: "text" },
+      { name: "strongNumber", type: "float" },
+      { name: "gloss", type: "text" },
+      { name: "morphology", type: "text" },
+      { name: "WLCsort", type: "float" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+      { name: "stropheBreak", type: "bool" },
+      { name: "verseBreak", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
+      { name: "ETCBCgloss", type: "text" },
+      { name: "HebSort", type: "float" },
+      { name: "BSBSort", type: "float" },
+      { name: "Vs", type: "int" },
+      { name: "BSBVersion", type: "text" },
+      { name: "mergecolumn", type: "float" },
+      { name: "BSBnewLine", type: "bool" },
+      { name: "motifLink_old", type: "float" },
+      { name: "motifLink", type: "link", link: { table: "motif" } },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -180,9 +218,6 @@ export type StudyRecord = Study & XataRecord;
 
 export type Styling = InferredTypes["styling"];
 export type StylingRecord = Styling & XataRecord;
-
-export type HebBibleBsbOld2 = InferredTypes["heb_bible_bsb_old2"];
-export type HebBibleBsbOld2Record = HebBibleBsbOld2 & XataRecord;
 
 export type StropheStyling = InferredTypes["stropheStyling"];
 export type StropheStylingRecord = StropheStyling & XataRecord;
@@ -205,10 +240,19 @@ export type LexiconRecord = Lexicon & XataRecord;
 export type StepbibleTbesh = InferredTypes["stepbible_tbesh"];
 export type StepbibleTbeshRecord = StepbibleTbesh & XataRecord;
 
+export type HebBibleGenesisAndPsalmsOld =
+  InferredTypes["heb_bible_genesis_and_psalms_old"];
+export type HebBibleGenesisAndPsalmsOldRecord = HebBibleGenesisAndPsalmsOld &
+  XataRecord;
+
+export type HebBibleGenesisAndPsalms =
+  InferredTypes["heb_bible_genesis_and_psalms"];
+export type HebBibleGenesisAndPsalmsRecord = HebBibleGenesisAndPsalms &
+  XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
   styling: StylingRecord;
-  heb_bible_bsb_old2: HebBibleBsbOld2Record;
   stropheStyling: StropheStylingRecord;
   stanzaStyling: StanzaStylingRecord;
   heb_bible_old: HebBibleOldRecord;
@@ -216,6 +260,8 @@ export type DatabaseSchema = {
   motif: MotifRecord;
   lexicon: LexiconRecord;
   stepbible_tbesh: StepbibleTbeshRecord;
+  heb_bible_genesis_and_psalms_old: HebBibleGenesisAndPsalmsOldRecord;
+  heb_bible_genesis_and_psalms: HebBibleGenesisAndPsalmsRecord;
 };
 
 const DatabaseClient = buildClient();
