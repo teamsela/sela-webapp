@@ -120,6 +120,7 @@ export interface StudyData {
     ownerDisplayName?: string;
     ownerAvatarUrl?: string;
     book: string;
+    book: string
     passage: string;
     public: boolean;
     starred?: boolean;

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
-import { equals, ge, gt, le } from "@xata.io/client";
+import { equals, equals, ge, gt, gt, le } from "@xata.io/client";
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
