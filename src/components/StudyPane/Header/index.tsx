@@ -60,7 +60,7 @@ const Header = ({
         <div className="flex-1">
           <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
-            <div className="text-black text-md md:text-lg dark:text-white">Psalm {study.passage}</div>
+            <div className="text-black text-md md:text-lg dark:text-white">{study.book} {study.passage}</div>
           </div>
         </div>
         <div className="flex-1">
