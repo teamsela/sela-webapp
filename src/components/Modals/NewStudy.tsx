@@ -10,6 +10,7 @@ interface NewStudyModalProps {
 export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
 
     const [passage, setPassage] = useState('');
+    const [book, setBook] = useState('');
     const modal = useRef<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
@@ -35,7 +36,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
         event.preventDefault();
         setIsLoading(true);
         setError(null); // Clear previous errors when a new request starts
-        const passageInfo = parsePassageInfo(passage);
+        const passageInfo = parsePassageInfo(passage, book);
         if (passageInfo instanceof Error) {
             setError(passageInfo.message);
             setIsLoading(false);
@@ -45,7 +46,7 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
             setPassage('');
         }
         try {
-            createStudy(passage);
+            createStudy(passage, book);
         } catch (e) {
             // Capture the error message to display to the user
             setError((e as Error).message);
@@ -66,10 +67,25 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                 className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
             >
                 <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
-                    Start a study in Psalm...
+                    Start a study...
                 </h3>
                 <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
                 <form onSubmit={onSubmit}>
+                    <div className='w-full py-4'>
+                    {/* <label htmlFor='bookName'>Book</label> */}
+                    <select 
+                        id='bookName'
+                        value={book}
+                        onChange={e => { setBook(e.target.value)} }
+                        name="book"
+                        className="w-full rounded-lg border-[2px] border-primary bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:bg-form-input dark:text-white"
+                    >
+                        <option value={""}>--Book--</option>
+                        <option value="genesis">Genesis</option>
+                        <option value="psalms">Psalms</option>
+                    </select>
+                    </div>
+
                     <input
                         type="text"
                         min={2}
