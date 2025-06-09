@@ -34,7 +34,6 @@ const Passage = ({
 
 
   useEffect(() => {
-    // console.log(bibleData)
     if (ctxStructureUpdateType !== StructureUpdateType.none && 
       (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
 
