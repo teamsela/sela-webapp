@@ -7,6 +7,8 @@ import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { BsBox, BsBoxArrowUp } from "react-icons/bs";
+import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
@@ -417,6 +419,47 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
       }
       {
         (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <ToolTip text="Enable uniform width" />
+      }      
+    </div>
+  );
+};
+
+export const BoxlessBtn = ({ setBoxStyle }: {
+  setBoxStyle: (arg: BoxDisplayStyle) => void,
+}) => {
+  const { ctxBoxDisplayStyle, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata } = useContext(FormatContext);
+
+  const handleClick = () => {
+    if (ctxBoxDisplayStyle === BoxDisplayStyle.noBox) {
+      ctxStudyMetadata.boxStyle = BoxDisplayStyle.box;
+      setBoxStyle(BoxDisplayStyle.box);
+    } else {
+      ctxStudyMetadata.boxStyle = BoxDisplayStyle.noBox;
+      setBoxStyle(BoxDisplayStyle.noBox);
+    }
+    ctxSetStudyMetadata(ctxStudyMetadata);
+    if (!ctxInViewMode) {
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    }
+  }
+  
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={handleClick} >
+        {
+          (ctxBoxDisplayStyle === BoxDisplayStyle.noBox) && <TbBoxModel2 fontSize="1.5em" />
+        }
+        {
+          (ctxBoxDisplayStyle !== BoxDisplayStyle.noBox) && <TbBoxModel2Off fontSize="1.5em" />
+        }
+      </button>
+      {
+        (ctxBoxDisplayStyle === BoxDisplayStyle.noBox) && <ToolTip text="Enable boxes" />
+      }
+      {
+        (ctxBoxDisplayStyle !== BoxDisplayStyle.noBox) && <ToolTip text="Disable boxes" />
       }      
     </div>
   );

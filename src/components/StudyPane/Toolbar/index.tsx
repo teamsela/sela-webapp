@@ -2,7 +2,7 @@ import { useContext } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
-  ClearAllFormatBtn} from "./Buttons";
+  ClearAllFormatBtn, BoxlessBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
@@ -65,6 +65,7 @@ const Toolbar = ({
           </div>
           <div className="border-r border-stroke flex flex-row">
             <UniformWidthBtn setBoxStyle={setBoxStyle}/>
+            <BoxlessBtn setBoxStyle={setBoxStyle}/>
             <IndentBtn leftIndent={true} />
             <IndentBtn leftIndent={false} />
           </div>
