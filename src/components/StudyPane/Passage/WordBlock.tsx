@@ -256,10 +256,12 @@ export const WordBlock = ({
         className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={
           {
-            background: `${colorFillLocal}`,
+            background: `${ctxBoxDisplayStyle === BoxDisplayStyle.noBox ? 
+              (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
+              colorFillLocal}`,
             boxSizing: 'border-box',
-            border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid ${borderColorLocal}`,
-            padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
+            border: `${ctxBoxDisplayStyle === BoxDisplayStyle.noBox ? 'none' : `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid ${borderColorLocal}`}`,
+            padding: `${ctxBoxDisplayStyle === BoxDisplayStyle.noBox ? '0' : borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
             color: `${textColorLocal}`,
           }
         }>
@@ -271,7 +273,7 @@ export const WordBlock = ({
             <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
             (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
-            className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
+            className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayStyle === BoxDisplayStyle.noBox ? 'px-0' : 'px-2'} py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
