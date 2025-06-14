@@ -2,30 +2,38 @@ import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
+import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
-
+import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+import { createContext } from 'react';
+
+
 
 const Passage = ({
   bibleData,
+  // isHeb,
 }: {
   bibleData: WordProps[];
+  // isHeb: boolean;
 }) => {
+
+
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
-  useEffect(() => {
 
+  useEffect(() => {
     if (ctxStructureUpdateType !== StructureUpdateType.none && 
       (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
 
@@ -221,24 +229,27 @@ const Passage = ({
   }, [ctxSelectedWords]);
 
   return (  
+    
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className="h-0"
+      className='h-0 w-[100%]'
     >
-      <div id="selaPassage" className='flex relative pl-2 py-4'>
-        {
-          ctxPassageProps.stanzaProps.map((stanza) => {
-            return (
-              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-            )
-          })
-        }
-      </div>
+
+      { ctxLanguageMode.English && <PassageBlock isHeb={false}/> }
+      { ctxLanguageMode.Parallel && 
+        <div className='flex flex-row mx-auto w-[100%]'>
+          <PassageBlock isHeb={true}/>
+          <PassageBlock isHeb={false}/>
+        </div> 
+      }
+      { ctxLanguageMode.Hebrew && <PassageBlock isHeb={true}/> }
+      
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
+    
   );
 };
 
