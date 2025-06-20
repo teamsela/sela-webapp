@@ -504,7 +504,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const firstSelectedStrophe = sortedStrophes[0];
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && firstSelectedWord && !firstSelectedWord.newLine && !firstSelectedWord.metadata?.lineBreak && !firstSelectedWord.firstWordInStrophe;
+    buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = singleWordSelected && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
@@ -512,13 +512,13 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
         ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
         .strophes[ctxSelectedWords[0].stropheId]?.lines?.length - 1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && firstSelectedWord && (!firstSelectedWord.firstWordInStrophe);
+    buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
     buttonEnabled = (singleWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
     buttonEnabled = (singleWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && firstSelectedStrophe && (!firstSelectedStrophe.firstStropheInStanza);
+    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
