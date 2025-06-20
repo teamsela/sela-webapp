@@ -500,23 +500,27 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
 
   const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
   const firstSelectedWord = sortedWords[0];
+  const lastSelectedWord = sortedWords[sortedWords.length - 1];
   const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
   const firstSelectedStrophe = sortedStrophes[0];
+  const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
 
   if (updateType === StructureUpdateType.newLine) {
     buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = singleWordSelected && (ctxSelectedWords[0].lineId !== 0);
+    buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-      buttonEnabled = singleWordSelected &&
-        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
-        .strophes[ctxSelectedWords[0].stropheId]?.lines?.length - 1 !== ctxSelectedWords[0].lineId;
+      buttonEnabled = hasWordSelected && lastSelectedWord &&
+        ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
+        .strophes[lastSelectedWord.stropheId]?.lines?.length - 1 !== lastSelectedWord.lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (singleWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = ((hasWordSelected && firstSelectedWord && !firstSelectedWord.firstStropheInStanza) ||
+      (hasStropheSelected && firstSelectedStrophe && !firstSelectedStrophe.firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (singleWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
+    buttonEnabled = ((hasWordSelected && lastSelectedWord && !lastSelectedWord.lastStropheInStanza) ||
+      (hasStropheSelected && lastSelectedStrophe && !lastSelectedStrophe.lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
     buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
