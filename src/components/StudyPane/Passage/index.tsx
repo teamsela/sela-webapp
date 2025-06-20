@@ -41,7 +41,14 @@ const Passage = ({
         };
 
         sortedWords.slice(1).forEach(w => {
-          if (ctxStudyMetadata.words[w.wordId]) {
+          const hasBreak = w.newLine || ctxStudyMetadata.words[w.wordId]?.lineBreak;
+          if (hasBreak) {
+            ctxStudyMetadata.words[w.wordId] = {
+              ...(ctxStudyMetadata.words[w.wordId] || {}),
+              lineBreak: undefined,
+              ignoreNewLine: true,
+            };
+          } else if (ctxStudyMetadata.words[w.wordId]) {
             delete ctxStudyMetadata.words[w.wordId].lineBreak;
             delete ctxStudyMetadata.words[w.wordId].ignoreNewLine;
           }
@@ -163,7 +170,15 @@ const Passage = ({
             delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheDiv;
             delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheMd;
           }
-          const nextWordId = selectedWordId + 1;
+
+          for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
+            if (ctxStudyMetadata.words[i]) {
+              delete ctxStudyMetadata.words[i].stropheDiv;
+              delete ctxStudyMetadata.words[i].stropheMd;
+            }
+          }
+
+          const nextWordId = lastSelectedWordId + 1;
           ctxStudyMetadata.words[nextWordId] = {
             ...(ctxStudyMetadata.words[nextWordId] || {}),
             stropheDiv: true
@@ -193,8 +208,16 @@ const Passage = ({
             ...(ctxStudyMetadata.words[selectedWordId] || {}),
             stropheDiv: true
           };
+
+          for (let i = selectedWordId + 1; i <= lastSelectedWordId; i++) {
+            if (ctxStudyMetadata.words[i]) {
+              delete ctxStudyMetadata.words[i].stropheDiv;
+              delete ctxStudyMetadata.words[i].stropheMd;
+            }
+          }
+
           const foundIndex = bibleData.findIndex(word =>
-            word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+            word.wordId > lastSelectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
           );
           if (foundIndex !== -1) {
             ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
