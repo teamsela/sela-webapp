@@ -493,26 +493,36 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
-  let hasWordSelected = (ctxSelectedWords.length === 1);
+  let hasWordSelected = (ctxSelectedWords.length > 0);
+  let singleWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
-  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+  let hasStrophesSelected = (ctxNumSelectedStrophes >= 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+
+  const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+  const firstSelectedWord = sortedWords[0];
+  const lastSelectedWord = sortedWords[sortedWords.length - 1];
+  const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+  const firstSelectedStrophe = sortedStrophes[0];
+  const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
+    buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
+    buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-      buttonEnabled = hasWordSelected && 
-        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
-        .strophes[ctxSelectedWords[0].stropheId]?.lines?.length - 1 !== ctxSelectedWords[0].lineId;
+      buttonEnabled = hasWordSelected && lastSelectedWord &&
+        ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
+        .strophes[lastSelectedWord.stropheId]?.lines?.length - 1 !== lastSelectedWord.lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
+    buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = ((hasWordSelected && firstSelectedWord && !firstSelectedWord.firstStropheInStanza) ||
+      (hasStropheSelected && firstSelectedStrophe && !firstSelectedStrophe.firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
+    buttonEnabled = ((hasWordSelected && lastSelectedWord && !lastSelectedWord.lastStropheInStanza) ||
+      (hasStropheSelected && lastSelectedStrophe && !lastSelectedStrophe.lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && (!ctxSelectedStrophes[0].firstStropheInStanza);
+    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
     buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
