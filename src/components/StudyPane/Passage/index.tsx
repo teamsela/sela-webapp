@@ -231,17 +231,27 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.newStanza) {
-        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) =>
+          a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
         if (sortedStrophes.length === 0) {
           return;
         }
 
-        selectedWordId = sortedStrophes[0].lines[0].words[0].wordId;
+        const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
         const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
-        const lastWordIdInStrophes = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || selectedWordId;
+        const lastWordIdInStrophes = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
 
-        newMetadata.words[selectedWordId] = {
-          ...newMetadata.words[selectedWordId],
+        // remove existing stanza breaks within the selection
+        sortedStrophes.forEach(s => {
+          const wordId = s.lines[0].words[0].wordId;
+          if (newMetadata.words[wordId]) {
+            delete newMetadata.words[wordId].stanzaDiv;
+            delete newMetadata.words[wordId].stanzaMd;
+          }
+        });
+
+        newMetadata.words[firstWordId] = {
+          ...newMetadata.words[firstWordId],
           stanzaDiv: true,
         };
 
@@ -249,27 +259,31 @@ const Passage = ({
         if (bibleData.some(word => word.wordId === nextWordId)) {
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
-            stanzaDiv: true
+            stanzaDiv: true,
           };
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStanza) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) =>
+          a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+        if (sortedStrophes.length === 0) {
+          return;
         }
-        // find the word with a stanza div marker for this stanza
+
+        const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
+        const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
+        const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
+
         const lastStanzaDiv = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId && newMetadata.words[word.wordId]?.stanzaDiv
+          word.wordId <= firstWordId && newMetadata.words[word.wordId]?.stanzaDiv
         );
         if (lastStanzaDiv >= 0) {
           delete newMetadata.words[bibleData[lastStanzaDiv].wordId].stanzaDiv;
           delete newMetadata.words[bibleData[lastStanzaDiv].wordId].stanzaMd;
         }
 
-        // find the index to the first word of the next strophe
         const foundIndex = bibleData.findIndex(word =>
-           word.wordId > selectedWordId && newMetadata.words[word.wordId]?.stropheDiv
+           word.wordId > lastWordId && newMetadata.words[word.wordId]?.stropheDiv
         );
         if (foundIndex !== -1) {
           newMetadata.words[bibleData[foundIndex].wordId] = {
@@ -279,16 +293,22 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStanza) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) =>
+          a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+        if (sortedStrophes.length === 0) {
+          return;
         }
-        newMetadata.words[selectedWordId] = {
-          ...(newMetadata.words[selectedWordId] || {}),
-          stanzaDiv: true
+
+        const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
+        const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
+        const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
+
+        newMetadata.words[firstWordId] = {
+          ...(newMetadata.words[firstWordId] || {}),
+          stanzaDiv: true,
         };
         const foundIndex = bibleData.findIndex(word =>
-          word.wordId > selectedWordId && (newMetadata.words[word.wordId]?.stanzaDiv && newMetadata.words[word.wordId]?.stropheDiv)
+          word.wordId > lastWordId && (newMetadata.words[word.wordId]?.stanzaDiv && newMetadata.words[word.wordId]?.stropheDiv)
         );
         if (foundIndex !== -1) {
           newMetadata.words[bibleData[foundIndex].wordId] = {
