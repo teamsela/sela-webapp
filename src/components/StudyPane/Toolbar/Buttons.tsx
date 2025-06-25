@@ -15,7 +15,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { StudyMetadata } from '@/lib/data';
+import { StudyMetadata, StropheProps } from '@/lib/data';
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -488,6 +488,24 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   );
 };
 
+const areStrophesContiguous = (strophes: StropheProps[]): boolean => {
+  if (strophes.length <= 1) return true;
+
+  const sorted = [...strophes].sort((a, b) =>
+    a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const currentLastWordId = sorted[i].lines.at(-1)?.words.at(-1)?.wordId;
+    const nextFirstWordId = sorted[i + 1].lines[0].words[0].wordId;
+
+    if (currentLastWordId === undefined || nextFirstWordId !== currentLastWordId + 1) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
   const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
@@ -522,11 +540,15 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
     buttonEnabled = ((hasWordSelected && lastSelectedWord && !lastSelectedWord.lastStropheInStanza) ||
       (hasStropheSelected && lastSelectedStrophe && !lastSelectedStrophe.lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe;
+    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe && areStrophesContiguous(ctxSelectedStrophes);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
+    buttonEnabled = hasStrophesSelected &&
+      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0) &&
+      areStrophesContiguous(ctxSelectedStrophes);
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1)
+    buttonEnabled = hasStrophesSelected &&
+      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1) &&
+      areStrophesContiguous(ctxSelectedStrophes);
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
