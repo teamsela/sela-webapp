@@ -32,10 +32,13 @@ const Passage = ({
       const newMetadata = structuredClone(ctxStudyMetadata);
 
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+      const firstSelectedWord = sortedWords[0];
       let selectedWordId = (sortedWords.length > 0) ? sortedWords[0].wordId : 0;
       const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
 
       if (ctxStructureUpdateType == StructureUpdateType.newLine) {
+        // Insert a new line before the selection and keep the remainder of the
+        // line after the selection on a new line as well.
         newMetadata.words[selectedWordId] = {
           ...(newMetadata.words[selectedWordId] || {}),
           lineBreak: true,
@@ -66,9 +69,17 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
+        // Merge the selected words with the previous line by removing the break
+        // before the selection. A break is inserted after the selection so the
+        // following text stays on the next line.
+        // Find the break before the selection. Ignore words whose default break
+        // has already been suppressed via the ignoreNewLine flag.
         const foundIndex = bibleData.findLastIndex(word =>
           word.wordId <= selectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          (
+            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
+            newMetadata.words[word.wordId]?.lineBreak
+          )
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -100,11 +111,19 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
-        newMetadata.words[selectedWordId] = {
-          ...(newMetadata.words[selectedWordId] || {}),
-          lineBreak: true,
-          ignoreNewLine: undefined
-        };
+        // Merge the selected line with the one below. If the selection does not
+        // start at the beginning of a line, create a break before it so that any
+        // words preceding the selection stay on the original line. When the
+        // selection already begins a line we leave the break intact.
+        const isLineStart = (firstSelectedWord.newLine && !newMetadata.words[selectedWordId]?.ignoreNewLine)
+          || newMetadata.words[selectedWordId]?.lineBreak;
+        if (!isLineStart) {
+          newMetadata.words[selectedWordId] = {
+            ...(newMetadata.words[selectedWordId] || {}),
+            lineBreak: true,
+            ignoreNewLine: undefined,
+          };
+        }
 
         sortedWords.slice(1).forEach(w => {
           if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
@@ -116,9 +135,14 @@ const Passage = ({
           }
         });
 
+        // Locate the first real break after the selection. We treat a word as a
+        // break only if its default line break isn't already ignored.
         const foundIndex = bibleData.findIndex(word =>
           word.wordId > lastSelectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          (
+            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
+            newMetadata.words[word.wordId]?.lineBreak
+          )
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -130,6 +154,8 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
+        // Start a new strophe at the selection. A break is also inserted after
+        // the strophe so it is visually separated from the following line.
         newMetadata.words[selectedWordId] = {
           ...newMetadata.words[selectedWordId],
           stropheDiv: true,
@@ -146,7 +172,9 @@ const Passage = ({
         if (bibleData.some(word => word.wordId === nextWordId)) {
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
-            stropheDiv: true
+            stropheDiv: true,
+            lineBreak: true,
+            ignoreNewLine: undefined
           };
         }
       }
