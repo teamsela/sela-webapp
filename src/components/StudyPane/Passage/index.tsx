@@ -37,6 +37,8 @@ const Passage = ({
       const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
 
       if (ctxStructureUpdateType == StructureUpdateType.newLine) {
+        // Insert a new line before the selection and keep the remainder of the
+        // line after the selection on a new line as well.
         newMetadata.words[selectedWordId] = {
           ...(newMetadata.words[selectedWordId] || {}),
           lineBreak: true,
@@ -67,6 +69,9 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
+        // Merge the selected words with the previous line by removing the break
+        // before the selection. A break is inserted after the selection so the
+        // following text stays on the next line.
         const foundIndex = bibleData.findLastIndex(word =>
           word.wordId <= selectedWordId &&
           (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
@@ -101,18 +106,17 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
-        const isLineStart = firstSelectedWord.newLine || newMetadata.words[selectedWordId]?.lineBreak;
-        if (isLineStart) {
-          newMetadata.words[selectedWordId] = {
-            ...(newMetadata.words[selectedWordId] || {}),
-            lineBreak: undefined,
-            ignoreNewLine: true,
-          };
-        } else {
+        // Merge the selected line with the one below. If the selection does not
+        // start at the beginning of a line, create a break before it so that any
+        // words preceding the selection stay on the original line. When the
+        // selection already begins a line we leave the break intact.
+        const isLineStart = (firstSelectedWord.newLine && !newMetadata.words[selectedWordId]?.ignoreNewLine)
+          || newMetadata.words[selectedWordId]?.lineBreak;
+        if (!isLineStart) {
           newMetadata.words[selectedWordId] = {
             ...(newMetadata.words[selectedWordId] || {}),
             lineBreak: true,
-            ignoreNewLine: undefined
+            ignoreNewLine: undefined,
           };
         }
 
@@ -140,6 +144,8 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
+        // Start a new strophe at the selection. A break is also inserted after
+        // the strophe so it is visually separated from the following line.
         newMetadata.words[selectedWordId] = {
           ...newMetadata.words[selectedWordId],
           stropheDiv: true,
