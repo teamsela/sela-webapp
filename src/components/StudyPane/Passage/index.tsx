@@ -72,9 +72,14 @@ const Passage = ({
         // Merge the selected words with the previous line by removing the break
         // before the selection. A break is inserted after the selection so the
         // following text stays on the next line.
+        // Find the break before the selection. Ignore words whose default break
+        // has already been suppressed via the ignoreNewLine flag.
         const foundIndex = bibleData.findLastIndex(word =>
           word.wordId <= selectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          (
+            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
+            newMetadata.words[word.wordId]?.lineBreak
+          )
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -130,9 +135,14 @@ const Passage = ({
           }
         });
 
+        // Locate the first real break after the selection. We treat a word as a
+        // break only if its default line break isn't already ignored.
         const foundIndex = bibleData.findIndex(word =>
           word.wordId > lastSelectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          (
+            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
+            newMetadata.words[word.wordId]?.lineBreak
+          )
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
