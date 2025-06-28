@@ -32,6 +32,7 @@ const Passage = ({
       const newMetadata = structuredClone(ctxStudyMetadata);
 
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+      const firstSelectedWord = sortedWords[0];
       let selectedWordId = (sortedWords.length > 0) ? sortedWords[0].wordId : 0;
       const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
 
@@ -100,11 +101,20 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
-        newMetadata.words[selectedWordId] = {
-          ...(newMetadata.words[selectedWordId] || {}),
-          lineBreak: true,
-          ignoreNewLine: undefined
-        };
+        const isLineStart = firstSelectedWord.newLine || newMetadata.words[selectedWordId]?.lineBreak;
+        if (isLineStart) {
+          newMetadata.words[selectedWordId] = {
+            ...(newMetadata.words[selectedWordId] || {}),
+            lineBreak: undefined,
+            ignoreNewLine: true,
+          };
+        } else {
+          newMetadata.words[selectedWordId] = {
+            ...(newMetadata.words[selectedWordId] || {}),
+            lineBreak: true,
+            ignoreNewLine: undefined
+          };
+        }
 
         sortedWords.slice(1).forEach(w => {
           if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
@@ -146,7 +156,9 @@ const Passage = ({
         if (bibleData.some(word => word.wordId === nextWordId)) {
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
-            stropheDiv: true
+            stropheDiv: true,
+            lineBreak: true,
+            ignoreNewLine: undefined
           };
         }
       }
