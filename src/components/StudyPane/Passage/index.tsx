@@ -239,15 +239,23 @@ const Passage = ({
       className='h-0 w-[100%]'
     >
 
-      <div className='flex flex-row w-[100%] mx-auto' id='selaPassage'>
-        { ctxLanguageMode.English && <PassageBlock isHeb={false}/> }
+      <div className='flex flex-row w-[100%] ' id='selaPassage'>
+        { ctxLanguageMode.English && 
+          <div className='flex flex-row mx-auto w-[100%]'>
+            <PassageBlock isHeb={false}/> 
+          </div>
+        }
         { ctxLanguageMode.Parallel && 
           <div className='flex flex-row mx-auto w-[100%]'>
             <PassageBlock isHeb={true}/>
             <PassageBlock isHeb={false}/>
           </div> 
         }
-        { ctxLanguageMode.Hebrew && <PassageBlock isHeb={true}/> }
+        { ctxLanguageMode.Hebrew && 
+          <div className='flex flex-row mx-auto w-[100%]'>
+          <PassageBlock isHeb={true}/> 
+          </div>
+        }
         
         {isDragging && <div style={getSelectionBoxStyle()} />}
       </div>
