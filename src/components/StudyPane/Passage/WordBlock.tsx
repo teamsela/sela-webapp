@@ -277,7 +277,7 @@ export const WordBlock = ({
             (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : 'none') : 
             `${!isDefaultBorderColor(borderColorLocal) ? '3px' : '2px'} solid ${borderColorLocal}`}`,
           padding: `${!ctxBoxDisplayConfig.showBoxes ? 
-            (!isDefaultBorderColor(borderColorLocal) || colorFillLocal !== DEFAULT_COLOR_FILL ? '2px 4px' : '0') : 
+            (!isDefaultBorderColor(borderColorLocal) || colorFillLocal !== DEFAULT_COLOR_FILL || wordProps.showVerseNum ? '2px 4px' : '0') : 
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
         }}>
@@ -289,7 +289,8 @@ export const WordBlock = ({
             <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
             (ctxBoxDisplayConfig.uniformWidth) ? <sup {...verseNumStyles}></sup> : ''}
           <span
-            className={`whitespace-nowrap break-keep flex select-none ${!ctxBoxDisplayConfig.showBoxes ? 'px-0' : 'px-2'} py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
+            className={`whitespace-nowrap break-keep flex select-none ${!ctxBoxDisplayConfig.showBoxes ? 
+              (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayConfig.uniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
