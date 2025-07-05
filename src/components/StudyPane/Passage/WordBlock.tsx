@@ -200,7 +200,7 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'mr-1' : 'ml-1'}`
+    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew && 'ml-1'}`
   }
 
   const hebBlockSizeStyle = `w-20 h-8`;
@@ -277,7 +277,7 @@ export const WordBlock = ({
             (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : 'none') : 
             `${!isDefaultBorderColor(borderColorLocal) ? '3px' : '2px'} solid ${borderColorLocal}`}`,
           padding: `${!ctxBoxDisplayConfig.showBoxes ? 
-            (!isDefaultBorderColor(borderColorLocal) || colorFillLocal !== DEFAULT_COLOR_FILL || wordProps.showVerseNum ? '2px 4px' : '0') : 
+            (!isDefaultBorderColor(borderColorLocal) || colorFillLocal !== DEFAULT_COLOR_FILL) : 
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
         }}>
