@@ -7,10 +7,10 @@ export enum ColorActionType {
     resetAllColor
 }
 
-export enum BoxDisplayStyle {
-    noBox,
-    box,
-    uniformBoxes
+// Box display configuration - separate flags for independent control
+export interface BoxDisplayConfig {
+    showBoxes: boolean;      // Whether to show boxes around words
+    uniformWidth: boolean;   // Whether to use uniform width for boxes
 }
 
 export interface ColorPickerProps {

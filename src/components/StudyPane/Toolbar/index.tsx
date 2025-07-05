@@ -5,7 +5,7 @@ import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn,
   ClearAllFormatBtn, BoxlessBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
-import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, StructureUpdateType, BoxDisplayConfig } from "@/lib/types";
 import { StudyData } from '@/lib/data';
 
 const Toolbar = ({
@@ -22,7 +22,7 @@ const Toolbar = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setBoxStyle: (arg: BoxDisplayStyle) => void,
+  setBoxStyle: (arg: BoxDisplayConfig) => void,
   setCloneStudyOpen: (arg: boolean) => void;
 } ) => {
   
