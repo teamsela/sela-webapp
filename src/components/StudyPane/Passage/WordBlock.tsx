@@ -209,7 +209,7 @@ export const WordBlock = ({
   const hebBlockSizeStyle = `w-20 h-8`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
+  let fontSize = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize;
 
   if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
