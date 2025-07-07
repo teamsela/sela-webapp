@@ -27,11 +27,29 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata, 
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, 
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode, ctxIsHebrew, ctxSetIsHebrew
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
+  const [displayMode, setDisplayMode] = useState('singleLang');
 
+  useEffect(() => {
+    // if (ctxLanguageMode.English || ctxLanguageMode.Parallel) {
+    //   ctxSetIsHebrew(false)
+    // }
+    if (ctxLanguageMode.English) {
+      ctxSetIsHebrew(false)
+      setDisplayMode('singleLang')
+    }  
+    if (ctxLanguageMode.Parallel) {
+      ctxSetIsHebrew(false)
+      setDisplayMode('Parallel')
+    }         
+    if (ctxLanguageMode.Hebrew) {
+      ctxSetIsHebrew(true)
+      setDisplayMode('singleLang')
+    }
+  }, [ctxSetIsHebrew, ctxIsHebrew, ctxLanguageMode])
 
   useEffect(() => {
     // console.log(bibleData)
@@ -238,8 +256,8 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className='h-0 w-[100%]'
     >
-
-      <div className='flex flex-row w-[100%] ' id='selaPassage'>
+      {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
+      <div className={`${displayMode} flex flex-row w-[100%]`} id='selaPassage'>
         { ctxLanguageMode.English && 
           <div className='flex flex-row mx-auto w-[100%]'>
             <PassageBlock isHeb={false}/> 

@@ -26,6 +26,7 @@ export const FormatContext = createContext({
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
   ctxIsHebrew: false,
+  ctxSetIsHebrew: (arg: boolean) => {},
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
@@ -115,6 +116,7 @@ const StudyPane = ({
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
     ctxIsHebrew: isHebrew,
+    ctxSetIsHebrew: setHebrew,
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords: setSelectedWords,
     ctxNumSelectedWords: numSelectedWords,
@@ -254,7 +256,6 @@ const StudyPane = ({
         {/* Header */}
         <Header
           study={passageData.study}
-          setLangToHebrew={setHebrew}
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
           setScaleValue={setScaleValue}
