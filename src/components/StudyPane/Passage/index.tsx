@@ -257,6 +257,7 @@ const Passage = ({
       className='h-0 w-[100%]'
     >
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
+      {/* selaPassage is causing selection box shifting bug */}
       <div className={`${displayMode} flex flex-row w-[100%]`} id='selaPassage'>
         { ctxLanguageMode.English && 
           <div className='flex flex-row mx-auto w-[100%]'>
@@ -274,10 +275,9 @@ const Passage = ({
           <PassageBlock isHeb={true}/> 
           </div>
         }
-        
-        {isDragging && <div style={getSelectionBoxStyle()} />}
       </div>
-
+      
+      {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
     
   );
