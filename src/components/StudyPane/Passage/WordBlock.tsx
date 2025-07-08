@@ -46,8 +46,7 @@ export const WordBlock = ({
   const [selected, setSelected] = useState(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  if (ctxColorAction != ColorActionType.none) {
-
+  if (ctxColorAction != ColorActionType.none ) {
     ctxRootsColorMap.delete(wordProps.strongNumber);
 
     const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
@@ -153,6 +152,15 @@ export const WordBlock = ({
     }
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
 
+  useEffect(() => {
+  }, [borderColorLocal]);
+
+  useEffect(() => {
+  }, [selected]);
+
+  useEffect(() => {
+  }, [ctxColorAction]);
+
   const handleClick = () => {
     if (clickTimeout) {
       clearTimeout(clickTimeout);
@@ -201,7 +209,7 @@ export const WordBlock = ({
   const hebBlockSizeStyle = `w-20 h-8`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
+  let fontSize = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize;
 
   if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
@@ -224,20 +232,24 @@ export const WordBlock = ({
     }
   }
 
+  const isDefaultBorderColor = (color: string) => {
+    const normalizedColor = (color.startsWith('#') ? color : `#${color}`).toLowerCase();
+    const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
+    return normalizedColor === normalizedDefault;
+  };
+
   const renderIndents = (times: number) => {
     return (
       <div className="flex">
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]'}`}
-            style={
-              {
-                boxSizing: 'border-box',
-                border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid transparent`,
-                padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
-              }
-            }>
+            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]`}
+            style={{
+              boxSizing: 'border-box',
+              border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid transparent`,
+              padding: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '1px'}`,
+            }}>
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
               <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
@@ -257,15 +269,13 @@ export const WordBlock = ({
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
         className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
-        style={
-          {
-            background: `${colorFillLocal}`,
-            boxSizing: 'border-box',
-            border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid ${borderColorLocal}`,
-            padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
-            color: `${textColorLocal}`,
-          }
-        }>
+        style={{
+          background: colorFillLocal,
+          boxSizing: 'border-box',
+          border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid ${borderColorLocal}`,
+          padding: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '1px'}`,
+          color: textColorLocal,
+        }}>
         <span
           className="flex"
           onClick={handleClick}

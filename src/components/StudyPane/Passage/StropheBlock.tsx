@@ -67,11 +67,17 @@ export const StropheBlock = ({
     //if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
   }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor]);
   
+  useEffect(() => {
+    setSelected(ctxSelectedStrophes.some(stropie => stropie.stropheId === stropheProps.stropheId));
+    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes, ctxSetSelectedStrophes]);
+
   const handleStropheBlockClick = () => {
     setSelected(prevState => !prevState);
-    (!selected) ? ctxSelectedStrophes.push(stropheProps) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(stropheProps), 1);
-    ctxSetSelectedStrophes(ctxSelectedStrophes);
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+    const newSelectedStrophes = [...ctxSelectedStrophes]; // Clone the array
+    (!selected) ? newSelectedStrophes.push(stropheProps) : newSelectedStrophes.splice(newSelectedStrophes.indexOf(stropheProps), 1);
+    ctxSetSelectedStrophes(newSelectedStrophes);
+    ctxSetNumSelectedStrophes(newSelectedStrophes.length);
     // remove any selected word blocks if strophe block is selected
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
@@ -104,10 +110,8 @@ export const StropheBlock = ({
     ctxSetNumSelectedWords(0);
   }
   
-  useEffect(() => {
-    setSelected(ctxSelectedStrophes.includes(stropheProps));
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
-  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes]);
+
+
 
   return (
     <div 

@@ -17,7 +17,6 @@ import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 
 const Header = ({
   study,
-  // setLangToHebrew,
   setInfoPaneAction,
   infoPaneAction,
   setScaleValue,
@@ -28,7 +27,6 @@ const Header = ({
   setCloneStudyOpen  
 }: {
   study: StudyData;
-  // setLangToHebrew: (arg: boolean) => void;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
   setScaleValue: (arg: number) => void;
