@@ -1,9 +1,9 @@
 import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata } from "./data";
-import { psalmBook, genesisBook } from "./chapterCounts";
+import { psalmBook, genesisBook, jonahBook } from "./chapterCounts";
 import { ColorActionType } from "./types";
 import { z } from 'zod';
 
-const otBookSchema = z.enum(['genesis', 'psalms'])
+const otBookSchema = z.enum(['genesis', 'psalms', 'jonah'])
 
 export type PassageInfo = {
     book: string|null|undefined,
@@ -39,7 +39,21 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
     endVerse:   (strEndVerse) ? parseInt(strEndVerse) : parseInt(strEndChapter)
   };
 
-  const bookMap = result.book === 'genesis'? genesisBook: psalmBook
+  var bookMap 
+
+  switch (result.book) {
+    case "genesis":
+      bookMap = genesisBook;
+      break
+    case "psalms":
+      bookMap = psalmBook;
+      break
+    case "jonah":
+      bookMap = jonahBook;
+      break
+    default:
+      bookMap = psalmBook;
+  }
 
   if (strStartVerse == undefined && strEndVerse == undefined) {
     result.endVerse = bookMap[result.endChapter];
