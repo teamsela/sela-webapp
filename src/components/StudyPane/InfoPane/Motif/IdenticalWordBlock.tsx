@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
-import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
-import { ColorActionType } from "@/lib/types";
 import { WordProps } from '@/lib/data';
+import { ColorActionType } from "@/lib/types";
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
-export const RootBlock = ({
-  id, count, descendants, relatedWords, selectRelated
+export const IdenticalWordBlock = ({
+  id, count, identicalWords, relatedWords, selectRelated
 }: {
   id: number,
   count: number,
-  descendants: WordProps[],
+  identicalWords: WordProps[],
   relatedWords: WordProps[],
   selectRelated: boolean
 }) => {
@@ -17,7 +17,7 @@ export const RootBlock = ({
   const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
     ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
 
-  const toSelect = selectRelated ? [...descendants, ...relatedWords] : descendants;
+  const toSelect = selectRelated ? [...identicalWords, ...relatedWords] : identicalWords;
 
   const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
     return toSelect.every(dsd =>
@@ -26,12 +26,12 @@ export const RootBlock = ({
     );
   };
 
-  const rootsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
+  const idWordsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
 
-  const initialColorFill = rootsColorMap?.fill 
+  const initialColorFill = idWordsColorMap?.fill 
     || (matchColorProperty('fill') ? toSelect[0]?.metadata.color?.fill : DEFAULT_COLOR_FILL) 
     || DEFAULT_COLOR_FILL;
-  const initialTextColor = rootsColorMap?.text 
+  const initialTextColor = idWordsColorMap?.text 
     || (matchColorProperty('text') ? toSelect[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) 
     || DEFAULT_TEXT_COLOR;
   const initialBorderColor = 
@@ -55,16 +55,16 @@ export const RootBlock = ({
   }, [ctxSelectedWords, toSelect]);
 
   useEffect(() => {
-    const rootsColor = ctxRootsColorMap.get(toSelect[0].strongNumber)
-    if (rootsColor) {
+    const idWordsColor = ctxRootsColorMap.get(toSelect[0].strongNumber)
+    if (idWordsColor) {
       toSelect.forEach(dsd => {
         dsd.metadata = dsd.metadata ? 
-        { ...dsd.metadata, color: rootsColor } : 
-        { color: rootsColor };
+        { ...dsd.metadata, color: idWordsColor } : 
+        { color: idWordsColor };
       });
-      rootsColor.fill && setColorFillLocal(rootsColor.fill);
-      rootsColor.text && setTextColorLocal(rootsColor.text);
-      rootsColor.border && setBorderColorLocal(rootsColor.border);
+      idWordsColor.fill && setColorFillLocal(idWordsColor.fill);
+      idWordsColor.text && setTextColorLocal(idWordsColor.text);
+      idWordsColor.border && setBorderColorLocal(idWordsColor.border);
     }
     else if (ctxStudyMetadata.words[id]) {
 
@@ -161,7 +161,7 @@ export const RootBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-          >{ctxIsHebrew ? descendants[0].motifData.relatedWords?.lemma : descendants[0].ETCBCgloss}</span>
+          >{ctxIsHebrew ? identicalWords[0].motifData.relatedWords?.lemma : identicalWords[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

@@ -48,6 +48,6 @@ export enum InfoPaneActionType {
 
 export enum MotifType {
     none,
-    root,
+    identical,
     category,
 }

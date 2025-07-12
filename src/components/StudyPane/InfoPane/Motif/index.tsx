@@ -1,11 +1,11 @@
 import { MotifType } from "@/lib/types";
-import React, { useState } from "react";
+import { useState } from "react";
 
-import Root from "./Root";
 import Category from "./Category";
+import IdenticalWord from "./IdenticalWord";
 
 const Motif = () => {
-  const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.root);
+  const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.identical);
 
   const toggleSection = (section: MotifType) => {
     setOpenSection((prev) => (prev === section ? null : section));
@@ -18,10 +18,10 @@ const Motif = () => {
         <div className="border-b border-stroke dark:border-strokedark mx-4">
           <button
             className="ClickBlock w-full text-left py-4 px-2 text-sm font-medium md:text-base flex items-center gap-2"
-            onClick={() => toggleSection(MotifType.root)}
+            onClick={() => toggleSection(MotifType.identical)}
           >
             <svg
-              className={`fill-primary stroke-primary duration-200 ease-in-out dark:fill-white dark:stroke-white ${openSection === MotifType.root ? "rotate-180" : ""}`}
+              className={`fill-primary stroke-primary duration-200 ease-in-out dark:fill-white dark:stroke-white ${openSection === MotifType.identical ? "rotate-180" : ""}`}
               width="18"
               height="10"
               viewBox="0 0 18 10"
@@ -34,11 +34,11 @@ const Motif = () => {
                 stroke=""
               />
             </svg>
-            <span className={`${openSection === MotifType.root ? "text-primary" : "text-black dark:text-white"}`}>Identical Words</span>
+            <span className={`${openSection === MotifType.identical ? "text-primary" : "text-black dark:text-white"}`}>Identical Words</span>
           </button>
-          {openSection === MotifType.root && (
+          {openSection === MotifType.identical && (
             <div className="p-4">
-              <Root />
+              <IdenticalWord />
             </div>
           )}
         </div>

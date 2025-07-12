@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import { ColorData } from "@/lib/data";
-import { RootColorPalette } from "../StudyPane/InfoPane/Motif/Root";
-import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../StudyPane/index';
-import { RootWordProps } from "../StudyPane/InfoPane/Motif/Root";
 import { updateMetadataInDb } from '@/lib/actions';
+import { ColorData } from "@/lib/data";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { IdenticalWordColorPalette, IdenticalWordProps } from "../StudyPane/InfoPane/Motif/IdenticalWord";
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../StudyPane/index';
 
 interface SmartHighlightProps {
-    rootWords: RootWordProps[]; // Property with a type of an empty array
+    indeticalWords: IdenticalWordProps[]; // Property with a type of an empty array
 }
 
-const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
+const SmartHighlight: React.FC<SmartHighlightProps> = ({indeticalWords}) => {
 
   const { ctxStudyId, ctxSetRootsColorMap, ctxStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
@@ -48,38 +47,38 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({rootWords}) => {
 
     let newMap = new Map<number, ColorData>();
 
-    rootWords.forEach((rootWord, index) => {
+    indeticalWords.forEach((idWordProps, index) => {
 
-      let rootBlockColor: ColorData = {
-        fill: (index < RootColorPalette.length) ? RootColorPalette[index] : DEFAULT_COLOR_FILL,
-        text: (index < 10) ? '#000000' : (index < 20 || index >= RootColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
-        border: "" // not used for root block
+      let idWordBlockColor: ColorData = {
+        fill: (index < IdenticalWordColorPalette.length) ? IdenticalWordColorPalette[index] : DEFAULT_COLOR_FILL,
+        text: (index < 10) ? '#000000' : (index < 20 || index >= IdenticalWordColorPalette.length) ? DEFAULT_TEXT_COLOR : '#FFFFFF',
+        border: "" // not used for identicalWord block
       };
 
 //      let descendantWordIds: number[] = [];
-      rootWord.descendants.forEach((word) => {
+      idWordProps.identicalWords.forEach((word) => {
         const wordId = word.wordId;
         const wordMetadata = ctxStudyMetadata.words[wordId];
     
         if (!wordMetadata) {
-          ctxStudyMetadata.words[wordId] = { color: rootBlockColor };
+          ctxStudyMetadata.words[wordId] = { color: idWordBlockColor };
           return;
         }
     
         if (!wordMetadata.color) {
-          wordMetadata.color = rootBlockColor;
+          wordMetadata.color = idWordBlockColor;
           return;
         }
     
-        wordMetadata.color.fill = rootBlockColor.fill;
-        wordMetadata.color.text = rootBlockColor.text;
+        wordMetadata.color.fill = idWordBlockColor.fill;
+        wordMetadata.color.text = idWordBlockColor.text;
     
 //        descendantWordIds.push(word.wordId)
       });
 
-        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, rootBlockColor.colorFill);
-        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, rootBlockColor.textColor);
-      newMap.set(rootWord.descendants[0].strongNumber, rootBlockColor);
+        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, idWordBlockColor.colorFill);
+        //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, idWordBlockColor.textColor);
+      newMap.set(idWordProps.identicalWords[0].strongNumber, idWordBlockColor);
     });
 
     ctxSetRootsColorMap(newMap);
