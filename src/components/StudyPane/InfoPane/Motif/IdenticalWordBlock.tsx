@@ -45,13 +45,10 @@ export const IdenticalWordBlock = ({
   const [selected, setSelected] = useState(false);
 
 
+  // select the block if all toSelect words are selected in the studyPane, otherwise unselect it
   useEffect(() => {
-    let hasChildren = true;
-    toSelect.forEach((dsd) => {
-      hasChildren = hasChildren && ctxSelectedWords.includes(dsd);
-    })
-
-    setSelected(hasChildren);
+    const allSelected = toSelect.every(word => ctxSelectedWords.includes(word));
+    setSelected(allSelected);
   }, [ctxSelectedWords, toSelect]);
 
   useEffect(() => {
