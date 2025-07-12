@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { FetchStudiesResult } from '@/lib/data';
 import { fetchModelStudies } from '@/lib/actions';
 
-export default async function PremarkedTable({
+export default function PremarkedTable({
   query,
   currentPage,
   sortBy,
