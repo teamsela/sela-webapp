@@ -34,7 +34,25 @@ const Passage = ({
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
       const firstSelectedWord = sortedWords[0];
       let selectedWordId = (sortedWords.length > 0) ? sortedWords[0].wordId : 0;
-      const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
+      let lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
+
+      if (sortedWords.length === 1) {
+        if (ctxStructureUpdateType === StructureUpdateType.newLine ||
+            ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine ||
+            ctxStructureUpdateType === StructureUpdateType.mergeWithNextLine) {
+          const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+            .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
+          lastSelectedWordId = line.words[line.words.length - 1].wordId;
+        } else if (ctxStructureUpdateType === StructureUpdateType.newStrophe ||
+                   ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStrophe ||
+                   ctxStructureUpdateType === StructureUpdateType.mergeWithNextStrophe) {
+          const lines = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+            .strophes[firstSelectedWord.stropheId].lines;
+          lastSelectedWordId = lines.at(-1)?.words.at(-1)?.wordId ?? lastSelectedWordId;
+        }
+      }
+
+      const rangeWords = bibleData.filter(w => w.wordId > selectedWordId && w.wordId <= lastSelectedWordId);
 
       if (ctxStructureUpdateType == StructureUpdateType.newLine) {
         // Insert a new line before the selection and keep the remainder of the
@@ -45,7 +63,7 @@ const Passage = ({
           ignoreNewLine: undefined
         };
 
-        sortedWords.slice(1).forEach(w => {
+        rangeWords.forEach(w => {
           const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
           if (hasBreak) {
             newMetadata.words[w.wordId] = {
@@ -125,7 +143,7 @@ const Passage = ({
           };
         }
 
-        sortedWords.slice(1).forEach(w => {
+        rangeWords.forEach(w => {
           if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
             newMetadata.words[w.wordId] = {
               ...(newMetadata.words[w.wordId] || {}),
@@ -161,7 +179,7 @@ const Passage = ({
           stropheDiv: true,
         };
 
-        sortedWords.slice(1).forEach(w => {
+        rangeWords.forEach(w => {
           if (newMetadata.words[w.wordId]) {
             delete newMetadata.words[w.wordId].stropheDiv;
             delete newMetadata.words[w.wordId].stropheMd;
