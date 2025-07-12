@@ -50,5 +50,4 @@ export enum MotifType {
     none,
     root,
     category,
-    related,
 }
