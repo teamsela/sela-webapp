@@ -524,7 +524,19 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !!firstSelectedWord;
+    if (hasWordSelected && firstSelectedWord) {
+      const sameStrophe = ctxSelectedWords.every(w => w.stropheId === firstSelectedWord.stropheId);
+      let wholeLine = false;
+      const sameLine = ctxSelectedWords.every(w => w.lineId === firstSelectedWord.lineId && w.stropheId === firstSelectedWord.stropheId);
+      if (sameLine) {
+        const lineWords = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+          .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words.length;
+        wholeLine = ctxSelectedWords.length === lineWords;
+      }
+      buttonEnabled = sameStrophe && !wholeLine;
+    } else {
+      buttonEnabled = false;
+    }
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
