@@ -1,5 +1,5 @@
 import { StanzaProps } from "@/lib/data"
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock"
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
@@ -15,6 +15,7 @@ export const StanzaBlock = ({
   const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
+  
 
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
@@ -35,6 +36,38 @@ export const StanzaBlock = ({
     ctxSetNumSelectedWords(0);
   }
   
+  useEffect(() => {
+    stanzaProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+  }, [stanzaProps.metadata?.expanded])
+
+  const renderArrow = () => {
+    if(ctxLanguageMode.Parallel) {
+      if (expanded) {
+        return (
+            <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
+        )
+      }
+      else {
+        return (
+          <>
+          { 
+            ctxIsHebrew ? <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> : <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} />
+          } 
+          </>
+        )  
+      }
+   
+    }
+    else {
+      return (
+        <>
+          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
+        </>
+      )        
+    }
+  }
+
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
@@ -49,8 +82,9 @@ export const StanzaBlock = ({
         onClick={() => handleCollapseBlockClick()}
         data-clicktype={'clickable'}
       >
-        { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
-        { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight className={`${ctxLanguageMode.Parallel ? 'rotate-[90deg]' : ''}`} fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+        
+        { renderArrow() }
+
       </button>
       </div>
       {

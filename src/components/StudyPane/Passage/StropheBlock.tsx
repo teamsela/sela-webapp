@@ -110,7 +110,9 @@ export const StropheBlock = ({
     ctxSetNumSelectedWords(0);
   }
   
-
+  useEffect(() => {
+    stropheProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+  }, [stropheProps.metadata?.expanded])
 
 
   return (
