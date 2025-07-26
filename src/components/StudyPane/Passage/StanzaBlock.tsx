@@ -12,7 +12,7 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
 
@@ -38,7 +38,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative flex-column pt-10 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
+      className={`relative flex-column pt-10 grow-0 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
       >
       <div
         className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
@@ -50,7 +50,7 @@ export const StanzaBlock = ({
         data-clicktype={'clickable'}
       >
         { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
-        { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+        { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight className={`${ctxLanguageMode.Parallel ? 'rotate-[90deg]' : ''}`} fontSize="1.1em" style={{pointerEvents:'none'}} /> }
       </button>
       </div>
       {
