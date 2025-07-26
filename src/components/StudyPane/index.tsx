@@ -151,11 +151,6 @@ const StudyPane = ({
   };
 
   useEffect(() => {
-    console.log(languageMode)
-    console.log(languageMode.English)
-  }, [languageMode])
-
-  useEffect(() => {
 
     // merge custom metadata with bible data
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);

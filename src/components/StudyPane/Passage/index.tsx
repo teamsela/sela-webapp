@@ -52,7 +52,6 @@ const Passage = ({
   }, [ctxSetIsHebrew, ctxIsHebrew, ctxLanguageMode])
 
   useEffect(() => {
-    // console.log(bibleData)
     if (ctxStructureUpdateType !== StructureUpdateType.none && 
       (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
 
