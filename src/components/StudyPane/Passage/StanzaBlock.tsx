@@ -38,6 +38,9 @@ export const StanzaBlock = ({
   
   useEffect(() => {
     stanzaProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+    if(stanzaProps.metadata?.expanded === undefined) {
+      setExpanded(true)
+    }
   }, [stanzaProps.metadata?.expanded])
 
   const renderArrow = () => {

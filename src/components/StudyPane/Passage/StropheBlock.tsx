@@ -112,7 +112,10 @@ export const StropheBlock = ({
   
   useEffect(() => {
     stropheProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
-  }, [stropheProps.metadata?.expanded])
+    if(stropheProps.metadata?.expanded === undefined) {
+      setExpanded(true)
+    }    
+  }, [stropheProps.metadata.expanded])
 
 
   return (
