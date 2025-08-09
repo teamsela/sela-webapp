@@ -26,9 +26,14 @@ export const StropheBlock = ({
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
 
+  //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
   useEffect(() => {
-
+    console.log('stropheProps.metadata?.color set color')
+    console.log(stropheProps.metadata?.color)
     if (stropheProps.metadata?.color) {
+      //when bug occurs this did not fire
+      //bug does not occur when mode switch happen while colour picker is on
+      console.log('if true stropheProps.metadata?.color set color')
       const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
       (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
 
@@ -36,6 +41,8 @@ export const StropheBlock = ({
       (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
     }
     else {
+      //when bug occurs this is fired
+      console.log('else stropheProps.metadata?.color set color')
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
     }
@@ -43,8 +50,10 @@ export const StropheBlock = ({
   }, [stropheProps.metadata?.color]);
 
   useEffect(() => {
+    console.log('ctxColorAction set color')
     if (ctxColorAction != ColorActionType.none ) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
+        console.log('ctxColorAction is colour fill set color')
         setColorFillLocal(ctxSelectedColor);
         (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = ctxSelectedColor);
       }
