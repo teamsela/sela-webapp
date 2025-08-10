@@ -200,7 +200,7 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew && 'ml-1'}`
+    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew && 'ml-2'}`
   }
 
   const hebBlockSizeStyle = `w-20 h-8`;
@@ -242,7 +242,7 @@ export const WordBlock = ({
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]`}
+            className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? 'mx-0' : 'mx-1'} select-none rounded border outline-offset-[-4px]`}
             style={{
               boxSizing: 'border-box',
               border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid transparent`,
@@ -267,19 +267,20 @@ export const WordBlock = ({
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={{
           background: `${!ctxBoxDisplayConfig.showBoxes ? 
             (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
             colorFillLocal}`,
           boxSizing: 'border-box',
           border: `${!ctxBoxDisplayConfig.showBoxes ? 
-            (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : 'none') : 
+            (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : '2px solid transparent') : 
             `${!isDefaultBorderColor(borderColorLocal) ? '3px' : '2px'} solid ${borderColorLocal}`}`,
           padding: `${!ctxBoxDisplayConfig.showBoxes ? 
-            (!isDefaultBorderColor(borderColorLocal) || colorFillLocal !== DEFAULT_COLOR_FILL) : 
+            '0px' : 
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
+          lineHeight: `${!ctxBoxDisplayConfig.showBoxes ? '0.8' : 'inherit'}`,
         }}>
         <span
           className="flex"
