@@ -49,6 +49,8 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
+  // color map used by identical words smart highlight
+  // might need to rename it if only used for identical words
   ctxRootsColorMap: {} as Map<number, ColorData>,
   ctxSetRootsColorMap: (arg: Map<number, ColorData>) => {},
   ctxHistory: [] as StudyMetadata[],
