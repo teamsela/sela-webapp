@@ -15,7 +15,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { StudyMetadata, StropheProps } from '@/lib/data';
+import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -506,6 +506,20 @@ const areStrophesContiguous = (strophes: StropheProps[]): boolean => {
   return true;
 };
 
+const areWordsContiguous = (words: WordProps[]): boolean => {
+  if (words.length <= 1) return true;
+
+  const sorted = [...words].sort((a, b) => a.wordId - b.wordId);
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (sorted[i + 1].wordId !== sorted[i].wordId + 1) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
   const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
@@ -533,7 +547,9 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
           .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words.length;
         wholeLine = ctxSelectedWords.length === lineWords;
       }
-      buttonEnabled = sameStrophe && !wholeLine;
+      const isFirstWord = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+        .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words[0].wordId === firstSelectedWord.wordId;
+      buttonEnabled = sameStrophe && !wholeLine && areWordsContiguous(ctxSelectedWords) && !isFirstWord;
     } else {
       buttonEnabled = false;
     }
@@ -544,7 +560,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
         ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
         .strophes[lastSelectedWord.stropheId]?.lines?.length - 1 !== lastSelectedWord.lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && !!firstSelectedWord;
+    buttonEnabled = hasWordSelected && !!firstSelectedWord && areWordsContiguous(ctxSelectedWords);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
     buttonEnabled = ((hasWordSelected && firstSelectedWord && !firstSelectedWord.firstStropheInStanza) ||
       (hasStropheSelected && firstSelectedStrophe && !firstSelectedStrophe.firstStropheInStanza));
