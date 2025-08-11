@@ -200,10 +200,11 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew && 'ml-2'}`
+    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'ml-2' : ''}`,
+    style: ctxIsHebrew ? {} : { marginRight: wordProps.verse.toString().length === 1 ? '0.25rem' : wordProps.verse.toString().length === 2 ? '0.25rem' : '0.125rem' }
   }
 
-  const hebBlockSizeStyle = `w-20 h-8`;
+  const hebBlockSizeStyle = `w-[5.25rem] h-8`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
   let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
