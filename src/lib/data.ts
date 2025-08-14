@@ -1,4 +1,4 @@
-import { BoxDisplayStyle } from "@/lib/types"
+import { BoxDisplayConfig } from "@/lib/types"
 
 export type ColorData = {
     fill?: string,
@@ -41,7 +41,7 @@ export type StanzaMap = {
 export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
-    boxStyle?: BoxDisplayStyle;
+    boxStyle?: BoxDisplayConfig;
 }
 
 export interface StudyProps {

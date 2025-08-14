@@ -2,7 +2,7 @@ import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
-import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
+import { BoxDisplayConfig, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 
@@ -29,7 +29,7 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
+  const { ctxIsHebrew, ctxBoxDisplayConfig, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
@@ -200,15 +200,17 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'mr-1' : 'ml-1'}`
+    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'ml-2' : ''}`,
+    style: ctxIsHebrew ? {} : { marginRight: wordProps.verse.toString().length === 1 ? '0.25rem' : wordProps.verse.toString().length === 2 ? '0.25rem' : '0.125rem' }
   }
 
-  const hebBlockSizeStyle = `w-20 h-8`;
+  const hebBlockSizeStyle = `w-[5.25rem] h-8`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
   let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
 
-  if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
+  // Apply uniform width logic when uniformWidth is enabled (regardless of whether boxes are shown)
+  if (ctxBoxDisplayConfig.uniformWidth && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
     if (canvas) {
       // Get the 2D rendering context
@@ -241,7 +243,7 @@ export const WordBlock = ({
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]`}
+            className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? 'mx-0' : 'mx-1'} select-none rounded border outline-offset-[-4px]`}
             style={{
               boxSizing: 'border-box',
               border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid transparent`,
@@ -250,7 +252,7 @@ export const WordBlock = ({
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
               <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
-              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
+              ${ctxBoxDisplayConfig.uniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
@@ -261,17 +263,25 @@ export const WordBlock = ({
 
   return (
     <div className="flex">
-      {ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && indentsLocal > 0 && renderIndents(indentsLocal)}
+      {/* Show indents when uniform width is enabled (regardless of box display) */}
+      {ctxBoxDisplayConfig.uniformWidth && indentsLocal > 0 && renderIndents(indentsLocal)}
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={{
-          background: colorFillLocal,
+          background: `${!ctxBoxDisplayConfig.showBoxes ? 
+            (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
+            colorFillLocal}`,
           boxSizing: 'border-box',
-          border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid ${borderColorLocal}`,
-          padding: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '1px'}`,
-          color: textColorLocal,
+          border: `${!ctxBoxDisplayConfig.showBoxes ? 
+            (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : '2px solid transparent') : 
+            `${!isDefaultBorderColor(borderColorLocal) ? '3px' : '2px'} solid ${borderColorLocal}`}`,
+          padding: `${!ctxBoxDisplayConfig.showBoxes ? 
+            '0px' : 
+            !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
+          color: `${textColorLocal}`,
+          lineHeight: `${!ctxBoxDisplayConfig.showBoxes ? '0.8' : 'inherit'}`,
         }}>
         <span
           className="flex"
@@ -279,10 +289,11 @@ export const WordBlock = ({
         >
           {wordProps.showVerseNum ?
             <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
-            (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
+            (ctxBoxDisplayConfig.uniformWidth) ? <sup {...verseNumStyles}></sup> : ''}
           <span
-            className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+            className={`whitespace-nowrap break-keep flex select-none ${!ctxBoxDisplayConfig.showBoxes ? 
+              (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
+              ${ctxBoxDisplayConfig.uniformWidth && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
             {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss}
