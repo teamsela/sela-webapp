@@ -15,7 +15,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { StudyMetadata } from '@/lib/data';
+import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -488,35 +488,95 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
   );
 };
 
+const areStrophesContiguous = (strophes: StropheProps[]): boolean => {
+  if (strophes.length <= 1) return true;
+
+  const sorted = [...strophes].sort((a, b) =>
+    a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const currentLastWordId = sorted[i].lines.at(-1)?.words.at(-1)?.wordId;
+    const nextFirstWordId = sorted[i + 1].lines[0].words[0].wordId;
+
+    if (currentLastWordId === undefined || nextFirstWordId !== currentLastWordId + 1) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const areWordsContiguous = (words: WordProps[]): boolean => {
+  if (words.length <= 1) return true;
+
+  const sorted = [...words].sort((a, b) => a.wordId - b.wordId);
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (sorted[i + 1].wordId !== sorted[i].wordId + 1) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
   const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
-  let hasWordSelected = (ctxSelectedWords.length === 1);
+  let hasWordSelected = (ctxSelectedWords.length > 0);
+  let singleWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
-  let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+  let hasStrophesSelected = (ctxNumSelectedStrophes >= 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
+
+  const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+  const firstSelectedWord = sortedWords[0];
+  const lastSelectedWord = sortedWords[sortedWords.length - 1];
+  const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+  const firstSelectedStrophe = sortedStrophes[0];
+  const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
 
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
+    if (hasWordSelected && firstSelectedWord) {
+      const sameStrophe = ctxSelectedWords.every(w => w.stropheId === firstSelectedWord.stropheId);
+      let wholeLine = false;
+      const sameLine = ctxSelectedWords.every(w => w.lineId === firstSelectedWord.lineId && w.stropheId === firstSelectedWord.stropheId);
+      if (sameLine) {
+        const lineWords = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+          .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words.length;
+        wholeLine = ctxSelectedWords.length === lineWords;
+      }
+      const isFirstWord = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+        .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words[0].wordId === firstSelectedWord.wordId;
+      buttonEnabled = sameStrophe && !wholeLine && areWordsContiguous(ctxSelectedWords) && !isFirstWord;
+    } else {
+      buttonEnabled = false;
+    }
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
+    buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-      buttonEnabled = hasWordSelected && 
-        ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
-        .strophes[ctxSelectedWords[0].stropheId]?.lines?.length - 1 !== ctxSelectedWords[0].lineId;
+      buttonEnabled = hasWordSelected && lastSelectedWord &&
+        ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
+        .strophes[lastSelectedWord.stropheId]?.lines?.length - 1 !== lastSelectedWord.lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && (!ctxSelectedWords[0].firstWordInStrophe);
+    buttonEnabled = hasWordSelected && !!firstSelectedWord && areWordsContiguous(ctxSelectedWords);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = ((hasWordSelected && firstSelectedWord && !firstSelectedWord.firstStropheInStanza) ||
+      (hasStropheSelected && firstSelectedStrophe && !firstSelectedStrophe.firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
+    buttonEnabled = ((hasWordSelected && lastSelectedWord && !lastSelectedWord.lastStropheInStanza) ||
+      (hasStropheSelected && lastSelectedStrophe && !lastSelectedStrophe.lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && (!ctxSelectedStrophes[0].firstStropheInStanza);
+    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe && areStrophesContiguous(ctxSelectedStrophes);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0)
+    buttonEnabled = hasStrophesSelected &&
+      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0) &&
+      areStrophesContiguous(ctxSelectedStrophes);
   } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected && (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1)
+    buttonEnabled = hasStrophesSelected &&
+      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1) &&
+      areStrophesContiguous(ctxSelectedStrophes);
   }
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };

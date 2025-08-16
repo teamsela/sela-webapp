@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import SearchBar from "@/components/Tables/Search";
+import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import Pagination from "@/components/Paginations/Pagination";
 import Link from 'next/link';
 import { FetchStudiesResult } from '@/lib/data';
@@ -11,20 +12,31 @@ import { fetchModelStudies } from '@/lib/actions';
 export default async function PremarkedTable({
   query,
   currentPage,
+  sortBy,
+  sortAsc
 }: {
   query: string;
   currentPage: number;
+  sortBy: string;
+  sortAsc: boolean;
 }) {
 
   const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({
     records: [],
     totalPages: 1,
   });
+  
+  const sortDict: Record<string, any> = {
+    name: "name",
+    passage: "passage",
+  };
+
+  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "name" : "name";
 
   useEffect(() => {
     const fetchStudies = async () => {
       try {
-        const result = await fetchModelStudies(query, currentPage);
+        const result = await fetchModelStudies(query, currentPage, sortKey, sortAsc);
         setStudiesResult(result);
       } catch (error) {
         console.error("Failed to fetch studies:", error);
@@ -32,7 +44,7 @@ export default async function PremarkedTable({
     };
 
     fetchStudies();
-  }, [query, currentPage]);
+  }, [query, currentPage, sortBy, sortAsc]);
 
   return (
     <>
@@ -43,10 +55,10 @@ export default async function PremarkedTable({
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Name
+                < SortableColumnHeader displayHeader={"Name"} sortKey={"name"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                Passage
+                < SortableColumnHeader displayHeader={"Passage"} sortKey={"passage"}/>
               </th>
               <th className="min-w-[10px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
               </th>

@@ -117,6 +117,8 @@ export interface StudyData {
     id: string;
     name: string;
     owner: string | undefined;
+    ownerDisplayName?: string;
+    ownerAvatarUrl?: string;
     passage: string;
     public: boolean;
     starred?: boolean;
