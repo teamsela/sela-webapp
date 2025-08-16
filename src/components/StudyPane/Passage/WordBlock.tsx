@@ -5,6 +5,7 @@ import { eventBus } from '@/lib/eventBus';
 import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
+import { LanguageContext } from './PassageBlock';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
@@ -29,12 +30,14 @@ export const WordBlock = ({
   wordProps: WordProps;
 }) => {
 
-  const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
+  const { ctxBoxDisplayStyle, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxRootsColorMap, ctxSetRootsColorMap
   } = useContext(FormatContext)
+
+  const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
@@ -206,7 +209,7 @@ export const WordBlock = ({
   const hebBlockSizeStyle = `w-20 h-8`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
+  let fontSize = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize;
 
   if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
