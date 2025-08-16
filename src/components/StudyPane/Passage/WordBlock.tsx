@@ -268,7 +268,7 @@ export const WordBlock = ({
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${!ctxBoxDisplayConfig.showBoxes ? (selected ? 'mx-1' : (ctxIsHebrew ? 'mx-2' : 'mx-0')) : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={{
           background: `${!ctxBoxDisplayConfig.showBoxes ? 
             (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
