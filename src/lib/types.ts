@@ -40,6 +40,7 @@ export enum StructureUpdateType {
 
 export enum InfoPaneActionType {
     none,
+    notes,
     structure,
     motif,
     syntax,
