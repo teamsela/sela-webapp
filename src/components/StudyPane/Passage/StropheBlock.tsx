@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
+import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import Notes from '../InfoPane/Notes';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -20,9 +22,16 @@ export const StropheBlock = ({
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
+  const [showNote, setShowNote] = useState(false);
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+
+  const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleNoteAreaClick = () => {
+    noteAreaRef.current?.focus();
+  }
 
   useEffect(() => {
 
@@ -147,7 +156,20 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      {
+      {   showNote && expanded?
+          <div  className="flex flex-col gap-5.5 z-10"
+          onClick={handleNoteAreaClick}
+          >
+              <div>
+                <textarea
+                  ref={noteAreaRef}
+                  rows={stropheProps.lines.length * 1.458}
+                  placeholder="Your notes here..."
+                  className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                ></textarea>
+              </div>
+            </div>
+          :
           stropheProps.lines.map((line, lineId) => {
             return (
               <div
@@ -172,6 +194,20 @@ export const StropheBlock = ({
               </div>
             )
           })
+      }
+      {
+      expanded?
+      <div className={`z-1 absolute p-[0.5] m-[0.5] bg-transparent bottom-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`}>
+      <button
+        key={"strophe" + stropheProps.stropheId + "notepad"}
+        className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+        onClick={() => setShowNote(!showNote)}
+      >
+        <PiNotePencil />
+      </button>
+      </div>
+      :
+      <></>
       }
     </div>
   )
