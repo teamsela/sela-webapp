@@ -17,7 +17,8 @@ export const StropheBlock = ({
   }) => {
   
   const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode
+    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode, ctxNoteEdit, ctxSetNoteEdit,
+    ctxNoteBox, ctxSetNoteBox
   } = useContext(FormatContext);
 
   const [selected, setSelected] = useState(false);
@@ -29,7 +30,9 @@ export const StropheBlock = ({
 
   const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const handleNoteAreaClick = () => {
+  const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    ctxSetNoteEdit(true);
+    ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
     noteAreaRef.current?.focus();
   }
 
@@ -158,6 +161,7 @@ export const StropheBlock = ({
       </div>
       {   showNote && expanded?
           <div  className="flex flex-col gap-5.5 z-10"
+          style={{pointerEvents:'auto'}}
           onClick={handleNoteAreaClick}
           >
               <div>

@@ -56,7 +56,11 @@ export const FormatContext = createContext({
   ctxHistory: [] as StudyMetadata[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
-  ctxAddToHistory: (arg: StudyMetadata) => {}
+  ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxNoteEdit: false,
+  ctxSetNoteEdit: (arg: boolean) => {},
+  ctxNoteBox: undefined as undefined|DOMRect,
+  ctxSetNoteBox: (arg: undefined|DOMRect) => {}
 });
 
 const StudyPane = ({
@@ -95,6 +99,9 @@ const StudyPane = ({
 
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
+
+  const [noteEdit, setNoteEdit] = useState(false);
+  const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -140,7 +147,11 @@ const StudyPane = ({
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
-    ctxAddToHistory: addToHistory
+    ctxAddToHistory: addToHistory,
+    ctxNoteEdit: noteEdit,
+    ctxSetNoteEdit: setNoteEdit,
+    ctxNoteBox: noteBox,
+    ctxSetNoteBox: setNoteBox
   };
 
   useEffect(() => {

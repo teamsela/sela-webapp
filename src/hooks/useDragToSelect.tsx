@@ -7,7 +7,7 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (passageProps: PassageProps) => {
 
     const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteEdit, ctxSetNoteEdit, ctxNoteBox, ctxSetNoteBox
     } = useContext(FormatContext)
 
     //drag-to-select module
@@ -20,6 +20,14 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        const eventRectX = event.pageX;
+        const eventRectY = event.pageY;
+        let insideNoteBox = false;
+        if (ctxNoteBox) {
+            insideNoteBox = ctxNoteBox && (eventRectX >= ctxNoteBox.left && eventRectX <= ctxNoteBox.right ) && (eventRectY >= ctxNoteBox.top && eventRectY <= ctxNoteBox.bottom) 
+            !insideNoteBox && ctxSetNoteBox(undefined) && ctxSetNoteEdit(false);
+        }
+        if (insideNoteBox) return;
         event.preventDefault();
         setIsDragging(true);
         document.body.style.userSelect = 'none';
