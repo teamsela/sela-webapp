@@ -32,6 +32,51 @@ export const StropheBlock = ({
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
     noteAreaRef.current?.focus();
   }
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [rows, setRows] = useState(1);
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(1);
+  
+  useEffect(() => {
+    const container = containerRef.current;
+    const textarea = textareaRef.current;
+
+    if (!container|| !textarea) return;
+
+    const containerPadding = 0;
+    textarea.style.lineHeight = '1.5';
+
+    const computeRows = () => {
+      const computedStyle = window.getComputedStyle(textarea);
+      const lineHeight = parseFloat(computedStyle.lineHeight);
+      // 1 tailwind unit = 4px, and there are 8 instances of padding needed to be subtracted
+      const containerHeight = stropheProps.lines.length*((ctxIsHebrew?32+3:40+3));
+      if (lineHeight > 0) {
+        const calculatedRows = Math.floor(containerHeight/lineHeight);
+        setRows(calculatedRows);
+      }
+    };
+    const updateTextBoxSize = () => {
+      const refWidth = container.offsetWidth;
+      const refHeight = container.offsetHeight;
+      setWidth(refWidth);
+      setHeight(refHeight);
+      computeRows();
+    }
+
+    updateTextBoxSize();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateTextBoxSize();
+    })
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [])
 
   useEffect(() => {
 
@@ -156,46 +201,49 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      {   showNote && expanded?
-          <div  className="flex flex-col gap-5.5 z-10"
-          style={{pointerEvents:'auto'}}
-          onClick={handleNoteAreaClick}
+      <div  className={`flex flex-col gap-5.5 z-10 ${showNote && expanded && stanzaExpanded? '': 'hidden'}`}
+      style={{pointerEvents:'auto'}}
+      onClick={handleNoteAreaClick}
+      >
+          <div>
+            <textarea
+              ref={textareaRef}
+              // rows={stropheProps.lines.length * 1.458}
+              rows={rows}
+              style={{width}}
+              placeholder="Your notes here..."
+              className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            ></textarea>
+          </div>
+      </div>
+      <div ref={containerRef}>
+      {
+      stropheProps.lines.map((line, lineId) => {
+        return (
+          <div 
+            key={"line_" + lineId}
+            className={expanded && stanzaExpanded && !showNote? `flex` : `hidden`}
           >
-              <div>
-                <textarea
-                  ref={noteAreaRef}
-                  rows={stropheProps.lines.length * 1.458}
-                  placeholder="Your notes here..."
-                  className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                ></textarea>
-              </div>
-            </div>
-          :
-          stropheProps.lines.map((line, lineId) => {
-            return (
-              <div
-                key={"line_" + lineId}
-                className={expanded && stanzaExpanded ? `flex` : `hidden`}
-              >
-              {
-                line.words.map((word) => {
-                  return (
-                    <div
-                      className={`mt-1 mb-1`}
-                      key={word.wordId}
-                    >
-                      <WordBlock
-                        key={"word_" + word.wordId}
-                        wordProps={word}
-                      />
-                    </div>           
-                  )
-                })
-              }
-              </div>
-            )
-          })
+          {
+            line.words.map((word) => {
+              return (
+                <div
+                  className={`mt-1 mb-1`}
+                  key={word.wordId}
+                >
+                  <WordBlock
+                    key={"word_" + word.wordId}
+                    wordProps={word}
+                  />
+                </div>           
+              )
+            })
+          }
+          </div>
+        )
+      })
       }
+      </div>
       {
       expanded?
       <div className={`z-1 absolute p-[0.5] m-[0.5] bg-transparent bottom-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`}>
