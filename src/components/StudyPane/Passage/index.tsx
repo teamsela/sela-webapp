@@ -50,6 +50,7 @@ const Passage = ({
     }
   }, [ctxSetIsHebrew, ctxIsHebrew, ctxLanguageMode])
 
+  useEffect(() => {
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
@@ -398,11 +399,10 @@ const Passage = ({
 
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
+      
+      // Reset the structure update type
+      ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-   
-    // Reset the structure update type
-    ctxSetStructureUpdateType(StructureUpdateType.none);
-
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
