@@ -43,7 +43,7 @@ const LanguageSwitcher = () => {
               En
             </span>
             <span onClick={() => { handleSwitcherClick('both') }} className={`${buttonBaseStyle} ${ctxLanguageMode.Parallel && buttonSelectedStyle}`}>
-              A/עִ
+              A/א
             </span>
             <span onClick={() => { handleSwitcherClick('heb') }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode.Hebrew && buttonSelectedStyle}`}>
               עִב
