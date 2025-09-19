@@ -18,6 +18,7 @@ const tables = [
       { name: "model", type: "bool", defaultValue: "false" },
       { name: "metadata", type: "json", defaultValue: "{}" },
       { name: "book", type: "text" },
+      { name: "notes", type: "text" },
     ],
     revLinks: [
       { column: "studyId", table: "styling" },

@@ -29,11 +29,12 @@ export const StropheBlock = ({
   const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // noteAreaRef.current?.focus();
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
-    noteAreaRef.current?.focus();
   }
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const titleareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [rows, setRows] = useState(1);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(1);
@@ -177,7 +178,7 @@ export const StropheBlock = ({
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
-        className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+        className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
@@ -186,10 +187,22 @@ export const StropheBlock = ({
         />
       </button>
       {
+      expanded?
+      <button
+        key={"strophe" + stropheProps.stropheId + "notepad"}
+        className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
+        onClick={() => setShowNote(!showNote)}
+      >
+        <PiNotePencil />
+      </button>
+      :
+      <></>
+      }
+      {
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
-          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+          className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -207,6 +220,13 @@ export const StropheBlock = ({
       >
           <div>
             <textarea
+              ref={titleareaRef}
+              rows={1}
+              style={{width}}
+              placeholder="Your title here..."
+              className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            ></textarea>
+            <textarea
               ref={textareaRef}
               // rows={stropheProps.lines.length * 1.458}
               rows={rows}
@@ -214,7 +234,7 @@ export const StropheBlock = ({
               placeholder="Your notes here..."
               className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
             ></textarea>
-          </div>
+          </div>  
       </div>
       <div ref={containerRef}>
       {
@@ -235,7 +255,7 @@ export const StropheBlock = ({
                     key={"word_" + word.wordId}
                     wordProps={word}
                   />
-                </div>           
+                </div>
               )
             })
           }
@@ -244,20 +264,6 @@ export const StropheBlock = ({
       })
       }
       </div>
-      {
-      expanded?
-      <div className={`z-1 absolute p-[0.5] m-[0.5] bg-transparent bottom-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`}>
-      <button
-        key={"strophe" + stropheProps.stropheId + "notepad"}
-        className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
-        onClick={() => setShowNote(!showNote)}
-      >
-        <PiNotePencil />
-      </button>
-      </div>
-      :
-      <></>
-      }
     </div>
   )
 }

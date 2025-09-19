@@ -45,7 +45,8 @@ export async function fetchStudyById(studyId: string) {
           passage: study?.passage || "",
           public: study?.public || false,
           model: study?.model || false,
-          metadata: study?.metadata || {}
+          metadata: study?.metadata || {},
+          notes: study?.notes || ""
       };
 
       return result;
@@ -62,6 +63,16 @@ export async function updateStudyName(id: string, studyName: string) {
     await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
   } catch (error) {
     return { message: 'Database Error: Failed to update study name.' };
+  }
+}
+
+export async function updateStudyNotes(id: string, content: string) {
+  
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.updateOrThrow({ id: id, notes: content})
+  } catch (error) {
+    return { message: "Database Error: Failed to update study notes"}
   }
 }
 
@@ -549,7 +560,8 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
       public: studyRecord.public || false, starred: studyRecord.starred || false,
       lastUpdated: studyRecord.xata.updatedAt, 
       createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata })
+      metadata: studyRecord.metadata,
+      notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -580,7 +592,8 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
       public: studyRecord.public || false, starred: studyRecord.starred || false,
       lastUpdated: studyRecord.xata.updatedAt, 
       createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata })
+      metadata: studyRecord.metadata,
+      notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -618,7 +631,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
     searchResult.records.push({
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, book: studyRecord.book || "", passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata })
+      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata, notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -639,7 +652,8 @@ export async function fetchPassageData(studyId: string) {
       passage: study?.passage || "",
       public: study?.public || false,
       model: study?.model || false,
-      metadata: study?.metadata || {}
+      metadata: study?.metadata || {},
+      notes: study?.notes || ""
     };
 
     let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
@@ -925,3 +939,7 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
     throw new Error('Failed to fetch passage text from ESV API endpoint (error ' + error);
   }
 };
+
+export async function fetchStudyOwner(studyId: string) {
+  console.log(studyId);
+}

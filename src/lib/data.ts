@@ -127,6 +127,7 @@ export interface StudyData {
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata;
+    notes: string;
 }
 
 export type PassageStaticData = {

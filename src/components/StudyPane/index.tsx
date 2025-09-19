@@ -22,6 +22,8 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
+  ctxStudyNotes: "",
+  ctxSetStudyNotes: (args: string) => {},
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
@@ -72,6 +74,7 @@ const StudyPane = ({
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
+  const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
@@ -112,6 +115,8 @@ const StudyPane = ({
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
     ctxSetStudyMetadata: setStudyMetadata,
+    ctxStudyNotes: studyNotes,
+    ctxSetStudyNotes: setStudyNotes,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
