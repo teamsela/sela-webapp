@@ -22,6 +22,8 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
+  ctxStudyNotes: "",
+  ctxSetStudyNotes: (args: string) => {},
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
@@ -56,7 +58,9 @@ export const FormatContext = createContext({
   ctxHistory: [] as StudyMetadata[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
-  ctxAddToHistory: (arg: StudyMetadata) => {}
+  ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxNoteBox: undefined as undefined|DOMRect,
+  ctxSetNoteBox: (arg: undefined|DOMRect) => {}
 });
 
 const StudyPane = ({
@@ -70,6 +74,7 @@ const StudyPane = ({
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
+  const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
@@ -96,6 +101,8 @@ const StudyPane = ({
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
 
+  const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
+
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
     const newHistory = history.slice(0, pointer + 1);
@@ -108,6 +115,8 @@ const StudyPane = ({
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
     ctxSetStudyMetadata: setStudyMetadata,
+    ctxStudyNotes: studyNotes,
+    ctxSetStudyNotes: setStudyNotes,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
@@ -140,7 +149,9 @@ const StudyPane = ({
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
-    ctxAddToHistory: addToHistory
+    ctxAddToHistory: addToHistory,
+    ctxNoteBox: noteBox,
+    ctxSetNoteBox: setNoteBox
   };
 
   useEffect(() => {
