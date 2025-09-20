@@ -1,12 +1,8 @@
 import { useContext } from 'react';
 import { FormatContext } from '../index';
 
-const LanguageSwitcher = ({ 
-  setLangToHebrew
-} : {
-  setLangToHebrew: (arg: boolean) => void;
-}) => {
-  const { ctxIsHebrew } = useContext(FormatContext);
+const LanguageSwitcher = () => {
+  const { ctxIsHebrew, ctxLanguageMode, ctxSetLanguageMode } = useContext(FormatContext);
 
   const updateScaleOrigin = () => {
     const passageDiv = document.getElementById('selaPassage');
@@ -18,6 +14,22 @@ const LanguageSwitcher = ({
     passageDiv.style.transformOrigin = ctxIsHebrew ? "0 0" : "100% 0";
   };
 
+  const handleSwitcherClick = (mode: string) => {
+    switch (mode) {
+      case "en":
+        ctxSetLanguageMode({ English: true, Parallel: false, Hebrew: false })
+        break;
+      case "both":
+        ctxSetLanguageMode({ English: false, Parallel: true, Hebrew: false })
+        break;
+      case "heb":
+        ctxSetLanguageMode({ English: false, Parallel: false, Hebrew: true })
+    }
+  }
+
+  const buttonBaseStyle = 'px-[24px] py-[6px]';
+  const buttonSelectedStyle = 'bg-[#FFFFFF] font-bold'
+
   return (
     <div>
       <label
@@ -25,30 +37,19 @@ const LanguageSwitcher = ({
         className="flex cursor-pointer select-none items-center"
       >
         <div className="relative">
-          <input
-            type="checkbox"
-            id="toggleLang"
-            className="sr-only"
-            onChange={() => {
-              setLangToHebrew(!ctxIsHebrew);
-              updateScaleOrigin();
-            }}
-          />
-          <div className="block h-10 w-18 lg:w-22 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
-          <div
-            className={`dot absolute left-1 top-1 flex h-8 w-8 lg:w-10 items-center justify-center rounded-full bg-white transition font-semibold ${
-              ctxIsHebrew && "!right-1 !translate-x-full"
-            }`}
-          >
-          </div>
-          <div className='flex row absolute top-0 w-full h-full place-content-around items-center'>
-            <span className={` ${!ctxIsHebrew && "font-bold"}`}>
+
+          <div className='flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center'>
+            <span onClick={() => { handleSwitcherClick('en') }} className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode.English && buttonSelectedStyle}`}>
               En
             </span>
-            <span className={` ${ctxIsHebrew && "font-bold"}`}>
+            <span onClick={() => { handleSwitcherClick('both') }} className={`${buttonBaseStyle} ${ctxLanguageMode.Parallel && buttonSelectedStyle}`}>
+              A/א
+            </span>
+            <span onClick={() => { handleSwitcherClick('heb') }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode.Hebrew && buttonSelectedStyle}`}>
               עִב
             </span>
           </div>
+
         </div>
       </label>
     </div>

@@ -194,3 +194,10 @@ export type FetchStudiesResult = {
     records: StudyData[];
     totalPages: number;
 }
+
+//parallel mode
+export type LanguageModes = {
+    English: boolean;
+    Parallel: boolean;
+    Hebrew: boolean;
+}

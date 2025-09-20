@@ -93,7 +93,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
 
     }, [isDragging, selectionStart, selectionEnd, passageProps, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
-
+    // const { ctxIsHebrew } = useContext(LanguageContext)
     const handleMouseUp = useCallback((event: MouseEvent) => {
         const target = event.target as HTMLTextAreaElement;
         document.body.style.userSelect = 'text';
@@ -132,7 +132,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         const top = Math.min(selectionStart.y, selectionEnd.y) - window.scrollY;
         const width = Math.abs(selectionStart.x - selectionEnd.x);
         const height = Math.abs(selectionStart.y - selectionEnd.y);
-        //console.log(`height is ${height}, width is ${width}`);
         return {
             left,
             top,
@@ -176,7 +175,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
                 //select all word blocks
                 let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
                 ctxSetSelectedWords(allWordsArr);
-                console.log(allWordsArr.length)
                 ctxSetNumSelectedWords(allWordsArr.length);       
             }
         };

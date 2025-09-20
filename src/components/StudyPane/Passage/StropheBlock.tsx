@@ -7,6 +7,7 @@ import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { LanguageContext } from './PassageBlock';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -14,9 +15,10 @@ export const StropheBlock = ({
     stropheProps: StropheProps, stanzaExpanded: boolean
   }) => {
   
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode
   } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
@@ -24,9 +26,14 @@ export const StropheBlock = ({
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
 
+  //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
   useEffect(() => {
-
+    console.log('stropheProps.metadata?.color set color')
+    console.log(stropheProps.metadata?.color)
     if (stropheProps.metadata?.color) {
+      //when bug occurs this did not fire
+      //bug does not occur when mode switch happen while colour picker is on
+      console.log('if true stropheProps.metadata?.color set color')
       const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
       (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
 
@@ -34,6 +41,8 @@ export const StropheBlock = ({
       (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
     }
     else {
+      //when bug occurs this is fired
+      console.log('else stropheProps.metadata?.color set color')
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
     }
@@ -41,8 +50,10 @@ export const StropheBlock = ({
   }, [stropheProps.metadata?.color]);
 
   useEffect(() => {
+    console.log('ctxColorAction set color')
     if (ctxColorAction != ColorActionType.none ) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
+        console.log('ctxColorAction is colour fill set color')
         setColorFillLocal(ctxSelectedColor);
         (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = ctxSelectedColor);
       }
@@ -65,11 +76,17 @@ export const StropheBlock = ({
     //if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
   }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor]);
   
+  useEffect(() => {
+    setSelected(ctxSelectedStrophes.some(stropie => stropie.stropheId === stropheProps.stropheId));
+    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes, ctxSetSelectedStrophes]);
+
   const handleStropheBlockClick = () => {
     setSelected(prevState => !prevState);
-    (!selected) ? ctxSelectedStrophes.push(stropheProps) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(stropheProps), 1);
-    ctxSetSelectedStrophes(ctxSelectedStrophes);
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+    const newSelectedStrophes = [...ctxSelectedStrophes]; // Clone the array
+    (!selected) ? newSelectedStrophes.push(stropheProps) : newSelectedStrophes.splice(newSelectedStrophes.indexOf(stropheProps), 1);
+    ctxSetSelectedStrophes(newSelectedStrophes);
+    ctxSetNumSelectedStrophes(newSelectedStrophes.length);
     // remove any selected word blocks if strophe block is selected
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
@@ -103,9 +120,12 @@ export const StropheBlock = ({
   }
   
   useEffect(() => {
-    setSelected(ctxSelectedStrophes.includes(stropheProps));
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
-  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes]);
+    stropheProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+    if(stropheProps.metadata?.expanded === undefined) {
+      setExpanded(true)
+    }    
+  }, [stropheProps.metadata.expanded])
+
 
   return (
     <div 
