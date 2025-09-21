@@ -8,8 +8,8 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LanguageModes } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
+import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -25,8 +25,6 @@ export const FormatContext = createContext({
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
-  ctxIsHebrew: false,
-  ctxSetIsHebrew: (arg: boolean) => {},
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
@@ -58,8 +56,8 @@ export const FormatContext = createContext({
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
   ctxAddToHistory: (arg: StudyMetadata) => {},
-  ctxLanguageMode: {} as LanguageModes,
-  ctxSetLanguageMode: (arg: LanguageModes) => {}
+  ctxLanguageMode: {} as LanguageMode,
+  ctxSetLanguageMode: (arg: LanguageMode) => {}
 });
 
 const StudyPane = ({
@@ -99,8 +97,8 @@ const StudyPane = ({
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
 
-  //parallel
-  const [languageMode, setLanguageMode] = useState<LanguageModes>({ English: true, Parallel: false, Hebrew: false })
+  // set default language to English
+  const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -158,6 +156,7 @@ const StudyPane = ({
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
     setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
+    setLanguageMode(studyMetadata.lang || LanguageMode.English);
   
   }, [passageData.bibleData, studyMetadata]);
    
@@ -259,12 +258,12 @@ const StudyPane = ({
           setColorAction={setColorAction}
           setSelectedColor={setSelectedColor}
           setBoxStyle={setBoxDisplayStyle}
-          setCloneStudyOpen={setCloneStudyOpen}        
+          setCloneStudyOpen={setCloneStudyOpen}
         />
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32">
-          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {

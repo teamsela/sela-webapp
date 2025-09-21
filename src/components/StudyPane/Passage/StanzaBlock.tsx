@@ -1,9 +1,10 @@
-import { StanzaProps } from "@/lib/data"
-import { useContext, useEffect, useState } from "react"
+import { LanguageMode } from "@/lib/types";
+import { StanzaProps } from "@/lib/data";
+import { useContext, useEffect, useState } from "react";
 import { FormatContext } from ".."
-import { StropheBlock } from "./StropheBlock"
+import { StropheBlock } from "./StropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadataInDb } from "@/lib/actions"
+import { updateMetadataInDb } from "@/lib/actions";
 import { LanguageContext } from "./PassageBlock";
 
 export const StanzaBlock = ({
@@ -44,7 +45,7 @@ export const StanzaBlock = ({
   }, [stanzaProps.metadata?.expanded])
 
   const renderArrow = () => {
-    if(ctxLanguageMode.Parallel) {
+    if (ctxLanguageMode == LanguageMode.Parallel) {
       if (expanded) {
         return (
             <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />

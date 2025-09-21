@@ -93,7 +93,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
 
     }, [isDragging, selectionStart, selectionEnd, passageProps, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
-    // const { ctxIsHebrew } = useContext(LanguageContext)
     const handleMouseUp = useCallback((event: MouseEvent) => {
         const target = event.target as HTMLTextAreaElement;
         document.body.style.userSelect = 'text';

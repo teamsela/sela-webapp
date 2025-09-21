@@ -3,11 +3,12 @@ import { FormatContext } from '../index';
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { ToolTip } from "./Buttons";
 import { updateMetadataInDb } from "@/lib/actions";
+import { LanguageMode } from "@/lib/types";
 
 const ScaleDropDown = ({setScaleValue}: {
   setScaleValue:(value:number) => void;
 }) => {
-  const { ctxStudyId, ctxIsHebrew, ctxScaleValue, ctxStudyMetadata, ctxInViewMode } = useContext(FormatContext);
+  const { ctxStudyId, ctxLanguageMode, ctxScaleValue, ctxStudyMetadata, ctxInViewMode } = useContext(FormatContext);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [fitScreen, setFitScreen] = useState(false);
@@ -26,7 +27,7 @@ const ScaleDropDown = ({setScaleValue}: {
     }
     passageDiv.style.height = `${passageDiv.offsetHeight * ctxScaleValue}`;
     passageDiv.style.transform = `scale(${ctxScaleValue})`;
-    passageDiv.style.transformOrigin = ctxIsHebrew ? "100% 0": "0 0";
+    passageDiv.style.transformOrigin = ctxLanguageMode == LanguageMode.Hebrew ? "100% 0": "0 0";
   }
 
   // close dropdown on click outside
@@ -85,7 +86,7 @@ const ScaleDropDown = ({setScaleValue}: {
     }
     passageDiv.style.height = `${passageDiv.offsetHeight * scale}`;
     passageDiv.style.transform = `scale(${scale})`;
-    passageDiv.style.transformOrigin = ctxIsHebrew ? "100% 0": "0 0";
+    passageDiv.style.transformOrigin = ctxLanguageMode == LanguageMode.Hebrew ? "100% 0": "0 0";
   };
 
   // scale passage by user input value

@@ -1,29 +1,17 @@
 import { useContext } from 'react';
 import { FormatContext } from '../index';
+import { LanguageMode } from "@/lib/types";
+import { updateMetadataInDb } from '@/lib/actions';
 
 const LanguageSwitcher = () => {
-  const { ctxIsHebrew, ctxLanguageMode, ctxSetLanguageMode } = useContext(FormatContext);
+  const { ctxStudyId, ctxLanguageMode, ctxSetLanguageMode, ctxStudyMetadata } = useContext(FormatContext);
 
-  const updateScaleOrigin = () => {
-    const passageDiv = document.getElementById('selaPassage');
-    if (!passageDiv) {
-      console.error("Can not find the passage division.");
-      return;
-    }
-    // ctxIsHebrew is not updated yet, so reversed origin 
-    passageDiv.style.transformOrigin = ctxIsHebrew ? "0 0" : "100% 0";
-  };
-
-  const handleSwitcherClick = (mode: string) => {
-    switch (mode) {
-      case "en":
-        ctxSetLanguageMode({ English: true, Parallel: false, Hebrew: false })
-        break;
-      case "both":
-        ctxSetLanguageMode({ English: false, Parallel: true, Hebrew: false })
-        break;
-      case "heb":
-        ctxSetLanguageMode({ English: false, Parallel: false, Hebrew: true })
+  const handleSwitcherClick = (mode: LanguageMode) => {
+    if (mode != ctxLanguageMode)
+    {
+      ctxStudyMetadata.lang = mode;
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+      ctxSetLanguageMode(mode);
     }
   }
 
@@ -39,13 +27,13 @@ const LanguageSwitcher = () => {
         <div className="relative">
 
           <div className='flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center'>
-            <span onClick={() => { handleSwitcherClick('en') }} className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode.English && buttonSelectedStyle}`}>
+            <span onClick={() => { handleSwitcherClick(LanguageMode.English) }} className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.English && buttonSelectedStyle}`}>
               En
             </span>
-            <span onClick={() => { handleSwitcherClick('both') }} className={`${buttonBaseStyle} ${ctxLanguageMode.Parallel && buttonSelectedStyle}`}>
+            <span onClick={() => { handleSwitcherClick(LanguageMode.Parallel) }} className={`${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Parallel && buttonSelectedStyle}`}>
               A/א
             </span>
-            <span onClick={() => { handleSwitcherClick('heb') }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode.Hebrew && buttonSelectedStyle}`}>
+            <span onClick={() => { handleSwitcherClick(LanguageMode.Hebrew) }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Hebrew && buttonSelectedStyle}`}>
               עִב
             </span>
           </div>

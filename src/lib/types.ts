@@ -13,6 +13,12 @@ export enum BoxDisplayStyle {
     uniformBoxes
 }
 
+export enum LanguageMode {
+    English,
+    Parallel,
+    Hebrew
+}
+
 export interface ColorPickerProps {
     colorAction: ColorActionType,
     setSelectedColor: (arg: string) => void;

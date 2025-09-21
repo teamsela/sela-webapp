@@ -12,7 +12,7 @@ import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { BoxDisplayStyle, ColorActionType, ColorPickerProps, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
 import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
@@ -424,7 +424,7 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+  const { ctxStudyId, ctxLanguageMode, ctxStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
     ctxSelectedWords, ctxNumSelectedWords, ctxAddToHistory } = useContext(FormatContext);
   const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
@@ -437,7 +437,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
     setButtonEnabled((ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && (ctxNumSelectedWords === 1) && validIndent);
-  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxStudyMetadata, ctxIndentNum, ctxIsHebrew, ctxSetIndentNum, leftIndent]);
+  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxStudyMetadata, ctxIndentNum, ctxSetIndentNum, leftIndent]);
 
   const handleClick = () => {
     if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
@@ -478,7 +478,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         {
-          (!ctxIsHebrew && leftIndent) || (ctxIsHebrew && !leftIndent) ?
+          ((ctxLanguageMode != LanguageMode.Hebrew) && leftIndent) || ((ctxLanguageMode == LanguageMode.Hebrew) && !leftIndent) ?
             <CgFormatIndentIncrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" /> :
             <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
         }
@@ -522,7 +522,7 @@ const areWordsContiguous = (words: WordProps[]): boolean => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
@@ -536,6 +536,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
   const firstSelectedStrophe = sortedStrophes[0];
   const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
+  const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
   if (updateType === StructureUpdateType.newLine) {
     if (hasWordSelected && firstSelectedWord) {
@@ -608,10 +609,10 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
           (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          ((updateType == StructureUpdateType.mergeWithPrevStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && ctxIsHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          ((updateType == StructureUpdateType.mergeWithPrevStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && isHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          ((updateType == StructureUpdateType.mergeWithNextStanza && !ctxIsHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && ctxIsHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          ((updateType == StructureUpdateType.mergeWithNextStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && isHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         <ToolTip text={toolTip} />
       </button>

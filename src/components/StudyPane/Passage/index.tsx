@@ -1,54 +1,30 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
-import { StanzaBlock } from './StanzaBlock';
 import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
-import { StructureUpdateType } from '@/lib/types';
+import { StructureUpdateType, LanguageMode } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
-import { createContext } from 'react';
-
 
 
 const Passage = ({
   bibleData,
-  // isHeb,
 }: {
   bibleData: WordProps[];
-  // isHeb: boolean;
 }) => {
 
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode, ctxIsHebrew, ctxSetIsHebrew
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
-  const [displayMode, setDisplayMode] = useState('singleLang');
-
-  useEffect(() => {
-    // if (ctxLanguageMode.English || ctxLanguageMode.Parallel) {
-    //   ctxSetIsHebrew(false)
-    // }
-    if (ctxLanguageMode.English) {
-      ctxSetIsHebrew(false)
-      setDisplayMode('singleLang')
-    }  
-    if (ctxLanguageMode.Parallel) {
-      ctxSetIsHebrew(false)
-      setDisplayMode('Parallel')
-    }         
-    if (ctxLanguageMode.Hebrew) {
-      ctxSetIsHebrew(true)
-      setDisplayMode('singleLang')
-    }
-  }, [ctxSetIsHebrew, ctxIsHebrew, ctxLanguageMode])
 
   useEffect(() => {
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
@@ -439,21 +415,21 @@ const Passage = ({
     >
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
-      <div className={`${displayMode} flex flex-row w-[100%]`} id='selaPassage'>
-        { ctxLanguageMode.English && 
+      <div className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row w-[100%]`} id='selaPassage'>
+        { ctxLanguageMode == LanguageMode.English && 
           <div className='flex flex-row mx-auto w-[100%]'>
-            <PassageBlock isHeb={false}/> 
+            <PassageBlock isHebrew={false}/> 
           </div>
         }
-        { ctxLanguageMode.Parallel && 
+        { ctxLanguageMode == LanguageMode.Parallel && 
           <div className='flex flex-row mx-auto w-[100%]'>
-            <PassageBlock isHeb={true}/>
-            <PassageBlock isHeb={false}/>
-          </div> 
+            <PassageBlock isHebrew={true}/>
+            <PassageBlock isHebrew={false}/>
+          </div>
         }
-        { ctxLanguageMode.Hebrew && 
+        { ctxLanguageMode == LanguageMode.Hebrew && 
           <div className='flex flex-row mx-auto w-[100%]'>
-          <PassageBlock isHeb={true}/> 
+          <PassageBlock isHebrew={true}/> 
           </div>
         }
       </div>
