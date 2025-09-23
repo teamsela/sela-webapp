@@ -1,13 +1,14 @@
 'use client';
 
-import { FormEvent, useState, useRef } from "react";
+import { FormEvent, useState } from "react";
 import { IconEdit } from "@tabler/icons-react";
 import { updateStudyName } from '@/lib/actions';
+import Modal from '../common/Modal';
 
 const EditStudyModal = ({
   studyId,
   studyName,
-  setTriggerFetch
+  setTriggerFetch,
 }: {
   studyId: string;
   studyName: string;
@@ -15,9 +16,6 @@ const EditStudyModal = ({
 } ) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const trigger = useRef<any>(null);
-  const modal = useRef<any>(null);
 
   const onCancel = () => {
     setModalOpen(false);
@@ -44,31 +42,20 @@ const EditStudyModal = ({
 
   return (
     <>
-      <button 
+      <button
         className="hover:text-primary"
-        ref={trigger}
         onClick={() => {
             setModalOpen(true);
         }} >
         <IconEdit />
       </button>
-
-      <div
-        className={`fixed left-0 top-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${
-          modalOpen ? "block" : "hidden"
-        }`}
-      >
-        <div
-          ref={modal}
-          onFocus={() => setModalOpen(true)}
-          className="w-full max-w-142.5 rounded-lg bg-white px-8 py-12 text-center dark:bg-boxdark md:px-17.5 md:py-15"
-        >
+      <Modal open={modalOpen} onClose={onCancel}>
           <h3 className="pb-2 text-xl font-bold text-black dark:text-white sm:text-2xl">
             Rename to
           </h3>
           <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
             <form onSubmit={onSubmit}>
-              <input type="hidden" name="id" value={studyId} />  
+              <input type="hidden" name="id" value={studyId} />
               <input
                 type="text"
                 min={2}
@@ -107,8 +94,7 @@ const EditStudyModal = ({
                   </span>
               </div> : <div></div>
             }
-        </div>
-      </div>
+      </Modal>
     </>
   );
 };
