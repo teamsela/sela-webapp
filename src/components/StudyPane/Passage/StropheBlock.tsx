@@ -8,6 +8,7 @@ import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { StropheNotes } from './StropheNotes';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -26,58 +27,58 @@ export const StropheBlock = ({
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
 
-  const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  // const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // noteAreaRef.current?.focus();
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const titleareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [rows, setRows] = useState(1);
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(1);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
+  // const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // const titleareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // const [rows, setRows] = useState(1);
+  // const [width, setWidth] = useState(0);
+  // const [height, setHeight] = useState(1);
   
-  useEffect(() => {
-    const container = containerRef.current;
-    const textarea = textareaRef.current;
+  // useEffect(() => {
+  //   const container = containerRef.current;
+  //   const textarea = textareaRef.current;
 
-    if (!container|| !textarea) return;
+  //   if (!container|| !textarea) return;
 
-    const containerPadding = 0;
-    textarea.style.lineHeight = '1.5';
+  //   const containerPadding = 0;
+  //   textarea.style.lineHeight = '1.5';
 
-    const computeRows = () => {
-      const computedStyle = window.getComputedStyle(textarea);
-      const lineHeight = parseFloat(computedStyle.lineHeight);
-      // 1 tailwind unit = 4px, and there are 8 instances of padding needed to be subtracted
-      const containerHeight = stropheProps.lines.length*((ctxIsHebrew?32+3:40+3));
-      if (lineHeight > 0) {
-        const calculatedRows = Math.floor(containerHeight/lineHeight);
-        setRows(calculatedRows);
-      }
-    };
-    const updateTextBoxSize = () => {
-      const refWidth = container.offsetWidth;
-      const refHeight = container.offsetHeight;
-      setWidth(refWidth);
-      setHeight(refHeight);
-      computeRows();
-    }
+  //   const computeRows = () => {
+  //     const computedStyle = window.getComputedStyle(textarea);
+  //     const lineHeight = parseFloat(computedStyle.lineHeight);
+  //     // 1 tailwind unit = 4px, and there are 8 instances of padding needed to be subtracted
+  //     const containerHeight = stropheProps.lines.length*((ctxIsHebrew?32+3:40+3));
+  //     if (lineHeight > 0) {
+  //       const calculatedRows = Math.floor(containerHeight/lineHeight);
+  //       setRows(calculatedRows);
+  //     }
+  //   };
+  //   const updateTextBoxSize = () => {
+  //     const refWidth = container.offsetWidth;
+  //     const refHeight = container.offsetHeight;
+  //     setWidth(refWidth);
+  //     setHeight(refHeight);
+  //     computeRows();
+  //   }
 
-    updateTextBoxSize();
+  //   updateTextBoxSize();
 
-    const resizeObserver = new ResizeObserver(() => {
-      updateTextBoxSize();
-    })
+  //   const resizeObserver = new ResizeObserver(() => {
+  //     updateTextBoxSize();
+  //   })
 
-    resizeObserver.observe(container);
+  //   resizeObserver.observe(container);
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [])
+  //   return () => {
+  //     resizeObserver.disconnect();
+  //   };
+  // }, [])
 
   useEffect(() => {
 
@@ -178,7 +179,7 @@ export const StropheBlock = ({
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
-        className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
+        className={`${stanzaExpanded?'py-2 my-1 px-[0.5] mx-[0.5]':'p-2 m-1'}  hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
@@ -187,7 +188,7 @@ export const StropheBlock = ({
         />
       </button>
       {
-      expanded?
+      expanded && stanzaExpanded?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
         className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
@@ -215,28 +216,12 @@ export const StropheBlock = ({
       }
       </div>
       <div  className={`flex flex-col gap-5.5 z-10 ${showNote && expanded && stanzaExpanded? '': 'hidden'}`}
-      style={{pointerEvents:'auto'}}
+      
       onClick={handleNoteAreaClick}
       >
-          <div>
-            <textarea
-              ref={titleareaRef}
-              rows={1}
-              style={{width}}
-              placeholder="Your title here..."
-              className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-            ></textarea>
-            <textarea
-              ref={textareaRef}
-              // rows={stropheProps.lines.length * 1.458}
-              rows={rows}
-              style={{width}}
-              placeholder="Your notes here..."
-              className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-            ></textarea>
-          </div>  
+          <StropheNotes stropheId={stropheProps.stropheId}/>
       </div>
-      <div ref={containerRef}>
+      <div>
       {
       stropheProps.lines.map((line, lineId) => {
         return (

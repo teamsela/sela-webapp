@@ -11,7 +11,14 @@ export async function POST(req: NextRequest) {
     if (!study) return NextResponse.json({error: 'No study found'}, {status: 404});
     if (study.owner !== userId) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
     if (study.owner == userId ) {
-      updateStudyNotes(study.id, content.text)
+      if (!study.notes) {
+        updateStudyNotes(study.id, content.text);
+        return NextResponse.json({ message: "Saved" }, { status: 200 });
+      }
+      const parsedNotes = JSON.parse(study.notes);
+      const parsedRequestNotes = JSON.parse(content.text);
+      console.log(parsedRequestNotes);
+      updateStudyNotes(study.id, JSON.stringify(parsedRequestNotes))
       return NextResponse.json({ message: "Saved" }, { status: 200 });
   }
   } catch (error) {

@@ -1,9 +1,9 @@
 'use client'
-import React, { useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { FormatContext } from "..";
 
 const Notes = () => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes } = useContext(FormatContext);
+  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -26,14 +26,17 @@ const Notes = () => {
   // Ensure context has default shape AFTER mount
   useEffect(() => {
     if (!ctxStudyNotes) {
-      ctxSetStudyNotes(JSON.stringify({ main: "" }));
+      const array = Array.from({ length: ctxPassageProps.stropheCount}, () => ({title: "", text: ""}))
+      ctxSetStudyNotes(JSON.stringify({ main: "" , strophes: array}));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep context in sync with local text
   useEffect(() => {
-    const payload = JSON.stringify({ main: text });
+    const currentJSON = JSON.parse(ctxStudyNotes);
+    const updatedJSON = {...currentJSON, main:text};
+    const payload = JSON.stringify(updatedJSON);
     ctxSetStudyNotes(payload);
     // keep our pending payload up to date for quick flush
     pendingPayloadRef.current = payload;
@@ -83,8 +86,9 @@ const Notes = () => {
   useEffect(() => {
     // clear previous debounce
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-    const payload = JSON.stringify({ main: text });
+    const currentJSON = JSON.parse(ctxStudyNotes);
+    const updatedJSON = {...currentJSON, main:text};
+    const payload = JSON.stringify(updatedJSON);
     pendingPayloadRef.current = payload;
 
     timeoutRef.current = setTimeout(() => {
