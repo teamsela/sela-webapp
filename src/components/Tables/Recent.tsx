@@ -93,7 +93,7 @@ export default function RecentTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
-                    Psalm {studyItem.passage}
+                    {studyItem.book} {studyItem.passage}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
