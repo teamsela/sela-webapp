@@ -19,6 +19,12 @@ export interface BoxDisplayConfig {
     style: BoxDisplayStyle;
 }
 
+export enum LanguageMode {
+    English,
+    Parallel,
+    Hebrew
+}
+
 export interface ColorPickerProps {
     colorAction: ColorActionType,
     setSelectedColor: (arg: string) => void;

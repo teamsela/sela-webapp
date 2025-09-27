@@ -1,9 +1,11 @@
-import { StanzaProps } from "@/lib/data"
-import { useContext, useState } from "react"
+import { LanguageMode } from "@/lib/types";
+import { StanzaProps } from "@/lib/data";
+import { useContext, useEffect, useState } from "react";
 import { FormatContext } from ".."
-import { StropheBlock } from "./StropheBlock"
+import { StropheBlock } from "./StropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadataInDb } from "@/lib/actions"
+import { updateMetadataInDb } from "@/lib/actions";
+import { LanguageContext } from "./PassageBlock";
 
 export const StanzaBlock = ({
   stanzaProps
@@ -11,8 +13,10 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxIsHebrew, ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
+  
 
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
@@ -33,10 +37,45 @@ export const StanzaBlock = ({
     ctxSetNumSelectedWords(0);
   }
   
+  useEffect(() => {
+    stanzaProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+    if(stanzaProps.metadata?.expanded === undefined) {
+      setExpanded(true)
+    }
+  }, [stanzaProps.metadata?.expanded])
+
+  const renderArrow = () => {
+    if (ctxLanguageMode == LanguageMode.Parallel) {
+      if (expanded) {
+        return (
+            <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
+        )
+      }
+      else {
+        return (
+          <>
+          { 
+            ctxIsHebrew ? <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> : <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} />
+          } 
+          </>
+        )  
+      }
+   
+    }
+    else {
+      return (
+        <>
+          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
+        </>
+      )        
+    }
+  }
+
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative flex-column pt-10 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
+      className={`relative flex-column pt-10 grow-0 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
       >
       <div
         className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
@@ -47,8 +86,9 @@ export const StanzaBlock = ({
         onClick={() => handleCollapseBlockClick()}
         data-clicktype={'clickable'}
       >
-        { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
-        { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+        
+        { renderArrow() }
+
       </button>
       </div>
       {

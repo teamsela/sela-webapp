@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 import { WordProps } from '@/lib/data';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, LanguageMode } from "@/lib/types";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
 
 export const IdenticalWordBlock = ({
@@ -14,11 +14,11 @@ export const IdenticalWordBlock = ({
   selectRelated: boolean
 }) => {
 
-  const { ctxIsHebrew, ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
-    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext)
+  const { ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
+    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode } = useContext(FormatContext)
 
   const toSelect = selectRelated ? [...identicalWords, ...relatedWords] : identicalWords;
-
+  
   const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
     return toSelect.every(dsd =>
       dsd.metadata?.color &&
@@ -44,6 +44,7 @@ export const IdenticalWordBlock = ({
 
   const [selected, setSelected] = useState(false);
 
+  const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
   // select the block if all toSelect words are selected in the studyPane, otherwise unselect it
   useEffect(() => {
@@ -70,7 +71,7 @@ export const IdenticalWordBlock = ({
       setTextColorLocal(updatedColor?.text || DEFAULT_TEXT_COLOR);
       setBorderColorLocal(updatedColor?.border || DEFAULT_BORDER_COLOR);
     }
-  }, [ctxRootsColorMap, ctxStudyMetadata])
+  }, [ctxRootsColorMap, ctxStudyMetadata, toSelect, id])
 
   useEffect(() => {
     if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
@@ -161,7 +162,7 @@ export const IdenticalWordBlock = ({
             // TODO: remove motifData.relatedWords, this might be a typo, we should display the Hebrew of the identical word, 
             // not the related words of the identical word. Plus, may also consider refactor identicalWords[0].ETCBCgloss,
             // i.e. use motifData.lexicon.lemma / motifData.lexicon.gloss
-          >{ctxIsHebrew ? identicalWords[0].motifData.relatedWords?.lemma : identicalWords[0].ETCBCgloss}</span>
+          >{isHebrew ? identicalWords[0].motifData?.relatedWords?.lemma : identicalWords[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

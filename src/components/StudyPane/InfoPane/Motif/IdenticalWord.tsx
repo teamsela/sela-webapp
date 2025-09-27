@@ -34,7 +34,7 @@ const IdenticalWord = () => {
         if (words.length > 1 && leadWord.strongNumber) {
             // use wordProps.motifData.relatedStrongNums to find the related words in the study
             const relatedWords:WordProps[] = [];
-            if (leadWord.motifData.relatedStrongNums && leadWord.motifData.relatedStrongNums.length > 0) {
+            if (leadWord.motifData?.relatedStrongNums && leadWord.motifData.relatedStrongNums.length > 0) {
                 leadWord.motifData.relatedStrongNums.forEach(strongNum => {
                     strongNumToWordsMap.get(strongNum)?.forEach(word => relatedWords.push(word));
                 });
