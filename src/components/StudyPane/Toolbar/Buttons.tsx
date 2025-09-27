@@ -7,12 +7,14 @@ import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { BsBox, BsBoxArrowUp } from "react-icons/bs";
+import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
-import { BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
+import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
 import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
@@ -381,18 +383,24 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
 };
 
 export const UniformWidthBtn = ({ setBoxStyle }: {
-  setBoxStyle: (arg: BoxDisplayStyle) => void,
+  setBoxStyle: (arg: BoxDisplayConfig) => void,
 }) => {
-  const { ctxBoxDisplayStyle, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
+  const { ctxBoxDisplayConfig, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
   const handleClick = () => {
-    if (ctxBoxDisplayStyle === BoxDisplayStyle.box) {
-      ctxStudyMetadata.boxStyle = BoxDisplayStyle.uniformBoxes;
-      setBoxStyle(BoxDisplayStyle.uniformBoxes);
-    } else if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) {
-      ctxStudyMetadata.boxStyle = BoxDisplayStyle.box;
-      setBoxStyle(BoxDisplayStyle.box);
+    let newStyle: BoxDisplayStyle;
+    if (ctxBoxDisplayConfig.style === BoxDisplayStyle.box) {
+      newStyle = BoxDisplayStyle.uniformBoxes;
+    } else if (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) {
+      newStyle = BoxDisplayStyle.box;
+    } else {
+      // If noBox, toggle to box
+      newStyle = BoxDisplayStyle.box;
     }
+    
+    const newConfig = { style: newStyle };
+    ctxStudyMetadata.boxStyle = newConfig;
+    setBoxStyle(newConfig);
     ctxSetStudyMetadata(ctxStudyMetadata);
     if (!ctxInViewMode) {
       //ctxAddToHistory(ctxStudyMetadata);
@@ -406,17 +414,61 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
         className="hover:text-primary"
         onClick={handleClick} >
         {
-          (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && <TbArrowAutofitContentFilled fontSize="1.5em" />
+          ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <TbArrowAutofitContentFilled fontSize="1.5em" />
         }
         {
-          (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <TbArrowAutofitContent fontSize="1.5em" />
+          ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <TbArrowAutofitContent fontSize="1.5em" />
         }
       </button>
       {
-        (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && <ToolTip text="Disable uniform width" />
+        ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <ToolTip text="Disable uniform width" />
       }
       {
-        (ctxBoxDisplayStyle === BoxDisplayStyle.box) && <ToolTip text="Enable uniform width" />
+        ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <ToolTip text="Enable uniform width" />
+      }      
+    </div>
+  );
+};
+
+export const BoxlessBtn = ({ setBoxStyle }: {
+  setBoxStyle: (arg: BoxDisplayConfig) => void,
+}) => {
+  const { ctxBoxDisplayConfig, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata } = useContext(FormatContext);
+
+  const handleClick = () => {
+    let newStyle: BoxDisplayStyle;
+    if (ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox) {
+      newStyle = BoxDisplayStyle.box;
+    } else {
+      newStyle = BoxDisplayStyle.noBox;
+    }
+    
+    const newConfig = { style: newStyle };
+    ctxStudyMetadata.boxStyle = newConfig;
+    setBoxStyle(newConfig);
+    ctxSetStudyMetadata(ctxStudyMetadata);
+    if (!ctxInViewMode) {
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    }
+  }
+  
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className="hover:text-primary"
+        onClick={handleClick} >
+        {
+          ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox && <TbBoxModel2 fontSize="1.5em" />
+        }
+        {
+          ctxBoxDisplayConfig.style !== BoxDisplayStyle.noBox && <TbBoxModel2Off fontSize="1.5em" />
+        }
+      </button>
+      {
+        ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox && <ToolTip text="Enable boxes" />
+      }
+      {
+        ctxBoxDisplayConfig.style !== BoxDisplayStyle.noBox && <ToolTip text="Disable boxes" />
       }      
     </div>
   );
@@ -424,9 +476,9 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
 
 export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
 
-  const { ctxStudyId, ctxLanguageMode, ctxStudyMetadata, ctxBoxDisplayStyle, ctxIndentNum, ctxSetIndentNum, 
+  const { ctxStudyId, ctxLanguageMode, ctxStudyMetadata, ctxBoxDisplayConfig, ctxIndentNum, ctxSetIndentNum, 
     ctxSelectedWords, ctxNumSelectedWords, ctxAddToHistory } = useContext(FormatContext);
-  const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
+  const [buttonEnabled, setButtonEnabled] = useState(ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1));
 
   useEffect(() => {
     let indentNum : number = 0;
@@ -436,11 +488,12 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
       ctxSetIndentNum(indentNum);
     }
     let validIndent = (!leftIndent) ? ctxIndentNum > 0 : ctxIndentNum < 3;
-    setButtonEnabled((ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) && (ctxNumSelectedWords === 1) && validIndent);
-  }, [ctxBoxDisplayStyle, ctxNumSelectedWords, ctxSelectedWords, ctxStudyMetadata, ctxIndentNum, ctxSetIndentNum, leftIndent]);
+    // Enable indent buttons when uniformBoxes style is enabled
+    setButtonEnabled(ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxNumSelectedWords === 1) && validIndent);
+  }, [ctxBoxDisplayConfig.style, ctxNumSelectedWords, ctxSelectedWords, ctxStudyMetadata, ctxIndentNum, ctxLanguageMode, ctxSetIndentNum, leftIndent]);
 
   const handleClick = () => {
-    if (ctxBoxDisplayStyle !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
+    if (ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes || ctxSelectedWords.length === 0)
       return;
     
     const selectedWordId = ctxSelectedWords[0].wordId;
