@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayConfig } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayConfig, BoxDisplayStyle } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -84,7 +84,7 @@ const StudyPane = ({
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-  const [boxDisplayConfig, setBoxDisplayConfig] = useState<BoxDisplayConfig>({ showBoxes: true, uniformWidth: false });
+  const [boxDisplayConfig, setBoxDisplayConfig] = useState<BoxDisplayConfig>({ style: BoxDisplayStyle.box });
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
@@ -155,18 +155,18 @@ const StudyPane = ({
       // This is the old enum format, convert it
       const oldStyle = boxConfig as any; // BoxDisplayStyle enum
       if (oldStyle === 0) { // noBox
-        boxConfig = { showBoxes: false, uniformWidth: false };
+        boxConfig = { style: BoxDisplayStyle.noBox };
       } else if (oldStyle === 1) { // box
-        boxConfig = { showBoxes: true, uniformWidth: false };
+        boxConfig = { style: BoxDisplayStyle.box };
       } else if (oldStyle === 2) { // uniformBoxes
-        boxConfig = { showBoxes: true, uniformWidth: true };
+        boxConfig = { style: BoxDisplayStyle.uniformBoxes };
       }
       // Update the metadata with the new format
       studyMetadata.boxStyle = boxConfig;
       updateMetadataInDb(passageData.study.id, studyMetadata);
     }
     
-    setBoxDisplayConfig(boxConfig || { showBoxes: true, uniformWidth: false });
+    setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
   
   }, [passageData.bibleData, studyMetadata]);
    
