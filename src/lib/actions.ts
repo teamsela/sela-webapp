@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
+import { getXataClient, StudyRecord, HebBibleRecord, StepbibleTbeshRecord } from '@/xata';
 import { ge, le } from "@xata.io/client";
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
@@ -657,8 +657,28 @@ export async function fetchPassageData(studyId: string) {
           .sort("hebId", "asc")
           .getAll();
 
+        const hebrewForms = new Set<string>();
+        passageContent.forEach(word => {
+          if (word.wlcWord) {
+            hebrewForms.add(word.wlcWord);
+          }
+        });
+
+        const stepBibleMap = new Map<string, StepbibleTbeshRecord>();
+
+        await Promise.all(Array.from(hebrewForms).map(async (form) => {
+          const record = await xataClient.db.stepbible_tbesh
+            .filter({ Hebrew: form })
+            .select(["Hebrew", "Transliteration", "Gloss", "Meaning", "eStrong", "dStrong", "uStrong"])
+            .getFirst();
+
+          if (record) {
+            stepBibleMap.set(form, record);
+          }
+        }));
+
         const strongNumberSet = new Set<number>();
-        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));          
+        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
         passageContent.forEach(word => {
           let hebWord = {} as WordProps;
           hebWord.wordId = word.hebId || 0;
@@ -686,6 +706,17 @@ export async function fetchPassageData(studyId: string) {
             }
             //console.log(hebWord.motifData);
           }
+
+          const wordInfo = stepBibleMap.get(word.wlcWord || "");
+          const defaultStrong = word.strongNumber ? `H${word.strongNumber.toString().padStart(4, '0')}` : "";
+          hebWord.wordInformation = {
+            hebrew: wordInfo?.Hebrew || word.wlcWord || "",
+            transliteration: wordInfo?.Transliteration || "",
+            gloss: wordInfo?.Gloss?.trim() || hebWord.gloss,
+            morphology: word.morphology || "",
+            strongsNumber: wordInfo?.eStrong || wordInfo?.dStrong || wordInfo?.uStrong || defaultStrong,
+            meaning: wordInfo?.Meaning || "",
+          };
 
           passageData.bibleData.push(hebWord);
         })
