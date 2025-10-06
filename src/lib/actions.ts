@@ -664,7 +664,9 @@ export async function fetchPassageData(studyId: string) {
           }
         });
 
-        const stepBibleMap = new Map<string, StepbibleTbeshRecord>();
+        type StepBibleWordInfo = Pick<StepbibleTbeshRecord, "Hebrew" | "Transliteration" | "Gloss" | "Meaning" | "eStrong" | "dStrong" | "uStrong">;
+
+        const stepBibleMap = new Map<string, StepBibleWordInfo>();
 
         await Promise.all(Array.from(hebrewForms).map(async (form) => {
           const record = await xataClient.db.stepbible_tbesh
@@ -673,7 +675,17 @@ export async function fetchPassageData(studyId: string) {
             .getFirst();
 
           if (record) {
-            stepBibleMap.set(form, record);
+            const { Hebrew, Transliteration, Gloss, Meaning, eStrong, dStrong, uStrong } = record;
+
+            stepBibleMap.set(form, {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              eStrong,
+              dStrong,
+              uStrong,
+            });
           }
         }));
 
