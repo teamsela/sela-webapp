@@ -7,7 +7,7 @@ import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
-import { mergeData, extractIdenticalWordsFromPassage, findFloorIndex } from '@/lib/utils';
+import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
@@ -19,7 +19,8 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxStudyNotes, ctxSetStudyNotes
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -397,6 +398,7 @@ const Passage = ({
       console.log(updatedStropheNotes);
       const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
       ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
+      ctxSetNoteMerge(true);
 
       // create a new array of notes, then migrate the old notes over:
 

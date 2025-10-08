@@ -3,12 +3,11 @@ import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
 
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number }) => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxNoteMerge, ctxSetNoteMerge } = useContext(FormatContext);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
-  // const isEditingRef = useRef(false);
 
   // 1) Ensure ctxStudyNotes exists once on mount
   useEffect(() => {
@@ -38,6 +37,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
 
   const key = `${stropheId}@${notesVersionRef.current}`;
   if (hydratedKeyRef.current === key) return;
+  if (!ctxNoteMerge) return;
 
   try {
     const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
@@ -45,6 +45,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     setTitle(s?.title ?? "");
     setText(s?.text ?? "");
     hydratedKeyRef.current = key;
+    ctxSetNoteMerge(false);
   } catch {
     // ignore parse errors
   }
@@ -64,7 +65,6 @@ async (payload: string, { keepalive = false } = {}) => {
     });
     if (!res.ok) throw new Error("Save failed");
     lastSavedPayloadRef.current = payload;
-    // optional: console.log("saved:", JSON.parse(payload).strophes[stropheId]);
   } catch (err) {
     if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
       const blob = new Blob([JSON.stringify({ studyId: ctxStudyId, text: payload })], {
@@ -102,7 +102,6 @@ useEffect(() => {
   const payload = buildPayload();
   pendingPayloadRef.current = payload;
 
-  // (Optional) Update context so other components see changes.
   // Guard to avoid useless updates:
   if (payload !== ctxStudyNotes) ctxSetStudyNotes(payload);
 
@@ -132,7 +131,7 @@ useEffect(() => {
   document.addEventListener("pagehide", onPageHide);
   return () => {
     flush();
-    document.removeEventListener("visibilitychange", onVisibility); // fixed typo
+    document.removeEventListener("visibilitychange", onVisibility);
     document.removeEventListener("pagehide", onPageHide);
   };
   }, [saveNow]);
@@ -142,16 +141,12 @@ useEffect(() => {
       <textarea
         rows={1}
         value={title}
-        // onFocus={() => (isEditingRef.current = true)}
-        // onBlur={() => (isEditingRef.current = false)}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Your title here..."
         className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
       />
       <textarea
         value={text}
-        // onFocus={() => (isEditingRef.current = true)}
-        // onBlur={() => (isEditingRef.current = false)}
         onChange={(e) => setText(e.target.value)}
         placeholder="Your notes here..."
         className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
