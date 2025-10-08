@@ -1,6 +1,7 @@
 'use client'
 import React, { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { FormatContext } from "..";
+import { StropheNote, StudyNotes } from "@/lib/types";
 
 const Notes = () => {
   const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
@@ -26,7 +27,7 @@ const Notes = () => {
   // Ensure context has default shape AFTER mount
   useEffect(() => {
     if (!ctxStudyNotes) {
-      const array = Array.from({ length: ctxPassageProps.stropheCount}, () => ({title: "", text: ""}))
+      const array: StropheNote[] = Array.from({ length: ctxPassageProps.stropheCount}, () => ({title: "", text: "", firstWordId: -1, lastWordId: -1}))
       ctxSetStudyNotes(JSON.stringify({ main: "" , strophes: array}));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

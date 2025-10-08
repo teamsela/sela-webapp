@@ -23,6 +23,8 @@ export const StropheBlock = ({
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
   const [showNote, setShowNote] = useState(false);
+  const firstWordId = stropheProps.lines[0].words[0].wordId;
+  const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
@@ -219,7 +221,7 @@ export const StropheBlock = ({
       
       onClick={handleNoteAreaClick}
       >
-          <StropheNotes stropheId={stropheProps.stropheId}/>
+          <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
       </div>
       <div>
       {

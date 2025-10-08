@@ -285,7 +285,7 @@ export const WordBlock = ({
               ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
-            {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss}
+            {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss} {wordProps.wordId}
           </span>
         </span>
       </div>

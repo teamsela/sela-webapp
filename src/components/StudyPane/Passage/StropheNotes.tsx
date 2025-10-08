@@ -1,21 +1,20 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { FormatContext } from ".."
+import { StropheNote, StudyNotes } from "@/lib/types";
 
-type StropheNote = { title: string; text: string };
-type StudyNotes = { main: string; strophes: StropheNote[] };
-
-export const StropheNotes = ({ stropheId }: { stropheId: number }) => {
+export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number }) => {
   const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
+  // const isEditingRef = useRef(false);
 
   // 1) Ensure ctxStudyNotes exists once on mount
   useEffect(() => {
     if (!ctxStudyNotes) {
       const stropheCount = ctxPassageProps.stropheCount ?? 0;
-      const array: StropheNote[] = Array.from({ length: stropheCount }, () => ({ title: "", text: "" }));
+      const array: StropheNote[] = Array.from({ length: stropheCount }, () => ({ title: "", text: "", firstWordId: -1 , lastWordId: -1}));
       ctxSetStudyNotes(JSON.stringify({ main: "", strophes: array }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -24,21 +23,28 @@ export const StropheNotes = ({ stropheId }: { stropheId: number }) => {
   // 2) Local UI state that syncs from ctxStudyNotes when it changes
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  
 
-  const hydratedRef = useRef<number | null>(null);
+  const hydratedKeyRef = useRef<string | null>(null);
+  const notesVersionRef = useRef(0);
+  const lastNotesStrRef = useRef<string | null>(null);
+  if (lastNotesStrRef.current !== ctxStudyNotes) {
+  notesVersionRef.current += 1;
+  lastNotesStrRef.current = ctxStudyNotes ?? null;
+}
 
   useEffect(() => {
   if (!ctxStudyNotes) return;
 
-  // Only hydrate if this strophe hasn't been hydrated yet
-  if (hydratedRef.current === stropheId) return;
+  const key = `${stropheId}@${notesVersionRef.current}`;
+  if (hydratedKeyRef.current === key) return;
 
   try {
     const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
     const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
     setTitle(s?.title ?? "");
     setText(s?.text ?? "");
-    hydratedRef.current = stropheId; // mark hydrated
+    hydratedKeyRef.current = key;
   } catch {
     // ignore parse errors
   }
@@ -59,7 +65,6 @@ async (payload: string, { keepalive = false } = {}) => {
     if (!res.ok) throw new Error("Save failed");
     lastSavedPayloadRef.current = payload;
     // optional: console.log("saved:", JSON.parse(payload).strophes[stropheId]);
-    console.log(ctxStudyId);
   } catch (err) {
     if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
       const blob = new Blob([JSON.stringify({ studyId: ctxStudyId, text: payload })], {
@@ -82,9 +87,9 @@ async (payload: string, { keepalive = false } = {}) => {
 
   const strophes = Array.isArray(parsed.strophes) ? [...parsed.strophes] : [];
   while (strophes.length <= stropheId) {
-    strophes.push({ title: "", text: "" });
+    strophes.push({ title: "", text: "" , firstWordId: firstWordId, lastWordId: lastWordId});
   }
-  strophes[stropheId] = { title, text };
+  strophes[stropheId] = { title, text, firstWordId: firstWordId, lastWordId: lastWordId };
 
   const next: StudyNotes = { ...parsed, strophes };
   return JSON.stringify(next);
@@ -137,12 +142,16 @@ useEffect(() => {
       <textarea
         rows={1}
         value={title}
+        // onFocus={() => (isEditingRef.current = true)}
+        // onBlur={() => (isEditingRef.current = false)}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Your title here..."
         className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
       />
       <textarea
         value={text}
+        // onFocus={() => (isEditingRef.current = true)}
+        // onBlur={() => (isEditingRef.current = false)}
         onChange={(e) => setText(e.target.value)}
         placeholder="Your notes here..."
         className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
