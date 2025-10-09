@@ -371,14 +371,13 @@ const Passage = ({
       ctxAddToHistory(newMetadata);
       const updatedPassageProps = mergeData(bibleData, newMetadata);
 
-      let updatedStropheNotes: StropheNote[] = []
+      const updatedStropheNotes: StropheNote[] = [];
       const oldNotes: StudyNotes = JSON.parse(ctxStudyNotes) || {main: "", strophes: []};
       updatedPassageProps.stanzaProps.forEach((stanza) => {
-        stanza.strophes.forEach((strophe, index) => {
+        stanza.strophes.forEach((strophe) => {
           const firstWord = strophe.lines[0].words[0].wordId;
           const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
-          updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord});
-          console.log(updatedStropheNotes.length);
+          const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
           let updatedText = "";
           let updatedTitle = "";
           oldNotes.strophes.forEach((oldStrophe) => {
@@ -393,11 +392,10 @@ const Passage = ({
               }
             };
           });
-          updatedStropheNotes[index].title = updatedTitle;
-          updatedStropheNotes[index].text = updatedText;
+          updatedStropheNotes[newIndex].title = updatedTitle;
+          updatedStropheNotes[newIndex].text = updatedText;
         });
       });
-      console.log(updatedStropheNotes);
       const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
       ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
       ctxSetNoteMerge(true);
