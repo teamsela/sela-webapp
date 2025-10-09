@@ -9,7 +9,7 @@ import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
-import { StropheNotes } from './StropheNotes';
+import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -27,6 +27,7 @@ export const StropheBlock = ({
   const [showNote, setShowNote] = useState(false);
   const wordAreaRef = useRef<HTMLDivElement | null>(null);
   const [wordAreaWidth, setWordAreaWidth] = useState<number | null>(null);
+  const [wordAreaHeight, setWordAreaHeight] = useState<number | null>(null);
   const firstWordId = stropheProps.lines[0].words[0].wordId;
   const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
@@ -138,15 +139,18 @@ export const StropheBlock = ({
     const el = wordAreaRef.current;
     if (!el) return;
 
-    const updateWidth = () => {
-      const nextWidth = el.getBoundingClientRect().width;
-      if (nextWidth > 0) {
-        setWordAreaWidth(nextWidth);
+    const updateMetrics = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0) {
+        setWordAreaWidth(rect.width);
+      }
+      if (rect.height > 0) {
+        setWordAreaHeight(rect.height);
       }
     };
 
-    updateWidth();
-    const observer = new ResizeObserver(() => updateWidth());
+    updateMetrics();
+    const observer = new ResizeObserver(() => updateMetrics());
     observer.observe(el);
     return () => {
       observer.disconnect();
@@ -154,6 +158,24 @@ export const StropheBlock = ({
   }, [stanzaExpanded, expanded]);
 
   const shouldShowNote = showNote && expanded && stanzaExpanded;
+
+  const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
+  const noteContainerHeight = shouldShowNote
+    ? Math.max(minNoteHeight, wordAreaHeight ?? 0)
+    : undefined;
+  const noteContainerStyle = shouldShowNote
+    ? (() => {
+        const style: React.CSSProperties = {
+          maxWidth: '100%',
+          minHeight: minNoteHeight,
+          height: noteContainerHeight,
+        };
+        if (wordAreaWidth) {
+          style.width = wordAreaWidth;
+        }
+        return style;
+      })()
+    : undefined;
 
   
   return (
@@ -210,7 +232,7 @@ export const StropheBlock = ({
       </div>
       <div
         className={`flex flex-col gap-5.5 z-10 ${shouldShowNote ? '' : 'hidden'}`}
-        style={shouldShowNote && wordAreaWidth ? { width: wordAreaWidth, maxWidth: '100%' } : undefined}
+        style={noteContainerStyle}
       
       onClick={handleNoteAreaClick}
       >

@@ -2,6 +2,10 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
 
+export const STROPHE_NOTE_TITLE_MIN_HEIGHT = 44;
+export const STROPHE_NOTE_TEXT_MIN_HEIGHT = 104;
+export const STROPHE_NOTE_VERTICAL_GAP = 22;
+
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
   const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxNoteMerge, ctxSetNoteMerge } = useContext(FormatContext);
 
@@ -137,19 +141,22 @@ useEffect(() => {
   }, [saveNow]);
 
   return (
-    <div>
+    <div className="flex h-full flex-col gap-5.5">
       <textarea
         rows={1}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Your title here..."
-        className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        className="resize-none w-full flex-shrink-0 rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        style={{ minHeight: STROPHE_NOTE_TITLE_MIN_HEIGHT }}
       />
       <textarea
+        rows={3}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Your notes here..."
-        className="resize-none w-full rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        className="resize-none w-full flex-1 rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        style={{ minHeight: STROPHE_NOTE_TEXT_MIN_HEIGHT }}
       />
     </div>
   );
