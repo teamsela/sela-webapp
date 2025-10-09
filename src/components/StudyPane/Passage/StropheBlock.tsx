@@ -115,8 +115,10 @@ export const StropheBlock = ({
 
     stropheProps.metadata.expanded = !expanded;
     const firstWordIdinStrophe = stropheProps.lines[0].words[0].wordId;
-    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd ??= {};
-    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd.expanded = stropheProps.metadata.expanded;
+    ctxStudyMetadata.words[firstWordIdinStrophe] ??= {};
+    const firstWordMetadata = ctxStudyMetadata.words[firstWordIdinStrophe];
+    firstWordMetadata.stropheMd ??= {};
+    firstWordMetadata.stropheMd.expanded = stropheProps.metadata.expanded;
 
     if (!ctxInViewMode) {
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
