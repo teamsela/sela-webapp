@@ -1,32 +1,33 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
-import { StanzaBlock } from './StanzaBlock';
+import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
-import { StropheNote, StructureUpdateType, StudyNotes } from '@/lib/types';
+import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
-
+import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+
 
 const Passage = ({
   bibleData,
 }: {
   bibleData: WordProps[];
 }) => {
+
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
   useEffect(() => {
-
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
@@ -377,6 +378,7 @@ const Passage = ({
           const firstWord = strophe.lines[0].words[0].wordId;
           const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
           updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord});
+          console.log(updatedStropheNotes.length);
           let updatedText = "";
           let updatedTitle = "";
           oldNotes.strophes.forEach((oldStrophe) => {
@@ -409,11 +411,10 @@ const Passage = ({
 
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
+      
+      // Reset the structure update type
+      ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-   
-    // Reset the structure update type
-    ctxSetStructureUpdateType(StructureUpdateType.none);
-
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
@@ -440,24 +441,38 @@ const Passage = ({
   }, [ctxSelectedWords]);
 
   return (  
+    
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className="h-0"
+      className='h-0 w-[100%]'
     >
-      <div id="selaPassage" className='flex relative pl-2 py-4'>
-        {
-          ctxPassageProps.stanzaProps.map((stanza) => {
-            return (
-              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-            )
-          })
+      {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
+      {/* selaPassage is causing selection box shifting bug */}
+      <div className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row w-[100%]`} id='selaPassage'>
+        { ctxLanguageMode == LanguageMode.English && 
+          <div className='flex flex-row mx-auto w-[100%]'>
+            <PassageBlock isHebrew={false}/> 
+          </div>
+        }
+        { ctxLanguageMode == LanguageMode.Parallel && 
+          <div className='flex flex-row mx-auto w-[100%]'>
+            <PassageBlock isHebrew={true}/>
+            <PassageBlock isHebrew={false}/>
+          </div>
+        }
+        { ctxLanguageMode == LanguageMode.Hebrew && 
+          <div className='flex flex-row mx-auto w-[100%]'>
+          <PassageBlock isHebrew={true}/> 
+          </div>
         }
       </div>
+      
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
+    
   );
 };
 

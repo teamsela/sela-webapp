@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -27,7 +27,6 @@ export const FormatContext = createContext({
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
-  ctxIsHebrew: false,
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
@@ -59,6 +58,8 @@ export const FormatContext = createContext({
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
   ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxLanguageMode: {} as LanguageMode,
+  ctxSetLanguageMode: (arg: LanguageMode) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
   ctxSetNoteBox: (arg: undefined|DOMRect) => {},
   ctxNoteMerge: true,
@@ -103,6 +104,9 @@ const StudyPane = ({
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
 
+  // set default language to English
+  const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
+
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(false);
 
@@ -124,6 +128,7 @@ const StudyPane = ({
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
     ctxIsHebrew: isHebrew,
+    ctxSetIsHebrew: setHebrew,
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords: setSelectedWords,
     ctxNumSelectedWords: numSelectedWords,
@@ -153,6 +158,8 @@ const StudyPane = ({
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
     ctxAddToHistory: addToHistory,
+    ctxLanguageMode: languageMode,
+    ctxSetLanguageMode: setLanguageMode,
     ctxNoteBox: noteBox,
     ctxSetNoteBox: setNoteBox,
     ctxNoteMerge: noteMerge,
@@ -165,6 +172,7 @@ const StudyPane = ({
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
     setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
+    setLanguageMode(studyMetadata.lang || LanguageMode.English);
   
   }, [passageData.bibleData, studyMetadata]);
    
@@ -252,7 +260,6 @@ const StudyPane = ({
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
-
   return (
 
     <>
@@ -261,21 +268,20 @@ const StudyPane = ({
         {/* Header */}
         <Header
           study={passageData.study}
-          setLangToHebrew={setHebrew}
           setInfoPaneAction={setInfoPaneAction}
           infoPaneAction={infoPaneAction}
           setScaleValue={setScaleValue}
           setColorAction={setColorAction}
           setSelectedColor={setSelectedColor}
           setBoxStyle={setBoxDisplayStyle}
-          setCloneStudyOpen={setCloneStudyOpen}        
+          setCloneStudyOpen={setCloneStudyOpen}
         />
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32">
-          <main className={`flex-1 overflow-y-auto relative h-full ${isHebrew ? "hbFont" : ""} w-full ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
             {/* Scrollable Passage Pane */}
-              <Passage bibleData={passageData.bibleData} />
+            <Passage bibleData={passageData.bibleData}/>
             {
             <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
             }

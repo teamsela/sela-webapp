@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
 
-export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number }) => {
+export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
   const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxNoteMerge, ctxSetNoteMerge } = useContext(FormatContext);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

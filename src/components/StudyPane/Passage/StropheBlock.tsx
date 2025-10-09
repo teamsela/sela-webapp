@@ -8,6 +8,7 @@ import { ColorActionType } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { LanguageContext } from './PassageBlock';
 import { StropheNotes } from './StropheNotes';
 
 export const StropheBlock = ({
@@ -16,9 +17,10 @@ export const StropheBlock = ({
     stropheProps: StropheProps, stanzaExpanded: boolean
   }) => {
   
-  const { ctxStudyId, ctxIsHebrew, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+  const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode, ctxSetNoteBox
   } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
@@ -29,62 +31,16 @@ export const StropheBlock = ({
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
 
-  // const noteAreaRef = useRef<HTMLTextAreaElement | null>(null);
-
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // noteAreaRef.current?.focus();
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
-  // const containerRef = useRef<HTMLDivElement | null>(null);
-  // const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  // const titleareaRef = useRef<HTMLTextAreaElement | null>(null);
-  // const [rows, setRows] = useState(1);
-  // const [width, setWidth] = useState(0);
-  // const [height, setHeight] = useState(1);
-  
-  // useEffect(() => {
-  //   const container = containerRef.current;
-  //   const textarea = textareaRef.current;
 
-  //   if (!container|| !textarea) return;
-
-  //   const containerPadding = 0;
-  //   textarea.style.lineHeight = '1.5';
-
-  //   const computeRows = () => {
-  //     const computedStyle = window.getComputedStyle(textarea);
-  //     const lineHeight = parseFloat(computedStyle.lineHeight);
-  //     // 1 tailwind unit = 4px, and there are 8 instances of padding needed to be subtracted
-  //     const containerHeight = stropheProps.lines.length*((ctxIsHebrew?32+3:40+3));
-  //     if (lineHeight > 0) {
-  //       const calculatedRows = Math.floor(containerHeight/lineHeight);
-  //       setRows(calculatedRows);
-  //     }
-  //   };
-  //   const updateTextBoxSize = () => {
-  //     const refWidth = container.offsetWidth;
-  //     const refHeight = container.offsetHeight;
-  //     setWidth(refWidth);
-  //     setHeight(refHeight);
-  //     computeRows();
-  //   }
-
-  //   updateTextBoxSize();
-
-  //   const resizeObserver = new ResizeObserver(() => {
-  //     updateTextBoxSize();
-  //   })
-
-  //   resizeObserver.observe(container);
-
-  //   return () => {
-  //     resizeObserver.disconnect();
-  //   };
-  // }, [])
-
+  //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
   useEffect(() => {
-
     if (stropheProps.metadata?.color) {
+      //when bug occurs this did not fire
+      //bug does not occur when mode switch happen while colour picker is on
+      console.log('if true stropheProps.metadata?.color set color')
       const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
       (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
 
@@ -92,11 +48,13 @@ export const StropheBlock = ({
       (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
     }
     else {
+      //when bug occurs this is fired
+      console.log('else stropheProps.metadata?.color set color')
       setColorFillLocal(DEFAULT_COLOR_FILL);
       setBorderColorLocal(DEFAULT_BORDER_COLOR);
     }
 
-  }, [stropheProps.metadata?.color]);
+  }, [stropheProps.metadata?.color, colorFillLocal, borderColorLocal]);
 
   useEffect(() => {
     if (ctxColorAction != ColorActionType.none ) {
@@ -123,11 +81,17 @@ export const StropheBlock = ({
     //if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
   }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor]);
   
+  useEffect(() => {
+    setSelected(ctxSelectedStrophes.some(stropie => stropie.stropheId === stropheProps.stropheId));
+    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes, ctxSetSelectedStrophes]);
+
   const handleStropheBlockClick = () => {
     setSelected(prevState => !prevState);
-    (!selected) ? ctxSelectedStrophes.push(stropheProps) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(stropheProps), 1);
-    ctxSetSelectedStrophes(ctxSelectedStrophes);
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+    const newSelectedStrophes = [...ctxSelectedStrophes]; // Clone the array
+    (!selected) ? newSelectedStrophes.push(stropheProps) : newSelectedStrophes.splice(newSelectedStrophes.indexOf(stropheProps), 1);
+    ctxSetSelectedStrophes(newSelectedStrophes);
+    ctxSetNumSelectedStrophes(newSelectedStrophes.length);
     // remove any selected word blocks if strophe block is selected
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
@@ -161,9 +125,12 @@ export const StropheBlock = ({
   }
   
   useEffect(() => {
-    setSelected(ctxSelectedStrophes.includes(stropheProps));
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
-  }, [ctxSelectedStrophes, stropheProps, ctxSetNumSelectedStrophes]);
+    stropheProps.metadata?.expanded ? setExpanded(true) : setExpanded(false)
+    if(stropheProps.metadata?.expanded === undefined) {
+      setExpanded(true)
+    }    
+  }, [stropheProps.metadata.expanded])
+
 
   return (
     <div 

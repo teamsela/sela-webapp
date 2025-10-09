@@ -1,4 +1,4 @@
-import { BoxDisplayStyle } from "@/lib/types"
+import { BoxDisplayStyle, LanguageMode } from "@/lib/types"
 
 export type ColorData = {
     fill?: string,
@@ -42,6 +42,7 @@ export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
     boxStyle?: BoxDisplayStyle;
+    lang?: LanguageMode;
 }
 
 export interface StudyProps {
@@ -135,6 +136,11 @@ export type PassageStaticData = {
     bibleData: WordProps[];
 }
 
+export type FetchStudiesResult = {
+    records: StudyData[];
+    totalPages: number;
+}
+
 // TO BE DEPRECATED - START
 export type HebWord = {
     id: number;
@@ -192,8 +198,3 @@ export type PassageData = {
     stanzas: StanzaData[];
 }
 // TO BE DEPRECATED - END
-
-export type FetchStudiesResult = {
-    records: StudyData[];
-    totalPages: number;
-}
