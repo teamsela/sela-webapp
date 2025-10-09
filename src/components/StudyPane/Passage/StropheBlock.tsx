@@ -25,6 +25,8 @@ export const StropheBlock = ({
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
   const [showNote, setShowNote] = useState(false);
+  const wordAreaRef = useRef<HTMLDivElement | null>(null);
+  const [wordAreaWidth, setWordAreaWidth] = useState<number | null>(null);
   const firstWordId = stropheProps.lines[0].words[0].wordId;
   const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
@@ -131,7 +133,29 @@ export const StropheBlock = ({
     }    
   }, [stropheProps.metadata.expanded])
 
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const el = wordAreaRef.current;
+    if (!el) return;
 
+    const updateWidth = () => {
+      const nextWidth = el.getBoundingClientRect().width;
+      if (nextWidth > 0) {
+        setWordAreaWidth(nextWidth);
+      }
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(() => updateWidth());
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [stanzaExpanded, expanded]);
+
+  const shouldShowNote = showNote && expanded && stanzaExpanded;
+
+  
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
@@ -184,39 +208,44 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      <div  className={`flex flex-col gap-5.5 z-10 ${showNote && expanded && stanzaExpanded? '': 'hidden'}`}
+      <div
+        className={`flex flex-col gap-5.5 z-10 ${shouldShowNote ? '' : 'hidden'}`}
+        style={shouldShowNote && wordAreaWidth ? { width: wordAreaWidth, maxWidth: '100%' } : undefined}
       
       onClick={handleNoteAreaClick}
       >
           <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
       </div>
-      <div>
-      {
-      stropheProps.lines.map((line, lineId) => {
-        return (
-          <div 
-            key={"line_" + lineId}
-            className={expanded && stanzaExpanded && !showNote? `flex` : `hidden`}
-          >
-          {
-            line.words.map((word) => {
-              return (
-                <div
-                  className={`mt-1 mb-1`}
-                  key={word.wordId}
-                >
-                  <WordBlock
-                    key={"word_" + word.wordId}
-                    wordProps={word}
-                  />
-                </div>
-              )
-            })
-          }
-          </div>
-        )
-      })
-      }
+      <div
+        ref={wordAreaRef}
+        className={expanded && stanzaExpanded && !showNote ? '' : 'hidden'}
+      >
+        {
+          stropheProps.lines.map((line, lineId) => {
+            return (
+              <div 
+                key={"line_" + lineId}
+                className={`flex`}
+              >
+              {
+                line.words.map((word) => {
+                  return (
+                    <div
+                      className={`mt-1 mb-1`}
+                      key={word.wordId}
+                    >
+                      <WordBlock
+                        key={"word_" + word.wordId}
+                        wordProps={word}
+                      />
+                    </div>
+                  )
+                })
+              }
+              </div>
+            )
+          })
+        }
       </div>
     </div>
   )
