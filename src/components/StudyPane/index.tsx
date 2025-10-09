@@ -22,8 +22,6 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
-  ctxStudyNotes: "",
-  ctxSetStudyNotes: (args: string) => {},
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
@@ -59,11 +57,7 @@ export const FormatContext = createContext({
   ctxSetPointer: (arg: number) => {},
   ctxAddToHistory: (arg: StudyMetadata) => {},
   ctxLanguageMode: {} as LanguageMode,
-  ctxSetLanguageMode: (arg: LanguageMode) => {},
-  ctxNoteBox: undefined as undefined|DOMRect,
-  ctxSetNoteBox: (arg: undefined|DOMRect) => {},
-  ctxNoteMerge: true,
-  ctxSetNoteMerge: (arg: boolean) => {}
+  ctxSetLanguageMode: (arg: LanguageMode) => {}
 });
 
 const StudyPane = ({
@@ -77,7 +71,6 @@ const StudyPane = ({
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
-  const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
@@ -107,9 +100,6 @@ const StudyPane = ({
   // set default language to English
   const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
 
-  const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
-  const [noteMerge, setNoteMerge] = useState(false);
-
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
     const newHistory = history.slice(0, pointer + 1);
@@ -122,8 +112,6 @@ const StudyPane = ({
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
     ctxSetStudyMetadata: setStudyMetadata,
-    ctxStudyNotes: studyNotes,
-    ctxSetStudyNotes: setStudyNotes,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
@@ -159,11 +147,7 @@ const StudyPane = ({
     ctxSetPointer: setPointer,
     ctxAddToHistory: addToHistory,
     ctxLanguageMode: languageMode,
-    ctxSetLanguageMode: setLanguageMode,
-    ctxNoteBox: noteBox,
-    ctxSetNoteBox: setNoteBox,
-    ctxNoteMerge: noteMerge,
-    ctxSetNoteMerge: setNoteMerge
+    ctxSetLanguageMode: setLanguageMode
   };
 
   useEffect(() => {

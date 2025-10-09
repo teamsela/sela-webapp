@@ -120,7 +120,6 @@ export interface StudyData {
     owner: string | undefined;
     ownerDisplayName?: string;
     ownerAvatarUrl?: string;
-    book: string;
     passage: string;
     public: boolean;
     starred?: boolean;
@@ -128,7 +127,6 @@ export interface StudyData {
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata;
-    notes: string;
 }
 
 export type PassageStaticData = {
@@ -144,7 +142,6 @@ export type FetchStudiesResult = {
 // TO BE DEPRECATED - START
 export type HebWord = {
     id: number;
-    book: string;
     chapter: number;
     verse: number;
     strongNumber: number;

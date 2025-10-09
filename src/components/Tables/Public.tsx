@@ -82,7 +82,7 @@ export default function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
-                    {studyItem.book} {studyItem.passage}
+                    Psalm {studyItem.passage}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

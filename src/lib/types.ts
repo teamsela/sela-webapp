@@ -46,7 +46,6 @@ export enum StructureUpdateType {
 
 export enum InfoPaneActionType {
     none,
-    notes,
     structure,
     motif,
     syntax,
@@ -58,6 +57,3 @@ export enum MotifType {
     identical,
     category,
 }
-
-export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
-export type StudyNotes = { main: string; strophes: StropheNote[] };
