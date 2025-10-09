@@ -50,7 +50,14 @@ export const StropheBlock = ({
     return "";
   }, [ctxStudyNotes, stropheProps.stropheId]);
 
-  const noteTitleLayoutClass = useMemo(() => (ctxIsHebrew ? 'pl-16 text-right' : 'pr-16 text-left'), [ctxIsHebrew]);
+  const noteTitleWrapperClass = useMemo(
+    () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),
+    [ctxIsHebrew]
+  );
+  const noteTitleTextClass = useMemo(
+    () => (ctxIsHebrew ? 'text-right' : 'text-left'),
+    [ctxIsHebrew]
+  );
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
@@ -258,12 +265,14 @@ export const StropheBlock = ({
       >
           <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
       </div>
-      {stropheNoteTitle && !shouldShowNote && (
-        <div
-          className={`mt-2 text-base font-semibold text-black ${noteTitleLayoutClass}`}
-          dir="auto"
-        >
-          {stropheNoteTitle}
+      {stropheNoteTitle && stanzaExpanded && !shouldShowNote && (
+        <div className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+          <span
+            className={`block w-full truncate text-base font-semibold text-black ${noteTitleTextClass}`}
+            dir="auto"
+          >
+            {stropheNoteTitle}
+          </span>
         </div>
       )}
       <div
