@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
       }
       const parsedNotes = JSON.parse(study.notes);
       const parsedRequestNotes = JSON.parse(content.text);
-      console.log(parsedRequestNotes);
       updateStudyNotes(study.id, JSON.stringify(parsedRequestNotes))
       return NextResponse.json({ message: "Saved" }, { status: 200 });
   }
