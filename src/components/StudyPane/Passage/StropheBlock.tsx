@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, StudyNotes } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -18,7 +18,8 @@ export const StropheBlock = ({
   }) => {
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode, ctxSetNoteBox
+    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -33,6 +34,23 @@ export const StropheBlock = ({
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+
+  const stropheNoteTitle = useMemo(() => {
+    if (!ctxStudyNotes) return "";
+    try {
+      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
+      const strophes = Array.isArray(parsed?.strophes) ? parsed!.strophes! : [];
+      const note = strophes?.[stropheProps.stropheId];
+      if (note && typeof note.title === "string" && note.title.trim().length > 0) {
+        return note.title;
+      }
+    } catch {
+      // ignore malformed study notes payloads
+    }
+    return "";
+  }, [ctxStudyNotes, stropheProps.stropheId]);
+
+  const noteTitleLayoutClass = useMemo(() => (ctxIsHebrew ? 'pl-16 text-right' : 'pr-16 text-left'), [ctxIsHebrew]);
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
@@ -240,6 +258,14 @@ export const StropheBlock = ({
       >
           <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
       </div>
+      {stropheNoteTitle && !shouldShowNote && (
+        <div
+          className={`mt-2 text-base font-semibold text-black ${noteTitleLayoutClass}`}
+          dir="auto"
+        >
+          {stropheNoteTitle}
+        </div>
+      )}
       <div
         ref={wordAreaRef}
         className={expanded && stanzaExpanded && !showNote ? '' : 'hidden'}
