@@ -108,7 +108,7 @@ const StudyPane = ({
   const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
-  const [noteMerge, setNoteMerge] = useState(false);
+  const [noteMerge, setNoteMerge] = useState(true);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -307,4 +307,3 @@ const StudyPane = ({
 };
 
 export default StudyPane;
-
