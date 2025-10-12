@@ -285,8 +285,7 @@ export const StropheBlock = ({
       }
     >
       <div
-        className={`z-1 absolute top-0 p-[0.5] m-[0.5] rounded-md shadow-sm ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
-        style={{ background: colorFillLocal, border: 'none' }}
+        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
