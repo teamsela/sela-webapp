@@ -16,6 +16,8 @@ export const StropheBlock = ({
   }: {
     stropheProps: StropheProps, stanzaExpanded: boolean
   }) => {
+
+  const ACTION_ICON_SIZE = 22;
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
@@ -217,6 +219,7 @@ export const StropheBlock = ({
         data-clicktype={'clickable'}
       >
         <LuTextSelect
+          size={ACTION_ICON_SIZE}
           style={{pointerEvents:'none'}}
         />
       </button>
@@ -227,7 +230,7 @@ export const StropheBlock = ({
         className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
         onClick={() => setShowNote(!showNote)}
       >
-        <PiNotePencil />
+        <PiNotePencil size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} />
       </button>
       :
       <></>
@@ -240,9 +243,9 @@ export const StropheBlock = ({
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <IoIosArrowForward style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack style={{pointerEvents:'none'}} /> }
-          { expanded && <IoIosArrowDown style={{pointerEvents:'none'}} /> }
+          { (!expanded && ctxIsHebrew) && <IoIosArrowForward size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
+          { expanded && <IoIosArrowDown size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
         </button>
         :
         <></>
