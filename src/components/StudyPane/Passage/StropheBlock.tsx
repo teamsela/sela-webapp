@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType, StudyNotes } from "@/lib/types";
-import { StropheProps } from '@/lib/data';
+import { ColorData, StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
@@ -71,51 +71,49 @@ export const StropheBlock = ({
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
 
-  //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
+  const persistStropheColor = useCallback(
+    (colorUpdate: Partial<ColorData>) => {
+      const wordMetadata = ctxStudyMetadata.words[firstWordId] ?? (ctxStudyMetadata.words[firstWordId] = {});
+      const stropheMd = wordMetadata.stropheMd ?? (wordMetadata.stropheMd = {});
+      const color = stropheMd.color ?? (stropheMd.color = {});
+      stropheProps.metadata.color = color;
+      Object.assign(color, colorUpdate);
+    },
+    [ctxStudyMetadata, firstWordId, stropheProps]
+  );
+
+  const metadataFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
+  const metadataBorder = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
+
   useEffect(() => {
-    if (stropheProps.metadata?.color) {
-      //when bug occurs this did not fire
-      //bug does not occur when mode switch happen while colour picker is on
-      console.log('if true stropheProps.metadata?.color set color')
-      const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
-      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
-
-      const selectedBorderColor = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
-      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
-    }
-    else {
-      //when bug occurs this is fired
-      console.log('else stropheProps.metadata?.color set color')
-      setColorFillLocal(DEFAULT_COLOR_FILL);
-      setBorderColorLocal(DEFAULT_BORDER_COLOR);
-    }
-
-  }, [stropheProps.metadata?.color, colorFillLocal, borderColorLocal]);
+    setColorFillLocal((prev) => (prev === metadataFill ? prev : metadataFill));
+    setBorderColorLocal((prev) => (prev === metadataBorder ? prev : metadataBorder));
+  }, [metadataFill, metadataBorder]);
 
   useEffect(() => {
     if (ctxColorAction != ColorActionType.none ) {
       if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
         setColorFillLocal(ctxSelectedColor);
-        (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = ctxSelectedColor);
+        persistStropheColor({ fill: ctxSelectedColor });
       }
       else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
         setBorderColorLocal(ctxSelectedColor);
-        (stropheProps.metadata.color) && (stropheProps.metadata.color.border = ctxSelectedColor);
+        persistStropheColor({ border: ctxSelectedColor });
       }
       else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
         if (colorFillLocal != DEFAULT_COLOR_FILL) {
           setColorFillLocal(DEFAULT_COLOR_FILL);
-          (stropheProps.metadata.color) && (stropheProps.metadata.color.fill = DEFAULT_COLOR_FILL);
+          persistStropheColor({ fill: DEFAULT_COLOR_FILL });
         }
         if (borderColorLocal != DEFAULT_BORDER_COLOR) {
           setBorderColorLocal(DEFAULT_BORDER_COLOR);
-          (stropheProps.metadata.color) && (stropheProps.metadata.color.border = DEFAULT_BORDER_COLOR);
+          persistStropheColor({ border: DEFAULT_BORDER_COLOR });
         }
       }
     }
     //if (strophe.colorFill != colorFillLocal) { setColorFillLocal(strophe.colorFill || DEFAULT_COLOR_FILL) }
     //if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
-  }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor]);
+  }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor, persistStropheColor]);
   
   useEffect(() => {
     setSelected(ctxSelectedStrophes.some(stropie => stropie.stropheId === stropheProps.stropheId));
@@ -205,6 +203,7 @@ export const StropheBlock = ({
           maxWidth: '100%',
           minHeight: minNoteHeight,
           height: noteContainerHeight,
+          background: colorFillLocal,
         };
         if (typeof effectiveNoteWidth === 'number') {
           style.width = effectiveNoteWidth;
@@ -236,7 +235,7 @@ export const StropheBlock = ({
       }
     >
       <div
-        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-white border border-stroke rounded-md shadow-sm ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
@@ -278,7 +277,7 @@ export const StropheBlock = ({
       }
       </div>
       <div
-        className={`flex flex-col gap-5.5 z-10 ${shouldShowNote ? '' : 'hidden'}`}
+        className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'}`}
         style={noteContainerStyle}
       
       onClick={handleNoteAreaClick}
