@@ -38,6 +38,8 @@ export const StropheBlock = ({
   const wordAreaRef = useRef<HTMLDivElement | null>(null);
   const [wordAreaWidth, setWordAreaWidth] = useState<number | null>(null);
   const [wordAreaHeight, setWordAreaHeight] = useState<number | null>(null);
+  const noteTitleRef = useRef<HTMLDivElement | null>(null);
+  const [noteTitleHeight, setNoteTitleHeight] = useState<number>(0);
   const firstWordId = stropheProps.lines[0].words[0].wordId;
   const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
@@ -202,11 +204,48 @@ export const StropheBlock = ({
   }, [stanzaExpanded, expanded]);
 
   const shouldShowNote = showNote && expanded && stanzaExpanded;
+  useEffect(() => {
+    if (!stropheNoteTitle || shouldShowNote) {
+      if (!stropheNoteTitle) {
+        setNoteTitleHeight(0);
+      }
+      return;
+    }
+    if (typeof ResizeObserver === "undefined") return;
+    const el = noteTitleRef.current;
+    if (!el) return;
+
+    const updateNoteTitleHeight = () => {
+      const rect = el.getBoundingClientRect();
+      let total = rect.height;
+      if (typeof window !== "undefined") {
+        const style = window.getComputedStyle(el);
+        const marginTop = parseFloat(style.marginTop || "0");
+        const marginBottom = parseFloat(style.marginBottom || "0");
+        if (!Number.isNaN(marginTop)) {
+          total += marginTop;
+        }
+        if (!Number.isNaN(marginBottom)) {
+          total += marginBottom;
+        }
+      }
+      setNoteTitleHeight(total);
+    };
+
+    updateNoteTitleHeight();
+    const observer = new ResizeObserver(() => updateNoteTitleHeight());
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [stropheNoteTitle, shouldShowNote]);
 
   const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
   const effectiveNoteWidth = maxStanzaNoteWidth ?? wordAreaWidth ?? undefined;
+  // Keep notes view height aligned with the word view (including any rendered title).
+  const combinedWordHeight = (wordAreaHeight ?? 0) + ((stropheNoteTitle && stanzaExpanded) ? noteTitleHeight : 0);
   const noteContainerHeight = shouldShowNote
-    ? Math.max(minNoteHeight, wordAreaHeight ?? 0)
+    ? Math.max(minNoteHeight, combinedWordHeight)
     : undefined;
   const noteContainerStyle = shouldShowNote
     ? (() => {
@@ -292,13 +331,12 @@ export const StropheBlock = ({
       <div
         className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'}`}
         style={noteContainerStyle}
-      
-      onClick={handleNoteAreaClick}
+        onClick={handleNoteAreaClick}
       >
           <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
       </div>
       {stropheNoteTitle && stanzaExpanded && !shouldShowNote && (
-        <div className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+        <div ref={noteTitleRef} className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
           <span
             className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
             dir="auto"
