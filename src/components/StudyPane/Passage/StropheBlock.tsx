@@ -94,6 +94,8 @@ export const StropheBlock = ({
   const metadataFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
   const metadataBorder = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
 
+
+
   useEffect(() => {
     setColorFillLocal((prev) => (prev === metadataFill ? prev : metadataFill));
     setBorderColorLocal((prev) => (prev === metadataBorder ? prev : metadataBorder));
