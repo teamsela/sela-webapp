@@ -12,9 +12,15 @@ import { LanguageContext } from './PassageBlock';
 import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
 
 export const StropheBlock = ({
-    stropheProps, stanzaExpanded
+    stropheProps,
+    stanzaExpanded,
+    maxStanzaNoteWidth,
+    onWordAreaWidthChange,
   }: {
-    stropheProps: StropheProps, stanzaExpanded: boolean
+    stropheProps: StropheProps,
+    stanzaExpanded: boolean,
+    maxStanzaNoteWidth?: number,
+    onWordAreaWidthChange?: (stropheId: number, width: number) => void
   }) => {
 
   const ACTION_ICON_SIZE = 22;
@@ -180,6 +186,7 @@ export const StropheBlock = ({
   const shouldShowNote = showNote && expanded && stanzaExpanded;
 
   const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
+  const effectiveNoteWidth = maxStanzaNoteWidth ?? wordAreaWidth ?? undefined;
   const noteContainerHeight = shouldShowNote
     ? Math.max(minNoteHeight, wordAreaHeight ?? 0)
     : undefined;
@@ -190,12 +197,22 @@ export const StropheBlock = ({
           minHeight: minNoteHeight,
           height: noteContainerHeight,
         };
-        if (wordAreaWidth) {
-          style.width = wordAreaWidth;
+        if (typeof effectiveNoteWidth === 'number') {
+          style.width = effectiveNoteWidth;
         }
         return style;
       })()
     : undefined;
+
+  useEffect(() => {
+    if (!onWordAreaWidthChange) {
+      return;
+    }
+    if (wordAreaWidth === null || wordAreaWidth <= 0) {
+      return;
+    }
+    onWordAreaWidthChange(stropheProps.stropheId, wordAreaWidth);
+  }, [onWordAreaWidthChange, stropheProps.stropheId, wordAreaWidth]);
 
   
   return (

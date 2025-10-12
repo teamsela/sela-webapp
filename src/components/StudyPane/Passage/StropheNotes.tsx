@@ -1,13 +1,25 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
+import { LanguageContext } from "./PassageBlock";
 
 export const STROPHE_NOTE_TITLE_MIN_HEIGHT = 44;
 export const STROPHE_NOTE_TEXT_MIN_HEIGHT = 104;
 export const STROPHE_NOTE_VERTICAL_GAP = 22;
 
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxNoteMerge, ctxSetNoteMerge } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxStudyNotes,
+    ctxSetStudyNotes,
+    ctxPassageProps,
+    ctxNoteMerge,
+    ctxSetNoteMerge,
+    ctxActiveNotesPane,
+    ctxSetActiveNotesPane
+  } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext);
+  const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
@@ -27,33 +39,50 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   
+  const claimActivePane = useCallback(() => {
+    if (ctxActiveNotesPane !== viewId) {
+      ctxSetActiveNotesPane(viewId);
+    }
+  }, [ctxActiveNotesPane, ctxSetActiveNotesPane, viewId]);
 
+  const localPayloadRef = useRef<string | null>(null);
   const hydratedKeyRef = useRef<string | null>(null);
   const notesVersionRef = useRef(0);
   const lastNotesStrRef = useRef<string | null>(null);
   if (lastNotesStrRef.current !== ctxStudyNotes) {
-  notesVersionRef.current += 1;
-  lastNotesStrRef.current = ctxStudyNotes ?? null;
-}
+    notesVersionRef.current += 1;
+    lastNotesStrRef.current = ctxStudyNotes ?? null;
+  }
 
   useEffect(() => {
-  if (!ctxStudyNotes) return;
+    if (!ctxStudyNotes) return;
 
-  const key = `${stropheId}@${notesVersionRef.current}`;
-  if (hydratedKeyRef.current === key) return;
-  if (!ctxNoteMerge) return;
+    const key = `${stropheId}@${notesVersionRef.current}`;
+    if (hydratedKeyRef.current === key && !ctxNoteMerge) return;
 
-  try {
-    const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
-    const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
-    setTitle(s?.title ?? "");
-    setText(s?.text ?? "");
-    hydratedKeyRef.current = key;
-    ctxSetNoteMerge(false);
-  } catch {
-    // ignore parse errors
-  }
-}, [ctxStudyNotes, stropheId]);
+    const isLocalPayload = localPayloadRef.current === ctxStudyNotes;
+    if (!ctxNoteMerge && ctxActiveNotesPane === viewId && isLocalPayload) {
+      hydratedKeyRef.current = key;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
+      const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
+      setTitle(s?.title ?? "");
+      setText(s?.text ?? "");
+      hydratedKeyRef.current = key;
+    } catch {
+      // ignore parse errors
+    } finally {
+      if (ctxNoteMerge) {
+        ctxSetNoteMerge(false);
+      }
+      if (isLocalPayload) {
+        localPayloadRef.current = null;
+      }
+    }
+  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge]);
 
 const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
@@ -97,17 +126,21 @@ async (payload: string, { keepalive = false } = {}) => {
 
   const next: StudyNotes = { ...parsed, strophes };
   return JSON.stringify(next);
-}, [ctxStudyNotes, stropheId, title, text]);
+}, [ctxStudyNotes, stropheId, title, text, firstWordId, lastWordId]);
 
 useEffect(() => {
   if (!ctxStudyNotes) return;
+  if (ctxActiveNotesPane !== viewId) return;
 
   if (timeoutRef.current) clearTimeout(timeoutRef.current);
   const payload = buildPayload();
   pendingPayloadRef.current = payload;
 
   // Guard to avoid useless updates:
-  if (payload !== ctxStudyNotes) ctxSetStudyNotes(payload);
+  if (payload !== ctxStudyNotes) {
+    localPayloadRef.current = payload;
+    ctxSetStudyNotes(payload);
+  }
 
   timeoutRef.current = setTimeout(() => {
     saveNow(payload, { keepalive: false });
@@ -116,7 +149,7 @@ useEffect(() => {
   return () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
-}, [buildPayload, ctxStudyNotes, ctxSetStudyNotes, saveNow]);
+}, [buildPayload, ctxStudyNotes, ctxSetStudyNotes, saveNow, ctxActiveNotesPane, viewId]);
 
 // 5) Flush on hide/unload
 useEffect(() => {
@@ -145,7 +178,11 @@ useEffect(() => {
       <textarea
         rows={1}
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          claimActivePane();
+          setTitle(e.target.value);
+        }}
+        onFocus={claimActivePane}
         placeholder="Your title here..."
         className="resize-none w-full flex-shrink-0 rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
@@ -154,7 +191,11 @@ useEffect(() => {
       <textarea
         rows={3}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => {
+          claimActivePane();
+          setText(e.target.value);
+        }}
+        onFocus={claimActivePane}
         placeholder="Your notes here..."
         className="resize-none w-full flex-1 rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
