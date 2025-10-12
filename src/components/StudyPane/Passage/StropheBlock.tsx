@@ -10,7 +10,7 @@ import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
 import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
-import { getReadableThemeVariant } from '@/lib/color';
+import { getReadableThemeVariant, getReadableTextColor } from '@/lib/color';
 
 const THEME_BASE_COLOR = "#D9D9D9";
 
@@ -90,6 +90,11 @@ export const StropheBlock = ({
 
   const actionIconColor = useMemo(
     () => getReadableThemeVariant(THEME_BASE_COLOR, colorFillLocal || DEFAULT_COLOR_FILL),
+    [colorFillLocal]
+  );
+
+  const noteTitleColor = useMemo(
+    () => getReadableTextColor(colorFillLocal || DEFAULT_COLOR_FILL),
     [colorFillLocal]
   );
 
@@ -296,7 +301,8 @@ export const StropheBlock = ({
       {stropheNoteTitle && stanzaExpanded && !shouldShowNote && (
         <div className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
           <span
-            className={`block w-full truncate text-base font-semibold text-black ${noteTitleTextClass}`}
+            className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+            style={{ color: noteTitleColor }}
             dir="auto"
           >
             {stropheNoteTitle}

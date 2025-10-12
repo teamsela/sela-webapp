@@ -109,3 +109,20 @@ export const getReadableThemeVariant = (
 
   return contrastWithLight >= contrastWithDark ? themeLight : themeDark;
 };
+
+export const getReadableTextColor = (
+  backgroundColor: string,
+  options?: { lightColor?: string; darkColor?: string }
+) => {
+  const { lightColor = "#FFFFFF", darkColor = "#1C2434" } = options ?? {};
+
+  const background = backgroundColor || "#FFFFFF";
+  const contrastWithLight = getContrastRatio(lightColor, background);
+  const contrastWithDark = getContrastRatio(darkColor, background);
+
+  if (contrastWithLight === 0 && contrastWithDark === 0) {
+    return darkColor;
+  }
+
+  return contrastWithLight > contrastWithDark ? lightColor : darkColor;
+};
