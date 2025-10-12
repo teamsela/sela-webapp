@@ -10,6 +10,9 @@ import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
 import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
+import { getReadableThemeVariant } from '@/lib/color';
+
+const THEME_BASE_COLOR = "#D9D9D9";
 
 export const StropheBlock = ({
     stropheProps,
@@ -84,6 +87,11 @@ export const StropheBlock = ({
 
   const metadataFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
   const metadataBorder = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
+
+  const actionIconColor = useMemo(
+    () => getReadableThemeVariant(THEME_BASE_COLOR, colorFillLocal || DEFAULT_COLOR_FILL),
+    [colorFillLocal]
+  );
 
   useEffect(() => {
     setColorFillLocal((prev) => (prev === metadataFill ? prev : metadataFill));
@@ -235,7 +243,7 @@ export const StropheBlock = ({
       }
     >
       <div
-        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-white border border-stroke rounded-md shadow-sm ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
@@ -245,6 +253,7 @@ export const StropheBlock = ({
       >
         <LuTextSelect
           size={ACTION_ICON_SIZE}
+          color={actionIconColor}
           style={{pointerEvents:'none'}}
         />
       </button>
@@ -255,7 +264,7 @@ export const StropheBlock = ({
         className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
         onClick={() => setShowNote(!showNote)}
       >
-        <PiNotePencil size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} />
+        <PiNotePencil size={ACTION_ICON_SIZE} color={actionIconColor} style={{pointerEvents:'none'}} />
       </button>
       :
       <></>
@@ -268,9 +277,9 @@ export const StropheBlock = ({
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <IoIosArrowForward size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
-          { expanded && <IoIosArrowDown size={ACTION_ICON_SIZE} style={{pointerEvents:'none'}} /> }
+          { (!expanded && ctxIsHebrew) && <IoIosArrowForward size={ACTION_ICON_SIZE} color={actionIconColor} style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack size={ACTION_ICON_SIZE} color={actionIconColor} style={{pointerEvents:'none'}} /> }
+          { expanded && <IoIosArrowDown size={ACTION_ICON_SIZE} color={actionIconColor} style={{pointerEvents:'none'}} /> }
         </button>
         :
         <></>
