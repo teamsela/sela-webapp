@@ -7,10 +7,16 @@ export enum ColorActionType {
     resetAllColor
 }
 
+// Box display style options
 export enum BoxDisplayStyle {
-    noBox,
-    box,
-    uniformBoxes
+    noBox,          // No boxes around words
+    box,            // Show boxes with variable width
+    uniformBoxes    // Show boxes with uniform width
+}
+
+// Box display configuration using enum
+export interface BoxDisplayConfig {
+    style: BoxDisplayStyle;
 }
 
 export enum LanguageMode {

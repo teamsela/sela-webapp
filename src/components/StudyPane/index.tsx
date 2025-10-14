@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -44,7 +44,7 @@ export const FormatContext = createContext({
   ctxSetBorderColor: (arg: string) => {},
   ctxTextColor: "" as string,
   ctxSetTextColor: (arg: string) => {},
-  ctxBoxDisplayStyle: {} as BoxDisplayStyle,
+  ctxBoxDisplayConfig: {} as BoxDisplayConfig,
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
@@ -92,7 +92,7 @@ const StudyPane = ({
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-  const [boxDisplayStyle, setBoxDisplayStyle] = useState(BoxDisplayStyle.noBox);
+  const [boxDisplayConfig, setBoxDisplayConfig] = useState<BoxDisplayConfig>({ style: BoxDisplayStyle.box });
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
@@ -146,7 +146,7 @@ const StudyPane = ({
     ctxSetBorderColor: setBorderColor,
     ctxTextColor: textColor,
     ctxSetTextColor: setTextColor,
-    ctxBoxDisplayStyle: boxDisplayStyle,
+    ctxBoxDisplayConfig: boxDisplayConfig,
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
@@ -171,7 +171,25 @@ const StudyPane = ({
     // merge custom metadata with bible data
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
-    setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
+    
+    // Handle migration from old BoxDisplayStyle enum to new BoxDisplayConfig
+    let boxConfig = studyMetadata.boxStyle;
+    if (boxConfig && typeof boxConfig === 'number') {
+      // This is the old enum format, convert it
+      const oldStyle = boxConfig as any; // BoxDisplayStyle enum
+      if (oldStyle === 0) { // noBox
+        boxConfig = { style: BoxDisplayStyle.noBox };
+      } else if (oldStyle === 1) { // box
+        boxConfig = { style: BoxDisplayStyle.box };
+      } else if (oldStyle === 2) { // uniformBoxes
+        boxConfig = { style: BoxDisplayStyle.uniformBoxes };
+      }
+      // Update the metadata with the new format
+      studyMetadata.boxStyle = boxConfig;
+      updateMetadataInDb(passageData.study.id, studyMetadata);
+    }
+    
+    setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
     setLanguageMode(studyMetadata.lang || LanguageMode.English);
   
   }, [passageData.bibleData, studyMetadata]);
@@ -273,7 +291,7 @@ const StudyPane = ({
           setScaleValue={setScaleValue}
           setColorAction={setColorAction}
           setSelectedColor={setSelectedColor}
-          setBoxStyle={setBoxDisplayStyle}
+          setBoxStyle={setBoxDisplayConfig}
           setCloneStudyOpen={setCloneStudyOpen}
         />
 

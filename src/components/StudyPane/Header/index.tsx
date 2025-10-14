@@ -12,7 +12,7 @@ import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
-import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
+import { BoxDisplayConfig, InfoPaneActionType } from "@/lib/types";
 
 
 const Header = ({
@@ -33,7 +33,7 @@ const Header = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setBoxStyle: (arg: BoxDisplayStyle) => void;  
+  setBoxStyle: (arg: BoxDisplayConfig) => void;  
   setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
