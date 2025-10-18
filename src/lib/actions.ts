@@ -657,37 +657,103 @@ export async function fetchPassageData(studyId: string) {
           .sort("hebId", "asc")
           .getAll();
 
-        const hebrewForms = new Set<string>();
-        passageContent.forEach(word => {
-          if (word.wlcWord) {
-            hebrewForms.add(word.wlcWord);
+        const uniqueStrongNumbers = new Set<number>();
+        passageContent.forEach((word) => {
+          if (word.strongNumber) {
+            uniqueStrongNumbers.add(word.strongNumber);
           }
         });
 
-        type StepBibleWordInfo = Pick<StepbibleTbeshRecord, "Hebrew" | "Transliteration" | "Gloss" | "Meaning" | "eStrong" | "dStrong" | "uStrong">;
+        type StepBibleWordInfo = Pick<
+          StepbibleTbeshRecord,
+          "Hebrew" | "Transliteration" | "Gloss" | "Meaning" | "Morph" | "eStrong" | "dStrong" | "uStrong"
+        >;
 
-        const stepBibleMap = new Map<string, StepBibleWordInfo>();
+        const stepBibleMap = new Map<number, StepBibleWordInfo>();
+        const STEP_BIBLE_COLUMNS = [
+          "Hebrew",
+          "Transliteration",
+          "Gloss",
+          "Meaning",
+          "Morph",
+          "eStrong",
+          "dStrong",
+          "uStrong",
+        ] as const;
 
-        await Promise.all(Array.from(hebrewForms).map(async (form) => {
+        const formatStrongCode = (strongNumber: number) =>
+          `H${Math.trunc(strongNumber).toString().padStart(4, "0")}`;
+
+        const getStrongCodeVariants = (strongNumber: number) => {
+          const truncated = Math.trunc(strongNumber);
+          const numeric = truncated.toString();
+
+          return Array.from(
+            new Set([
+              `H${numeric}`,
+              `H${numeric.padStart(4, "0")}`,
+              `H${numeric.padStart(5, "0")}`,
+            ])
+          );
+        };
+
+        const fetchRecordForCode = async (filter: Record<string, unknown>) => {
           const record = await xataClient.db.stepbible_tbesh
-            .filter({ Hebrew: form })
-            .select(["Hebrew", "Transliteration", "Gloss", "Meaning", "eStrong", "dStrong", "uStrong"])
+            .filter(filter)
+            .select(STEP_BIBLE_COLUMNS)
             .getFirst();
 
-          if (record) {
-            const { Hebrew, Transliteration, Gloss, Meaning, eStrong, dStrong, uStrong } = record;
+          return (record ?? undefined) as StepBibleWordInfo | undefined;
+        };
 
-            stepBibleMap.set(form, {
-              Hebrew,
-              Transliteration,
-              Gloss,
-              Meaning,
-              eStrong,
-              dStrong,
-              uStrong,
-            });
+        const fetchStepBibleRecord = async (strongNumber: number) => {
+          const strongCodes = getStrongCodeVariants(strongNumber);
+
+          for (const code of strongCodes) {
+            const record = await fetchRecordForCode({ eStrong: code });
+            if (record) {
+              return record;
+            }
           }
-        }));
+
+          for (const code of strongCodes) {
+            const record = await fetchRecordForCode({ dStrong: { $startsWith: code } });
+            if (record) {
+              return record;
+            }
+          }
+
+          for (const code of strongCodes) {
+            const record = await fetchRecordForCode({ uStrong: { $startsWith: code } });
+            if (record) {
+              return record;
+            }
+          }
+
+          return undefined;
+        };
+
+        await Promise.all(
+          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
+            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+
+            if (preferredRecord) {
+              const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } =
+                preferredRecord;
+
+              stepBibleMap.set(strongNumber, {
+                Hebrew,
+                Transliteration,
+                Gloss,
+                Meaning,
+                Morph,
+                eStrong,
+                dStrong,
+                uStrong,
+              });
+            }
+          })
+        );
 
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
@@ -719,15 +785,19 @@ export async function fetchPassageData(studyId: string) {
             //console.log(hebWord.motifData);
           }
 
-          const wordInfo = stepBibleMap.get(word.wlcWord || "");
-          const defaultStrong = word.strongNumber ? `H${word.strongNumber.toString().padStart(4, '0')}` : "";
+          const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
+          const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
           hebWord.wordInformation = {
             hebrew: wordInfo?.Hebrew || word.wlcWord || "",
-            transliteration: wordInfo?.Transliteration || "",
+            transliteration: wordInfo?.Transliteration?.trim() || "",
             gloss: wordInfo?.Gloss?.trim() || hebWord.gloss,
-            morphology: word.morphology || "",
-            strongsNumber: wordInfo?.eStrong || wordInfo?.dStrong || wordInfo?.uStrong || defaultStrong,
-            meaning: wordInfo?.Meaning || "",
+            morphology: wordInfo?.Morph?.trim() || word.morphology?.trim() || "",
+            strongsNumber:
+              wordInfo?.eStrong?.trim() ||
+              wordInfo?.dStrong?.trim() ||
+              wordInfo?.uStrong?.trim() ||
+              defaultStrong,
+            meaning: wordInfo?.Meaning?.trim() || "",
           };
 
           passageData.bibleData.push(hebWord);
