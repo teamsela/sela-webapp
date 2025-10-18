@@ -843,10 +843,8 @@ export async function fetchPassageContentOld(studyId: string) {
 
     if (study)
     {
-      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
-      if (!study.book) {
-        throw new Error("Book is not defined")
-      }
+      const book = (study.book ?? 'psalms').toLowerCase();
+      const passageInfo = parsePassageInfo(study.passage, book);
 
       // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
