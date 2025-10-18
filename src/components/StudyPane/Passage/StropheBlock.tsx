@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
+import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType } from "@/lib/types";
+import { ColorActionType, StudyNotes } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
+import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
 
 export const StropheBlock = ({
     stropheProps, stanzaExpanded
@@ -16,15 +18,50 @@ export const StropheBlock = ({
   }) => {
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor, ctxInViewMode
+    ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
+  const [showNote, setShowNote] = useState(false);
+  const wordAreaRef = useRef<HTMLDivElement | null>(null);
+  const [wordAreaWidth, setWordAreaWidth] = useState<number | null>(null);
+  const [wordAreaHeight, setWordAreaHeight] = useState<number | null>(null);
+  const firstWordId = stropheProps.lines[0].words[0].wordId;
+  const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+
+  const stropheNoteTitle = useMemo(() => {
+    if (!ctxStudyNotes) return "";
+    try {
+      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
+      const strophes = Array.isArray(parsed?.strophes) ? parsed!.strophes! : [];
+      const note = strophes?.[stropheProps.stropheId];
+      if (note && typeof note.title === "string" && note.title.trim().length > 0) {
+        return note.title;
+      }
+    } catch {
+      // ignore malformed study notes payloads
+    }
+    return "";
+  }, [ctxStudyNotes, stropheProps.stropheId]);
+
+  const noteTitleWrapperClass = useMemo(
+    () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),
+    [ctxIsHebrew]
+  );
+  const noteTitleTextClass = useMemo(
+    () => (ctxIsHebrew ? 'text-right' : 'text-left'),
+    [ctxIsHebrew]
+  );
+
+  const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
+  }
 
   //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
   useEffect(() => {
@@ -103,8 +140,10 @@ export const StropheBlock = ({
 
     stropheProps.metadata.expanded = !expanded;
     const firstWordIdinStrophe = stropheProps.lines[0].words[0].wordId;
-    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd ??= {};
-    ctxStudyMetadata.words[firstWordIdinStrophe].stropheMd.expanded = stropheProps.metadata.expanded;
+    ctxStudyMetadata.words[firstWordIdinStrophe] ??= {};
+    const firstWordMetadata = ctxStudyMetadata.words[firstWordIdinStrophe];
+    firstWordMetadata.stropheMd ??= {};
+    firstWordMetadata.stropheMd.expanded = stropheProps.metadata.expanded;
 
     if (!ctxInViewMode) {
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
@@ -122,7 +161,50 @@ export const StropheBlock = ({
     }    
   }, [stropheProps.metadata.expanded])
 
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const el = wordAreaRef.current;
+    if (!el) return;
 
+    const updateMetrics = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0) {
+        setWordAreaWidth(rect.width);
+      }
+      if (rect.height > 0) {
+        setWordAreaHeight(rect.height);
+      }
+    };
+
+    updateMetrics();
+    const observer = new ResizeObserver(() => updateMetrics());
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [stanzaExpanded, expanded]);
+
+  const shouldShowNote = showNote && expanded && stanzaExpanded;
+
+  const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
+  const noteContainerHeight = shouldShowNote
+    ? Math.max(minNoteHeight, wordAreaHeight ?? 0)
+    : undefined;
+  const noteContainerStyle = shouldShowNote
+    ? (() => {
+        const style: React.CSSProperties = {
+          maxWidth: '100%',
+          minHeight: minNoteHeight,
+          height: noteContainerHeight,
+        };
+        if (wordAreaWidth) {
+          style.width = wordAreaWidth;
+        }
+        return style;
+      })()
+    : undefined;
+
+  
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
@@ -139,7 +221,7 @@ export const StropheBlock = ({
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
-        className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+        className={`${stanzaExpanded?'py-2 my-1 px-[0.5] mx-[0.5]':'p-2 m-1'}  hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
@@ -148,10 +230,22 @@ export const StropheBlock = ({
         />
       </button>
       {
+      expanded && stanzaExpanded?
+      <button
+        key={"strophe" + stropheProps.stropheId + "notepad"}
+        className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
+        onClick={() => setShowNote(!showNote)}
+      >
+        <PiNotePencil />
+      </button>
+      :
+      <></>
+      }
+      {
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
-          className={`p-2 m-1 hover:bg-theme active:bg-transparent`}
+          className={`py-2 my-1 px-[0.5] mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -163,12 +257,34 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      {
+      <div
+        className={`flex flex-col gap-5.5 z-10 ${shouldShowNote ? '' : 'hidden'}`}
+        style={noteContainerStyle}
+      
+      onClick={handleNoteAreaClick}
+      >
+          <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
+      </div>
+      {stropheNoteTitle && stanzaExpanded && !shouldShowNote && (
+        <div className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+          <span
+            className={`block w-full truncate text-base font-semibold text-black ${noteTitleTextClass}`}
+            dir="auto"
+          >
+            {stropheNoteTitle}
+          </span>
+        </div>
+      )}
+      <div
+        ref={wordAreaRef}
+        className={expanded && stanzaExpanded && !showNote ? '' : 'hidden'}
+      >
+        {
           stropheProps.lines.map((line, lineId) => {
             return (
-              <div
+              <div 
                 key={"line_" + lineId}
-                className={expanded && stanzaExpanded ? `flex` : `hidden`}
+                className={`flex`}
               >
               {
                 line.words.map((word) => {
@@ -181,14 +297,15 @@ export const StropheBlock = ({
                         key={"word_" + word.wordId}
                         wordProps={word}
                       />
-                    </div>           
+                    </div>
                   )
                 })
               }
               </div>
             )
           })
-      }
+        }
+      </div>
     </div>
   )
 }

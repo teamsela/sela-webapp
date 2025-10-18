@@ -7,10 +7,16 @@ export enum ColorActionType {
     resetAllColor
 }
 
+// Box display style options
 export enum BoxDisplayStyle {
-    noBox,
-    box,
-    uniformBoxes
+    noBox,          // No boxes around words
+    box,            // Show boxes with variable width
+    uniformBoxes    // Show boxes with uniform width
+}
+
+// Box display configuration using enum
+export interface BoxDisplayConfig {
+    style: BoxDisplayStyle;
 }
 
 export enum LanguageMode {
@@ -46,6 +52,7 @@ export enum StructureUpdateType {
 
 export enum InfoPaneActionType {
     none,
+    notes,
     structure,
     motif,
     syntax,
@@ -57,3 +64,6 @@ export enum MotifType {
     identical,
     category,
 }
+
+export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
+export type StudyNotes = { main: string; strophes: StropheNote[] };

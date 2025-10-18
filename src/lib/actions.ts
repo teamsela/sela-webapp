@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getXataClient, StudyRecord, HebBibleRecord, StepbibleTbeshRecord } from '@/xata';
-import { ge, le } from "@xata.io/client";
+import { equals, ge, le } from "@xata.io/client";
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
+import { equal } from 'assert';
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -40,10 +41,12 @@ export async function fetchStudyById(studyId: string) {
           id: studyId,
           name: study?.name || "",
           owner: study?.owner || "",
+          book: study?.book || "", 
           passage: study?.passage || "",
           public: study?.public || false,
           model: study?.model || false,
-          metadata: study?.metadata || {}
+          metadata: study?.metadata || {},
+          notes: study?.notes || ""
       };
 
       return result;
@@ -60,6 +63,16 @@ export async function updateStudyName(id: string, studyName: string) {
     await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
   } catch (error) {
     return { message: 'Database Error: Failed to update study name.' };
+  }
+}
+
+export async function updateStudyNotes(id: string, content: string) {
+  
+  const xataClient = getXataClient();
+  try {
+    await xataClient.db.study.updateOrThrow({ id: id, notes: content})
+  } catch (error) {
+    return { message: "Database Error: Failed to update study notes"}
   }
 }
 
@@ -467,7 +480,7 @@ export async function deleteStudy(studyId: string) {
   }
 }
 
-export async function createStudy(passage: string) {
+export async function createStudy(passage: string, book: string) {
 
   const user = await currentUser();
 
@@ -476,7 +489,7 @@ export async function createStudy(passage: string) {
     var record : StudyRecord;
     const xataClient = getXataClient();
     try {
-      record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, owner: user.id });
+      record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, book:book, owner: user.id });
     } catch (error) {
       return { message: 'Database Error: Failed to Create Study.' };
     }
@@ -494,7 +507,7 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
     var record : StudyRecord;
     const xataClient = getXataClient();
     try {
-      record = await xataClient.db.study.create({ name: newName, passage: originalStudy.passage, owner: user.id, metadata: originalStudy.metadata });
+      record = await xataClient.db.study.create({ name: newName, book: originalStudy.book, passage: originalStudy.passage, owner: user.id, metadata: originalStudy.metadata });
     } catch (error) {
       return { message: 'Database Error: Failed to Clone Study.' };
     }
@@ -543,11 +556,12 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
       id: studyRecord.id, name: studyRecord.name, owner: user?.id, 
       ownerDisplayName: thisUser?.id === studyRecord.owner ? "me" : mp.get(studyRecord.owner)?.firstName + " " + mp.get(studyRecord.owner)?.lastName,  
       ownerAvatarUrl: mp.get(studyRecord.owner)?.imageUrl,
-      passage: studyRecord.passage, 
+      passage: studyRecord.passage, book: studyRecord.book!,
       public: studyRecord.public || false, starred: studyRecord.starred || false,
       lastUpdated: studyRecord.xata.updatedAt, 
       createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata })
+      metadata: studyRecord.metadata,
+      notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -574,11 +588,12 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
 
   search.records.map((studyRecord) => {   
     searchResult.records.push({
-      id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, book: studyRecord.book || "", passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
       lastUpdated: studyRecord.xata.updatedAt, 
       createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata })
+      metadata: studyRecord.metadata,
+      notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -614,9 +629,9 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
   
   search.records.map((studyRecord) => {   
     searchResult.records.push({
-      id: studyRecord.id, name: studyRecord.name, owner: user?.id, passage: studyRecord.passage, 
+      id: studyRecord.id, name: studyRecord.name, owner: user?.id, book: studyRecord.book || "", passage: studyRecord.passage, 
       public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata })
+      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata, notes: studyRecord.notes || "" })
   });
   searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
   return searchResult;
@@ -633,22 +648,25 @@ export async function fetchPassageData(studyId: string) {
       id: studyId,
       name: study?.name || "",
       owner: study?.owner || "",
+      book: study?.book || "",
       passage: study?.passage || "",
       public: study?.public || false,
       model: study?.model || false,
-      metadata: study?.metadata || {}
+      metadata: study?.metadata || {},
+      notes: study?.notes || ""
     };
 
     let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
 
     if (study)
     {
-      const passageInfo = parsePassageInfo(study.passage);
-
+      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
+      console.log(passageInfo)
       // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
       {
-        const passageContent = await xataClient.db.heb_bible
+        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
+          .filter("book", equals(passageInfo.book))
           .filter("chapter", ge(passageInfo.startChapter))
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
@@ -825,7 +843,10 @@ export async function fetchPassageContentOld(studyId: string) {
 
     if (study)
     {
-      const passageInfo = parsePassageInfo(study.passage);
+      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
+      if (!study.book) {
+        throw new Error("Book is not defined")
+      }
 
       // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
@@ -860,7 +881,8 @@ export async function fetchPassageContentOld(studyId: string) {
           stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
-        const passageContent = await xataClient.db.heb_bible
+        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
+          .filter("book", equals(passageInfo.book))
           .filter("chapter", ge(passageInfo.startChapter))
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
@@ -1030,3 +1052,14 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
     throw new Error('Failed to fetch passage text from ESV API endpoint (error ' + error);
   }
 };
+
+export async function fetchStudyOwner(studyId: string) {
+  const xataClient = getXataClient();
+  try {
+    const study = await xataClient.db.study.read(studyId);
+    return study?.owner ?? null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch study owner.');
+  }
+}

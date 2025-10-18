@@ -6,6 +6,7 @@ import Syntax from "./Syntax";
 import Sounds from "./Sounds";
 import { InfoPaneActionType } from "@/lib/types";
 import { PassageData } from "@/lib/data";
+import Notes from "./Notes";
 
 const InfoPane = ({
     infoPaneAction,
@@ -37,6 +38,7 @@ const InfoPane = ({
 
             {/* Conditionally render the content based on infoPaneAction */}
             <div className="h-full">
+                {infoPaneAction === InfoPaneActionType.notes && <Notes />}
                 {infoPaneAction === InfoPaneActionType.structure && <Structure />}
                 {infoPaneAction === InfoPaneActionType.motif && <Motif />}
                 {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}

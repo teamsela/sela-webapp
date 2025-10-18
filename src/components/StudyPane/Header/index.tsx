@@ -12,7 +12,7 @@ import DropdownUser from "./DropdownUser";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
-import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
+import { BoxDisplayConfig, InfoPaneActionType } from "@/lib/types";
 
 
 const Header = ({
@@ -33,7 +33,7 @@ const Header = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setBoxStyle: (arg: BoxDisplayStyle) => void;  
+  setBoxStyle: (arg: BoxDisplayConfig) => void;  
   setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
@@ -58,7 +58,7 @@ const Header = ({
         <div className="flex-1">
           <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
-            <div className="text-black text-md md:text-lg dark:text-white">Psalm {study.passage}</div>
+            <div className="text-black text-md md:text-lg dark:text-white">{study.book} {study.passage}</div>
           </div>
         </div>
         <div className="flex-1">

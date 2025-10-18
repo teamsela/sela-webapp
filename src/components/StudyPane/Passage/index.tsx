@@ -4,7 +4,7 @@ import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
-import { StructureUpdateType, LanguageMode } from '@/lib/types';
+import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
@@ -21,7 +21,8 @@ const Passage = ({
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, ctxLanguageMode
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -39,11 +40,17 @@ const Passage = ({
 
       if (sortedWords.length === 1) {
         if (ctxStructureUpdateType === StructureUpdateType.newLine ||
-            ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine ||
             ctxStructureUpdateType === StructureUpdateType.mergeWithNextLine) {
           const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
             .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
           lastSelectedWordId = line.words[line.words.length - 1].wordId;
+        } else if (ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine) {
+          const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+            .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
+          const isLineStart = line.words[0]?.wordId === selectedWordId;
+          if (isLineStart) {
+            lastSelectedWordId = line.words[line.words.length - 1].wordId;
+          }
         } else if (ctxStructureUpdateType === StructureUpdateType.newStrophe ||
                    ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStrophe ||
                    ctxStructureUpdateType === StructureUpdateType.mergeWithNextStrophe) {
@@ -369,6 +376,39 @@ const Passage = ({
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
       const updatedPassageProps = mergeData(bibleData, newMetadata);
+
+      const updatedStropheNotes: StropheNote[] = [];
+      const oldNotes: StudyNotes = JSON.parse(ctxStudyNotes) || {main: "", strophes: []};
+      updatedPassageProps.stanzaProps.forEach((stanza) => {
+        stanza.strophes.forEach((strophe) => {
+          const firstWord = strophe.lines[0].words[0].wordId;
+          const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
+          const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
+          let updatedText = "";
+          let updatedTitle = "";
+          oldNotes.strophes.forEach((oldStrophe) => {
+            if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
+              if (updatedText == "") {
+                updatedTitle += oldStrophe.title;
+                updatedText += oldStrophe.text;
+              }
+              else {
+                updatedTitle += " | " + oldStrophe.title;
+                updatedText += "\n" + oldStrophe.text;
+              }
+            };
+          });
+          updatedStropheNotes[newIndex].title = updatedTitle;
+          updatedStropheNotes[newIndex].text = updatedText;
+        });
+      });
+      const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
+      ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
+      ctxSetNoteMerge(true);
+
+      // create a new array of notes, then migrate the old notes over:
+
+      
       ctxSetPassageProps(updatedPassageProps);
 
       updateMetadataInDb(ctxStudyId, newMetadata);
