@@ -63,7 +63,7 @@ export type LexiconData = {
 }
 
 export type MotifData = {
-    relatedWords: LexiconData | undefined;
+    lemma: string;
     relatedStrongNums: number[] | undefined;
     categories: string[];
 }
