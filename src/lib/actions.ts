@@ -688,7 +688,8 @@ export async function fetchPassageData(studyId: string) {
         >;
 
         const stepBibleMap = new Map<number, StepBibleWordInfo>();
-        const STEP_BIBLE_COLUMNS = [
+        type StepBibleColumn = keyof StepBibleWordInfo;
+        const STEP_BIBLE_COLUMNS: StepBibleColumn[] = [
           "Hebrew",
           "Transliteration",
           "Gloss",
@@ -697,7 +698,7 @@ export async function fetchPassageData(studyId: string) {
           "eStrong",
           "dStrong",
           "uStrong",
-        ] as const;
+        ];
 
         const formatStrongCode = (strongNumber: number) =>
           `H${Math.trunc(strongNumber).toString().padStart(4, "0")}`;
