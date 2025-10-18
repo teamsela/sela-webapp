@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { fetchESVTranslation } from "@/lib/actions";
+import { LanguageMode } from "@/lib/types";
 import { FormatContext } from '../index';
 
 const EsvPopover = ({
@@ -12,13 +13,15 @@ const EsvPopover = ({
     verseNumStyles: { className: string }
   }) => {
 
-  const { ctxIsHebrew } = useContext(FormatContext);
+  const { ctxLanguageMode } = useContext(FormatContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
+
+  const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
   // close on click outside
   useEffect(() => {
@@ -67,7 +70,7 @@ const EsvPopover = ({
             ref={popovers}
             onFocus={() => setPopoversOpen(true)}
             onBlur={() => setPopoversOpen(false)}
-            className={`absolute bottom-full text-left ${ctxIsHebrew ? 'right-1 max-w-[420px]' : 'left-0 max-w-[560px]'} z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+            className={`absolute bottom-full text-left ${isHebrew ? 'right-1 max-w-[420px]' : 'left-0 max-w-[560px]'} z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
               popoversOpen === true ? "block" : "hidden"
             }`}
           >

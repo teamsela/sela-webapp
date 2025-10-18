@@ -1,13 +1,11 @@
 import { useContext } from "react";
 
-import {
-  UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn,
-  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn,
-  ClearAllFormatBtn
-} from "./Buttons";
+import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
+  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
+  ClearAllFormatBtn, BoxlessBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
-import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { StudyData } from '@/lib/data';
 
 import LanguageSwitcher from "../Header/LanguageSwitcher";
@@ -26,11 +24,13 @@ const Toolbar = ({
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setBoxStyle: (arg: BoxDisplayStyle) => void,
+  setBoxStyle: (arg: BoxDisplayConfig) => void,
   setCloneStudyOpen: (arg: boolean) => void;
 }) => {
 
-  const { ctxInViewMode, ctxIsHebrew } = useContext(FormatContext);
+  const { ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+
+  const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
   /* TODO: may need to refactor this part after more features are added to view mode*/
   return (
@@ -54,7 +54,7 @@ const Toolbar = ({
               }
             </div>
           )
-          : (
+        : (
             <div className="flex justify-between">
               <div className="flex">
                 <ScaleDropDown setScaleValue={setScaleValue} />
@@ -71,6 +71,7 @@ const Toolbar = ({
                 </div>
                 <div className="border-r border-stroke flex flex-row">
                   <UniformWidthBtn setBoxStyle={setBoxStyle} />
+                  <BoxlessBtn setBoxStyle={setBoxStyle}/>
                   <IndentBtn leftIndent={true} />
                   <IndentBtn leftIndent={false} />
                 </div>
@@ -86,8 +87,8 @@ const Toolbar = ({
                 </div>
                 <div className="border-r px-3 border-stroke flex flex-row">
                   <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
-                  <StructureUpdateBtn updateType={ctxIsHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={ctxIsHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
-                  <StructureUpdateBtn updateType={ctxIsHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={ctxIsHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
+                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
+                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
                 </div>
               </div>
               <div>

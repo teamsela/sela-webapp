@@ -1,4 +1,4 @@
-import { BoxDisplayStyle } from "@/lib/types"
+import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
 
 export type ColorData = {
     fill?: string,
@@ -41,7 +41,8 @@ export type StanzaMap = {
 export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
-    boxStyle?: BoxDisplayStyle;
+    boxStyle?: BoxDisplayConfig;
+    lang?: LanguageMode;
 }
 
 export interface StudyProps {
@@ -119,6 +120,7 @@ export interface StudyData {
     owner: string | undefined;
     ownerDisplayName?: string;
     ownerAvatarUrl?: string;
+    book: string;
     passage: string;
     public: boolean;
     starred?: boolean;
@@ -126,6 +128,7 @@ export interface StudyData {
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata;
+    notes: string;
 }
 
 export type PassageStaticData = {
@@ -133,9 +136,15 @@ export type PassageStaticData = {
     bibleData: WordProps[];
 }
 
+export type FetchStudiesResult = {
+    records: StudyData[];
+    totalPages: number;
+}
+
 // TO BE DEPRECATED - START
 export type HebWord = {
     id: number;
+    book: string;
     chapter: number;
     verse: number;
     strongNumber: number;
@@ -189,15 +198,3 @@ export type PassageData = {
     stanzas: StanzaData[];
 }
 // TO BE DEPRECATED - END
-
-export type FetchStudiesResult = {
-    records: StudyData[];
-    totalPages: number;
-}
-
-//parallel mode
-export type LanguageModes = {
-    English: boolean;
-    Parallel: boolean;
-    Hebrew: boolean;
-}

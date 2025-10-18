@@ -8,8 +8,8 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LanguageModes } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
+import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -22,11 +22,11 @@ export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
+  ctxStudyNotes: "",
+  ctxSetStudyNotes: (args: string) => {},
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
-  ctxIsHebrew: false,
-  ctxSetIsHebrew: (arg: boolean) => {},
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
@@ -44,7 +44,7 @@ export const FormatContext = createContext({
   ctxSetBorderColor: (arg: string) => {},
   ctxTextColor: "" as string,
   ctxSetTextColor: (arg: string) => {},
-  ctxBoxDisplayStyle: {} as BoxDisplayStyle,
+  ctxBoxDisplayConfig: {} as BoxDisplayConfig,
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
@@ -58,8 +58,12 @@ export const FormatContext = createContext({
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
   ctxAddToHistory: (arg: StudyMetadata) => {},
-  ctxLanguageMode: {} as LanguageModes,
-  ctxSetLanguageMode: (arg: LanguageModes) => {}
+  ctxLanguageMode: {} as LanguageMode,
+  ctxSetLanguageMode: (arg: LanguageMode) => {},
+  ctxNoteBox: undefined as undefined|DOMRect,
+  ctxSetNoteBox: (arg: undefined|DOMRect) => {},
+  ctxNoteMerge: true,
+  ctxSetNoteMerge: (arg: boolean) => {}
 });
 
 const StudyPane = ({
@@ -73,6 +77,7 @@ const StudyPane = ({
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
   const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
+  const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
 
@@ -87,7 +92,7 @@ const StudyPane = ({
   const [colorFill, setColorFill] = useState(DEFAULT_COLOR_FILL);
   const [borderColor, setBorderColor] = useState(DEFAULT_BORDER_COLOR);
   const [textColor, setTextColor] = useState(DEFAULT_TEXT_COLOR);
-  const [boxDisplayStyle, setBoxDisplayStyle] = useState(BoxDisplayStyle.noBox);
+  const [boxDisplayConfig, setBoxDisplayConfig] = useState<BoxDisplayConfig>({ style: BoxDisplayStyle.box });
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
@@ -99,8 +104,11 @@ const StudyPane = ({
   const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
   const [pointer, setPointer] = useState(0);
 
-  //parallel
-  const [languageMode, setLanguageMode] = useState<LanguageModes>({ English: true, Parallel: false, Hebrew: false })
+  // set default language to English
+  const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
+
+  const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
+  const [noteMerge, setNoteMerge] = useState(false);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -114,6 +122,8 @@ const StudyPane = ({
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
     ctxSetStudyMetadata: setStudyMetadata,
+    ctxStudyNotes: studyNotes,
+    ctxSetStudyNotes: setStudyNotes,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
@@ -136,7 +146,7 @@ const StudyPane = ({
     ctxSetBorderColor: setBorderColor,
     ctxTextColor: textColor,
     ctxSetTextColor: setTextColor,
-    ctxBoxDisplayStyle: boxDisplayStyle,
+    ctxBoxDisplayConfig: boxDisplayConfig,
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
@@ -149,7 +159,11 @@ const StudyPane = ({
     ctxSetPointer: setPointer,
     ctxAddToHistory: addToHistory,
     ctxLanguageMode: languageMode,
-    ctxSetLanguageMode: setLanguageMode
+    ctxSetLanguageMode: setLanguageMode,
+    ctxNoteBox: noteBox,
+    ctxSetNoteBox: setNoteBox,
+    ctxNoteMerge: noteMerge,
+    ctxSetNoteMerge: setNoteMerge
   };
 
   useEffect(() => {
@@ -157,7 +171,26 @@ const StudyPane = ({
     // merge custom metadata with bible data
     let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
     setPassageProps(initPassageProps);
-    setBoxDisplayStyle(studyMetadata.boxStyle || BoxDisplayStyle.box);
+    
+    // Handle migration from old BoxDisplayStyle enum to new BoxDisplayConfig
+    let boxConfig = studyMetadata.boxStyle;
+    if (boxConfig && typeof boxConfig === 'number') {
+      // This is the old enum format, convert it
+      const oldStyle = boxConfig as any; // BoxDisplayStyle enum
+      if (oldStyle === 0) { // noBox
+        boxConfig = { style: BoxDisplayStyle.noBox };
+      } else if (oldStyle === 1) { // box
+        boxConfig = { style: BoxDisplayStyle.box };
+      } else if (oldStyle === 2) { // uniformBoxes
+        boxConfig = { style: BoxDisplayStyle.uniformBoxes };
+      }
+      // Update the metadata with the new format
+      studyMetadata.boxStyle = boxConfig;
+      updateMetadataInDb(passageData.study.id, studyMetadata);
+    }
+    
+    setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
+    setLanguageMode(studyMetadata.lang || LanguageMode.English);
   
   }, [passageData.bibleData, studyMetadata]);
    
@@ -258,13 +291,13 @@ const StudyPane = ({
           setScaleValue={setScaleValue}
           setColorAction={setColorAction}
           setSelectedColor={setSelectedColor}
-          setBoxStyle={setBoxDisplayStyle}
-          setCloneStudyOpen={setCloneStudyOpen}        
+          setBoxStyle={setBoxDisplayConfig}
+          setCloneStudyOpen={setCloneStudyOpen}
         />
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32">
-          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
