@@ -88,6 +88,7 @@ export interface WordProps {
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     metadata: WordMetadata;
     newLine: boolean;
     showVerseNum: boolean;
@@ -161,6 +162,7 @@ export type HebWord = {
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     colorFill: string;
     borderColor: string;
     textColor: string;

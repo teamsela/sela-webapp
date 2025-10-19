@@ -27,30 +27,38 @@ export const Footer = () => {
   }, [ctxSelectedWords]);
 
   const wordInformation = activeWord?.wordInformation;
+  const morphology =
+    wordInformation?.morphology?.trim() ||
+    activeWord?.morphology?.trim() ||
+    "";
   const hasWordInfo = Boolean(
     wordInformation &&
       (wordInformation.hebrew ||
         wordInformation.transliteration ||
         wordInformation.gloss ||
-        wordInformation.morphology ||
+        morphology ||
         wordInformation.meaning)
   );
 
   const inlineWordSummary = hasWordInfo ? (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-200">
-      <span className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100">
+      <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-base font-semibold text-gray-900 dark:text-gray-100">
         <span>{wordInformation?.hebrew}</span>
         {wordInformation?.transliteration && (
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
             ({wordInformation.transliteration})
           </span>
         )}
-      </span>
-      {wordInformation?.gloss && (
-        <span className="text-sm text-gray-700 dark:text-gray-200">{wordInformation.gloss}</span>
-      )}
-      <span className="text-sm text-gray-700 dark:text-gray-200">
-        Morphology: {wordInformation?.morphology || "—"}
+        {wordInformation?.gloss && (
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            {wordInformation.gloss}
+          </span>
+        )}
+        {morphology && (
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
+            Morphology: {morphology}
+          </span>
+        )}
       </span>
       <button
         type="button"

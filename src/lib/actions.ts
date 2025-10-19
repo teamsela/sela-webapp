@@ -785,6 +785,7 @@ export async function fetchPassageData(studyId: string) {
           hebWord.wlcWord = word.wlcWord || "";
           hebWord.gloss = word.gloss?.trim() || "";
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.morphology = word.morphology?.trim() || "";
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
 
@@ -806,11 +807,21 @@ export async function fetchPassageData(studyId: string) {
 
           const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
           const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
+          const preferredMorphology = (() => {
+            const hebMorph = word.morphology?.trim();
+            if (hebMorph && hebMorph.length > 0) {
+              return hebMorph;
+            }
+            const stepMorph = wordInfo?.Morph?.trim();
+            return stepMorph && stepMorph.length > 0 ? stepMorph : "";
+          })();
+
+          hebWord.morphology = preferredMorphology;
           hebWord.wordInformation = {
             hebrew: wordInfo?.Hebrew || word.wlcWord || "",
             transliteration: wordInfo?.Transliteration?.trim() || "",
             gloss: wordInfo?.Gloss?.trim() || hebWord.gloss,
-            morphology: wordInfo?.Morph?.trim() || word.morphology?.trim() || "",
+            morphology: preferredMorphology,
             strongsNumber:
               wordInfo?.eStrong?.trim() ||
               wordInfo?.dStrong?.trim() ||

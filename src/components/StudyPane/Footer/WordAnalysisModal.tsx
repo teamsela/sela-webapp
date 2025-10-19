@@ -67,30 +67,23 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
         </div>
 
         <div className="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            <span className="tracking-tight">{wordInformation.hebrew}</span>{" "}
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            <span className="tracking-tight">{wordInformation.hebrew}</span>
             {wordInformation.transliteration && (
               <span className="text-base font-normal text-gray-600 dark:text-gray-400">
                 ({wordInformation.transliteration})
               </span>
             )}
-          </p>
-
-          {wordInformation.gloss && (
-            <p className="text-base font-medium text-gray-800 dark:text-gray-200">
-              {wordInformation.gloss}
-            </p>
-          )}
+            {wordInformation.gloss && (
+              <span className="text-lg font-medium text-gray-800 dark:text-gray-200">
+                {wordInformation.gloss}
+              </span>
+            )}
+          </div>
 
           {wordInformation.strongsNumber && (
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Strong&apos;s Number: {wordInformation.strongsNumber}
-            </p>
-          )}
-
-          {wordInformation.morphology && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Morphology: {wordInformation.morphology}
             </p>
           )}
 
