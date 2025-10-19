@@ -55,7 +55,7 @@ export const Footer = () => {
           </span>
         )}
         {morphology && (
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
+          <span className="text-xs font-medium tracking-wide text-gray-600 dark:text-gray-400">
             Morphology: {morphology}
           </span>
         )}
