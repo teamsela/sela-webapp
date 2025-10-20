@@ -751,25 +751,55 @@ export async function fetchPassageData(studyId: string) {
           return Array.from(new Set([...suffixedCodes, ...baseCodes]));
         };
 
-        const fetchRecordForCode = async (
-          column: "eStrong" | "dStrong" | "uStrong",
-          code: string,
-          matchType: "equals" | "startsWith" = "equals"
-        ) => {
-          const filter =
-            matchType === "equals"
-              ? { [column]: code }
-              : { [column]: { $startsWith: code } };
+        const normalizeStrongCode = (code: string) => code.trim().toUpperCase();
 
-          const record = await xataClient.db.stepbible_tbesh
-            .filter(filter)
-            .select(STEP_BIBLE_COLUMNS)
-            .getFirst();
-
-          if (!record) {
+        const getStrongNumericValue = (code?: string) => {
+          if (!code) {
             return undefined;
           }
 
+          const numericMatch = code.toUpperCase().match(/H?0*(\d{1,5})/);
+
+          if (!numericMatch) {
+            return undefined;
+          }
+
+          return parseInt(numericMatch[1], 10);
+        };
+
+        const selectPreferredStrong = (
+          codes: Array<string | undefined>,
+          baseStrong?: number,
+          fallback?: string
+        ) => {
+          const trimmedCodes = codes
+            .map((value) => value?.trim())
+            .filter((value): value is string => Boolean(value && value.length > 0));
+
+          if (trimmedCodes.length === 0) {
+            return fallback;
+          }
+
+          if (baseStrong === undefined) {
+            return trimmedCodes[0];
+          }
+
+          const matchingCodes = trimmedCodes.filter(
+            (value) => getStrongNumericValue(value) === baseStrong
+          );
+
+          if (matchingCodes.length === 0) {
+            return trimmedCodes[0];
+          }
+
+          return matchingCodes.sort((a, b) => b.length - a.length)[0];
+        };
+
+        const createStepBibleWordInfo = (
+          record: StepbibleTbeshRecord,
+          normalizedCode: string,
+          baseStrong?: number
+        ): StepBibleWordInfo => {
           const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } = record;
 
           return {
@@ -782,18 +812,73 @@ export async function fetchPassageData(studyId: string) {
             dStrong,
             uStrong,
             preferredStrong:
-              eStrong?.trim() || dStrong?.trim() || uStrong?.trim() || code,
-          } as StepBibleWordInfo;
+              selectPreferredStrong([eStrong, dStrong, uStrong], baseStrong, normalizedCode) ||
+              normalizedCode,
+          };
+        };
+
+        const fetchRecordForCode = async (
+          column: "eStrong" | "dStrong" | "uStrong",
+          code: string,
+          matchType: "equals" | "startsWith" = "equals",
+          baseStrong?: number
+        ) => {
+          const normalizedCode = normalizeStrongCode(code);
+
+          if (!normalizedCode) {
+            return undefined;
+          }
+
+          const filter =
+            matchType === "equals"
+              ? { [column]: normalizedCode }
+              : { [column]: { $startsWith: normalizedCode } };
+
+          const query = xataClient.db.stepbible_tbesh
+            .filter(filter)
+            .select(STEP_BIBLE_COLUMNS);
+
+          if (matchType === "startsWith") {
+            const records = await query.getMany();
+
+            for (const record of records) {
+              const columnValue = record[column]?.trim();
+
+              if (baseStrong !== undefined && getStrongNumericValue(columnValue) !== baseStrong) {
+                continue;
+              }
+
+              return createStepBibleWordInfo(record, normalizedCode, baseStrong);
+            }
+
+            return undefined;
+          }
+
+          const record = await query.getFirst();
+
+          if (!record) {
+            return undefined;
+          }
+
+          if (baseStrong !== undefined) {
+            const columnValue = record[column]?.trim();
+            if (getStrongNumericValue(columnValue) !== baseStrong) {
+              return undefined;
+            }
+          }
+
+          return createStepBibleWordInfo(record, normalizedCode, baseStrong);
         };
 
         const fetchStepBibleRecord = async (strongNumber: number) => {
           const strongCodes = getStrongCodeVariants(strongNumber);
+          const baseStrong = Math.trunc(strongNumber);
 
           for (const code of strongCodes) {
             const record =
-              (await fetchRecordForCode("eStrong", code)) ||
-              (await fetchRecordForCode("dStrong", code)) ||
-              (await fetchRecordForCode("uStrong", code));
+              (await fetchRecordForCode("eStrong", code, "equals", baseStrong)) ||
+              (await fetchRecordForCode("dStrong", code, "equals", baseStrong)) ||
+              (await fetchRecordForCode("uStrong", code, "equals", baseStrong));
 
             if (record) {
               return record;
@@ -802,8 +887,9 @@ export async function fetchPassageData(studyId: string) {
 
           for (const code of strongCodes) {
             const record =
-              (await fetchRecordForCode("dStrong", code, "startsWith")) ||
-              (await fetchRecordForCode("uStrong", code, "startsWith"));
+              (await fetchRecordForCode("eStrong", code, "startsWith", baseStrong)) ||
+              (await fetchRecordForCode("dStrong", code, "startsWith", baseStrong)) ||
+              (await fetchRecordForCode("uStrong", code, "startsWith", baseStrong));
 
             if (record) {
               return record;
@@ -885,8 +971,16 @@ export async function fetchPassageData(studyId: string) {
             }
 
             const trimmed = value.trim();
-            const match = trimmed.match(/H\d{3,5}[A-Za-z]?/);
-            return (match ? match[0] : trimmed).toUpperCase();
+            const match = trimmed.match(/H\d{3,5}[A-Za-z]?/i);
+
+            if (!match) {
+              return trimmed.toUpperCase();
+            }
+
+            const matched = match[0];
+            const head = matched.slice(0, 1).toUpperCase();
+            const rest = matched.slice(1);
+            return `${head}${rest}`;
           };
 
           const preferredMorphology = (() => {
