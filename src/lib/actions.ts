@@ -816,11 +816,29 @@ export async function fetchPassageData(studyId: string) {
             return stepMorph && stepMorph.length > 0 ? stepMorph : "";
           })();
 
+          const hebrewWord = (() => {
+            const wlcHebrew = hebWord.wlcWord?.trim();
+            if (wlcHebrew && wlcHebrew.length > 0) {
+              return wlcHebrew;
+            }
+            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
+            return stepBibleHebrew && stepBibleHebrew.length > 0 ? stepBibleHebrew : "";
+          })();
+
+          const gloss = (() => {
+            const passageGloss = hebWord.gloss?.trim();
+            if (passageGloss && passageGloss.length > 0) {
+              return passageGloss;
+            }
+            const stepBibleGloss = wordInfo?.Gloss?.trim();
+            return stepBibleGloss && stepBibleGloss.length > 0 ? stepBibleGloss : "";
+          })();
+
           hebWord.morphology = preferredMorphology;
           hebWord.wordInformation = {
-            hebrew: wordInfo?.Hebrew || word.wlcWord || "",
+            hebrew: hebrewWord,
             transliteration: wordInfo?.Transliteration?.trim() || "",
-            gloss: wordInfo?.Gloss?.trim() || hebWord.gloss,
+            gloss,
             morphology: preferredMorphology,
             strongsNumber:
               wordInfo?.eStrong?.trim() ||
