@@ -754,7 +754,7 @@ export async function fetchPassageData(studyId: string) {
         const fetchRecordForCode = async (
           column: "eStrong" | "dStrong" | "uStrong",
           code: string,
-          matchType: "equals" | "startsWith"
+          matchType: "equals" | "startsWith" = "equals"
         ) => {
           const filter =
             matchType === "equals"
@@ -790,21 +790,21 @@ export async function fetchPassageData(studyId: string) {
           const strongCodes = getStrongCodeVariants(strongNumber);
 
           for (const code of strongCodes) {
-            const record = await fetchRecordForCode("eStrong", code, "equals");
+            const record =
+              (await fetchRecordForCode("eStrong", code)) ||
+              (await fetchRecordForCode("dStrong", code)) ||
+              (await fetchRecordForCode("uStrong", code));
+
             if (record) {
               return record;
             }
           }
 
           for (const code of strongCodes) {
-            const record = await fetchRecordForCode("dStrong", code, "startsWith");
-            if (record) {
-              return record;
-            }
-          }
+            const record =
+              (await fetchRecordForCode("dStrong", code, "startsWith")) ||
+              (await fetchRecordForCode("uStrong", code, "startsWith"));
 
-          for (const code of strongCodes) {
-            const record = await fetchRecordForCode("uStrong", code, "startsWith");
             if (record) {
               return record;
             }
