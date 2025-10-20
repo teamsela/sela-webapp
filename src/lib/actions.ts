@@ -682,16 +682,7 @@ export async function fetchPassageData(studyId: string) {
           }
         });
 
-        type StepBibleWordInfo = Pick<
-          StepbibleTbeshRecord,
-          "Hebrew" | "Transliteration" | "Gloss" | "Meaning" | "Morph" | "eStrong" | "dStrong" | "uStrong"
-        > & {
-          preferredStrong?: string;
-        };
-
-        const stepBibleMap = new Map<number, StepBibleWordInfo>();
-        type StepBibleColumn = keyof StepBibleWordInfo;
-        const STEP_BIBLE_COLUMNS: StepBibleColumn[] = [
+        const STEP_BIBLE_SELECT_COLUMNS = [
           "Hebrew",
           "Transliteration",
           "Gloss",
@@ -700,7 +691,15 @@ export async function fetchPassageData(studyId: string) {
           "eStrong",
           "dStrong",
           "uStrong",
-        ];
+        ] as const;
+
+        type StepBibleColumn = (typeof STEP_BIBLE_SELECT_COLUMNS)[number];
+
+        type StepBibleWordInfo = Pick<StepbibleTbeshRecord, StepBibleColumn> & {
+          preferredStrong?: string;
+        };
+
+        const stepBibleMap = new Map<number, StepBibleWordInfo>();
 
         const getStrongSuffix = (strongNumber: number) => {
           const [, fractional] = strongNumber.toString().split(".");
@@ -796,11 +795,20 @@ export async function fetchPassageData(studyId: string) {
         };
 
         const createStepBibleWordInfo = (
-          record: StepbibleTbeshRecord,
+          record: Pick<StepbibleTbeshRecord, StepBibleColumn>,
           normalizedCode: string,
           baseStrong?: number
         ): StepBibleWordInfo => {
           const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } = record;
+
+          const strongCodes: Array<string | undefined> = [
+            eStrong ?? undefined,
+            dStrong ?? undefined,
+            uStrong ?? undefined,
+          ];
+
+          const preferredStrong =
+            selectPreferredStrong(strongCodes, baseStrong, normalizedCode) ?? normalizedCode;
 
           return {
             Hebrew,
@@ -811,9 +819,7 @@ export async function fetchPassageData(studyId: string) {
             eStrong,
             dStrong,
             uStrong,
-            preferredStrong:
-              selectPreferredStrong([eStrong, dStrong, uStrong], baseStrong, normalizedCode) ||
-              normalizedCode,
+            preferredStrong,
           };
         };
 
@@ -836,7 +842,7 @@ export async function fetchPassageData(studyId: string) {
 
           const query = xataClient.db.stepbible_tbesh
             .filter(filter)
-            .select(STEP_BIBLE_COLUMNS);
+            .select([...STEP_BIBLE_SELECT_COLUMNS]);
 
           if (matchType === "startsWith") {
             const records = await query.getMany();
@@ -965,7 +971,7 @@ export async function fetchPassageData(studyId: string) {
           const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
           const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
 
-          const extractStrongCode = (value?: string) => {
+          const extractStrongCode = (value: string | null | undefined) => {
             if (!value) {
               return "";
             }
