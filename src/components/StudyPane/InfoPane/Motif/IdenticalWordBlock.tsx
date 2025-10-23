@@ -162,7 +162,8 @@ export const IdenticalWordBlock = ({
             // TODO: remove motifData.relatedWords, this might be a typo, we should display the Hebrew of the identical word, 
             // not the related words of the identical word. Plus, may also consider refactor identicalWords[0].ETCBCgloss,
             // i.e. use motifData.lexicon.lemma / motifData.lexicon.gloss
-          >{isHebrew ? identicalWords[0].motifData?.relatedWords?.lemma : identicalWords[0].ETCBCgloss}</span>
+          >
+            {isHebrew ? identicalWords[0].motifData?.lemma : identicalWords[0].ETCBCgloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
         </span>
       </div>

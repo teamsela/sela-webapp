@@ -671,7 +671,7 @@ export async function fetchPassageData(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
-          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
+          .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
 
@@ -956,12 +956,7 @@ export async function fetchPassageData(studyId: string) {
             const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
                                         .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
             hebWord.motifData = {
-              //lemma: word.motifLink.lemmaLink?.lemma || "",
-              relatedWords: (word.motifLink?.relatedLink) ? {
-                strongCode: word.motifLink.relatedLink.id,
-                lemma: word.motifLink.relatedLink.lemma || "",
-                gloss: word.motifLink.relatedLink.gloss || "",
-              } : undefined,
+              lemma: word.motifLink.lemmaLink?.lemma || "",
               relatedStrongNums: relatedStrongNums || [],
               categories: word.motifLink?.categories || []
             }
@@ -1098,7 +1093,7 @@ export async function fetchPassageContentOld(studyId: string) {
           .filter("chapter", le(passageInfo.endChapter))
           .filter("verse", ge(passageInfo.startVerse))
           .filter("verse", le(passageInfo.endVerse))
-          .select(["*", "motifLink.categories", "motifLink.relatedLink.*", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
+          .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
         
@@ -1128,13 +1123,6 @@ export async function fetchPassageContentOld(studyId: string) {
           hebWord.lastStropheInStanza = false;
           if (word.motifLink?.lemmaLink) {
             hebWord.lemma = word.motifLink.lemmaLink.lemma || ""
-          }
-          if (word.motifLink?.relatedLink) {
-            hebWord.relatedWords = {
-              strongCode: word.motifLink.relatedLink.id,
-              lemma: word.motifLink.relatedLink.lemma || "",
-              gloss: word.motifLink.relatedLink.gloss || "",
-            };
           }
           const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
                                       .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
