@@ -68,6 +68,15 @@ export type MotifData = {
     categories: string[];
 }
 
+export type WordInformation = {
+    hebrew: string;
+    transliteration: string;
+    gloss: string;
+    morphology: string;
+    strongsNumber: string;
+    meaning: string;
+};
+
 export interface WordProps {
     wordId: number;
     stanzaId: number;
@@ -79,6 +88,7 @@ export interface WordProps {
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     metadata: WordMetadata;
     newLine: boolean;
     showVerseNum: boolean;
@@ -86,6 +96,7 @@ export interface WordProps {
     firstStropheInStanza: boolean;
     lastStropheInStanza: boolean;
     motifData: MotifData;
+    wordInformation?: WordInformation;
 }
 
 export interface LineProps {
@@ -151,6 +162,7 @@ export type HebWord = {
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     colorFill: string;
     borderColor: string;
     textColor: string;
