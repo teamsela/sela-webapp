@@ -4,7 +4,7 @@ import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/i
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType, StudyNotes } from "@/lib/types";
+import { ColorActionType, StudyNotes, BoxDisplayStyle } from "@/lib/types";
 import { StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -19,7 +19,7 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -290,7 +290,7 @@ export const StropheBlock = ({
                 line.words.map((word) => {
                   return (
                     <div
-                      className={`mt-1 mb-1`}
+                      className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
                       key={word.wordId}
                     >
                       <WordBlock
