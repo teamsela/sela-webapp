@@ -63,7 +63,9 @@ export const FormatContext = createContext({
   ctxNoteBox: undefined as undefined|DOMRect,
   ctxSetNoteBox: (arg: undefined|DOMRect) => {},
   ctxNoteMerge: true,
-  ctxSetNoteMerge: (arg: boolean) => {}
+  ctxSetNoteMerge: (arg: boolean) => {},
+  ctxActiveNotesPane: null as "heb" | "eng" | null,
+  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {}
 });
 
 const StudyPane = ({
@@ -108,7 +110,8 @@ const StudyPane = ({
   const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
-  const [noteMerge, setNoteMerge] = useState(false);
+  const [noteMerge, setNoteMerge] = useState(true);
+  const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -163,7 +166,9 @@ const StudyPane = ({
     ctxNoteBox: noteBox,
     ctxSetNoteBox: setNoteBox,
     ctxNoteMerge: noteMerge,
-    ctxSetNoteMerge: setNoteMerge
+    ctxSetNoteMerge: setNoteMerge,
+    ctxActiveNotesPane: activeNotesPane,
+    ctxSetActiveNotesPane: setActiveNotesPane
   };
 
   useEffect(() => {
@@ -325,4 +330,3 @@ const StudyPane = ({
 };
 
 export default StudyPane;
-
