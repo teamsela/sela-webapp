@@ -985,30 +985,30 @@ export async function fetchPassageData(studyId: string) {
           };
 
           const preferredMorphology = (() => {
-            const hebMorph = word.morphology?.trim();
-            if (hebMorph && hebMorph.length > 0) {
-              return hebMorph;
-            }
             const stepMorph = wordInfo?.Morph?.trim();
-            return stepMorph && stepMorph.length > 0 ? stepMorph : "";
+            if (stepMorph && stepMorph.length > 0) {
+              return stepMorph;
+            }
+            const hebMorph = word.morphology?.trim();
+            return hebMorph && hebMorph.length > 0 ? hebMorph : "";
           })();
 
           const hebrewWord = (() => {
-            const wlcHebrew = hebWord.wlcWord?.trim();
-            if (wlcHebrew && wlcHebrew.length > 0) {
-              return wlcHebrew;
-            }
             const stepBibleHebrew = wordInfo?.Hebrew?.trim();
-            return stepBibleHebrew && stepBibleHebrew.length > 0 ? stepBibleHebrew : "";
+            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
+              return stepBibleHebrew;
+            }
+            const wlcHebrew = hebWord.wlcWord?.trim();
+            return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
           })();
 
           const gloss = (() => {
-            const passageGloss = hebWord.gloss?.trim();
-            if (passageGloss && passageGloss.length > 0) {
-              return passageGloss;
-            }
             const stepBibleGloss = wordInfo?.Gloss?.trim();
-            return stepBibleGloss && stepBibleGloss.length > 0 ? stepBibleGloss : "";
+            if (stepBibleGloss && stepBibleGloss.length > 0) {
+              return stepBibleGloss;
+            }
+            const passageGloss = hebWord.gloss?.trim();
+            return passageGloss && passageGloss.length > 0 ? passageGloss : "";
           })();
 
           hebWord.morphology = preferredMorphology;
