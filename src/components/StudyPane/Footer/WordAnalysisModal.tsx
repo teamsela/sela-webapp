@@ -88,9 +88,11 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
           )}
 
           {meaningMarkup && (
-            <div className="rounded-lg bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 dark:bg-gray-800/60 dark:text-gray-200">
+            <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/60">
               <p className="mb-2 font-semibold text-gray-900 dark:text-gray-100">Meaning</p>
-              <div dangerouslySetInnerHTML={{ __html: meaningMarkup }} />
+              <div className="max-h-60 overflow-y-auto pr-1 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+                <div dangerouslySetInnerHTML={{ __html: meaningMarkup }} />
+              </div>
             </div>
           )}
         </div>
