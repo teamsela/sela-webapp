@@ -101,22 +101,19 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
             </div>
           )}
 
-          <div className="mt-5 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">
-            <p className="font-semibold text-gray-700 dark:text-gray-200">Copyright information</p>
-            <p className="text-gray-500 dark:text-gray-400">
+          <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 dark:text-gray-300">
+            <span className="text-gray-500 dark:text-gray-400">
               Word data displayed here is compiled from the following resources:
-            </p>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-              <DiscoveryModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-              <span className="text-gray-400 dark:text-gray-500">•</span>
-              <StepBibleModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-              <span className="text-gray-400 dark:text-gray-500">•</span>
-              <BSBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-              <span className="text-gray-400 dark:text-gray-500">•</span>
-              <ESVModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-              <span className="text-gray-400 dark:text-gray-500">•</span>
-              <OHBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-            </div>
+            </span>
+            <DiscoveryModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+            <span className="text-gray-400 dark:text-gray-500">•</span>
+            <StepBibleModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+            <span className="text-gray-400 dark:text-gray-500">•</span>
+            <BSBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+            <span className="text-gray-400 dark:text-gray-500">•</span>
+            <ESVModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+            <span className="text-gray-400 dark:text-gray-500">•</span>
+            <OHBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
           </div>
         </div>
       </div>
