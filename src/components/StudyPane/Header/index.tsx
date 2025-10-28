@@ -37,6 +37,8 @@ const Header = ({
   setCloneStudyOpen: (arg: boolean) => void;  
 }) => {
 
+  const capitalizedBook = study.book.charAt(0).toUpperCase() + study.book.slice(1);
+
   return (
     <header id="selaHeader" className="fixed top-0 left-0 w-full z-50 bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex justify-between items-center px-6 py-4 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
@@ -58,7 +60,7 @@ const Header = ({
         <div className="flex-1">
           <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
-            <div className="text-black text-md md:text-lg dark:text-white">{study.book} {study.passage}</div>
+            <div className="text-black text-md md:text-lg dark:text-white">{capitalizedBook} {study.passage}</div>
           </div>
         </div>
         <div className="flex-1">

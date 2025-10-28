@@ -11,6 +11,11 @@ import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 import { equal } from 'assert';
 
+const formatStrongNumberForDisplay = (value: string) => {
+  const normalized = value.trim().toUpperCase();
+  return normalized.replace(/([0-9])([A-Z]+)$/, '$1');
+};
+
 const RenameFormSchema = z.object({
   id: z.string(),
   studyName: z.string({ required_error: "Study name is required" })
@@ -1053,17 +1058,23 @@ export async function fetchPassageData(studyId: string) {
           })();
 
           hebWord.morphology = preferredMorphology;
+          const strongValue =
+            extractStrongCode(wordInfo?.preferredStrong) ||
+            extractStrongCode(wordInfo?.eStrong) ||
+            extractStrongCode(wordInfo?.dStrong) ||
+            extractStrongCode(wordInfo?.uStrong) ||
+            defaultStrong;
+
+          const strongNumberForDisplay = strongValue
+            ? formatStrongNumberForDisplay(strongValue)
+            : "";
+
           hebWord.wordInformation = {
             hebrew: hebrewWord,
             transliteration: wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
-            strongsNumber:
-              extractStrongCode(wordInfo?.preferredStrong) ||
-              extractStrongCode(wordInfo?.eStrong) ||
-              extractStrongCode(wordInfo?.dStrong) ||
-              extractStrongCode(wordInfo?.uStrong) ||
-              defaultStrong,
+            strongsNumber: strongNumberForDisplay,
             meaning: cleanMeaningValue(wordInfo?.Meaning),
           };
 
@@ -1276,7 +1287,7 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
   esvApiEndpoint.searchParams.append('include-headings', 'false');
   esvApiEndpoint.searchParams.append('include-footnotes', 'false');
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
-  esvApiEndpoint.searchParams.append('include-short-copyright', 'true');
+  esvApiEndpoint.searchParams.append('include-short-copyright', 'false');
   esvApiEndpoint.searchParams.append('include-passage-references', 'false');
 
   try {
