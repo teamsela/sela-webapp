@@ -2,11 +2,6 @@ import { useEffect } from "react";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { WordInformation } from "@/lib/data";
-import DiscoveryModal from "@/components/Modals/Footer/DiscoveryModal";
-import StepBibleModal from "@/components/Modals/Footer/StepBibleModal";
-import BSBModal from "@/components/Modals/Footer/BSBModal";
-import ESVModal from "@/components/Modals/Footer/ESVModal";
-import OHBModal from "@/components/Modals/Footer/OHBModal";
 
 type WordAnalysisModalProps = {
   open: boolean;
@@ -101,20 +96,6 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
             </div>
           )}
 
-          <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 dark:text-gray-300">
-            <span className="text-gray-500 dark:text-gray-400">
-              Word data displayed here is compiled from the following resources:
-            </span>
-            <DiscoveryModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-            <span className="text-gray-400 dark:text-gray-500">•</span>
-            <StepBibleModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-            <span className="text-gray-400 dark:text-gray-500">•</span>
-            <BSBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-            <span className="text-gray-400 dark:text-gray-500">•</span>
-            <ESVModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-            <span className="text-gray-400 dark:text-gray-500">•</span>
-            <OHBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
-          </div>
         </div>
       </div>
     </div>
