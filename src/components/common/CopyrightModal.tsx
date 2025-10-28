@@ -97,7 +97,7 @@ const CopyrightModal = ({
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          "rounded px-1 text-left text-sm font-medium text-primary transition hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          "rounded px-0 text-left text-inherit transition hover:underline focus:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-primary",
           triggerClassName
         )}
       >
