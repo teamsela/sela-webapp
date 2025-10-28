@@ -985,12 +985,12 @@ export async function fetchPassageData(studyId: string) {
           };
 
           const preferredMorphology = (() => {
-            const stepMorph = wordInfo?.Morph?.trim();
-            if (stepMorph && stepMorph.length > 0) {
-              return stepMorph;
-            }
             const hebMorph = word.morphology?.trim();
-            return hebMorph && hebMorph.length > 0 ? hebMorph : "";
+            if (hebMorph && hebMorph.length > 0) {
+              return hebMorph;
+            }
+            const stepMorph = wordInfo?.Morph?.trim();
+            return stepMorph && stepMorph.length > 0 ? stepMorph : "";
           })();
 
           const hebrewWord = (() => {
