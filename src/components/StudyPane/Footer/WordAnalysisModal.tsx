@@ -2,6 +2,11 @@ import { useEffect } from "react";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { WordInformation } from "@/lib/data";
+import DiscoveryModal from "@/components/Modals/Footer/DiscoveryModal";
+import StepBibleModal from "@/components/Modals/Footer/StepBibleModal";
+import BSBModal from "@/components/Modals/Footer/BSBModal";
+import ESVModal from "@/components/Modals/Footer/ESVModal";
+import OHBModal from "@/components/Modals/Footer/OHBModal";
 
 type WordAnalysisModalProps = {
   open: boolean;
@@ -88,11 +93,31 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
           )}
 
           {meaningMarkup && (
-            <div className="rounded-lg bg-gray-50 p-4 text-sm leading-relaxed text-gray-700 dark:bg-gray-800/60 dark:text-gray-200">
+            <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/60">
               <p className="mb-2 font-semibold text-gray-900 dark:text-gray-100">Meaning</p>
-              <div dangerouslySetInnerHTML={{ __html: meaningMarkup }} />
+              <div className="max-h-60 overflow-y-auto pr-1 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+                <div dangerouslySetInnerHTML={{ __html: meaningMarkup }} />
+              </div>
             </div>
           )}
+
+          <div className="mt-5 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300">
+            <p className="font-semibold text-gray-700 dark:text-gray-200">Copyright information</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              Word data displayed here is compiled from the following resources:
+            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <DiscoveryModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+              <span className="text-gray-400 dark:text-gray-500">•</span>
+              <StepBibleModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+              <span className="text-gray-400 dark:text-gray-500">•</span>
+              <BSBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+              <span className="text-gray-400 dark:text-gray-500">•</span>
+              <ESVModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+              <span className="text-gray-400 dark:text-gray-500">•</span>
+              <OHBModal triggerClassName="px-0 text-xs font-medium text-primary hover:underline" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -112,15 +112,15 @@ export const Footer = () => {
 
           <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
             <span>Copyright Information for</span>
-            <DiscoveryModal />
+            <DiscoveryModal triggerClassName="px-0 text-current hover:underline" />
             <span>,</span>
-            <StepBibleModal />
+            <StepBibleModal triggerClassName="px-0 text-current hover:underline" />
             <span>,</span>
-            <BSBModal />
+            <BSBModal triggerClassName="px-0 text-current hover:underline" />
             <span>,</span>
-            <ESVModal />
+            <ESVModal triggerClassName="px-0 text-current hover:underline" />
             <span>,</span>
-            <OHBModal />
+            <OHBModal triggerClassName="px-0 text-current hover:underline" />
           </div>
         </div>
       </footer>
