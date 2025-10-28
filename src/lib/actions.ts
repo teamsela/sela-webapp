@@ -984,6 +984,47 @@ export async function fetchPassageData(studyId: string) {
             return `${head}${rest}`;
           };
 
+          const cleanGlossValue = (value: string | null | undefined) => {
+            if (!value) {
+              return "";
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+              return "";
+            }
+
+            const colonIndex = trimmed.indexOf(":");
+            if (colonIndex === -1) {
+              return trimmed;
+            }
+
+            return trimmed.slice(0, colonIndex).trim();
+          };
+
+          const cleanMeaningValue = (value: string | null | undefined) => {
+            if (!value) {
+              return "";
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+              return "";
+            }
+
+            const lower = trimmed.toLowerCase();
+            const colonIndex = trimmed.indexOf(":");
+            const brIndex = lower.indexOf("<br");
+
+            if (colonIndex !== -1 && brIndex !== -1 && colonIndex < brIndex) {
+              const afterBreak = trimmed.slice(brIndex);
+              const withoutFirstBreak = afterBreak.replace(/^<br\s*\/?>(\s*)?/i, "");
+              return withoutFirstBreak.trim();
+            }
+
+            return trimmed;
+          };
+
           const preferredMorphology = (() => {
             const hebMorph = word.morphology?.trim();
             if (hebMorph && hebMorph.length > 0) {
@@ -1015,7 +1056,7 @@ export async function fetchPassageData(studyId: string) {
           hebWord.wordInformation = {
             hebrew: hebrewWord,
             transliteration: wordInfo?.Transliteration?.trim() || "",
-            gloss,
+            gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber:
               extractStrongCode(wordInfo?.preferredStrong) ||
@@ -1023,7 +1064,7 @@ export async function fetchPassageData(studyId: string) {
               extractStrongCode(wordInfo?.dStrong) ||
               extractStrongCode(wordInfo?.uStrong) ||
               defaultStrong,
-            meaning: wordInfo?.Meaning?.trim() || "",
+            meaning: cleanMeaningValue(wordInfo?.Meaning),
           };
 
           passageData.bibleData.push(hebWord);
