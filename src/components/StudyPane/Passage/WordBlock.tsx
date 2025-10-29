@@ -203,7 +203,7 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'ml-2' : ''}`,
+    className: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'text-xs' : 'text-base'} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'ml-2' : ''}`,
     style: ctxIsHebrew ? {} : { marginRight: wordProps.verse.toString().length === 1 ? '0.25rem' : wordProps.verse.toString().length === 2 ? '0.25rem' : '0.125rem' }
   }
 
@@ -254,7 +254,7 @@ export const WordBlock = ({
             }}>
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
-              <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
+              <span className={`whitespace-nowrap break-keep flex select-none px-2 ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center leading-none ${fontSize}
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
@@ -295,7 +295,7 @@ export const WordBlock = ({
             (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
-              (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
+              (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
