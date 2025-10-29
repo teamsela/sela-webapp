@@ -65,5 +65,13 @@ export enum MotifType {
     category,
 }
 
+export enum SyntaxType {
+    none,
+    partsOfSpeech,
+    verbalConjugations,
+    verbalStems,
+    personsGenderNumber
+}
+
 export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
 export type StudyNotes = { main: string; strophes: StropheNote[] };

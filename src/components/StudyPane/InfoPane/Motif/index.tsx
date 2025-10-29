@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import Category from "./Category";
 import IdenticalWord from "./IdenticalWord";
-import AccordionToggleIcon from "./AccordionToggleIcon";
+import AccordionToggleIcon from "../common/AccordionToggleIcon";
 
 const Motif = () => {
   const [openSection, setOpenSection] = useState<MotifType | null>(MotifType.identical);

@@ -35,7 +35,7 @@ export const Tabs = ({
         Notes
       </button>
       <button
-        className="inline-flex border-y border-stroke border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
+        className="inline-flex border-y border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
         disabled={true}
       >
         Structure
@@ -50,13 +50,16 @@ export const Tabs = ({
         Motif
       </button>
       <button
-        className="inline-flex border-y border-stroke border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
-        disabled={true}
+        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+          ${
+            infoPaneAction === InfoPaneActionType.syntax ? activeClasses : inactiveClasses
+          }`}
+        onClick={() => handleClick(InfoPaneActionType.syntax)}
       >
         Syntax
       </button>
       <button
-        className="inline-flex rounded-r-full border border-stroke border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
+        className="inline-flex rounded-r-full border border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"
         disabled={true}
       >
         Sounds
