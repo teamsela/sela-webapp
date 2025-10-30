@@ -102,7 +102,12 @@ export const partsOfSpeechDict : PartsOfSpeechMapping = {
   "Adv": "Adverb",
   "Pro": "Pronoun",
   "Interjection": "Interjection",
-  "Interrog": "Interrogative"
+  "Interrog": "Interrogative",
+  "Conj": "Conjunction",
+  "DirObjM": "Object Marker",
+  "Prep": "Preposition",
+  "Proper": "Proper Noun"
+
 };
 
 export function extractPartsOfSpeechFromPassage(passageProps: PassageProps): Map<string, WordProps[]> {
