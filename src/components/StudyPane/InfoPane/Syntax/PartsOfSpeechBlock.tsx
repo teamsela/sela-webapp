@@ -15,19 +15,43 @@ export const PartsOfSpeechBlock = ({
   setLastSelectedWords: React.Dispatch<React.SetStateAction<WordProps[]>>  
 }) => {
 
-  const { ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
-    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxColorAction, ctxSelectedColor, ctxStudyMetadata,
+    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords } = useContext(FormatContext);
  
-  // const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
-  //     return posWords.every(dsd =>
-  //       dsd.metadata?.color &&
-  //       (!dsd.metadata.color[property] || dsd.metadata.color[property] === posWords[0].metadata.color?.[property])
-  //     );
-  // };    
+  const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
+      return posWords.every(dsd =>
+        dsd.metadata?.color &&
+        (!dsd.metadata.color[property] || dsd.metadata.color[property] === posWords[0].metadata.color?.[property])
+      );
+  };    
 
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(() => {
+    if (posWords.length === 0) {
+      return DEFAULT_COLOR_FILL;
+    }
+
+    const fill = posWords[0].metadata?.color?.fill;
+    return matchColorProperty('fill') ? fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL;
+  });
+
+  const [textColorLocal, setTextColorLocal] = useState(() => {
+    if (posWords.length === 0) {
+      return DEFAULT_TEXT_COLOR;
+    }
+
+    const text = posWords[0].metadata?.color?.text;
+    return matchColorProperty('text') ? text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR;
+  });
+
+  const [borderColorLocal, setBorderColorLocal] = useState(() => {
+    if (posWords.length === 0) {
+      return DEFAULT_BORDER_COLOR;
+    }
+
+    const border = posWords[0].metadata?.color?.border;
+    return matchColorProperty('border') ? border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR;
+  });
+
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
@@ -37,7 +61,34 @@ export const PartsOfSpeechBlock = ({
       })
       setSelected(hasChildren);
   }, [ctxSelectedWords, posWords]);
-    
+
+  useEffect(() => {
+      if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
+  
+      if (selected) {
+          if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
+              setColorFillLocal(ctxSelectedColor);
+          } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
+              setBorderColorLocal(ctxSelectedColor);
+          } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
+              setTextColorLocal(ctxSelectedColor);
+          } else if (ctxColorAction === ColorActionType.resetColor) {
+              setColorFillLocal(DEFAULT_COLOR_FILL);
+              setBorderColorLocal(DEFAULT_BORDER_COLOR);
+              setTextColorLocal(DEFAULT_TEXT_COLOR);
+          }
+      }
+  }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords])
+
+  useEffect(() => {
+      if (posWords.length > 0)
+      {
+        setColorFillLocal(matchColorProperty('fill') ? posWords[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
+        setTextColorLocal(matchColorProperty('text') ? posWords[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
+        setBorderColorLocal(matchColorProperty('border') ? posWords[0].metadata?.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
+      }
+  }, [posWords, ctxStudyMetadata]);
+
   const handleClick = () => {
       setSelected(prevState => !prevState);
 

@@ -115,8 +115,8 @@ export function extractPartsOfSpeechFromPassage(passageProps: PassageProps): Map
 
   // Helper to safely extract part of speech from a morphology string
   const extractAbbrev = (morphology: string): string => {
-    const index = morphology.indexOf("-");
-    return (index !== -1 ? morphology.slice(0, index) : morphology).trim();
+    const match = morphology.match(/^(?:.*\|)?\s*([^\s|:-]+)\s*-/);
+    return match ? match[1] : "";
   };
 
   for (const stanza of passageProps.stanzaProps) {
