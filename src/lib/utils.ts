@@ -91,6 +91,54 @@ export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : 
   return strongNumWordsMap;
 }
 
+type PartsOfSpeechMapping = {
+  [key: string]: string;
+}
+export const partsOfSpeechDict : PartsOfSpeechMapping = {
+  "V": "Verb",
+  "N": "Noun",
+  "Adj": "Adjective",
+  "NegPrt": "Negative Particle",
+  "Adv": "Adverb",
+  "Pro": "Pronoun",
+  "Interjection": "Interjection",
+  "Interrog": "Interrogative"
+};
+
+export function extractPartsOfSpeechFromPassage(passageProps: PassageProps): Map<string, WordProps[]> {
+  const partsOfSpeechMap = new Map<string, WordProps[]>();
+
+  // Pre-seed buckets so every POS appears (even if empty)
+  for (const fullName of Object.values(partsOfSpeechDict)) {
+    partsOfSpeechMap.set(fullName, []);
+  }
+
+  // Helper to safely extract part of speech from a morphology string
+  const extractAbbrev = (morphology: string): string => {
+    const index = morphology.indexOf("-");
+    return (index !== -1 ? morphology.slice(0, index) : morphology).trim();
+  };
+
+  for (const stanza of passageProps.stanzaProps) {
+    for (const strophe of stanza.strophes) {
+      for (const line of strophe.lines) {
+        for (const word of line.words) {
+          if (!word.morphology) continue;
+
+          const abbrev = extractAbbrev(word.morphology);
+          const partOfSpeech = partsOfSpeechDict[abbrev];
+
+          if (!partOfSpeech) continue;
+
+          // Map was pre-seeded, so bucket exists
+          partsOfSpeechMap.get(partOfSpeech)!.push(word);
+        }
+      }
+    }
+  }
+  return partsOfSpeechMap;
+}
+
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
   // Measure the width of the text
   const metrics = context.measureText(text);

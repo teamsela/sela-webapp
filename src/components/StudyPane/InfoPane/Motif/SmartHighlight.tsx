@@ -1,8 +1,14 @@
 import { updateMetadataInDb } from '@/lib/actions';
 import { ColorData } from "@/lib/data";
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { IdenticalWordColorPalette, IdenticalWordProps } from "../StudyPane/InfoPane/Motif/IdenticalWord";
-import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../StudyPane/index';
+import React, { useContext, useRef, useState } from "react";
+import { IdenticalWordProps } from "./IdenticalWord";
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+
+const IdenticalWordColorPalette = [
+    '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
+    '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
+    '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
+];
 
 interface SmartHighlightProps {
     indeticalWords: IdenticalWordProps[]; // Property with a type of an empty array
@@ -15,33 +21,6 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({indeticalWords}) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const trigger = useRef<any>(null);
-  const modal = useRef<any>(null);
-
-  // close on click outside
-  useEffect(() => {
-    const clickHandler = ({ target }: MouseEvent) => {
-      if (!modal.current) return;
-      if (
-        !modalOpen ||
-        modal.current.contains(target) ||
-        trigger.current.contains(target)
-      )
-        return;
-      setModalOpen(false);
-    };
-    document.addEventListener("click", clickHandler);
-    return () => document.removeEventListener("click", clickHandler);
-  });
-
-  // close if the esc key is pressed
-  useEffect(() => {
-    const keyHandler = ({ keyCode }: KeyboardEvent) => {
-      if (!modalOpen || keyCode !== 27) return;
-      setModalOpen(false);
-    };
-    document.addEventListener("keydown", keyHandler);
-    return () => document.removeEventListener("keydown", keyHandler);
-  });
 
   const handleClick = () => {
 
@@ -72,7 +51,7 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({indeticalWords}) => {
     
         wordMetadata.color.fill = idWordBlockColor.fill;
         wordMetadata.color.text = idWordBlockColor.text;
-    
+
 //        descendantWordIds.push(word.wordId)
       });
 
@@ -84,8 +63,6 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({indeticalWords}) => {
     ctxSetRootsColorMap(newMap);
     ctxAddToHistory(ctxStudyMetadata);
     updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-
-    //setModalOpen(false);
 }
 
   

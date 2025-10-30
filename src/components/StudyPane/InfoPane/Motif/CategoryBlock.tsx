@@ -27,7 +27,7 @@ export const CategoryBlock = ({
           dsd.metadata?.color &&
           (!dsd.metadata.color[property] || dsd.metadata.color[property] === value.wordProps[0].metadata.color?.[property])
         );
-      };
+    };
 
     const [colorFillLocal, setColorFillLocal] = useState(matchColorProperty('fill') ? value.wordProps[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
     const [textColorLocal, setTextColorLocal] = useState(matchColorProperty('text') ? value.wordProps[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);

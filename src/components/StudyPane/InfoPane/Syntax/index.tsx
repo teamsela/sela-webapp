@@ -1,9 +1,8 @@
 import { SyntaxType } from "@/lib/types";
 import { useState } from "react";
 
-//import Category from "./Category";
-//import IdenticalWord from "./IdenticalWord";
 import AccordionToggleIcon from "../common/AccordionToggleIcon";
+import PartsOfSpeech from "./PartsOfSpeech";
 
 const Syntax = () => {
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
@@ -28,7 +27,7 @@ const Syntax = () => {
           </button>
           {openSection === SyntaxType.partsOfSpeech && (
             <div className="p-4">
-              Parts of Speech STARTS HERE
+              <PartsOfSpeech />
             </div>
           )}
         </div>
