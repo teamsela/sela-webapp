@@ -3,13 +3,18 @@
 import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getXataClient, StudyRecord, HebBibleRecord } from '@/xata';
-import { equals, ge, gt, le } from "@xata.io/client";
+import { getXataClient, StudyRecord, HebBibleRecord, StepbibleTbeshRecord } from '@/xata';
+import { equals, ge, le } from "@xata.io/client";
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { parsePassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 import { equal } from 'assert';
+
+const formatStrongNumberForDisplay = (value: string) => {
+  const normalized = value.trim().toUpperCase();
+  return normalized.replace(/([0-9])([A-Z]+)$/, '$1');
+};
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -675,8 +680,270 @@ export async function fetchPassageData(studyId: string) {
           .sort("hebId", "asc")
           .getAll();
 
+        const uniqueStrongNumbers = new Set<number>();
+        passageContent.forEach((word) => {
+          if (word.strongNumber) {
+            uniqueStrongNumbers.add(word.strongNumber);
+          }
+        });
+
+        const STEP_BIBLE_SELECT_COLUMNS = [
+          "Hebrew",
+          "Transliteration",
+          "Gloss",
+          "Meaning",
+          "Morph",
+          "eStrong",
+          "dStrong",
+          "uStrong",
+        ] as const;
+
+        type StepBibleColumn = (typeof STEP_BIBLE_SELECT_COLUMNS)[number];
+
+        type StepBibleWordInfo = Pick<StepbibleTbeshRecord, StepBibleColumn> & {
+          preferredStrong?: string;
+        };
+
+        const stepBibleMap = new Map<number, StepBibleWordInfo>();
+
+        const getStrongSuffix = (strongNumber: number) => {
+          const [, fractional] = strongNumber.toString().split(".");
+          let alphabetIndex = -1;
+
+          if (fractional) {
+            const cleanedFraction = fractional.replace(/0+$/, "");
+            const numericValue = parseInt(cleanedFraction, 10);
+
+            if (Number.isFinite(numericValue) && numericValue > 0) {
+              alphabetIndex = numericValue - 1;
+            }
+          }
+
+          if (alphabetIndex < 0 || alphabetIndex >= 26) {
+            const fractionalPortion = Math.abs(strongNumber - Math.trunc(strongNumber));
+            const approximatedIndex = Math.round(fractionalPortion * 10) - 1;
+
+            if (approximatedIndex >= 0 && approximatedIndex < 26) {
+              alphabetIndex = approximatedIndex;
+            }
+          }
+
+          if (alphabetIndex < 0 || alphabetIndex >= 26) {
+            return "";
+          }
+
+          return String.fromCharCode("a".charCodeAt(0) + alphabetIndex);
+        };
+
+        const formatStrongCode = (strongNumber: number) => {
+          const base = Math.trunc(strongNumber).toString().padStart(4, "0");
+          const suffix = getStrongSuffix(strongNumber);
+          return `H${base}${suffix}`;
+        };
+
+        const getStrongCodeVariants = (strongNumber: number) => {
+          const truncated = Math.trunc(strongNumber);
+          const numeric = truncated.toString();
+          const suffix = getStrongSuffix(strongNumber);
+
+          const baseCodes = [`H${numeric}`, `H${numeric.padStart(4, "0")}`, `H${numeric.padStart(5, "0")}`];
+
+          const suffixedCodes = suffix
+            ? baseCodes.map((code) => `${code}${suffix}`)
+            : [];
+
+          return Array.from(new Set([...suffixedCodes, ...baseCodes]));
+        };
+
+        const normalizeStrongCode = (code: string) => code.trim().toUpperCase();
+
+        const getStrongNumericValue = (code?: string) => {
+          if (!code) {
+            return undefined;
+          }
+
+          const numericMatch = code.toUpperCase().match(/H?0*(\d{1,5})/);
+
+          if (!numericMatch) {
+            return undefined;
+          }
+
+          return parseInt(numericMatch[1], 10);
+        };
+
+        const selectPreferredStrong = (
+          codes: Array<string | undefined>,
+          baseStrong?: number,
+          fallback?: string
+        ) => {
+          const trimmedCodes = codes
+            .map((value) => value?.trim())
+            .filter((value): value is string => Boolean(value && value.length > 0));
+
+          if (trimmedCodes.length === 0) {
+            return fallback;
+          }
+
+          if (baseStrong === undefined) {
+            return trimmedCodes[0];
+          }
+
+          const matchingCodes = trimmedCodes.filter(
+            (value) => getStrongNumericValue(value) === baseStrong
+          );
+
+          if (matchingCodes.length === 0) {
+            return trimmedCodes[0];
+          }
+
+          return matchingCodes.sort((a, b) => b.length - a.length)[0];
+        };
+
+        const createStepBibleWordInfo = (
+          record: Pick<StepbibleTbeshRecord, StepBibleColumn>,
+          normalizedCode: string,
+          baseStrong?: number
+        ): StepBibleWordInfo => {
+          const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } = record;
+
+          const strongCodes: Array<string | undefined> = [
+            eStrong ?? undefined,
+            dStrong ?? undefined,
+            uStrong ?? undefined,
+          ];
+
+          const preferredStrong =
+            selectPreferredStrong(strongCodes, baseStrong, normalizedCode) ?? normalizedCode;
+
+          return {
+            Hebrew,
+            Transliteration,
+            Gloss,
+            Meaning,
+            Morph,
+            eStrong,
+            dStrong,
+            uStrong,
+            preferredStrong,
+          };
+        };
+
+        const fetchRecordForCode = async (
+          column: "eStrong" | "dStrong" | "uStrong",
+          code: string,
+          matchType: "equals" | "startsWith" = "equals",
+          baseStrong?: number
+        ) => {
+          const normalizedCode = normalizeStrongCode(code);
+
+          if (!normalizedCode) {
+            return undefined;
+          }
+
+          const filter =
+            matchType === "equals"
+              ? { [column]: normalizedCode }
+              : { [column]: { $startsWith: normalizedCode } };
+
+          const query = xataClient.db.stepbible_tbesh
+            .filter(filter)
+            .select([...STEP_BIBLE_SELECT_COLUMNS]);
+
+          if (matchType === "startsWith") {
+            const records = await query.getMany();
+
+            for (const record of records) {
+              const columnValue = record[column]?.trim();
+
+              if (baseStrong !== undefined && getStrongNumericValue(columnValue) !== baseStrong) {
+                continue;
+              }
+
+              return createStepBibleWordInfo(record, normalizedCode, baseStrong);
+            }
+
+            return undefined;
+          }
+
+          const record = await query.getFirst();
+
+          if (!record) {
+            return undefined;
+          }
+
+          if (baseStrong !== undefined) {
+            const columnValue = record[column]?.trim();
+            if (getStrongNumericValue(columnValue) !== baseStrong) {
+              return undefined;
+            }
+          }
+
+          return createStepBibleWordInfo(record, normalizedCode, baseStrong);
+        };
+
+        const fetchStepBibleRecord = async (strongNumber: number) => {
+          const strongCodes = getStrongCodeVariants(strongNumber);
+          const baseStrong = Math.trunc(strongNumber);
+
+          for (const code of strongCodes) {
+            const record =
+              (await fetchRecordForCode("eStrong", code, "equals", baseStrong)) ||
+              (await fetchRecordForCode("dStrong", code, "equals", baseStrong)) ||
+              (await fetchRecordForCode("uStrong", code, "equals", baseStrong));
+
+            if (record) {
+              return record;
+            }
+          }
+
+          for (const code of strongCodes) {
+            const record =
+              (await fetchRecordForCode("eStrong", code, "startsWith", baseStrong)) ||
+              (await fetchRecordForCode("dStrong", code, "startsWith", baseStrong)) ||
+              (await fetchRecordForCode("uStrong", code, "startsWith", baseStrong));
+
+            if (record) {
+              return record;
+            }
+          }
+
+          return undefined;
+        };
+
+        await Promise.all(
+          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
+            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+
+            if (preferredRecord) {
+              const {
+                Hebrew,
+                Transliteration,
+                Gloss,
+                Meaning,
+                Morph,
+                eStrong,
+                dStrong,
+                uStrong,
+                preferredStrong,
+              } = preferredRecord;
+
+              stepBibleMap.set(strongNumber, {
+                Hebrew,
+                Transliteration,
+                Gloss,
+                Meaning,
+                Morph,
+                eStrong,
+                dStrong,
+                uStrong,
+                preferredStrong,
+              });
+            }
+          })
+        );
+
         const strongNumberSet = new Set<number>();
-        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));          
+        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
         passageContent.forEach(word => {
           let hebWord = {} as WordProps;
           hebWord.wordId = word.hebId || 0;
@@ -686,6 +953,7 @@ export async function fetchPassageData(studyId: string) {
           hebWord.wlcWord = word.wlcWord || "";
           hebWord.gloss = word.gloss?.trim() || "";
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
+          hebWord.morphology = word.morphology?.trim() || "";
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
 
@@ -699,6 +967,116 @@ export async function fetchPassageData(studyId: string) {
             }
             //console.log(hebWord.motifData);
           }
+
+          const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
+          const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
+
+          const extractStrongCode = (value: string | null | undefined) => {
+            if (!value) {
+              return "";
+            }
+
+            const trimmed = value.trim();
+            const match = trimmed.match(/H\d{3,5}[A-Za-z]?/i);
+
+            if (!match) {
+              return trimmed.toUpperCase();
+            }
+
+            const matched = match[0];
+            const head = matched.slice(0, 1).toUpperCase();
+            const rest = matched.slice(1);
+            return `${head}${rest}`;
+          };
+
+          const cleanGlossValue = (value: string | null | undefined) => {
+            if (!value) {
+              return "";
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+              return "";
+            }
+
+            const colonIndex = trimmed.indexOf(":");
+            if (colonIndex === -1) {
+              return trimmed;
+            }
+
+            return trimmed.slice(0, colonIndex).trim();
+          };
+
+          const cleanMeaningValue = (value: string | null | undefined) => {
+            if (!value) {
+              return "";
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+              return "";
+            }
+
+            const lower = trimmed.toLowerCase();
+            const colonIndex = trimmed.indexOf(":");
+            const brIndex = lower.indexOf("<br");
+
+            if (colonIndex !== -1 && brIndex !== -1 && colonIndex < brIndex) {
+              const afterBreak = trimmed.slice(brIndex);
+              const withoutFirstBreak = afterBreak.replace(/^<br\s*\/?>(\s*)?/i, "");
+              return withoutFirstBreak.trim();
+            }
+
+            return trimmed;
+          };
+
+          const preferredMorphology = (() => {
+            const hebMorph = word.morphology?.trim();
+            if (hebMorph && hebMorph.length > 0) {
+              return hebMorph;
+            }
+            const stepMorph = wordInfo?.Morph?.trim();
+            return stepMorph && stepMorph.length > 0 ? stepMorph : "";
+          })();
+
+          const hebrewWord = (() => {
+            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
+            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
+              return stepBibleHebrew;
+            }
+            const wlcHebrew = hebWord.wlcWord?.trim();
+            return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
+          })();
+
+          const gloss = (() => {
+            const stepBibleGloss = wordInfo?.Gloss?.trim();
+            if (stepBibleGloss && stepBibleGloss.length > 0) {
+              return stepBibleGloss;
+            }
+            const passageGloss = hebWord.gloss?.trim();
+            return passageGloss && passageGloss.length > 0 ? passageGloss : "";
+          })();
+
+          hebWord.morphology = preferredMorphology;
+          const strongValue =
+            extractStrongCode(wordInfo?.preferredStrong) ||
+            extractStrongCode(wordInfo?.eStrong) ||
+            extractStrongCode(wordInfo?.dStrong) ||
+            extractStrongCode(wordInfo?.uStrong) ||
+            defaultStrong;
+
+          const strongNumberForDisplay = strongValue
+            ? formatStrongNumberForDisplay(strongValue)
+            : "";
+
+          hebWord.wordInformation = {
+            hebrew: hebrewWord,
+            transliteration: wordInfo?.Transliteration?.trim() || "",
+            gloss: cleanGlossValue(gloss),
+            morphology: preferredMorphology,
+            strongsNumber: strongNumberForDisplay,
+            meaning: cleanMeaningValue(wordInfo?.Meaning),
+          };
 
           passageData.bibleData.push(hebWord);
         })
@@ -725,10 +1103,8 @@ export async function fetchPassageContentOld(studyId: string) {
 
     if (study)
     {
-      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
-      if (!study.book) {
-        throw new Error("Book is not defined")
-      }
+      const book = (study.book ?? 'psalms').toLowerCase();
+      const passageInfo = parsePassageInfo(study.passage, book);
 
       // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
@@ -911,7 +1287,7 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
   esvApiEndpoint.searchParams.append('include-headings', 'false');
   esvApiEndpoint.searchParams.append('include-footnotes', 'false');
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
-  esvApiEndpoint.searchParams.append('include-short-copyright', 'true');
+  esvApiEndpoint.searchParams.append('include-short-copyright', 'false');
   esvApiEndpoint.searchParams.append('include-passage-references', 'false');
 
   try {
@@ -929,5 +1305,12 @@ export async function fetchESVTranslation(chapter: number, verse: number) {
 };
 
 export async function fetchStudyOwner(studyId: string) {
-  console.log(studyId);
+  const xataClient = getXataClient();
+  try {
+    const study = await xataClient.db.study.read(studyId);
+    return study?.owner ?? null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch study owner.');
+  }
 }
