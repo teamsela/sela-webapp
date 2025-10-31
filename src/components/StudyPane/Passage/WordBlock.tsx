@@ -207,7 +207,7 @@ export const WordBlock = ({
     style: ctxIsHebrew ? {} : { marginRight: wordProps.verse.toString().length === 1 ? '0.25rem' : wordProps.verse.toString().length === 2 ? '0.25rem' : '0.125rem' }
   }
 
-  const hebBlockSizeStyle = `w-[5.25rem] h-8`;
+  const hebBlockSizeStyle = `w-[5.25rem] h-10`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
   let fontSize = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize;
