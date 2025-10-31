@@ -2,7 +2,7 @@ import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
-import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
+import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
@@ -34,7 +34,8 @@ export const WordBlock = ({
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap
+    ctxRootsColorMap, ctxSetRootsColorMap,
+    ctxWordsColorMap, ctxSetWordsColorMap
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
@@ -139,6 +140,25 @@ export const WordBlock = ({
       (rootsColor.text) && setTextColorLocal(rootsColor.text);
     }
   }, [ctxRootsColorMap])
+
+  useEffect(() => {
+    const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
+    if (wordsColor) {
+      wordProps.metadata = {
+        ...wordProps.metadata,
+        color: {
+          fill: wordsColor.fill,
+          text: wordsColor.text,
+          border: wordsColor.border,
+          ...(wordProps.metadata?.color || {}),
+        },
+      };
+
+      (wordsColor.fill) && setColorFillLocal(wordsColor.fill);
+      (wordsColor.text) && setTextColorLocal(wordsColor.text);
+      (wordsColor.border) && setBorderColorLocal(wordsColor.border);
+    }
+  }, [ctxWordsColorMap])
 
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));

@@ -56,7 +56,7 @@ const IdenticalWord = () => {
                 </div>
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center mt-3">
-                <SmartHighlight indeticalWords={identicalWordPropsArray} />
+                <SmartHighlight identicalWords={identicalWordPropsArray} />
             </div>
         </div>
     );
