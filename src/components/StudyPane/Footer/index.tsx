@@ -50,7 +50,7 @@ export const Footer = () => {
           </span>
         )}
         {wordInformation?.gloss && (
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {wordInformation.gloss}
           </span>
         )}
