@@ -28,13 +28,13 @@ const LanguageSwitcher = () => {
 
           <div className='flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center'>
             <span onClick={() => { handleSwitcherClick(LanguageMode.English) }} className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.English && buttonSelectedStyle}`}>
-              En
+              A
             </span>
             <span onClick={() => { handleSwitcherClick(LanguageMode.Parallel) }} className={`${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Parallel && buttonSelectedStyle}`}>
-              A/א
+              Aא
             </span>
             <span onClick={() => { handleSwitcherClick(LanguageMode.Hebrew) }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Hebrew && buttonSelectedStyle}`}>
-              עִב
+              א
             </span>
           </div>
 
