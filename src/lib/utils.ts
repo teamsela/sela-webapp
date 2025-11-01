@@ -120,7 +120,7 @@ export function extractPartsOfSpeechFromPassage(passageProps: PassageProps): Map
 
   // Helper to safely extract part of speech from a morphology string
   const extractAbbrev = (morphology: string): string => {
-    const match = morphology.match(/^(?:.*\|\s*(?=.*-))?\s*([A-Za-z]+)(?=\s*-|$)/);
+    const match = morphology.match(/^(?:.*\|\s*)?([A-Za-z]+)(?=-|\s*\||$)/);
     return match ? match[1] : "";
   };
 
