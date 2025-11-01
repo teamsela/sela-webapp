@@ -391,12 +391,14 @@ const syntaxSections: SyntaxSectionDefinition[] = [
     type: SyntaxType.verbalConjugations,
     title: "Verb Conjugations",
     labels: verbConjugationLabels,
+    highlightable: true,
   },
   {
     id: "verbal-stems",
     type: SyntaxType.verbalStems,
     title: "Verbal Stems",
     labels: verbalStemLabels,
+    highlightable: true,
   },
   {
     id: "person-gender-number",
