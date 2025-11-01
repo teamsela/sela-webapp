@@ -34,7 +34,6 @@ export const WordBlock = ({
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap,
     ctxWordsColorMap, ctxSetWordsColorMap
   } = useContext(FormatContext)
 
@@ -48,8 +47,6 @@ export const WordBlock = ({
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   if (ctxColorAction != ColorActionType.none ) {
-    ctxRootsColorMap.delete(wordProps.strongNumber);
-
     const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
 
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
@@ -107,7 +104,6 @@ export const WordBlock = ({
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
 
-    ctxSetRootsColorMap(new Map());
   }, [wordProps.metadata?.color]);
 
   useEffect(() => {
@@ -123,42 +119,31 @@ export const WordBlock = ({
       setIndentsLocal(indent);
     }
   }, [wordProps.metadata?.indent]);
-
-  useEffect(() => {
-    const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
-    if (rootsColor) {
-      wordProps.metadata = {
-        ...wordProps.metadata,
-        color: {
-          fill: rootsColor.fill,
-          text: rootsColor.text,
-          ...(wordProps.metadata?.color || {}),
-        },
-      };
-
-      (rootsColor.fill) && setColorFillLocal(rootsColor.fill);
-      (rootsColor.text) && setTextColorLocal(rootsColor.text);
-    }
-  }, [ctxRootsColorMap])
-
   useEffect(() => {
     const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
     if (wordsColor) {
+      const { source, fill, text, border } = wordsColor;
       wordProps.metadata = {
         ...wordProps.metadata,
         color: {
-          fill: wordsColor.fill,
-          text: wordsColor.text,
-          border: wordsColor.border,
+          fill,
+          text,
+          border,
           ...(wordProps.metadata?.color || {}),
         },
       };
 
-      (wordsColor.fill) && setColorFillLocal(wordsColor.fill);
-      (wordsColor.text) && setTextColorLocal(wordsColor.text);
-      (wordsColor.border) && setBorderColorLocal(wordsColor.border);
+      fill && setColorFillLocal(fill);
+      text && setTextColorLocal(text);
+      border && setBorderColorLocal(border);
+
+      if (source === "motif") {
+        const updatedMap = new Map(ctxWordsColorMap);
+        updatedMap.delete(wordProps.wordId);
+        ctxSetWordsColorMap(updatedMap);
+      }
     }
-  }, [ctxWordsColorMap])
+  }, [ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId, wordProps.metadata]);
 
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));

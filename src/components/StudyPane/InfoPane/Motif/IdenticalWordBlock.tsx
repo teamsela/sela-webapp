@@ -14,7 +14,7 @@ export const IdenticalWordBlock = ({
   selectRelated: boolean
 }) => {
 
-  const { ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
+  const { ctxColorAction, ctxSelectedColor, ctxStudyMetadata,
     ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode } = useContext(FormatContext)
 
   const toSelect = selectRelated ? [...identicalWords, ...relatedWords] : identicalWords;
@@ -26,17 +26,15 @@ export const IdenticalWordBlock = ({
     );
   };
 
-  const idWordsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
-
-  const initialColorFill = idWordsColorMap?.fill 
-    || (matchColorProperty('fill') ? toSelect[0]?.metadata.color?.fill : DEFAULT_COLOR_FILL) 
-    || DEFAULT_COLOR_FILL;
-  const initialTextColor = idWordsColorMap?.text 
-    || (matchColorProperty('text') ? toSelect[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) 
-    || DEFAULT_TEXT_COLOR;
-  const initialBorderColor = 
-    (matchColorProperty('border') ? toSelect[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) 
-    || DEFAULT_BORDER_COLOR;
+  const initialColorFill =
+    (matchColorProperty("fill") ? toSelect[0]?.metadata.color?.fill : DEFAULT_COLOR_FILL) ||
+    DEFAULT_COLOR_FILL;
+  const initialTextColor =
+    (matchColorProperty("text") ? toSelect[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) ||
+    DEFAULT_TEXT_COLOR;
+  const initialBorderColor =
+    (matchColorProperty("border") ? toSelect[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) ||
+    DEFAULT_BORDER_COLOR;
 
   const [colorFillLocal, setColorFillLocal] = useState(initialColorFill);
   const [textColorLocal, setTextColorLocal] = useState(initialTextColor);
@@ -53,25 +51,19 @@ export const IdenticalWordBlock = ({
   }, [ctxSelectedWords, toSelect]);
 
   useEffect(() => {
-    const idWordsColor = ctxRootsColorMap.get(toSelect[0].strongNumber)
-    if (idWordsColor) {
-      toSelect.forEach(dsd => {
-        dsd.metadata = dsd.metadata ? 
-        { ...dsd.metadata, color: idWordsColor } : 
-        { color: idWordsColor };
-      });
-      idWordsColor.fill && setColorFillLocal(idWordsColor.fill);
-      idWordsColor.text && setTextColorLocal(idWordsColor.text);
-      idWordsColor.border && setBorderColorLocal(idWordsColor.border);
-    }
-    else if (ctxStudyMetadata.words[id]) {
+    const metadataColor =
+      ctxStudyMetadata.words[toSelect[0].wordId]?.color || toSelect[0]?.metadata.color;
 
-      let updatedColor = (ctxStudyMetadata.words[toSelect[0].wordId].color) ? ctxStudyMetadata.words[toSelect[0].wordId].color : {};
-      setColorFillLocal(updatedColor?.fill || DEFAULT_COLOR_FILL);
-      setTextColorLocal(updatedColor?.text || DEFAULT_TEXT_COLOR);
-      setBorderColorLocal(updatedColor?.border || DEFAULT_BORDER_COLOR);
+    if (metadataColor) {
+      metadataColor.fill && setColorFillLocal(metadataColor.fill);
+      metadataColor.text && setTextColorLocal(metadataColor.text);
+      metadataColor.border && setBorderColorLocal(metadataColor.border);
+    } else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setTextColorLocal(DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
     }
-  }, [ctxRootsColorMap, ctxStudyMetadata, toSelect, id])
+  }, [ctxStudyMetadata, toSelect])
 
   useEffect(() => {
     if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }

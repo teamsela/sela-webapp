@@ -16,13 +16,13 @@ interface SmartHighlightProps {
 
 const SmartHighlight: React.FC<SmartHighlightProps> = ({identicalWords}) => {
 
-  const { ctxStudyId, ctxSetRootsColorMap, ctxStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
+  const { ctxStudyId, ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
   const trigger = useRef<any>(null);
 
   const handleClick = () => {
 
-    let newMap = new Map<number, ColorData>();
+    const updatedMap = new Map(ctxWordsColorMap);
 
     identicalWords.forEach((idWordProps, index) => {
 
@@ -36,7 +36,7 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({identicalWords}) => {
       idWordProps.identicalWords.forEach((word) => {
         const wordId = word.wordId;
         const wordMetadata = ctxStudyMetadata.words[wordId];
-    
+
         if (!wordMetadata) {
           ctxStudyMetadata.words[wordId] = { color: idWordBlockColor };
           return;
@@ -46,19 +46,24 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({identicalWords}) => {
           wordMetadata.color = idWordBlockColor;
           return;
         }
-    
+
         wordMetadata.color.fill = idWordBlockColor.fill;
         wordMetadata.color.text = idWordBlockColor.text;
 
 //        descendantWordIds.push(word.wordId)
+        updatedMap.set(wordId, {
+          fill: idWordBlockColor.fill,
+          text: idWordBlockColor.text,
+          border: idWordBlockColor.border,
+          source: "motif",
+        });
       });
 
         //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.colorFill, idWordBlockColor.colorFill);
         //updateWordColor(ctxStudyId, descendantWordIds, ColorActionType.textColor, idWordBlockColor.textColor);
-      newMap.set(idWordProps.identicalWords[0].strongNumber, idWordBlockColor);
     });
 
-    ctxSetRootsColorMap(newMap);
+    ctxSetWordsColorMap(updatedMap);
     ctxAddToHistory(ctxStudyMetadata);
     updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
 }

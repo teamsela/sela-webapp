@@ -647,7 +647,7 @@ const Syntax = () => {
         if (Object.keys(updatedColor).length > 0) {
           existingMetadata.color = updatedColor;
           metadata.words[wordId] = existingMetadata;
-          colorMap.set(wordId, { ...updatedColor });
+          colorMap.set(wordId, { ...updatedColor, source: "syntax" });
         } else {
           delete existingMetadata.color;
           if (Object.keys(existingMetadata).length === 0) {
