@@ -27,6 +27,7 @@ type SyntaxLabelDefinition = {
   label: string;
   palette?: LabelPalette;
   predicate: (features: MorphFeatures) => boolean;
+  highlightable?: boolean;
 };
 
 type SyntaxSubSection = {
@@ -611,7 +612,8 @@ const Syntax = () => {
     const originalColors = new Map<number, ColorData | undefined>();
 
     groups.forEach((group) => {
-      if (!group.palette) {
+      const palette = group.palette;
+      if (!palette) {
         return;
       }
 
@@ -630,14 +632,14 @@ const Syntax = () => {
 
         const updatedColor: ColorData = { ...(existingColor ?? {}) };
 
-        if (group.palette.fill !== undefined) {
-          updatedColor.fill = group.palette.fill;
+        if (palette.fill !== undefined) {
+          updatedColor.fill = palette.fill;
         }
-        if (group.palette.border !== undefined) {
-          updatedColor.border = group.palette.border;
+        if (palette.border !== undefined) {
+          updatedColor.border = palette.border;
         }
-        if (group.palette.text !== undefined) {
-          updatedColor.text = group.palette.text;
+        if (palette.text !== undefined) {
+          updatedColor.text = palette.text;
         }
 
         if (Object.keys(updatedColor).length > 0) {
