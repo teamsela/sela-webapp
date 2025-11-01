@@ -748,28 +748,68 @@ const Syntax = () => {
                           {subSection.title}
                         </h3>
                         <div className="flex flex-wrap">
-                          {subSection.labels.map((label) => (
-                            <SyntaxLabel
-                              key={label.id}
-                              label={label.label}
-                              words={labelWordMap.get(label.id) || []}
-                              palette={label.palette}
-                            />
-                          ))}
+                          {subSection.labels.map((label) => {
+                            const words = labelWordMap.get(label.id) || [];
+                            const palette = label.palette;
+                            const highlightId = `${section.id}__${label.id}`;
+                            const canHighlight = words.length > 0 && !!palette;
+                            const toggleHighlight =
+                              canHighlight && palette
+                                ? () =>
+                                    handleHighlightToggle(highlightId, [
+                                      {
+                                        label: label.label,
+                                        words,
+                                        palette,
+                                      },
+                                    ])
+                                : undefined;
+
+                            return (
+                              <SyntaxLabel
+                                key={label.id}
+                                label={label.label}
+                                wordCount={words.length}
+                                palette={palette}
+                                isActive={activeHighlight === highlightId}
+                                onToggleHighlight={toggleHighlight}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                     ))
                   ) : (
                     <>
                       <div className="flex flex-wrap">
-                        {section.labels?.map((label) => (
-                          <SyntaxLabel
-                            key={label.id}
-                            label={label.label}
-                            words={labelWordMap.get(label.id) || []}
-                            palette={label.palette}
-                          />
-                        ))}
+                        {section.labels?.map((label) => {
+                          const words = labelWordMap.get(label.id) || [];
+                          const palette = label.palette;
+                          const highlightId = `${section.id}__${label.id}`;
+                          const canHighlight = words.length > 0 && !!palette;
+                          const toggleHighlight =
+                            canHighlight && palette
+                              ? () =>
+                                  handleHighlightToggle(highlightId, [
+                                    {
+                                      label: label.label,
+                                      words,
+                                      palette,
+                                    },
+                                  ])
+                              : undefined;
+
+                          return (
+                            <SyntaxLabel
+                              key={label.id}
+                              label={label.label}
+                              wordCount={words.length}
+                              palette={palette}
+                              isActive={activeHighlight === highlightId}
+                              onToggleHighlight={toggleHighlight}
+                            />
+                          );
+                        })}
                       </div>
                       {section.highlightable && (
                         <div className="flex justify-center pt-2">

@@ -1,7 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
-
-import { WordProps } from "@/lib/data";
-import { FormatContext } from "../..";
+import React from "react";
 
 export type LabelPalette = {
     fill?: string;
@@ -17,69 +14,38 @@ const KEYBOARD_ACTIVATION_KEYS = new Set(["Enter", " "]);
 
 const SyntaxLabel = ({
     label,
-    words,
+    wordCount,
     palette,
+    isActive,
+    onToggleHighlight,
 }: {
     label: string;
-    words: WordProps[];
+    wordCount: number;
     palette?: LabelPalette;
+    isActive: boolean;
+    onToggleHighlight?: () => void;
 }) => {
-    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords } =
-        useContext(FormatContext);
-
-    const [isSelected, setIsSelected] = useState(false);
-
-    useEffect(() => {
-        if (!words.length) {
-            setIsSelected(false);
-            return;
-        }
-
-        const allSelected = words.every((word) =>
-            ctxSelectedWords.includes(word),
-        );
-        setIsSelected(allSelected);
-    }, [ctxSelectedWords, words]);
-
-    const updateSelection = () => {
-        if (!words.length) {
-            return;
-        }
-
-        if (!isSelected) {
-            const existingIds = new Set(ctxSelectedWords.map((word) => word.wordId));
-            const mergedSelection = [
-                ...ctxSelectedWords,
-                ...words.filter((word) => !existingIds.has(word.wordId)),
-            ];
-            ctxSetSelectedWords(mergedSelection);
-            ctxSetNumSelectedWords(mergedSelection.length);
-            return;
-        }
-
-        const idsToRemove = new Set(words.map((word) => word.wordId));
-        const filtered = ctxSelectedWords.filter(
-            (word) => !idsToRemove.has(word.wordId),
-        );
-        ctxSetSelectedWords(filtered);
-        ctxSetNumSelectedWords(filtered.length);
-    };
+    const disabled = wordCount === 0 || !onToggleHighlight;
 
     const handleClick = () => {
-        updateSelection();
+        if (disabled) {
+            return;
+        }
+        onToggleHighlight?.();
     };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
         if (KEYBOARD_ACTIVATION_KEYS.has(event.key)) {
             event.preventDefault();
-            updateSelection();
+            if (!disabled) {
+                onToggleHighlight?.();
+            }
         }
     };
 
     const fill = palette?.fill || DEFAULT_FILL;
     const border = palette?.border || DEFAULT_BORDER;
     const text = palette?.text || DEFAULT_TEXT;
-    const disabled = words.length === 0;
 
     const containerClassName = [
         "wordBlock",
@@ -88,7 +54,7 @@ const SyntaxLabel = ({
         "rounded",
         "border",
         disabled ? "opacity-60 cursor-default" : "cursor-pointer",
-        isSelected
+        isActive
             ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md"
             : "outline-offset-[-4px]",
     ].join(" ");
@@ -114,7 +80,7 @@ const SyntaxLabel = ({
                         {label}
                     </span>
                     <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">
-                        {words.length}
+                        {wordCount}
                     </span>
                 </span>
             </div>
