@@ -50,10 +50,8 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  // color map used by identical words smart highlight
-  // might need to rename it if only used for identical words
-  ctxRootsColorMap: {} as Map<number, ColorData>,
-  ctxSetRootsColorMap: (arg: Map<number, ColorData>) => {},
+  ctxWordsColorMap: {} as Map<number, ColorData>,
+  ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
   ctxHistory: [] as StudyMetadata[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
@@ -97,7 +95,7 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
-  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
@@ -152,8 +150,8 @@ const StudyPane = ({
     ctxInViewMode: inViewMode,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
-    ctxRootsColorMap: rootsColorMap,
-    ctxSetRootsColorMap: setRootsColorMap,
+    ctxWordsColorMap: wordsColorMap,
+    ctxSetWordsColorMap: setWordsColorMap,
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,

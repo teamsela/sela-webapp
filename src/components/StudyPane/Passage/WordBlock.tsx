@@ -2,7 +2,7 @@ import { WordProps } from '@/lib/data';
 import React, { useState, useEffect, useContext } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
-import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
+import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
@@ -34,7 +34,7 @@ export const WordBlock = ({
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap
+    ctxWordsColorMap, ctxSetWordsColorMap
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
@@ -47,8 +47,6 @@ export const WordBlock = ({
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   if (ctxColorAction != ColorActionType.none ) {
-    ctxRootsColorMap.delete(wordProps.strongNumber);
-
     const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
 
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
@@ -106,7 +104,6 @@ export const WordBlock = ({
       setTextColorLocal(DEFAULT_TEXT_COLOR);
     }
 
-    ctxSetRootsColorMap(new Map());
   }, [wordProps.metadata?.color]);
 
   useEffect(() => {
@@ -122,23 +119,31 @@ export const WordBlock = ({
       setIndentsLocal(indent);
     }
   }, [wordProps.metadata?.indent]);
-
   useEffect(() => {
-    const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
-    if (rootsColor) {
+    const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
+    if (wordsColor) {
+      const { source, fill, text, border } = wordsColor;
       wordProps.metadata = {
         ...wordProps.metadata,
         color: {
-          fill: rootsColor.fill,
-          text: rootsColor.text,
+          fill,
+          text,
+          border,
           ...(wordProps.metadata?.color || {}),
         },
       };
 
-      (rootsColor.fill) && setColorFillLocal(rootsColor.fill);
-      (rootsColor.text) && setTextColorLocal(rootsColor.text);
+      fill && setColorFillLocal(fill);
+      text && setTextColorLocal(text);
+      border && setBorderColorLocal(border);
+
+      if (source === "motif") {
+        const updatedMap = new Map(ctxWordsColorMap);
+        updatedMap.delete(wordProps.wordId);
+        ctxSetWordsColorMap(updatedMap);
+      }
     }
-  }, [ctxRootsColorMap])
+  }, [ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId, wordProps.metadata]);
 
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
