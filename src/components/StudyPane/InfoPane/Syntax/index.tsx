@@ -55,7 +55,7 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-adjective": { fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-negative-particle": { fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
   "pos-adverb": { fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
-  "pos-object-marker": { fill: "#4458E1", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
+  "pos-object-marker": { fill: "#1831d6ff", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
   "pos-pronoun": { fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#0C4A4A" },
   "pos-preposition": { border: "#3A9320", text: DEFAULT_TEXT_COLOR },
   "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
@@ -66,9 +66,9 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
   "vc-perfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C13A7B" },
-  "vc-imperfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#4C86D6" },
+  "vc-imperfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#2034ebff" },
   "vc-participle": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#5CB46F" },
-  "vc-infinitive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#4DB5BB" },
+  "vc-infinitive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#a257e9ff" },
   "vc-imperative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#D88E2E" },
   "vc-cohortative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
   "vc-jussive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
