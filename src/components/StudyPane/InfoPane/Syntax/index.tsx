@@ -1,12 +1,13 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 
-import { PassageProps, WordProps } from "@/lib/data";
+import { ColorData, PassageProps, StudyMetadata, WordProps } from "@/lib/data";
+import { updateMetadataInDb } from "@/lib/actions";
 import { SyntaxType } from "@/lib/types";
 
 import { FormatContext } from "../..";
 import AccordionToggleIcon from "../common/AccordionToggleIcon";
 import SyntaxLabel, { LabelPalette } from "./SyntaxLabel";
-import SyntaxSmartHighlight from "./SmartHighlight";
+import SyntaxSmartHighlight, { SmartHighlightGroup } from "./SmartHighlight";
 
 type PersonCode = "1" | "2" | "3";
 type GenderCode = "M" | "F" | "C";
@@ -48,38 +49,38 @@ const DEFAULT_TEXT_COLOR = "#656565";
 const DEFAULT_FILL_COLOR = "#FFFFFF";
 
 const partsOfSpeechPalette: Record<string, LabelPalette> = {
-  "pos-verb": { fill: "#f8bdd0", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-noun": { fill: "#4fc3f7", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-adjective": { fill: "#dcedc8", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-negative-particle": { fill: "#c2185b", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-adverb": { fill: "#f06292", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-pronoun": { fill: "#b2ebf2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-interjection": { fill: "#fff9cf", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-interrogative": { fill: "#ffe0b2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-verb": { fill: "#F79AC2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-noun": { fill: "#7FC6F5", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-adjective": { fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-negative-particle": { fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
+  "pos-adverb": { fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
+  "pos-object-marker": { fill: "#4458E1", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
+  "pos-pronoun": { fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#0C4A4A" },
+  "pos-preposition": { border: "#3A9320", text: DEFAULT_TEXT_COLOR },
+  "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-interrogative": { fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-conjunction": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-object-marker": { fill: "#4458e1", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-preposition": { fill: DEFAULT_FILL_COLOR, border: "#388e3f", text: DEFAULT_TEXT_COLOR },
   "pos-proper-noun": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
-  "vc-perfect": { fill: "#FEEAE6", border: "#FB8C00", text: "#E65100" },
-  "vc-imperfect": { fill: "#E8EAF6", border: "#5C6BC0", text: "#1A237E" },
-  "vc-participle": { fill: "#EDE7F6", border: "#9575CD", text: "#4527A0" },
-  "vc-infinitive": { fill: "#E0F2F1", border: "#26A69A", text: "#004D40" },
-  "vc-imperative": { fill: "#FFF3E0", border: "#FFA726", text: "#E65100" },
-  "vc-cohortative": { fill: "#F3E5F5", border: "#AB47BC", text: "#6A1B9A" },
-  "vc-jussive": { fill: "#E1F5FE", border: "#64B5F6", text: "#0D47A1" },
+  "vc-perfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C13A7B" },
+  "vc-imperfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#4C86D6" },
+  "vc-participle": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#5CB46F" },
+  "vc-infinitive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#4DB5BB" },
+  "vc-imperative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#D88E2E" },
+  "vc-cohortative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
+  "vc-jussive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
-  "vs-qal": { fill: "#FFF9C4", border: "#FBC02D", text: "#8D6E63" },
-  "vs-niphal": { fill: "#E1F5FE", border: "#29B6F6", text: "#01579B" },
-  "vs-piel": { fill: "#F8BBD0", border: "#F06292", text: "#880E4F" },
-  "vs-pual": { fill: "#E1BEE7", border: "#BA68C8", text: "#6A1B9A" },
-  "vs-hifil": { fill: "#FFE0B2", border: "#FFB74D", text: "#E65100" },
-  "vs-hofal": { fill: "#E0F7FA", border: "#26C6DA", text: "#006064" },
-  "vs-hitpael": { fill: "#DCEDC8", border: "#8BC34A", text: "#33691E" },
+  "vs-qal": { fill: "#F4A7C6", border: "#CC6A8C", text: DEFAULT_TEXT_COLOR },
+  "vs-niphal": { fill: "#C0286A", border: "#A41F59", text: "#FFFFFF" },
+  "vs-piel": { fill: "#E0619B", border: "#B64C7B", text: DEFAULT_TEXT_COLOR },
+  "vs-pual": { fill: "#4A63C6", border: "#3548A0", text: "#FFFFFF" },
+  "vs-hifil": { fill: "#8CCB5E", border: "#679943", text: DEFAULT_TEXT_COLOR },
+  "vs-hofal": { fill: "#5FA36B", border: "#437950", text: "#FFFFFF" },
+  "vs-hitpael": { fill: "#3C9C4C", border: "#2E7539", text: "#FFFFFF" },
 };
 
 const personPalette: Record<string, LabelPalette> = {
@@ -106,18 +107,21 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     label: "Verb",
     palette: partsOfSpeechPalette["pos-verb"],
     predicate: (features) => features.tokens.has("V"),
+    highlightable: true,
   },
   {
     id: "pos-noun",
     label: "Noun",
     palette: partsOfSpeechPalette["pos-noun"],
     predicate: (features) => features.tokens.has("N"),
+    highlightable: true,
   },
   {
     id: "pos-adjective",
     label: "Adjective",
     palette: partsOfSpeechPalette["pos-adjective"],
     predicate: (features) => features.tokens.has("ADJ"),
+    highlightable: true,
   },
   {
     id: "pos-negative-particle",
@@ -127,6 +131,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
       features.tokens.has("ADV") &&
       features.tokens.has("NEGPRT") &&
       features.normalizedSegments.some((segment) => segment === "ADV-NEGPRT"),
+    highlightable: true,
   },
   {
     id: "pos-adverb",
@@ -135,6 +140,14 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     predicate: (features) =>
       features.tokens.has("ADV") &&
       !features.normalizedSegments.some((segment) => segment === "ADV-NEGPRT"),
+    highlightable: true,
+  },
+  {
+    id: "pos-object-marker",
+    label: "Object Marker",
+    palette: partsOfSpeechPalette["pos-object-marker"],
+    predicate: (features) => features.tokens.has("DIROBM"),
+    highlightable: true,
   },
   {
     id: "pos-pronoun",
@@ -144,6 +157,14 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
       ["PRO", "PRON", "PRONOUN", "PRONOMINAL"].some((token) =>
         features.tokens.has(token),
       ),
+    highlightable: true,
+  },
+  {
+    id: "pos-preposition",
+    label: "Preposition",
+    palette: partsOfSpeechPalette["pos-preposition"],
+    predicate: (features) => features.tokens.has("PREP"),
+    highlightable: true,
   },
   {
     id: "pos-interjection",
@@ -151,6 +172,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     palette: partsOfSpeechPalette["pos-interjection"],
     predicate: (features) =>
       features.tokens.has("INTERJECTION") || features.tokens.has("INTERJ"),
+    highlightable: true,
   },
   {
     id: "pos-interrogative",
@@ -158,6 +180,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     palette: partsOfSpeechPalette["pos-interrogative"],
     predicate: (features) =>
       features.tokens.has("INTERROG") || features.tokens.has("INTERROGATIVE"),
+    highlightable: true,
   },
   {
     id: "pos-conjunction",
@@ -165,24 +188,14 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     palette: partsOfSpeechPalette["pos-conjunction"],
     predicate: (features) =>
       features.tokens.has("CONJ") || features.tokens.has("CONSEC"),
-  },
-  {
-    id: "pos-object-marker",
-    label: "Object Marker",
-    palette: partsOfSpeechPalette["pos-object-marker"],
-    predicate: (features) => features.tokens.has("DIROBM"),
-  },
-  {
-    id: "pos-preposition",
-    label: "Preposition",
-    palette: partsOfSpeechPalette["pos-preposition"],
-    predicate: (features) => features.tokens.has("PREP"),
+    highlightable: false,
   },
   {
     id: "pos-proper-noun",
     label: "Proper Noun",
     palette: partsOfSpeechPalette["pos-proper-noun"],
     predicate: (features) => features.tokens.has("PROPER"),
+    highlightable: false,
   },
 ];
 
@@ -514,8 +527,19 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
 };
 
 const Syntax = () => {
-  const { ctxPassageProps } = useContext(FormatContext);
+  const {
+    ctxPassageProps,
+    ctxStudyMetadata,
+    ctxSetStudyMetadata,
+    ctxStudyId,
+    ctxWordsColorMap,
+    ctxSetWordsColorMap,
+    ctxAddToHistory,
+  } = useContext(FormatContext);
+
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
   const allWords = useMemo(() => flattenWords(ctxPassageProps), [ctxPassageProps]);
 
@@ -545,17 +569,155 @@ const Syntax = () => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
+  const restoreHighlight = (
+    highlightId: string,
+    metadata: StudyMetadata,
+    colorMap: Map<number, ColorData>,
+  ) => {
+    const originalColors = highlightCacheRef.current.get(highlightId);
+    if (!originalColors) {
+      return;
+    }
+
+    originalColors.forEach((color, wordId) => {
+      const existingMetadata = metadata.words[wordId]
+        ? { ...metadata.words[wordId] }
+        : {};
+
+      if (color && Object.keys(color).length > 0) {
+        existingMetadata.color = { ...color };
+        metadata.words[wordId] = existingMetadata;
+        colorMap.set(wordId, { ...color });
+      } else {
+        delete existingMetadata.color;
+        if (Object.keys(existingMetadata).length === 0) {
+          delete metadata.words[wordId];
+        } else {
+          metadata.words[wordId] = existingMetadata;
+        }
+        colorMap.delete(wordId);
+      }
+    });
+
+    highlightCacheRef.current.delete(highlightId);
+  };
+
+  const applyHighlightToMetadata = (
+    highlightId: string,
+    groups: SmartHighlightGroup[],
+    metadata: StudyMetadata,
+    colorMap: Map<number, ColorData>,
+  ): boolean => {
+    const originalColors = new Map<number, ColorData | undefined>();
+
+    groups.forEach((group) => {
+      if (!group.palette) {
+        return;
+      }
+
+      group.words.forEach((word) => {
+        const wordId = word.wordId;
+        const existingMetadata = metadata.words[wordId]
+          ? { ...metadata.words[wordId] }
+          : {};
+        const existingColor = existingMetadata.color
+          ? { ...existingMetadata.color }
+          : undefined;
+
+        if (!originalColors.has(wordId)) {
+          originalColors.set(wordId, existingColor);
+        }
+
+        const updatedColor: ColorData = { ...(existingColor ?? {}) };
+
+        if (group.palette.fill !== undefined) {
+          updatedColor.fill = group.palette.fill;
+        }
+        if (group.palette.border !== undefined) {
+          updatedColor.border = group.palette.border;
+        }
+        if (group.palette.text !== undefined) {
+          updatedColor.text = group.palette.text;
+        }
+
+        if (Object.keys(updatedColor).length > 0) {
+          existingMetadata.color = updatedColor;
+          metadata.words[wordId] = existingMetadata;
+          colorMap.set(wordId, { ...updatedColor });
+        } else {
+          delete existingMetadata.color;
+          if (Object.keys(existingMetadata).length === 0) {
+            delete metadata.words[wordId];
+          } else {
+            metadata.words[wordId] = existingMetadata;
+          }
+          colorMap.delete(wordId);
+        }
+      });
+    });
+
+    if (originalColors.size > 0) {
+      highlightCacheRef.current.set(highlightId, originalColors);
+      return true;
+    }
+
+    return false;
+  };
+
+  const commitHighlightState = (
+    metadata: StudyMetadata,
+    colorMap: Map<number, ColorData>,
+    newActive: string | null,
+  ) => {
+    setActiveHighlight(newActive);
+    ctxSetWordsColorMap(new Map(colorMap));
+    ctxSetStudyMetadata(metadata);
+    ctxAddToHistory(metadata);
+    updateMetadataInDb(ctxStudyId, metadata);
+  };
+
+  const handleHighlightToggle = (highlightId: string, groups: SmartHighlightGroup[]) => {
+    const metadataClone: StudyMetadata = structuredClone(ctxStudyMetadata);
+    metadataClone.words ??= {};
+    const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
+
+    if (activeHighlight) {
+      restoreHighlight(activeHighlight, metadataClone, colorMapClone);
+    }
+
+    if (activeHighlight === highlightId) {
+      commitHighlightState(metadataClone, colorMapClone, null);
+      return;
+    }
+
+    const applied = applyHighlightToMetadata(
+      highlightId,
+      groups,
+      metadataClone,
+      colorMapClone,
+    );
+
+    if (!applied) {
+      commitHighlightState(metadataClone, colorMapClone, null);
+      return;
+    }
+
+    commitHighlightState(metadataClone, colorMapClone, highlightId);
+  };
+
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="accordion">
         {syntaxSections.map((section) => {
           const isOpen = openSection === section.type;
           const sectionGroups =
-            section.labels?.map((label) => ({
-              label: label.label,
-              words: labelWordMap.get(label.id) || [],
-              palette: label.palette,
-            })) ?? [];
+            section.labels
+              ?.filter((label) => label.highlightable !== false)
+              .map((label) => ({
+                label: label.label,
+                words: labelWordMap.get(label.id) || [],
+                palette: label.palette,
+              })) ?? [];
 
           return (
             <div
@@ -607,7 +769,12 @@ const Syntax = () => {
                       </div>
                       {section.highlightable && (
                         <div className="flex justify-center pt-2">
-                          <SyntaxSmartHighlight groups={sectionGroups} />
+                          <SyntaxSmartHighlight
+                            highlightId={section.id}
+                            groups={sectionGroups}
+                            activeHighlightId={activeHighlight}
+                            onToggle={handleHighlightToggle}
+                          />
                         </div>
                       )}
                     </>
