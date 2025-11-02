@@ -47,6 +47,18 @@ export const WordBlock = ({
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   if (ctxColorAction != ColorActionType.none ) {
+    const shouldRemoveOverlay =
+      ctxColorAction === ColorActionType.resetAllColor || selected;
+
+    if (shouldRemoveOverlay) {
+      const overlay = ctxWordsColorMap.get(wordProps.wordId);
+      if (overlay) {
+        const updatedMap = new Map(ctxWordsColorMap);
+        updatedMap.delete(wordProps.wordId);
+        ctxSetWordsColorMap(updatedMap);
+      }
+    }
+
     const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
 
     if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {

@@ -527,10 +527,21 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
 };
 
 const Syntax = () => {
-  const { ctxPassageProps } = useContext(FormatContext);
+  const {
+    ctxPassageProps,
+    ctxSelectedWords,
+    ctxSetSelectedWords,
+    ctxSetNumSelectedWords,
+    ctxSetSelectedStrophes,
+  } = useContext(FormatContext);
   const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax");
 
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
+  const selectedWordIds = useMemo(() => {
+    const ids = new Set<number>();
+    ctxSelectedWords.forEach((word) => ids.add(word.wordId));
+    return ids;
+  }, [ctxSelectedWords]);
 
   const allWords = useMemo(() => flattenWords(ctxPassageProps), [ctxPassageProps]);
 
@@ -564,6 +575,32 @@ const Syntax = () => {
       highlightId,
       groups.filter((group) => group.words.length > 0),
     );
+  };
+
+  const handleLabelSelectionToggle = (words: WordProps[]) => {
+    if (!words.length) {
+      return;
+    }
+
+    const idsToToggle = new Set(words.map((word) => word.wordId));
+    const allSelected = words.every((word) => selectedWordIds.has(word.wordId));
+    let updatedSelection = [...ctxSelectedWords];
+
+    if (allSelected) {
+      updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+    } else {
+      const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+      words.forEach((word) => {
+        if (!existingIds.has(word.wordId)) {
+          updatedSelection.push(word);
+          existingIds.add(word.wordId);
+        }
+      });
+    }
+
+    ctxSetSelectedWords(updatedSelection);
+    ctxSetNumSelectedWords(updatedSelection.length);
+    ctxSetSelectedStrophes([]);
   };
 
   return (
@@ -610,18 +647,8 @@ const Syntax = () => {
                             const words = labelWordMap.get(label.id) || [];
                             const palette = label.palette;
                             const highlightId = `${section.id}__${label.id}`;
-                            const canHighlight = words.length > 0 && !!palette;
-                            const toggleHighlight =
-                              canHighlight && palette
-                                ? () =>
-                                    handleHighlightToggle(highlightId, [
-                                      {
-                                        label: label.label,
-                                        words,
-                                        palette,
-                                      },
-                                    ])
-                                : undefined;
+                            const isSelected =
+                              words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
 
                             return (
                               <SyntaxLabel
@@ -630,7 +657,8 @@ const Syntax = () => {
                                 wordCount={words.length}
                                 palette={palette}
                                 isActive={activeHighlightId === highlightId}
-                                onToggleHighlight={toggleHighlight}
+                                isSelected={isSelected}
+                                onToggleSelection={() => handleLabelSelectionToggle(words)}
                               />
                             );
                           })}
@@ -644,18 +672,8 @@ const Syntax = () => {
                           const words = labelWordMap.get(label.id) || [];
                           const palette = label.palette;
                           const highlightId = `${section.id}__${label.id}`;
-                          const canHighlight = words.length > 0 && !!palette;
-                          const toggleHighlight =
-                            canHighlight && palette
-                              ? () =>
-                                  handleHighlightToggle(highlightId, [
-                                    {
-                                      label: label.label,
-                                      words,
-                                      palette,
-                                    },
-                                  ])
-                              : undefined;
+                          const isSelected =
+                            words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
 
                           return (
                             <SyntaxLabel
@@ -664,7 +682,8 @@ const Syntax = () => {
                               wordCount={words.length}
                               palette={palette}
                               isActive={activeHighlightId === highlightId}
-                              onToggleHighlight={toggleHighlight}
+                              isSelected={isSelected}
+                              onToggleSelection={() => handleLabelSelectionToggle(words)}
                             />
                           );
                         })}
