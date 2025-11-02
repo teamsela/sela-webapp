@@ -1,14 +1,9 @@
 import React from "react";
 
-export type LabelPalette = {
-    fill?: string;
-    border?: string;
-    text?: string;
-};
+import { ColorData } from "@/lib/data";
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
-const DEFAULT_FILL = "#FFFFFF";
-const DEFAULT_BORDER = "#E2E8F0";
-const DEFAULT_TEXT = "#1F2937";
+export type LabelPalette = Omit<ColorData, "source">;
 
 const KEYBOARD_ACTIVATION_KEYS = new Set(["Enter", " "]);
 
@@ -43,9 +38,9 @@ const SyntaxLabel = ({
         }
     };
 
-    const fill = palette?.fill || DEFAULT_FILL;
-    const border = palette?.border || DEFAULT_BORDER;
-    const text = palette?.text || DEFAULT_TEXT;
+    const fill = palette?.fill || DEFAULT_COLOR_FILL;
+    const border = palette?.border || DEFAULT_BORDER_COLOR;
+    const text = palette?.text || DEFAULT_TEXT_COLOR;
 
     const containerClassName = [
         "wordBlock",

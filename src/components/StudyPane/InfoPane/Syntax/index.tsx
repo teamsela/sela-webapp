@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 import { PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
 
@@ -45,10 +46,6 @@ type SyntaxSectionDefinition = {
   highlightable?: boolean;
 };
 
-const DEFAULT_BORDER_COLOR = "#D9D9D9";
-const DEFAULT_TEXT_COLOR = "#656565";
-const DEFAULT_FILL_COLOR = "#FFFFFF";
-
 const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-verb": { fill: "#F79AC2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-noun": { fill: "#7FC6F5", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
@@ -60,18 +57,18 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-preposition": { border: "#3A9320", text: DEFAULT_TEXT_COLOR },
   "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-interrogative": { fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-conjunction": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-proper-noun": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-conjunction": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-proper-noun": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
-  "vc-perfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C13A7B" },
-  "vc-imperfect": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#2034ebff" },
-  "vc-participle": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#5CB46F" },
-  "vc-infinitive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#a257e9ff" },
-  "vc-imperative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#D88E2E" },
-  "vc-cohortative": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
-  "vc-jussive": { fill: DEFAULT_FILL_COLOR, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
+  "vc-perfect": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C13A7B" },
+  "vc-imperfect": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#2034ebff" },
+  "vc-participle": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#5CB46F" },
+  "vc-infinitive": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#a257e9ff" },
+  "vc-imperative": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#D88E2E" },
+  "vc-cohortative": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
+  "vc-jussive": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
@@ -581,7 +578,8 @@ const Syntax = () => {
                 label: label.label,
                 words: labelWordMap.get(label.id) || [],
                 palette: label.palette,
-              })) ?? [];
+              }))
+              .filter((group) => group.words.length > 0) ?? [];
 
           return (
             <div

@@ -12,11 +12,10 @@ import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, 
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
-export const DEFAULT_COLOR_FILL = "#FFFFFF";
-export const DEFAULT_BORDER_COLOR = "#D9D9D9";
-export const DEFAULT_TEXT_COLOR = "#656565";
+export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
 export const FormatContext = createContext({
   ctxStudyId: "",

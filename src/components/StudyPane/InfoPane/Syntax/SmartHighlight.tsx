@@ -38,8 +38,9 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
             ? "bg-slate-300 text-slate-800 hover:bg-slate-200"
             : "bg-primary text-white hover:bg-opacity-90"
       }`}
+      aria-pressed={isActive}
     >
-      {isActive ? "Clear Highlight" : buttonLabel}
+      {buttonLabel}
     </button>
   );
 };

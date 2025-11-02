@@ -4,12 +4,13 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
 
 import { FormatContext } from "..";
-import { LabelPalette } from "./Syntax/SyntaxLabel";
+
+type HighlightPalette = Omit<ColorData, "source">;
 
 export type HighlightGroup = {
   label: string;
   words: WordProps[];
-  palette?: LabelPalette;
+  palette?: HighlightPalette;
 };
 
 const cloneMetadata = (metadata: StudyMetadata): StudyMetadata =>
@@ -137,17 +138,16 @@ export const useHighlightManager = (source: ColorSource) => {
   };
 
   const toggleHighlight = (highlightId: string, groups: HighlightGroup[]) => {
+    if (ctxActiveHighlightId === highlightId) {
+      return;
+    }
+
     const metadataClone: StudyMetadata = cloneMetadata(ctxStudyMetadata);
     metadataClone.words ??= {};
     const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
 
     if (ctxActiveHighlightId) {
       restoreHighlight(ctxActiveHighlightId, metadataClone, colorMapClone);
-    }
-
-    if (ctxActiveHighlightId === highlightId) {
-      commitHighlightState(metadataClone, colorMapClone, null);
-      return;
     }
 
     const applied = applyHighlightToMetadata(
