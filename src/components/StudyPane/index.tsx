@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useRef, MutableRefObject } from "react";
 
 import Header from "./Header";
 import Passage from "./Passage";
@@ -50,6 +50,9 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
+  ctxActiveHighlightId: null as string | null,
+  ctxSetActiveHighlightId: (arg: string | null) => {},
+  ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
   ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
   ctxHistory: [] as StudyMetadata[],
@@ -96,6 +99,8 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
@@ -150,6 +155,9 @@ const StudyPane = ({
     ctxInViewMode: inViewMode,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
+    ctxActiveHighlightId: activeHighlightId,
+    ctxSetActiveHighlightId: setActiveHighlightId,
+    ctxHighlightCacheRef: highlightCacheRef,
     ctxWordsColorMap: wordsColorMap,
     ctxSetWordsColorMap: setWordsColorMap,
     ctxHistory: history,

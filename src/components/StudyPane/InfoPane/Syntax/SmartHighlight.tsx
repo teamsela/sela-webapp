@@ -1,19 +1,12 @@
 import React from "react";
 
-import { WordProps } from "@/lib/data";
-import { LabelPalette } from "./SyntaxLabel";
-
-export type SmartHighlightGroup = {
-  label: string;
-  words: WordProps[];
-  palette?: LabelPalette;
-};
+import { HighlightGroup } from "../useHighlightManager";
 
 interface SyntaxSmartHighlightProps {
   highlightId: string;
-  groups: SmartHighlightGroup[];
+  groups: HighlightGroup[];
   activeHighlightId: string | null;
-  onToggle: (highlightId: string, groups: SmartHighlightGroup[]) => void;
+  onToggle: (highlightId: string, groups: HighlightGroup[]) => void;
   buttonLabel?: string;
 }
 

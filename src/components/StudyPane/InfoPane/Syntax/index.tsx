@@ -1,13 +1,13 @@
-import React, { useContext, useMemo, useRef, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 
-import { ColorData, PassageProps, StudyMetadata, WordProps } from "@/lib/data";
-import { updateMetadataInDb } from "@/lib/actions";
+import { PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
 
 import { FormatContext } from "../..";
 import AccordionToggleIcon from "../common/AccordionToggleIcon";
 import SyntaxLabel, { LabelPalette } from "./SyntaxLabel";
-import SyntaxSmartHighlight, { SmartHighlightGroup } from "./SmartHighlight";
+import SyntaxSmartHighlight from "./SmartHighlight";
+import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
 
 type PersonCode = "1" | "2" | "3";
 type GenderCode = "M" | "F" | "C";
@@ -530,19 +530,10 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
 };
 
 const Syntax = () => {
-  const {
-    ctxPassageProps,
-    ctxStudyMetadata,
-    ctxSetStudyMetadata,
-    ctxStudyId,
-    ctxWordsColorMap,
-    ctxSetWordsColorMap,
-    ctxAddToHistory,
-  } = useContext(FormatContext);
+  const { ctxPassageProps } = useContext(FormatContext);
+  const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax");
 
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
-  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
-  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
   const allWords = useMemo(() => flattenWords(ctxPassageProps), [ctxPassageProps]);
 
@@ -571,142 +562,11 @@ const Syntax = () => {
   const toggleSection = (section: SyntaxType) => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
-
-  const restoreHighlight = (
-    highlightId: string,
-    metadata: StudyMetadata,
-    colorMap: Map<number, ColorData>,
-  ) => {
-    const originalColors = highlightCacheRef.current.get(highlightId);
-    if (!originalColors) {
-      return;
-    }
-
-    originalColors.forEach((color, wordId) => {
-      const existingMetadata = metadata.words[wordId]
-        ? { ...metadata.words[wordId] }
-        : {};
-
-      if (color && Object.keys(color).length > 0) {
-        existingMetadata.color = { ...color };
-        metadata.words[wordId] = existingMetadata;
-        colorMap.set(wordId, { ...color });
-      } else {
-        delete existingMetadata.color;
-        if (Object.keys(existingMetadata).length === 0) {
-          delete metadata.words[wordId];
-        } else {
-          metadata.words[wordId] = existingMetadata;
-        }
-        colorMap.delete(wordId);
-      }
-    });
-
-    highlightCacheRef.current.delete(highlightId);
-  };
-
-  const applyHighlightToMetadata = (
-    highlightId: string,
-    groups: SmartHighlightGroup[],
-    metadata: StudyMetadata,
-    colorMap: Map<number, ColorData>,
-  ): boolean => {
-    const originalColors = new Map<number, ColorData | undefined>();
-
-    groups.forEach((group) => {
-      const palette = group.palette;
-      if (!palette) {
-        return;
-      }
-
-      group.words.forEach((word) => {
-        const wordId = word.wordId;
-        const existingMetadata = metadata.words[wordId]
-          ? { ...metadata.words[wordId] }
-          : {};
-        const existingColor = existingMetadata.color
-          ? { ...existingMetadata.color }
-          : undefined;
-
-        if (!originalColors.has(wordId)) {
-          originalColors.set(wordId, existingColor);
-        }
-
-        const updatedColor: ColorData = { ...(existingColor ?? {}) };
-
-        if (palette.fill !== undefined) {
-          updatedColor.fill = palette.fill;
-        }
-        if (palette.border !== undefined) {
-          updatedColor.border = palette.border;
-        }
-        if (palette.text !== undefined) {
-          updatedColor.text = palette.text;
-        }
-
-        if (Object.keys(updatedColor).length > 0) {
-          existingMetadata.color = updatedColor;
-          metadata.words[wordId] = existingMetadata;
-          colorMap.set(wordId, { ...updatedColor, source: "syntax" });
-        } else {
-          delete existingMetadata.color;
-          if (Object.keys(existingMetadata).length === 0) {
-            delete metadata.words[wordId];
-          } else {
-            metadata.words[wordId] = existingMetadata;
-          }
-          colorMap.delete(wordId);
-        }
-      });
-    });
-
-    if (originalColors.size > 0) {
-      highlightCacheRef.current.set(highlightId, originalColors);
-      return true;
-    }
-
-    return false;
-  };
-
-  const commitHighlightState = (
-    metadata: StudyMetadata,
-    colorMap: Map<number, ColorData>,
-    newActive: string | null,
-  ) => {
-    setActiveHighlight(newActive);
-    ctxSetWordsColorMap(new Map(colorMap));
-    ctxSetStudyMetadata(metadata);
-    ctxAddToHistory(metadata);
-    updateMetadataInDb(ctxStudyId, metadata);
-  };
-
-  const handleHighlightToggle = (highlightId: string, groups: SmartHighlightGroup[]) => {
-    const metadataClone: StudyMetadata = structuredClone(ctxStudyMetadata);
-    metadataClone.words ??= {};
-    const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
-
-    if (activeHighlight) {
-      restoreHighlight(activeHighlight, metadataClone, colorMapClone);
-    }
-
-    if (activeHighlight === highlightId) {
-      commitHighlightState(metadataClone, colorMapClone, null);
-      return;
-    }
-
-    const applied = applyHighlightToMetadata(
+  const handleHighlightToggle = (highlightId: string, groups: HighlightGroup[]) => {
+    toggleHighlight(
       highlightId,
-      groups,
-      metadataClone,
-      colorMapClone,
+      groups.filter((group) => group.words.length > 0),
     );
-
-    if (!applied) {
-      commitHighlightState(metadataClone, colorMapClone, null);
-      return;
-    }
-
-    commitHighlightState(metadataClone, colorMapClone, highlightId);
   };
 
   return (
@@ -771,7 +631,7 @@ const Syntax = () => {
                                 label={label.label}
                                 wordCount={words.length}
                                 palette={palette}
-                                isActive={activeHighlight === highlightId}
+                                isActive={activeHighlightId === highlightId}
                                 onToggleHighlight={toggleHighlight}
                               />
                             );
@@ -805,7 +665,7 @@ const Syntax = () => {
                               label={label.label}
                               wordCount={words.length}
                               palette={palette}
-                              isActive={activeHighlight === highlightId}
+                              isActive={activeHighlightId === highlightId}
                               onToggleHighlight={toggleHighlight}
                             />
                           );
@@ -816,7 +676,7 @@ const Syntax = () => {
                           <SyntaxSmartHighlight
                             highlightId={section.id}
                             groups={sectionGroups}
-                            activeHighlightId={activeHighlight}
+                            activeHighlightId={activeHighlightId}
                             onToggle={handleHighlightToggle}
                           />
                         </div>
