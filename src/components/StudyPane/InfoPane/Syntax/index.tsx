@@ -99,6 +99,22 @@ const numberPalette: Record<string, LabelPalette> = {
   "pgn-number-p": { fill: "#E3F2FD", border: "#64B5F6", text: "#0D47A1" },
 };
 
+const isProperNoun = (features: MorphFeatures): boolean => {
+  const properPatterns = [/PROPER/, /PROPN/, /^NP/, /NOUNPROP/];
+
+  const hasProperToken = Array.from(features.tokens).some((token) =>
+    properPatterns.some((pattern) => pattern.test(token)),
+  );
+
+  if (hasProperToken) {
+    return true;
+  }
+
+  return features.normalizedSegments.some((segment) =>
+    properPatterns.some((pattern) => pattern.test(segment)),
+  );
+};
+
 const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
   {
     id: "pos-verb",
@@ -111,8 +127,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     id: "pos-noun",
     label: "Noun",
     palette: partsOfSpeechPalette["pos-noun"],
-    predicate: (features) =>
-      features.tokens.has("N") && !features.tokens.has("PROPER"),
+    predicate: (features) => features.tokens.has("N") && !isProperNoun(features),
     highlightable: true,
   },
   {
@@ -193,8 +208,8 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     id: "pos-proper-noun",
     label: "Proper Noun",
     palette: partsOfSpeechPalette["pos-proper-noun"],
-    predicate: (features) => features.tokens.has("PROPER"),
-    highlightable: false,
+    predicate: (features) => isProperNoun(features),
+    highlightable: true,
   },
 ];
 
