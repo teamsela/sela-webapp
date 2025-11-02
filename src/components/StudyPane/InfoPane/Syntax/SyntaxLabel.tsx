@@ -47,7 +47,7 @@ const SyntaxLabel = ({
   const statusClassName = isActive
     ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md"
     : isSelected
-      ? "outline outline-offset-1 outline-[3px] outline-[#6366F1] drop-shadow-sm"
+      ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-sm"
       : "outline-offset-[-4px]";
 
   const containerClassName = [

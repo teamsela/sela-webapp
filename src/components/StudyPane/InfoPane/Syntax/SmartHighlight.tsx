@@ -8,6 +8,7 @@ interface SyntaxSmartHighlightProps {
   activeHighlightId: string | null;
   onToggle: (highlightId: string, groups: HighlightGroup[]) => void;
   buttonLabel?: string;
+  activeButtonLabel?: string;
 }
 
 const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
@@ -16,6 +17,7 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
   activeHighlightId,
   onToggle,
   buttonLabel = "Smart Highlight",
+  activeButtonLabel = "Clear highlight",
 }) => {
   const isActive = activeHighlightId === highlightId;
   const disabled = groups.length === 0;
@@ -40,7 +42,7 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
       }`}
       aria-pressed={isActive}
     >
-      {buttonLabel}
+      {isActive ? activeButtonLabel : buttonLabel}
     </button>
   );
 };

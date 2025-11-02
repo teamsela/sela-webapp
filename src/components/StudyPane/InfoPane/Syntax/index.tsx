@@ -62,23 +62,23 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
-  "vc-perfect": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C13A7B" },
-  "vc-imperfect": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#2034ebff" },
-  "vc-participle": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#5CB46F" },
-  "vc-infinitive": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#a257e9ff" },
-  "vc-imperative": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#D88E2E" },
-  "vc-cohortative": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
-  "vc-jussive": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: "#C06B25" },
+  "vc-perfect": { fill: "#F0588A", border: "#D43C72", text: "#FFFFFF" },
+  "vc-imperfect": { fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" },
+  "vc-participle": { fill: "#42C073", border: "#2A9154", text: "#FFFFFF" },
+  "vc-infinitive": { fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" },
+  "vc-imperative": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
+  "vc-cohortative": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
+  "vc-jussive": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
-  "vs-qal": { fill: "#F4A7C6", border: "#CC6A8C", text: DEFAULT_TEXT_COLOR },
-  "vs-niphal": { fill: "#C0286A", border: "#A41F59", text: "#FFFFFF" },
-  "vs-piel": { fill: "#E0619B", border: "#B64C7B", text: DEFAULT_TEXT_COLOR },
-  "vs-pual": { fill: "#4A63C6", border: "#3548A0", text: "#FFFFFF" },
-  "vs-hifil": { fill: "#8CCB5E", border: "#679943", text: DEFAULT_TEXT_COLOR },
-  "vs-hofal": { fill: "#5FA36B", border: "#437950", text: "#FFFFFF" },
-  "vs-hitpael": { fill: "#3C9C4C", border: "#2E7539", text: "#FFFFFF" },
+  "vs-qal": { fill: "#F47CAA", border: "#D55380", text: "#FFFFFF" },
+  "vs-niphal": { fill: "#A11E5C", border: "#7F1749", text: "#FFFFFF" },
+  "vs-piel": { fill: "#FF5A94", border: "#DD3F77", text: "#FFFFFF" },
+  "vs-pual": { fill: "#4D66E3", border: "#3248B3", text: "#FFFFFF" },
+  "vs-hifil": { fill: "#6ED688", border: "#3FA65A", text: "#FFFFFF" },
+  "vs-hofal": { fill: "#3EAFA7", border: "#28807A", text: "#FFFFFF" },
+  "vs-hitpael": { fill: "#2F8A4A", border: "#216336", text: "#FFFFFF" },
 };
 
 const personPalette: Record<string, LabelPalette> = {
@@ -111,7 +111,8 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     id: "pos-noun",
     label: "Noun",
     palette: partsOfSpeechPalette["pos-noun"],
-    predicate: (features) => features.tokens.has("N"),
+    predicate: (features) =>
+      features.tokens.has("N") && !features.tokens.has("PROPER"),
     highlightable: true,
   },
   {
@@ -617,6 +618,7 @@ const Syntax = () => {
                 palette: label.palette,
               }))
               .filter((group) => group.words.length > 0) ?? [];
+          const shouldShowPalette = !section.highlightable || activeHighlightId === section.id;
 
           return (
             <div
@@ -645,7 +647,7 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
-                            const palette = label.palette;
+                            const palette = shouldShowPalette ? label.palette : undefined;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -670,7 +672,7 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
-                          const palette = label.palette;
+                          const palette = shouldShowPalette ? label.palette : undefined;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
