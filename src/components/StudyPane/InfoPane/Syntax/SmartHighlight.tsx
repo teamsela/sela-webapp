@@ -17,7 +17,7 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
   activeHighlightId,
   onToggle,
   buttonLabel = "Smart Highlight",
-  activeButtonLabel = "Clear highlight",
+  activeButtonLabel = "Clear Highlight",
 }) => {
   const isActive = activeHighlightId === highlightId;
   const disabled = groups.length === 0;
