@@ -542,6 +542,60 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
   };
 };
 
+const deriveUniformPalette = (words: WordProps[]): LabelPalette | undefined => {
+  if (!words.length) {
+    return undefined;
+  }
+
+  const overrides: LabelPalette = {};
+  let hasOverrides = false;
+
+  (["fill", "border", "text"] as (keyof LabelPalette)[]).forEach((key) => {
+    let uniformValue: string | undefined;
+    let isUniform = true;
+
+    for (const word of words) {
+      const value = word.metadata?.color?.[key];
+      if (value === undefined) {
+        if (uniformValue !== undefined) {
+          isUniform = false;
+          break;
+        }
+        continue;
+      }
+
+      if (uniformValue === undefined) {
+        uniformValue = value;
+        continue;
+      }
+
+      if (value !== uniformValue) {
+        isUniform = false;
+        break;
+      }
+    }
+
+    if (isUniform && uniformValue !== undefined) {
+      overrides[key] = uniformValue;
+      hasOverrides = true;
+    }
+  });
+
+  return hasOverrides ? overrides : undefined;
+};
+
+const getLabelPalette = (
+  label: SyntaxLabelDefinition,
+  words: WordProps[],
+): LabelPalette | undefined => {
+  const overrides = deriveUniformPalette(words);
+  if (!overrides) {
+    return label.palette;
+  }
+
+  return label.palette ? { ...label.palette, ...overrides } : overrides;
+};
+
 const Syntax = () => {
   const {
     ctxPassageProps,
@@ -627,11 +681,14 @@ const Syntax = () => {
           const sectionGroups =
             section.labels
               ?.filter((label) => label.highlightable !== false)
-              .map((label) => ({
-                label: label.label,
-                words: labelWordMap.get(label.id) || [],
-                palette: label.palette,
-              }))
+              .map((label) => {
+                const words = labelWordMap.get(label.id) || [];
+                return {
+                  label: label.label,
+                  words,
+                  palette: getLabelPalette(label, words),
+                };
+              })
               .filter((group) => group.words.length > 0) ?? [];
           return (
             <div
@@ -660,7 +717,7 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
-                            const palette = label.palette;
+                            const palette = getLabelPalette(label, words);
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -685,7 +742,7 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
-                          const palette = label.palette;
+                          const palette = getLabelPalette(label, words);
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
