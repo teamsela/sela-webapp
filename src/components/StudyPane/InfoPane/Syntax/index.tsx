@@ -633,8 +633,6 @@ const Syntax = () => {
                 palette: label.palette,
               }))
               .filter((group) => group.words.length > 0) ?? [];
-          const shouldShowPalette = !section.highlightable || activeHighlightId === section.id;
-
           return (
             <div
               key={section.id}
@@ -662,7 +660,7 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
-                            const palette = shouldShowPalette ? label.palette : undefined;
+                            const palette = label.palette;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -687,7 +685,7 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
-                          const palette = shouldShowPalette ? label.palette : undefined;
+                          const palette = label.palette;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
