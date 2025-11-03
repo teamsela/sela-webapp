@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 
 import { updateMetadataInDb } from "@/lib/actions";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
@@ -165,6 +165,21 @@ export const useHighlightManager = (source: ColorSource) => {
 
     commitHighlightState(metadataClone, colorMapClone, highlightId);
   };
+
+  useEffect(() => {
+    if (!ctxActiveHighlightId) {
+      return;
+    }
+
+    const hasActiveSyntaxHighlight = Array.from(ctxWordsColorMap.values()).some(
+      (color) => color?.source === source,
+    );
+
+    if (!hasActiveSyntaxHighlight) {
+      ctxHighlightCacheRef.current.delete(ctxActiveHighlightId);
+      ctxSetActiveHighlightId(null);
+    }
+  }, [ctxActiveHighlightId, ctxWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, source]);
 
   return {
     activeHighlightId: ctxActiveHighlightId,

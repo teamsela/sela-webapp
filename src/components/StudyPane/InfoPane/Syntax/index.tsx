@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 import { PassageProps, WordProps } from "@/lib/data";
@@ -587,14 +587,32 @@ const deriveUniformPalette = (words: WordProps[]): LabelPalette | undefined => {
 const getLabelPalette = (
   label: SyntaxLabelDefinition,
   words: WordProps[],
+  sectionId: string,
+  activeHighlightId: string | null,
+  customPalettes: Map<string, LabelPalette>,
 ): LabelPalette | undefined => {
-  const overrides = deriveUniformPalette(words);
-  if (!overrides) {
-    return label.palette;
+  if (!activeHighlightId || activeHighlightId === sectionId) {
+    const derived = deriveUniformPalette(words);
+    if (derived) {
+      return label.palette ? { ...label.palette, ...derived } : derived;
+    }
   }
 
-  return label.palette ? { ...label.palette, ...overrides } : overrides;
+  const stored = customPalettes.get(label.id);
+  if (stored) {
+    return label.palette ? { ...label.palette, ...stored } : stored;
+  }
+
+  return label.palette;
 };
+
+const palettesEqual = (a: LabelPalette | undefined, b: LabelPalette | undefined) =>
+  a?.fill === b?.fill && a?.border === b?.border && a?.text === b?.text;
+
+const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
+  section.subSections
+    ? section.subSections.flatMap((sub) => sub.labels)
+    : section.labels ?? [];
 
 const Syntax = () => {
   const {
@@ -603,10 +621,12 @@ const Syntax = () => {
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
     ctxSetSelectedStrophes,
+    ctxWordsColorMap,
   } = useContext(FormatContext);
   const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax");
 
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
+  const [labelCustomPalettes, setLabelCustomPalettes] = useState<Map<string, LabelPalette>>(new Map());
   const selectedWordIds = useMemo(() => {
     const ids = new Set<number>();
     ctxSelectedWords.forEach((word) => ids.add(word.wordId));
@@ -640,6 +660,59 @@ const Syntax = () => {
   const toggleSection = (section: SyntaxType) => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
+
+  const sectionLabelMap = useMemo(() => {
+    const map = new Map<string, SyntaxLabelDefinition[]>();
+    syntaxSections.forEach((section) => {
+      map.set(section.id, collectSectionLabels(section));
+    });
+    return map;
+  }, []);
+
+  const updateCustomPalettes = useCallback(
+    (labels: SyntaxLabelDefinition[]) => {
+      if (!labels.length) {
+        return;
+      }
+      setLabelCustomPalettes((prev) => {
+        let changed = false;
+        const next = new Map(prev);
+
+        labels.forEach((label) => {
+          const words = labelWordMap.get(label.id) || [];
+          const overrides = deriveUniformPalette(words);
+
+          if (overrides) {
+            const existing = next.get(label.id);
+            if (!palettesEqual(existing, overrides)) {
+              next.set(label.id, overrides);
+              changed = true;
+            }
+          } else if (next.has(label.id)) {
+            next.delete(label.id);
+            changed = true;
+          }
+        });
+
+        return changed ? next : prev;
+      });
+    },
+    [labelWordMap],
+  );
+
+  useEffect(() => {
+    void ctxWordsColorMap;
+    if (!activeHighlightId) {
+      updateCustomPalettes(allLabelDefinitions);
+      return;
+    }
+
+    const labels = sectionLabelMap.get(activeHighlightId);
+    if (labels) {
+      updateCustomPalettes(labels);
+    }
+  }, [activeHighlightId, sectionLabelMap, updateCustomPalettes, ctxWordsColorMap]);
+
   const handleHighlightToggle = (highlightId: string, groups: HighlightGroup[]) => {
     toggleHighlight(
       highlightId,
@@ -686,7 +759,13 @@ const Syntax = () => {
                 return {
                   label: label.label,
                   words,
-                  palette: getLabelPalette(label, words),
+                  palette: getLabelPalette(
+                    label,
+                    words,
+                    section.id,
+                    activeHighlightId,
+                    labelCustomPalettes,
+                  ),
                 };
               })
               .filter((group) => group.words.length > 0) ?? [];
@@ -717,7 +796,13 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
-                            const palette = getLabelPalette(label, words);
+                            const palette = getLabelPalette(
+                              label,
+                              words,
+                              section.id,
+                              activeHighlightId,
+                              labelCustomPalettes,
+                            );
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -742,7 +827,13 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
-                          const palette = getLabelPalette(label, words);
+                          const palette = getLabelPalette(
+                            label,
+                            words,
+                            section.id,
+                            activeHighlightId,
+                            labelCustomPalettes,
+                          );
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));

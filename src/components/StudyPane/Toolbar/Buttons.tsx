@@ -323,7 +323,8 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
 
   const { ctxStudyId, ctxStudyMetadata, ctxNumSelectedWords,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxAddToHistory, ctxSetWordsColorMap
+    ctxAddToHistory, ctxSetWordsColorMap,
+    ctxSetActiveHighlightId, ctxHighlightCacheRef,
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -364,6 +365,8 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
 
     if (isChanged) {
       ctxSetWordsColorMap(new Map());
+      ctxHighlightCacheRef.current.clear();
+      ctxSetActiveHighlightId(null);
       ctxAddToHistory(ctxStudyMetadata);
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       setButtonEnabled(false);
