@@ -52,9 +52,9 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-adjective": { fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-negative-particle": { fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
   "pos-adverb": { fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
-  "pos-object-marker": { fill: "#1831d6ff", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
-  "pos-pronoun": { fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#0C4A4A" },
-  "pos-preposition": { border: "#3A9320", text: DEFAULT_TEXT_COLOR },
+  "pos-object-marker": { fill: "#0F1B4C", border: "#070C26", text: "#FFFFFF" },
+  "pos-pronoun": { fill: "#1D3BEC", border: "#0F259E", text: "#FFFFFF" },
+  "pos-preposition": { border: "#000000", text: DEFAULT_TEXT_COLOR },
   "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-interrogative": { fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-conjunction": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
@@ -115,6 +115,21 @@ const isProperNoun = (features: MorphFeatures): boolean => {
   );
 };
 
+const isObjectMarker = (features: MorphFeatures): boolean => {
+  const hasSegmentMatch = features.normalizedSegments.some((segment) =>
+    segment.includes("DIROBJ"),
+  );
+
+  if (hasSegmentMatch) {
+    return true;
+  }
+
+  const patterns = [/DIROBJ/, /OBJMK/, /OBJECTMARK/];
+  return Array.from(features.tokens).some((token) =>
+    patterns.some((pattern) => pattern.test(token)),
+  );
+};
+
 const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
   {
     id: "pos-verb",
@@ -160,7 +175,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     id: "pos-object-marker",
     label: "Object Marker",
     palette: partsOfSpeechPalette["pos-object-marker"],
-    predicate: (features) => features.tokens.has("DIROBM"),
+    predicate: (features) => isObjectMarker(features),
     highlightable: true,
   },
   {
@@ -434,6 +449,7 @@ const syntaxSections: SyntaxSectionDefinition[] = [
         labels: numberLabels,
       },
     ],
+    highlightable: true,
   },
 ];
 
@@ -751,24 +767,28 @@ const Syntax = () => {
       <div className="accordion">
         {syntaxSections.map((section) => {
           const isOpen = openSection === section.type;
-          const sectionGroups =
-            section.labels
-              ?.filter((label) => label.highlightable !== false)
-              .map((label) => {
-                const words = labelWordMap.get(label.id) || [];
-                return {
-                  label: label.label,
-                  words,
-                  palette: getLabelPalette(
-                    label,
+          const sectionHighlightLabels = collectSectionLabels(section).filter(
+            (label) => label.highlightable !== false,
+          );
+          const sectionGroups = section.highlightable
+            ? sectionHighlightLabels
+                .map((label) => {
+                  const words = labelWordMap.get(label.id) || [];
+                  return {
+                    label: label.label,
                     words,
-                    section.id,
-                    activeHighlightId,
-                    labelCustomPalettes,
-                  ),
-                };
-              })
-              .filter((group) => group.words.length > 0) ?? [];
+                    palette: getLabelPalette(
+                      label,
+                      words,
+                      section.id,
+                      activeHighlightId,
+                      labelCustomPalettes,
+                    ),
+                  };
+                })
+                .filter((group) => group.words.length > 0)
+            : [];
+          const sectionHasActiveHighlight = activeHighlightId === section.id;
           return (
             <div
               key={section.id}
@@ -803,6 +823,10 @@ const Syntax = () => {
                               activeHighlightId,
                               labelCustomPalettes,
                             );
+                            const hasCustomPalette = labelCustomPalettes.has(label.id);
+                            const canShowBasePalette = !section.highlightable || sectionHasActiveHighlight;
+                            const displayPalette =
+                              hasCustomPalette || canShowBasePalette ? palette : undefined;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -812,7 +836,7 @@ const Syntax = () => {
                                 key={label.id}
                                 label={label.label}
                                 wordCount={words.length}
-                                palette={palette}
+                                palette={displayPalette}
                                 isActive={activeHighlightId === highlightId}
                                 isSelected={isSelected}
                                 onToggleSelection={() => handleLabelSelectionToggle(words)}
@@ -834,6 +858,10 @@ const Syntax = () => {
                             activeHighlightId,
                             labelCustomPalettes,
                           );
+                          const hasCustomPalette = labelCustomPalettes.has(label.id);
+                          const canShowBasePalette = !section.highlightable || sectionHasActiveHighlight;
+                          const displayPalette =
+                            hasCustomPalette || canShowBasePalette ? palette : undefined;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -843,7 +871,7 @@ const Syntax = () => {
                               key={label.id}
                               label={label.label}
                               wordCount={words.length}
-                              palette={palette}
+                              palette={displayPalette}
                               isActive={activeHighlightId === highlightId}
                               isSelected={isSelected}
                               onToggleSelection={() => handleLabelSelectionToggle(words)}
@@ -851,17 +879,17 @@ const Syntax = () => {
                           );
                         })}
                       </div>
-                      {section.highlightable && (
-                        <div className="flex justify-center pt-2">
-                          <SyntaxSmartHighlight
-                            highlightId={section.id}
-                            groups={sectionGroups}
-                            activeHighlightId={activeHighlightId}
-                            onToggle={handleHighlightToggle}
-                          />
-                        </div>
-                      )}
                     </>
+                  )}
+                  {section.highlightable && (
+                    <div className="flex justify-center pt-2">
+                      <SyntaxSmartHighlight
+                        highlightId={section.id}
+                        groups={sectionGroups}
+                        activeHighlightId={activeHighlightId}
+                        onToggle={handleHighlightToggle}
+                      />
+                    </div>
                   )}
                 </div>
               )}
