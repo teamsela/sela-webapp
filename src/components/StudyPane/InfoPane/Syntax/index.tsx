@@ -53,12 +53,12 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-negative-particle": { fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
   "pos-adverb": { fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
   "pos-object-marker": { fill: "#0F1B4C", border: "#070C26", text: "#FFFFFF" },
-  "pos-pronoun": { fill: "#1D3BEC", border: "#0F259E", text: "#FFFFFF" },
+  "pos-pronoun": { fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#000000" },
   "pos-preposition": { border: "#000000", text: DEFAULT_TEXT_COLOR },
   "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-interrogative": { fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
   "pos-conjunction": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-proper-noun": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
+  "pos-proper-noun": { fill: "#1D3BEC", border: "#0D1B76", text: "#FFFFFF" },
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
@@ -72,13 +72,13 @@ const verbConjugationPalette: Record<string, LabelPalette> = {
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
-  "vs-qal": { fill: "#F47CAA", border: "#D55380", text: "#FFFFFF" },
-  "vs-niphal": { fill: "#A11E5C", border: "#7F1749", text: "#FFFFFF" },
-  "vs-piel": { fill: "#FF5A94", border: "#DD3F77", text: "#FFFFFF" },
-  "vs-pual": { fill: "#4D66E3", border: "#3248B3", text: "#FFFFFF" },
-  "vs-hifil": { fill: "#6ED688", border: "#3FA65A", text: "#FFFFFF" },
-  "vs-hofal": { fill: "#3EAFA7", border: "#28807A", text: "#FFFFFF" },
-  "vs-hitpael": { fill: "#2F8A4A", border: "#216336", text: "#FFFFFF" },
+  "vs-qal": { fill: "#EA4B9B", border: "#C4347C", text: "#FFFFFF" },
+  "vs-niphal": { fill: "#B12BA5", border: "#871F7C", text: "#FFFFFF" },
+  "vs-piel": { fill: "#FF4C81", border: "#D23460", text: "#FFFFFF" },
+  "vs-pual": { fill: "#3C73F0", border: "#264FC0", text: "#FFFFFF" },
+  "vs-hifil": { fill: "#33C250", border: "#299A40", text: "#FFFFFF" },
+  "vs-hofal": { fill: "#4CC1B4", border: "#359086", text: "#FFFFFF" },
+  "vs-hitpael": { fill: "#2E9E62", border: "#1F7145", text: "#FFFFFF" },
 };
 
 const personPalette: Record<string, LabelPalette> = {
@@ -97,6 +97,39 @@ const numberPalette: Record<string, LabelPalette> = {
   "pgn-number-s": { fill: "#F1F8E9", border: "#AED581", text: "#33691E" },
   "pgn-number-d": { fill: "#EDE7F6", border: "#9575CD", text: "#4527A0" },
   "pgn-number-p": { fill: "#E3F2FD", border: "#64B5F6", text: "#0D47A1" },
+};
+
+const derivedMorphTokenPatterns = [
+  "CONJ",
+  "IMPERF",
+  "IMPERFECT",
+  "PERF",
+  "PERFECT",
+  "PART",
+  "PARTICIPLE",
+  "COHORT",
+  "COHORTATIVE",
+  "JUS",
+  "JUSSIVE",
+  "IMP",
+  "IMPERATIVE",
+  "QAL",
+  "NIPHAL",
+  "PIEL",
+  "PUAL",
+  "HIFIL",
+  "HIPHIL",
+  "HOFAL",
+  "HITPAEL",
+  "HITHPAEL",
+];
+
+const addDerivedTokens = (token: string, target: Set<string>) => {
+  derivedMorphTokenPatterns.forEach((pattern) => {
+    if (token.includes(pattern)) {
+      target.add(pattern);
+    }
+  });
 };
 
 const isProperNoun = (features: MorphFeatures): boolean => {
@@ -449,7 +482,7 @@ const syntaxSections: SyntaxSectionDefinition[] = [
         labels: numberLabels,
       },
     ],
-    highlightable: true,
+    highlightable: false,
   },
 ];
 
@@ -515,8 +548,19 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
       .filter(Boolean);
 
     rawTokens.forEach((token) => {
+      const camelSplit = token
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .split(/\s+/)
+        .filter(Boolean);
+      camelSplit.forEach((part) => {
+        const upperPart = part.toUpperCase();
+        tokens.add(upperPart);
+        addDerivedTokens(upperPart, tokens);
+      });
+
       const upperToken = token.toUpperCase();
       tokens.add(upperToken);
+      addDerivedTokens(upperToken, tokens);
 
       const personMatch = upperToken.match(/^([123])(ST|ND|RD)?([MFC])?([SPD])?/);
       if (personMatch) {
