@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
 import { PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
 
@@ -46,57 +46,60 @@ type SyntaxSectionDefinition = {
   highlightable?: boolean;
 };
 
+const toUserPalette = (palette: LabelPalette): LabelPalette =>
+  clampPaletteToUserColors(palette);
+
 const partsOfSpeechPalette: Record<string, LabelPalette> = {
-  "pos-verb": { fill: "#F79AC2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-noun": { fill: "#7FC6F5", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-adjective": { fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-negative-particle": { fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
-  "pos-adverb": { fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" },
-  "pos-object-marker": { fill: "#0F1B4C", border: "#070C26", text: "#FFFFFF" },
-  "pos-pronoun": { fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#000000" },
-  "pos-preposition": { border: "#000000", text: DEFAULT_TEXT_COLOR },
-  "pos-interjection": { fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-interrogative": { fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-conjunction": { fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR },
-  "pos-proper-noun": { fill: "#1D3BEC", border: "#0D1B76", text: "#FFFFFF" },
+  "pos-verb": toUserPalette({ fill: "#F79AC2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-noun": toUserPalette({ fill: "#7FC6F5", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-adjective": toUserPalette({ fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-negative-particle": toUserPalette({ fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
+  "pos-adverb": toUserPalette({ fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
+  "pos-object-marker": toUserPalette({ fill: "#0F1B4C", border: "#070C26", text: "#FFFFFF" }),
+  "pos-pronoun": toUserPalette({ fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
+  "pos-preposition": toUserPalette({ border: "#000000", text: DEFAULT_TEXT_COLOR }),
+  "pos-interjection": toUserPalette({ fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-interrogative": toUserPalette({ fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-conjunction": toUserPalette({ fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-proper-noun": toUserPalette({ fill: "#1D3BEC", border: "#0D1B76", text: "#FFFFFF" }),
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
-  "vc-perfect": { fill: "#F0588A", border: "#D43C72", text: "#FFFFFF" },
-  "vc-imperfect": { fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" },
-  "vc-participle": { fill: "#42C073", border: "#2A9154", text: "#FFFFFF" },
-  "vc-infinitive": { fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" },
-  "vc-imperative": { fill: "#000cadff", border: "#C79F1E", text: "#000000" },
-  "vc-cohortative": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
-  "vc-jussive": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
+  "vc-perfect": toUserPalette({ fill: "#F0588A", border: "#D43C72", text: "#FFFFFF" }),
+  "vc-imperfect": toUserPalette({ fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" }),
+  "vc-participle": toUserPalette({ fill: "#42C073", border: "#2A9154", text: "#FFFFFF" }),
+  "vc-infinitive": toUserPalette({ fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" }),
+  "vc-imperative": toUserPalette({ fill: "#000cadff", border: "#C79F1E", text: "#000000" }),
+  "vc-cohortative": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
+  "vc-jussive": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
-  "vs-qal": { fill: "#EA4B9B", border: "#C4347C", text: "#FFFFFF" },
-  "vs-niphal": { fill: "#B12BA5", border: "#871F7C", text: "#FFFFFF" },
-  "vs-piel": { fill: "#4ce4ffff", border: "#017e94ff", text: "#FFFFFF" },
-  "vs-pual": { fill: "#0d3dadff", border: "#05216eff", text: "#FFFFFF" },
-  "vs-hifil": { fill: "#43ce5fff", border: "#299A40", text: "#FFFFFF" },
-  "vs-hofal": { fill: "#238f65ff", border: "#359086", text: "#FFFFFF" },
-  "vs-hitpael": { fill: "#165c38ff", border: "#0d331fff", text: "#FFFFFF" },
+  "vs-qal": toUserPalette({ fill: "#EA4B9B", border: "#C4347C", text: "#FFFFFF" }),
+  "vs-niphal": toUserPalette({ fill: "#B12BA5", border: "#871F7C", text: "#FFFFFF" }),
+  "vs-piel": toUserPalette({ fill: "#4ce4ffff", border: "#017e94ff", text: "#FFFFFF" }),
+  "vs-pual": toUserPalette({ fill: "#0d3dadff", border: "#05216eff", text: "#FFFFFF" }),
+  "vs-hifil": toUserPalette({ fill: "#43ce5fff", border: "#299A40", text: "#FFFFFF" }),
+  "vs-hofal": toUserPalette({ fill: "#238f65ff", border: "#359086", text: "#FFFFFF" }),
+  "vs-hitpael": toUserPalette({ fill: "#165c38ff", border: "#0d331fff", text: "#FFFFFF" }),
 };
 
 const personPalette: Record<string, LabelPalette> = {
-  "pgn-person-1": { fill: "#E0F2FE", border: "#42A5F5", text: "#0D47A1" },
-  "pgn-person-2": { fill: "#E8F5E9", border: "#66BB6A", text: "#1B5E20" },
-  "pgn-person-3": { fill: "#F3E5F5", border: "#BA68C8", text: "#4A148C" },
+  "pgn-person-1": toUserPalette({ fill: "#E0F2FE", border: "#42A5F5", text: "#0D47A1" }),
+  "pgn-person-2": toUserPalette({ fill: "#E8F5E9", border: "#66BB6A", text: "#1B5E20" }),
+  "pgn-person-3": toUserPalette({ fill: "#F3E5F5", border: "#BA68C8", text: "#4A148C" }),
 };
 
 const genderPalette: Record<string, LabelPalette> = {
-  "pgn-gender-m": { fill: "#E0F2F1", border: "#4DB6AC", text: "#004D40" },
-  "pgn-gender-f": { fill: "#FCE4EC", border: "#F48FB1", text: "#880E4F" },
-  "pgn-gender-c": { fill: "#FFF8E1", border: "#FFE082", text: "#8D6E63" },
+  "pgn-gender-m": toUserPalette({ fill: "#E0F2F1", border: "#4DB6AC", text: "#004D40" }),
+  "pgn-gender-f": toUserPalette({ fill: "#FCE4EC", border: "#F48FB1", text: "#880E4F" }),
+  "pgn-gender-c": toUserPalette({ fill: "#FFF8E1", border: "#FFE082", text: "#8D6E63" }),
 };
 
 const numberPalette: Record<string, LabelPalette> = {
-  "pgn-number-s": { fill: "#F1F8E9", border: "#AED581", text: "#33691E" },
-  "pgn-number-d": { fill: "#EDE7F6", border: "#9575CD", text: "#4527A0" },
-  "pgn-number-p": { fill: "#E3F2FD", border: "#64B5F6", text: "#0D47A1" },
+  "pgn-number-s": toUserPalette({ fill: "#F1F8E9", border: "#AED581", text: "#33691E" }),
+  "pgn-number-d": toUserPalette({ fill: "#EDE7F6", border: "#9575CD", text: "#4527A0" }),
+  "pgn-number-p": toUserPalette({ fill: "#E3F2FD", border: "#64B5F6", text: "#0D47A1" }),
 };
 
 const derivedMorphTokenPatterns = [

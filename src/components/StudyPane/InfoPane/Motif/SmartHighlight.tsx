@@ -1,14 +1,42 @@
 import React, { useMemo } from "react";
 
 import { IdenticalWordProps } from "./IdenticalWord";
-import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "../../index";
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, USER_SWATCH_COLORS } from "@/lib/colors";
 import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
 
-const IdenticalWordColorPalette = [
-    '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
-    '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
-    '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
-];
+const IdenticalWordColorPalette = USER_SWATCH_COLORS;
+
+const getPaletteColor = (index: number): string => {
+  if (IdenticalWordColorPalette.length === 0) {
+    return DEFAULT_COLOR_FILL;
+  }
+  return (
+    IdenticalWordColorPalette[index % IdenticalWordColorPalette.length] ||
+    DEFAULT_COLOR_FILL
+  );
+};
+
+const hexToRgb = (hex: string) => {
+  const normalized = hex?.trim().toUpperCase();
+  if (!normalized || !/^#?[0-9A-F]{6}$/.test(normalized.replace("#", ""))) {
+    return null;
+  }
+  const value = normalized.replace("#", "");
+  return {
+    r: parseInt(value.slice(0, 2), 16),
+    g: parseInt(value.slice(2, 4), 16),
+    b: parseInt(value.slice(4, 6), 16),
+  };
+};
+
+const getContrastingTextColor = (fill: string) => {
+  const rgb = hexToRgb(fill);
+  if (!rgb) {
+    return DEFAULT_TEXT_COLOR;
+  }
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  return luminance > 0.6 ? "#000000" : "#FFFFFF";
+};
 
 interface SmartHighlightProps {
     identicalWords: IdenticalWordProps[]; // Property with a type of an empty array
@@ -22,16 +50,8 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({ identicalWords }) => {
     () =>
       identicalWords
         .map((idWordProps, index) => {
-          const fillColor =
-            index < IdenticalWordColorPalette.length
-              ? IdenticalWordColorPalette[index]
-              : DEFAULT_COLOR_FILL;
-          const textColor =
-            index < 10
-              ? "#000000"
-              : index < 20 || index >= IdenticalWordColorPalette.length
-                ? DEFAULT_TEXT_COLOR
-                : "#FFFFFF";
+          const fillColor = getPaletteColor(index);
+          const textColor = getContrastingTextColor(fillColor);
 
           return {
             label: `motif-${idWordProps.wordId}-${index}`,
