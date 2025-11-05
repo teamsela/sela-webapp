@@ -2,7 +2,7 @@ export const DEFAULT_COLOR_FILL = "#FFFFFF";
 export const DEFAULT_BORDER_COLOR = "#D9D9D9";
 export const DEFAULT_TEXT_COLOR = "#656565";
 
-export const USER_SWATCH_GROUPS = [
+const FALLBACK_SWATCH_GROUPS: string[][] = [
   ["#B71C1C", "#D32F2F", "#F44336", "#E57373", "#FFCDD2"],
   ["#880E4F", "#C2185B", "#E91E63", "#F06292", "#F8BBD0"],
   ["#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#E1BEE7"],
@@ -22,12 +22,41 @@ export const USER_SWATCH_GROUPS = [
   ["#3E2723", "#5D4037", "#795548", "#A1887F", "#D7CCC8"],
   ["#263238", "#455A64", "#607D8B", "#90A4AE", "#CFD8DC"],
   ["#000000", "#525252", "#969696", "#D9D9D9", "#FFFFFF"],
-] as const;
+] ;
+
+const loadSwatchGroups = (): string[][] | undefined => {
+  try {
+    /* eslint-disable-next-line global-require */
+    const swatchesModule = require("react-color/lib/components/swatches/Swatches");
+    const rawSwatches = swatchesModule?.Swatches;
+    const colors = rawSwatches?.defaultProps?.colors;
+    if (!Array.isArray(colors)) {
+      return undefined;
+    }
+    return colors
+      .map((group: unknown) =>
+        Array.isArray(group)
+          ? group
+              .map((color) =>
+                typeof color === "string" && color.trim().length > 0 ? color : null,
+              )
+              .filter((color): color is string => Boolean(color))
+          : [],
+      )
+      .filter((group) => group.length > 0);
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizeSwatchHex = (hex: string): string => hex.trim().toUpperCase();
+
+export const USER_SWATCH_GROUPS: readonly string[][] =
+  loadSwatchGroups()?.map((group) => group.map(normalizeSwatchHex)) ??
+  FALLBACK_SWATCH_GROUPS;
 
 const USER_SWATCH_LIST = Array.from(
-  new Set(
-    USER_SWATCH_GROUPS.flat().map((color) => color.toUpperCase()),
-  ),
+  new Set(USER_SWATCH_GROUPS.flat()),
 );
 
 export const USER_SWATCH_COLORS = USER_SWATCH_LIST;
