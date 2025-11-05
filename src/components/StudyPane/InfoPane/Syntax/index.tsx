@@ -66,7 +66,7 @@ const verbConjugationPalette: Record<string, LabelPalette> = {
   "vc-imperfect": { fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" },
   "vc-participle": { fill: "#42C073", border: "#2A9154", text: "#FFFFFF" },
   "vc-infinitive": { fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" },
-  "vc-imperative": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
+  "vc-imperative": { fill: "#000cadff", border: "#C79F1E", text: "#000000" },
   "vc-cohortative": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
   "vc-jussive": { fill: "#FED84A", border: "#C79F1E", text: "#000000" },
 };
@@ -74,11 +74,11 @@ const verbConjugationPalette: Record<string, LabelPalette> = {
 const verbalStemPalette: Record<string, LabelPalette> = {
   "vs-qal": { fill: "#EA4B9B", border: "#C4347C", text: "#FFFFFF" },
   "vs-niphal": { fill: "#B12BA5", border: "#871F7C", text: "#FFFFFF" },
-  "vs-piel": { fill: "#FF4C81", border: "#D23460", text: "#FFFFFF" },
-  "vs-pual": { fill: "#3C73F0", border: "#264FC0", text: "#FFFFFF" },
-  "vs-hifil": { fill: "#33C250", border: "#299A40", text: "#FFFFFF" },
-  "vs-hofal": { fill: "#4CC1B4", border: "#359086", text: "#FFFFFF" },
-  "vs-hitpael": { fill: "#2E9E62", border: "#1F7145", text: "#FFFFFF" },
+  "vs-piel": { fill: "#4ce4ffff", border: "#017e94ff", text: "#FFFFFF" },
+  "vs-pual": { fill: "#0d3dadff", border: "#05216eff", text: "#FFFFFF" },
+  "vs-hifil": { fill: "#43ce5fff", border: "#299A40", text: "#FFFFFF" },
+  "vs-hofal": { fill: "#238f65ff", border: "#359086", text: "#FFFFFF" },
+  "vs-hitpael": { fill: "#165c38ff", border: "#0d331fff", text: "#FFFFFF" },
 };
 
 const personPalette: Record<string, LabelPalette> = {
