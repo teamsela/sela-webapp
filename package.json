@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:syntax": "tsx tests/Syntax/syntax.test.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.5",
@@ -35,6 +36,7 @@
     "postcss": "^8.4.34",
     "react-color": "github:teamsela/react-color#master",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4.19.2"
   }
 }

@@ -14,7 +14,7 @@ type PersonCode = "1" | "2" | "3";
 type GenderCode = "M" | "F" | "C";
 type NumberCode = "S" | "D" | "P";
 
-type MorphFeatures = {
+export type MorphFeatures = {
   tokens: Set<string>;
   normalizedSegments: string[];
   persons: Set<PersonCode>;
@@ -111,7 +111,6 @@ const derivedMorphTokenPatterns = [
   "COHORTATIVE",
   "JUS",
   "JUSSIVE",
-  "IMP",
   "IMPERATIVE",
   "QAL",
   "NIPHAL",
@@ -261,7 +260,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
   },
 ];
 
-const verbConjugationLabels: SyntaxLabelDefinition[] = [
+export const verbConjugationLabels: SyntaxLabelDefinition[] = [
   {
     id: "vc-perfect",
     label: "Perfect",
@@ -511,7 +510,7 @@ const flattenWords = (passageProps?: PassageProps): WordProps[] => {
   return words;
 };
 
-const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null => {
+export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null => {
   if (!morphology) {
     return null;
   }
@@ -543,7 +542,7 @@ const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null =>
 
     const sanitized = trimmed.replace(/[(),]/g, "");
     const rawTokens = sanitized
-      .split(/[-./\s]+/)
+      .split(/[-./:\s]+/)
       .map((token) => token.trim())
       .filter(Boolean);
 
