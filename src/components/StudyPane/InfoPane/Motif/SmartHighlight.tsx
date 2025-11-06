@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 
+import SyntaxSmartHighlight from "../Syntax/SmartHighlight";
 import { IdenticalWordProps } from "./IdenticalWord";
 import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, USER_SWATCH_COLORS } from "@/lib/colors";
 import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
@@ -66,37 +67,13 @@ const SmartHighlight: React.FC<SmartHighlightProps> = ({ identicalWords }) => {
     [identicalWords],
   );
 
-  const isActive = activeHighlightId === highlightId;
-  const disabled = groups.length === 0;
-
-  const handleClick = () => {
-    if (disabled) {
-      return;
-    }
-    toggleHighlight(highlightId, groups);
-  };
-
   return (
-    <>
-
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={disabled}
-        aria-pressed={isActive}
-        className={`inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-center font-medium lg:px-8 xl:px-10 ${
-          disabled
-            ? "cursor-not-allowed bg-slate-200 text-slate-500"
-            : isActive
-              ? "bg-slate-300 text-slate-800 hover:bg-slate-200"
-              : "bg-primary text-white hover:bg-opacity-90"
-        }`}
-      >
-        Smart Highlight
-      </button>
-
-
-    </>
+    <SyntaxSmartHighlight
+      highlightId={highlightId}
+      groups={groups}
+      activeHighlightId={activeHighlightId}
+      onToggle={toggleHighlight}
+    />
   );
 };
 
