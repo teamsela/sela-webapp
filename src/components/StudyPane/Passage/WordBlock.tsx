@@ -134,7 +134,7 @@ export const WordBlock = ({
   useEffect(() => {
     const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
     if (wordsColor) {
-      const { source, fill, text, border } = wordsColor;
+      const { fill, text, border } = wordsColor;
       wordProps.metadata = {
         ...wordProps.metadata,
         color: {
@@ -149,11 +149,6 @@ export const WordBlock = ({
       text && setTextColorLocal(text);
       border && setBorderColorLocal(border);
 
-      if (source === "motif") {
-        const updatedMap = new Map(ctxWordsColorMap);
-        updatedMap.delete(wordProps.wordId);
-        ctxSetWordsColorMap(updatedMap);
-      }
     }
   }, [ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId, wordProps.metadata]);
 
