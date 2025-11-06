@@ -69,7 +69,7 @@ const verbConjugationPalette: Record<string, LabelPalette> = {
   "vc-imperfect": toUserPalette({ fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" }),
   "vc-participle": toUserPalette({ fill: "#42C073", border: "#2A9154", text: "#FFFFFF" }),
   "vc-infinitive": toUserPalette({ fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" }),
-  "vc-imperative": toUserPalette({ fill: "#000cadff", border: "#C79F1E", text: "#000000" }),
+  "vc-imperative": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
   "vc-cohortative": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
   "vc-jussive": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
 };
@@ -126,9 +126,16 @@ const derivedMorphTokenPatterns = [
   "HITHPAEL",
 ];
 
+const shouldSkipDerivedPattern = (token: string, pattern: string): boolean => {
+  if ((pattern === "PERF" || pattern === "PERFECT") && token.includes("IMPERF")) {
+    return true;
+  }
+  return false;
+};
+
 const addDerivedTokens = (token: string, target: Set<string>) => {
   derivedMorphTokenPatterns.forEach((pattern) => {
-    if (token.includes(pattern)) {
+    if (token.includes(pattern) && !shouldSkipDerivedPattern(token, pattern)) {
       target.add(pattern);
     }
   });
@@ -870,7 +877,7 @@ const Syntax = () => {
                               labelCustomPalettes,
                             );
                             const hasCustomPalette = labelCustomPalettes.has(label.id);
-                            const canShowBasePalette = !section.highlightable || sectionHasActiveHighlight;
+                            const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
                             const displayPalette =
                               hasCustomPalette || canShowBasePalette ? palette : undefined;
                             const highlightId = `${section.id}__${label.id}`;
@@ -905,7 +912,7 @@ const Syntax = () => {
                             labelCustomPalettes,
                           );
                           const hasCustomPalette = labelCustomPalettes.has(label.id);
-                          const canShowBasePalette = !section.highlightable || sectionHasActiveHighlight;
+                          const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
                           const displayPalette =
                             hasCustomPalette || canShowBasePalette ? palette : undefined;
                           const highlightId = `${section.id}__${label.id}`;
