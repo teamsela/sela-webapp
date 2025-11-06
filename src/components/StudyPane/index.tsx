@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useEffect, useRef, MutableRefObject } from "react";
+import { useState, createContext, useEffect, useRef, MutableRefObject, useCallback } from "react";
 
 import Header from "./Header";
 import Passage from "./Passage";
@@ -8,7 +8,7 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -49,8 +49,8 @@ export const FormatContext = createContext({
   ctxInViewMode: false,
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightId: null as string | null,
-  ctxSetActiveHighlightId: (arg: string | null) => {},
+  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
   ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
@@ -98,7 +98,10 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
-  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+  const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
+    syntax: null,
+    motif: null,
+  });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
@@ -119,6 +122,18 @@ const StudyPane = ({
     setHistory(newHistory);
     setPointer(pointer + 1);
   };
+
+  const updateActiveHighlightId = useCallback(
+    (source: ColorSource, highlightId: string | null) => {
+      setActiveHighlightIds((prev) => {
+        if (prev[source] === highlightId) {
+          return prev;
+        }
+        return { ...prev, [source]: highlightId };
+      });
+    },
+    [],
+  );
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
@@ -154,8 +169,8 @@ const StudyPane = ({
     ctxInViewMode: inViewMode,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
-    ctxActiveHighlightId: activeHighlightId,
-    ctxSetActiveHighlightId: setActiveHighlightId,
+    ctxActiveHighlightIds: activeHighlightIds,
+    ctxSetActiveHighlightId: updateActiveHighlightId,
     ctxHighlightCacheRef: highlightCacheRef,
     ctxWordsColorMap: wordsColorMap,
     ctxSetWordsColorMap: setWordsColorMap,

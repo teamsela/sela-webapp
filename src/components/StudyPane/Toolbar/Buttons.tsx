@@ -17,7 +17,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
+import { ColorSource, StudyMetadata, StropheProps, WordProps } from '@/lib/data';
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -324,7 +324,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
   const { ctxStudyId, ctxStudyMetadata, ctxNumSelectedWords,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxAddToHistory, ctxSetWordsColorMap,
-    ctxSetActiveHighlightId, ctxHighlightCacheRef,
+    ctxSetActiveHighlightId, ctxHighlightCacheRef, ctxActiveHighlightIds,
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -366,7 +366,9 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     if (isChanged) {
       ctxSetWordsColorMap(new Map());
       ctxHighlightCacheRef.current.clear();
-      ctxSetActiveHighlightId(null);
+      Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
+        ctxSetActiveHighlightId(highlightSource as ColorSource, null),
+      );
       ctxAddToHistory(ctxStudyMetadata);
       updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       setButtonEnabled(false);

@@ -16,6 +16,9 @@ export type HighlightGroup = {
 const cloneMetadata = (metadata: StudyMetadata): StudyMetadata =>
   structuredClone(metadata);
 
+const getHighlightCacheKey = (highlightSource: ColorSource, highlightId: string) =>
+  `${highlightSource}::${highlightId}`;
+
 export const useHighlightManager = (source: ColorSource) => {
   const {
     ctxStudyMetadata,
@@ -24,17 +27,20 @@ export const useHighlightManager = (source: ColorSource) => {
     ctxWordsColorMap,
     ctxSetWordsColorMap,
     ctxAddToHistory,
-    ctxActiveHighlightId,
+    ctxActiveHighlightIds,
     ctxSetActiveHighlightId,
     ctxHighlightCacheRef,
   } = useContext(FormatContext);
+  const activeHighlightId = ctxActiveHighlightIds[source] ?? null;
 
   const restoreHighlight = (
+    highlightSource: ColorSource,
     highlightId: string,
     metadata: StudyMetadata,
     colorMap: Map<number, ColorData>,
   ) => {
-    const cachedColors = ctxHighlightCacheRef.current.get(highlightId);
+    const cacheKey = getHighlightCacheKey(highlightSource, highlightId);
+    const cachedColors = ctxHighlightCacheRef.current.get(cacheKey);
     if (!cachedColors) {
       return;
     }
@@ -59,7 +65,7 @@ export const useHighlightManager = (source: ColorSource) => {
       }
     });
 
-    ctxHighlightCacheRef.current.delete(highlightId);
+    ctxHighlightCacheRef.current.delete(cacheKey);
   };
 
   const applyHighlightToMetadata = (
@@ -118,7 +124,10 @@ export const useHighlightManager = (source: ColorSource) => {
     });
 
     if (originalColors.size > 0) {
-      ctxHighlightCacheRef.current.set(highlightId, originalColors);
+      ctxHighlightCacheRef.current.set(
+        getHighlightCacheKey(source, highlightId),
+        originalColors,
+      );
       return true;
     }
 
@@ -130,7 +139,7 @@ export const useHighlightManager = (source: ColorSource) => {
     colorMap: Map<number, ColorData>,
     newActive: string | null,
   ) => {
-    ctxSetActiveHighlightId(newActive);
+    ctxSetActiveHighlightId(source, newActive);
     ctxSetWordsColorMap(new Map(colorMap));
     ctxSetStudyMetadata(metadata);
     ctxAddToHistory(metadata);
@@ -142,11 +151,21 @@ export const useHighlightManager = (source: ColorSource) => {
     metadataClone.words ??= {};
     const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
 
-    if (ctxActiveHighlightId) {
-      restoreHighlight(ctxActiveHighlightId, metadataClone, colorMapClone);
+    (Object.entries(ctxActiveHighlightIds) as [ColorSource, string | null][]).forEach(
+      ([highlightSource, activeId]) => {
+        if (!activeId || highlightSource === source) {
+          return;
+        }
+        restoreHighlight(highlightSource, activeId, metadataClone, colorMapClone);
+        ctxSetActiveHighlightId(highlightSource, null);
+      },
+    );
+
+    if (activeHighlightId) {
+      restoreHighlight(source, activeHighlightId, metadataClone, colorMapClone);
     }
 
-    if (ctxActiveHighlightId === highlightId) {
+    if (activeHighlightId === highlightId) {
       commitHighlightState(metadataClone, colorMapClone, null);
       return;
     }
@@ -167,22 +186,30 @@ export const useHighlightManager = (source: ColorSource) => {
   };
 
   useEffect(() => {
-    if (!ctxActiveHighlightId) {
+    if (!activeHighlightId) {
       return;
     }
 
-    const hasActiveSyntaxHighlight = Array.from(ctxWordsColorMap.values()).some(
+    const hasActiveHighlightForSource = Array.from(ctxWordsColorMap.values()).some(
       (color) => color?.source === source,
     );
 
-    if (!hasActiveSyntaxHighlight) {
-      ctxHighlightCacheRef.current.delete(ctxActiveHighlightId);
-      ctxSetActiveHighlightId(null);
+    if (!hasActiveHighlightForSource) {
+      ctxHighlightCacheRef.current.delete(
+        getHighlightCacheKey(source, activeHighlightId),
+      );
+      ctxSetActiveHighlightId(source, null);
     }
-  }, [ctxActiveHighlightId, ctxWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, source]);
+  }, [
+    activeHighlightId,
+    ctxWordsColorMap,
+    ctxHighlightCacheRef,
+    ctxSetActiveHighlightId,
+    source,
+  ]);
 
   return {
-    activeHighlightId: ctxActiveHighlightId,
+    activeHighlightId,
     toggleHighlight,
   };
 };
