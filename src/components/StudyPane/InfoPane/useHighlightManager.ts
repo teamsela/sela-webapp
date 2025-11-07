@@ -2,6 +2,7 @@ import { useContext, useEffect } from "react";
 
 import { updateMetadataInDb } from "@/lib/actions";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
+import { ColorActionType } from "@/lib/types";
 
 import { FormatContext } from "..";
 
@@ -62,6 +63,7 @@ export const useHighlightManager = (source: ColorSource) => {
     ctxActiveHighlightIds,
     ctxSetActiveHighlightId,
     ctxHighlightCacheRef,
+    ctxSetColorAction,
   } = useContext(FormatContext);
   const activeHighlightId = ctxActiveHighlightIds[source] ?? null;
 
@@ -177,6 +179,21 @@ export const useHighlightManager = (source: ColorSource) => {
     const metadataClone: StudyMetadata = cloneMetadata(ctxStudyMetadata);
     metadataClone.words ??= {};
     const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
+    let issuedGlobalReset = false;
+
+    const requestGlobalReset = () => {
+      if (ctxSetColorAction && !issuedGlobalReset) {
+        ctxSetColorAction(ColorActionType.resetAllColor);
+        issuedGlobalReset = true;
+      }
+    };
+
+    const finalizeGlobalReset = () => {
+      if (ctxSetColorAction && issuedGlobalReset) {
+        ctxSetColorAction(ColorActionType.none);
+        issuedGlobalReset = false;
+      }
+    };
 
     (Object.entries(ctxActiveHighlightIds) as [ColorSource, string | null][]).forEach(
       ([highlightSource, activeId]) => {
@@ -189,11 +206,13 @@ export const useHighlightManager = (source: ColorSource) => {
     );
 
     if (activeHighlightId) {
+      requestGlobalReset();
       restoreHighlight(source, activeHighlightId, metadataClone, colorMapClone);
     }
 
     if (activeHighlightId === highlightId) {
       commitHighlightState(metadataClone, colorMapClone, null);
+      finalizeGlobalReset();
       return;
     }
 
@@ -202,9 +221,11 @@ export const useHighlightManager = (source: ColorSource) => {
     );
     if (!canApply) {
       commitHighlightState(metadataClone, colorMapClone, null);
+      finalizeGlobalReset();
       return;
     }
 
+    requestGlobalReset();
     const clearedColors = clearAllWordColors(metadataClone, colorMapClone);
     const { applied, originalColors } = applyHighlightToMetadata(
       groups,
@@ -215,6 +236,7 @@ export const useHighlightManager = (source: ColorSource) => {
 
     if (!applied) {
       commitHighlightState(metadataClone, colorMapClone, null);
+      finalizeGlobalReset();
       return;
     }
 
@@ -224,6 +246,7 @@ export const useHighlightManager = (source: ColorSource) => {
     );
 
     commitHighlightState(metadataClone, colorMapClone, highlightId);
+    finalizeGlobalReset();
   };
 
   useEffect(() => {
