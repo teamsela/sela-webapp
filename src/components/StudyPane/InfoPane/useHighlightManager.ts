@@ -203,7 +203,7 @@ export const useHighlightManager = (
 
     const finalizeGlobalReset = () => {
       if (ctxSetColorAction && issuedGlobalReset) {
-        ctxSetColorAction(ColorActionType.none);
+        setTimeout(() => ctxSetColorAction(ColorActionType.none), 0);
         issuedGlobalReset = false;
       }
     };
