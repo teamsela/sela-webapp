@@ -96,6 +96,7 @@ const StudyPane = ({
   const [indentNum, setIndentNum] = useState(0);
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
+  const [infoPaneWidth, setInfoPaneWidth] = useState(360);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
   
@@ -297,7 +298,7 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14">
-          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
@@ -311,6 +312,8 @@ const StudyPane = ({
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}
+                  infoPaneWidth={infoPaneWidth}
+                  setInfoPaneWidth={setInfoPaneWidth}
                 />
               )
           }
