@@ -19,6 +19,38 @@ const cloneMetadata = (metadata: StudyMetadata): StudyMetadata =>
 const getHighlightCacheKey = (highlightSource: ColorSource, highlightId: string) =>
   `${highlightSource}::${highlightId}`;
 
+const stripSource = (color?: ColorData): ColorData | undefined => {
+  if (!color) {
+    return undefined;
+  }
+  const { source: _source, ...rest } = color;
+  return Object.keys(rest).length > 0 ? rest : undefined;
+};
+
+const clearAllWordColors = (
+  metadata: StudyMetadata,
+  colorMap: Map<number, ColorData>,
+): Map<number, ColorData | undefined> => {
+  const snapshot = new Map<number, ColorData | undefined>();
+  const entries = Object.entries(metadata.words ?? {});
+
+  entries.forEach(([wordId, wordMetadata]) => {
+    if (wordMetadata?.color) {
+      snapshot.set(Number(wordId), stripSource(wordMetadata.color));
+      delete wordMetadata.color;
+    }
+  });
+
+  colorMap.forEach((color, wordId) => {
+    if (!snapshot.has(wordId)) {
+      snapshot.set(wordId, stripSource(color));
+    }
+  });
+
+  colorMap.clear();
+  return snapshot;
+};
+
 export const useHighlightManager = (source: ColorSource) => {
   const {
     ctxStudyMetadata,
@@ -69,12 +101,14 @@ export const useHighlightManager = (source: ColorSource) => {
   };
 
   const applyHighlightToMetadata = (
-    highlightId: string,
-    groups: HighlightGroup[],
-    metadata: StudyMetadata,
-    colorMap: Map<number, ColorData>,
-  ): boolean => {
-    const originalColors = new Map<number, ColorData | undefined>();
+  groups: HighlightGroup[],
+  metadata: StudyMetadata,
+  colorMap: Map<number, ColorData>,
+  originalColorsSeed?: Map<number, ColorData | undefined>,
+  ): { applied: boolean; originalColors: Map<number, ColorData | undefined> } => {
+    const originalColors =
+      originalColorsSeed ?? new Map<number, ColorData | undefined>();
+    let applied = false;
 
     groups.forEach((group) => {
       const palette = group.palette;
@@ -92,7 +126,7 @@ export const useHighlightManager = (source: ColorSource) => {
           : undefined;
 
         if (!originalColors.has(wordId)) {
-          originalColors.set(wordId, existingColor);
+          originalColors.set(wordId, stripSource(existingColor));
         }
 
         const updatedColor: ColorData = { ...(existingColor ?? {}) };
@@ -111,6 +145,7 @@ export const useHighlightManager = (source: ColorSource) => {
           existingMetadata.color = updatedColor;
           metadata.words[wordId] = existingMetadata;
           colorMap.set(wordId, { ...updatedColor, source });
+          applied = true;
         } else {
           delete existingMetadata.color;
           if (Object.keys(existingMetadata).length === 0) {
@@ -123,15 +158,7 @@ export const useHighlightManager = (source: ColorSource) => {
       });
     });
 
-    if (originalColors.size > 0) {
-      ctxHighlightCacheRef.current.set(
-        getHighlightCacheKey(source, highlightId),
-        originalColors,
-      );
-      return true;
-    }
-
-    return false;
+    return { applied, originalColors };
   };
 
   const commitHighlightState = (
@@ -170,17 +197,31 @@ export const useHighlightManager = (source: ColorSource) => {
       return;
     }
 
-    const applied = applyHighlightToMetadata(
-      highlightId,
+    const canApply = groups.some(
+      (group) => Boolean(group.palette) && group.words.length > 0,
+    );
+    if (!canApply) {
+      commitHighlightState(metadataClone, colorMapClone, null);
+      return;
+    }
+
+    const clearedColors = clearAllWordColors(metadataClone, colorMapClone);
+    const { applied, originalColors } = applyHighlightToMetadata(
       groups,
       metadataClone,
       colorMapClone,
+      clearedColors,
     );
 
     if (!applied) {
       commitHighlightState(metadataClone, colorMapClone, null);
       return;
     }
+
+    ctxHighlightCacheRef.current.set(
+      getHighlightCacheKey(source, highlightId),
+      originalColors,
+    );
 
     commitHighlightState(metadataClone, colorMapClone, highlightId);
   };

@@ -256,7 +256,9 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   const { ctxStudyId, ctxStudyMetadata, ctxAddToHistory,
     ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
+    ctxSetWordsColorMap, ctxHighlightCacheRef,
+    ctxActiveHighlightIds, ctxSetActiveHighlightId
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -304,6 +306,12 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
         ctxAddToHistory(ctxStudyMetadata);
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
+
+      ctxSetWordsColorMap(new Map());
+      ctxHighlightCacheRef.current.clear();
+      Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
+        ctxSetActiveHighlightId(highlightSource as ColorSource, null),
+      );
     }
   }
 
