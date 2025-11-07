@@ -1,0 +1,1 @@
+export const PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT = true;

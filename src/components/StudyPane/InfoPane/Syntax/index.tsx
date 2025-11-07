@@ -9,6 +9,7 @@ import AccordionToggleIcon from "../common/AccordionToggleIcon";
 import SyntaxLabel, { LabelPalette } from "./SyntaxLabel";
 import SyntaxSmartHighlight from "./SmartHighlight";
 import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
+import { PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT } from "@/lib/featureFlags";
 
 type PersonCode = "1" | "2" | "3";
 type GenderCode = "M" | "F" | "C";
@@ -692,7 +693,9 @@ const Syntax = () => {
     ctxSetSelectedStrophes,
     ctxWordsColorMap,
   } = useContext(FormatContext);
-  const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax");
+  const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax", {
+    preserveCustomColors: PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT,
+  });
 
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
   const [labelCustomPalettes, setLabelCustomPalettes] = useState<Map<string, LabelPalette>>(new Map());

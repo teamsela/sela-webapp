@@ -4,6 +4,7 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
 import { clearAllFormattingState } from "@/lib/formatting";
+import { PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT } from "@/lib/featureFlags";
 
 import { FormatContext } from "..";
 
@@ -53,7 +54,14 @@ const snapshotAndClearWordColors = (
   return snapshot;
 };
 
-export const useHighlightManager = (source: ColorSource) => {
+type HighlightManagerOptions = {
+  preserveCustomColors?: boolean;
+};
+
+export const useHighlightManager = (
+  source: ColorSource,
+  options?: HighlightManagerOptions,
+) => {
   const {
     ctxStudyMetadata,
     ctxSetStudyMetadata,
@@ -67,6 +75,10 @@ export const useHighlightManager = (source: ColorSource) => {
     ctxSetColorAction,
   } = useContext(FormatContext);
   const activeHighlightId = ctxActiveHighlightIds[source] ?? null;
+  const preserveCustomColors =
+    source === "syntax"
+      ? options?.preserveCustomColors ?? PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT
+      : false;
 
   const restoreHighlight = (
     highlightSource: ColorSource,
@@ -228,10 +240,10 @@ export const useHighlightManager = (source: ColorSource) => {
 
     requestGlobalReset();
     let originalColorsSeed: Map<number, ColorData | undefined> | undefined;
-    if (source === "motif") {
-      clearAllFormattingState(metadataClone, colorMapClone);
-    } else {
+    if (preserveCustomColors) {
       originalColorsSeed = snapshotAndClearWordColors(metadataClone, colorMapClone);
+    } else {
+      clearAllFormattingState(metadataClone, colorMapClone);
     }
 
     const { applied, originalColors } = applyHighlightToMetadata(
