@@ -297,7 +297,7 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14">
-          <main className={`flex flex-row overflow-y-auto relative h-full w-full ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""} ${infoPaneAction !== InfoPaneActionType.none ? 'max-w-3/4' : ''}`}>
+          <main className={`flex flex-row overflow-y-auto relative h-full flex-1 min-w-0 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
