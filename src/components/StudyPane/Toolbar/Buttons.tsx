@@ -17,7 +17,8 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatCon
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { ColorSource, StudyMetadata, StropheProps, WordProps } from '@/lib/data';
+import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
+import { clearAllFormattingState } from "@/lib/formatting";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -333,6 +334,7 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxAddToHistory, ctxSetWordsColorMap,
     ctxSetActiveHighlightId, ctxHighlightCacheRef, ctxActiveHighlightIds,
+    ctxWordsColorMap, ctxSetStudyMetadata,
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -358,29 +360,23 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
     ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
-    let isChanged = false;
+    const metadataClone = structuredClone(ctxStudyMetadata);
+    const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
+    const cleared = clearAllFormattingState(metadataClone, colorMapClone);
 
-    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
-      if (wordMetadata && wordMetadata?.color) {
-        isChanged = true;
-        delete wordMetadata["color"];
-      }
-      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
-        isChanged = true;
-        delete wordMetadata.stropheMd.color;
-      }
-    });
-
-    if (isChanged) {
-      ctxSetWordsColorMap(new Map());
-      ctxHighlightCacheRef.current.clear();
-      Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
-        ctxSetActiveHighlightId(highlightSource as ColorSource, null),
-      );
-      ctxAddToHistory(ctxStudyMetadata);
-      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-      setButtonEnabled(false);
+    if (!cleared) {
+      return;
     }
+
+    ctxSetWordsColorMap(colorMapClone);
+    ctxHighlightCacheRef.current.clear();
+    Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
+      ctxSetActiveHighlightId(highlightSource as ColorSource, null),
+    );
+    ctxSetStudyMetadata(metadataClone);
+    ctxAddToHistory(metadataClone);
+    updateMetadataInDb(ctxStudyId, metadataClone);
+    setButtonEnabled(false);
   }
 
   return (

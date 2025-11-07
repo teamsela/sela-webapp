@@ -3,6 +3,7 @@ import { useContext, useEffect } from "react";
 import { updateMetadataInDb } from "@/lib/actions";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
+import { clearAllFormattingState } from "@/lib/formatting";
 
 import { FormatContext } from "..";
 
@@ -28,7 +29,7 @@ const stripSource = (color?: ColorData): ColorData | undefined => {
   return Object.keys(rest).length > 0 ? rest : undefined;
 };
 
-const clearAllWordColors = (
+const snapshotAndClearWordColors = (
   metadata: StudyMetadata,
   colorMap: Map<number, ColorData>,
 ): Map<number, ColorData | undefined> => {
@@ -226,12 +227,18 @@ export const useHighlightManager = (source: ColorSource) => {
     }
 
     requestGlobalReset();
-    const clearedColors = clearAllWordColors(metadataClone, colorMapClone);
+    let originalColorsSeed: Map<number, ColorData | undefined> | undefined;
+    if (source === "motif") {
+      clearAllFormattingState(metadataClone, colorMapClone);
+    } else {
+      originalColorsSeed = snapshotAndClearWordColors(metadataClone, colorMapClone);
+    }
+
     const { applied, originalColors } = applyHighlightToMetadata(
       groups,
       metadataClone,
       colorMapClone,
-      clearedColors,
+      originalColorsSeed,
     );
 
     if (!applied) {
