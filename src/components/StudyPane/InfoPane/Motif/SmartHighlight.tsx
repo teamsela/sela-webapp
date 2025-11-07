@@ -2,17 +2,16 @@ import React, { useMemo } from "react";
 
 import SyntaxSmartHighlight from "../Syntax/SmartHighlight";
 import { IdenticalWordProps } from "./IdenticalWord";
-import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, USER_SWATCH_COLORS } from "@/lib/colors";
+import { DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
-
-const IdenticalWordColorPalette = USER_SWATCH_COLORS;
+import { IDENTICAL_WORD_COLOR_PALETTE } from "@/lib/userColorPalette";
 
 const getPaletteColor = (index: number): string => {
-  if (IdenticalWordColorPalette.length === 0) {
+  if (IDENTICAL_WORD_COLOR_PALETTE.length === 0) {
     return DEFAULT_COLOR_FILL;
   }
   return (
-    IdenticalWordColorPalette[index % IdenticalWordColorPalette.length] ||
+    IDENTICAL_WORD_COLOR_PALETTE[index % IDENTICAL_WORD_COLOR_PALETTE.length] ||
     DEFAULT_COLOR_FILL
   );
 };
