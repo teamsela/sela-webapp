@@ -1,11 +1,12 @@
 import { WordProps } from '@/lib/data';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
+import { updateMetadataInDb } from '@/lib/actions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
@@ -34,10 +35,18 @@ export const WordBlock = ({
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap
+    ctxRootsColorMap, ctxSetRootsColorMap, ctxStudyMetadata,
+    ctxStudyId, ctxAddToHistory, ctxInViewMode
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
+
+  const [isEditingGloss, setIsEditingGloss] = useState(false);
+  const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
+  const glossInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const skipBlurCommitRef = useRef(false);
+  const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
+  const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
 
   const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
   const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
@@ -45,6 +54,93 @@ export const WordBlock = ({
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const [selected, setSelected] = useState(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!isEditingGloss) {
+      setGlossDraft(currentGlossValue);
+    }
+  }, [currentGlossValue, isEditingGloss]);
+
+  useEffect(() => {
+    if (isEditingGloss) {
+      glossInputRef.current?.focus();
+      glossInputRef.current?.select();
+    }
+  }, [isEditingGloss]);
+
+  const ensureWordMetadataEntry = useCallback(() => {
+    if (!ctxStudyMetadata.words[wordProps.wordId]) {
+      ctxStudyMetadata.words[wordProps.wordId] = { ...(wordProps.metadata || {}) };
+    }
+    if (wordProps.metadata !== ctxStudyMetadata.words[wordProps.wordId]) {
+      wordProps.metadata = ctxStudyMetadata.words[wordProps.wordId];
+    }
+    return ctxStudyMetadata.words[wordProps.wordId];
+  }, [ctxStudyMetadata, wordProps]);
+
+  const startEditingGloss = useCallback(() => {
+    if (!canEditEnglish) return;
+    skipBlurCommitRef.current = false;
+    setGlossDraft(currentGlossValue);
+    setIsEditingGloss(true);
+  }, [canEditEnglish, currentGlossValue]);
+
+  const cancelGlossEditing = useCallback(() => {
+    skipBlurCommitRef.current = true;
+    setIsEditingGloss(false);
+    setGlossDraft(currentGlossValue);
+  }, [currentGlossValue]);
+
+  const commitGlossChange = useCallback((value?: string) => {
+    if (!canEditEnglish) {
+      setIsEditingGloss(false);
+      return;
+    }
+
+    const nextValue = value !== undefined ? value : glossDraft;
+    const sanitized = nextValue.replace(/\r?\n/g, ' ').trim();
+
+    if (sanitized === currentGlossValue) {
+      skipBlurCommitRef.current = true;
+      setIsEditingGloss(false);
+      setGlossDraft(currentGlossValue);
+      return;
+    }
+
+    const metadataEntry = ensureWordMetadataEntry();
+    metadataEntry.glossOverride = sanitized;
+    wordProps.gloss = sanitized;
+
+    skipBlurCommitRef.current = true;
+    setIsEditingGloss(false);
+    setGlossDraft(sanitized);
+    ctxAddToHistory(ctxStudyMetadata);
+    updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+  }, [canEditEnglish, currentGlossValue, ensureWordMetadataEntry, glossDraft, ctxAddToHistory, ctxStudyId, ctxStudyMetadata, wordProps]);
+
+  const handleGlossKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      commitGlossChange(event.currentTarget.value);
+      event.currentTarget.blur();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelGlossEditing();
+      event.currentTarget.blur();
+    }
+  }, [cancelGlossEditing, commitGlossChange]);
+
+  const handleGlossBlur = useCallback(() => {
+    if (skipBlurCommitRef.current) {
+      skipBlurCommitRef.current = false;
+      return;
+    }
+    commitGlossChange();
+  }, [commitGlossChange]);
+
+  const handleGlossChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setGlossDraft(event.target.value);
+  }, []);
 
   if (ctxColorAction != ColorActionType.none ) {
     ctxRootsColorMap.delete(wordProps.strongNumber);
@@ -161,11 +257,14 @@ export const WordBlock = ({
   useEffect(() => {
   }, [ctxColorAction]);
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    if (isEditingGloss) {
+      return;
+    }
     if (clickTimeout) {
       clearTimeout(clickTimeout);
       setClickTimeout(null);
-      handleDoubleClick();
+      handleDoubleClick(event);
     } else {
       const timeout = setTimeout(() => {
         handleSingleClick();
@@ -198,7 +297,11 @@ export const WordBlock = ({
     }
   };
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (event?: React.MouseEvent<HTMLSpanElement>) => {
+    if (canEditEnglish && !event?.altKey) {
+      startEditingGloss();
+      return;
+    }
     eventBus.emit("selectAllIdenticalWords", wordProps);
   }
 
@@ -299,7 +402,22 @@ export const WordBlock = ({
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
             data-clicktype="clickable"
           >
-            {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss}
+            {ctxIsHebrew ? wordProps.wlcWord : (
+              isEditingGloss ? (
+                <textarea
+                  ref={glossInputRef}
+                  value={glossDraft}
+                  onChange={handleGlossChange}
+                  onKeyDown={handleGlossKeyDown}
+                  onBlur={handleGlossBlur}
+                  rows={1}
+                  className="w-full h-full resize-none bg-transparent text-current text-center leading-none focus:outline-none"
+                  style={{ fontSize: 'inherit', fontFamily: 'inherit', lineHeight: 'inherit' }}
+                  onClick={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                />
+              ) : currentGlossValue
+            )}
           </span>
         </span>
       </div>
