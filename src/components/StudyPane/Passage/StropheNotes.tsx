@@ -174,7 +174,7 @@ useEffect(() => {
   }, [saveNow]);
 
   return (
-    <div className="flex h-full flex-col gap-5.5">
+    <div className="flex h-full bg-transparent flex-col gap-5.5">
       <textarea
         rows={1}
         value={title}
@@ -184,7 +184,7 @@ useEffect(() => {
         }}
         onFocus={claimActivePane}
         placeholder="Your title here..."
-        className="resize-none w-full flex-shrink-0 rounded border border-stroke bg-transparent px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        className="resize-none w-full flex-shrink-0 rounded border border-stroke bg-white px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
         style={{ minHeight: STROPHE_NOTE_TITLE_MIN_HEIGHT }}
       />
@@ -197,7 +197,7 @@ useEffect(() => {
         }}
         onFocus={claimActivePane}
         placeholder="Your notes here..."
-        className="resize-none w-full flex-1 rounded border border-stroke bg-transparent px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        className="resize-none w-full flex-1 rounded border border-stroke bg-white px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
         style={{ minHeight: STROPHE_NOTE_TEXT_MIN_HEIGHT }}
       />
