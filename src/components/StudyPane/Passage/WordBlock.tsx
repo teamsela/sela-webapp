@@ -112,6 +112,9 @@ export const WordBlock = ({
       skipBlurCommitRef.current = true;
       setIsEditingGloss(false);
       setGlossDraft(currentGlossValue);
+      if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
       return;
     }
 
@@ -258,6 +261,12 @@ export const WordBlock = ({
       }
     }
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
+
+  useEffect(() => {
+    if (!selected && isEditingGloss) {
+      commitGlossChange();
+    }
+  }, [selected, isEditingGloss, commitGlossChange]);
 
   useEffect(() => {
     if (!canEditEnglish) {
