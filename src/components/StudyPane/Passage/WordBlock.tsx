@@ -36,7 +36,8 @@ export const WordBlock = ({
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxRootsColorMap, ctxSetRootsColorMap, ctxStudyMetadata,
-    ctxStudyId, ctxAddToHistory, ctxInViewMode
+    ctxStudyId, ctxAddToHistory, ctxInViewMode,
+    ctxEditingWordId, ctxSetEditingWordId
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
@@ -83,17 +84,24 @@ export const WordBlock = ({
     skipBlurCommitRef.current = false;
     setGlossDraft(currentGlossValue);
     setIsEditingGloss(true);
-  }, [canEditEnglish, currentGlossValue]);
+    ctxSetEditingWordId(wordProps.wordId);
+  }, [canEditEnglish, currentGlossValue, ctxSetEditingWordId, wordProps.wordId]);
 
-  const cancelGlossEditing = useCallback(() => {
+  const cancelGlossEditing = useCallback((options?: { preserveEditingContext?: boolean }) => {
     skipBlurCommitRef.current = true;
     setIsEditingGloss(false);
     setGlossDraft(currentGlossValue);
-  }, [currentGlossValue]);
+    if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+      ctxSetEditingWordId(null);
+    }
+  }, [currentGlossValue, ctxEditingWordId, ctxSetEditingWordId, wordProps.wordId]);
 
-  const commitGlossChange = useCallback((value?: string) => {
+  const commitGlossChange = useCallback((value?: string, options?: { preserveEditingContext?: boolean }) => {
     if (!canEditEnglish) {
       setIsEditingGloss(false);
+      if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
       return;
     }
 
@@ -116,7 +124,10 @@ export const WordBlock = ({
     setGlossDraft(sanitized);
     ctxAddToHistory(ctxStudyMetadata);
     updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-  }, [canEditEnglish, currentGlossValue, ensureWordMetadataEntry, glossDraft, ctxAddToHistory, ctxStudyId, ctxStudyMetadata, wordProps]);
+    if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+      ctxSetEditingWordId(null);
+    }
+  }, [canEditEnglish, currentGlossValue, ensureWordMetadataEntry, glossDraft, ctxAddToHistory, ctxStudyId, ctxStudyMetadata, wordProps, ctxEditingWordId, ctxSetEditingWordId]);
 
   const handleGlossKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -249,6 +260,24 @@ export const WordBlock = ({
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
 
   useEffect(() => {
+    if (!canEditEnglish) {
+      if (isEditingGloss) {
+        cancelGlossEditing();
+      }
+      if (ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
+      return;
+    }
+
+    if (ctxEditingWordId === wordProps.wordId && !isEditingGloss) {
+      startEditingGloss();
+    } else if (ctxEditingWordId !== wordProps.wordId && isEditingGloss) {
+      commitGlossChange(undefined, { preserveEditingContext: true });
+    }
+  }, [canEditEnglish, ctxEditingWordId, ctxSetEditingWordId, wordProps.wordId, isEditingGloss, startEditingGloss, cancelGlossEditing, commitGlossChange]);
+
+  useEffect(() => {
   }, [borderColorLocal]);
 
   useEffect(() => {
@@ -264,7 +293,7 @@ export const WordBlock = ({
     if (clickTimeout) {
       clearTimeout(clickTimeout);
       setClickTimeout(null);
-      handleDoubleClick(event);
+      handleDoubleClick();
     } else {
       const timeout = setTimeout(() => {
         handleSingleClick();
@@ -297,11 +326,7 @@ export const WordBlock = ({
     }
   };
 
-  const handleDoubleClick = (event?: React.MouseEvent<HTMLSpanElement>) => {
-    if (canEditEnglish && !event?.altKey) {
-      startEditingGloss();
-      return;
-    }
+  const handleDoubleClick = () => {
     eventBus.emit("selectAllIdenticalWords", wordProps);
   }
 
