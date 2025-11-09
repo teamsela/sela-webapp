@@ -75,7 +75,7 @@ const InfoPane = ({
 
       {/* Fixed close button */}
       <button
-        className="absolute top-36 right-8"
+        className="absolute right-6 top-6 md:right-8"
         onClick={handleClick}
         style={{ zIndex: 1000 }} // Keep z-index for the close button
       >
