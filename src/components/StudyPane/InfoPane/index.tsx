@@ -1,4 +1,4 @@
-import { MouseEvent } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { MdClose } from "react-icons/md";
 
 import Structure from "./Structure";
@@ -19,8 +19,41 @@ const InfoPane = ({
   infoPaneWidth: number;
   setInfoPaneWidth: (width: number) => void;
 }) => {
-  const MIN_WIDTH = 260;
-  const MAX_WIDTH = 640;
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const updateViewportWidth = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    updateViewportWidth();
+    window.addEventListener("resize", updateViewportWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateViewportWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (viewportWidth === null) {
+      return;
+    }
+
+    const minWidth = viewportWidth / 4;
+    const maxWidth = viewportWidth / 2;
+    const clampedWidth = Math.min(maxWidth, Math.max(minWidth, infoPaneWidth));
+
+    if (clampedWidth !== infoPaneWidth) {
+      setInfoPaneWidth(clampedWidth);
+    }
+  }, [viewportWidth, infoPaneWidth, setInfoPaneWidth]);
+
+  const minWidth = viewportWidth ? viewportWidth / 4 : undefined;
+  const maxWidth = viewportWidth ? viewportWidth / 2 : undefined;
 
   const handleClick = () => {
     setInfoPaneAction(InfoPaneActionType.none);
@@ -37,9 +70,11 @@ const InfoPane = ({
 
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
+      const currentMinWidth = viewportWidth ? viewportWidth / 4 : 0;
+      const currentMaxWidth = viewportWidth ? viewportWidth / 2 : Infinity;
       const newWidth = Math.min(
-        MAX_WIDTH,
-        Math.max(MIN_WIDTH, startWidth - deltaX)
+        currentMaxWidth,
+        Math.max(currentMinWidth, startWidth - deltaX)
       );
       setInfoPaneWidth(newWidth);
     };
@@ -61,8 +96,8 @@ const InfoPane = ({
         borderLeftStyle: "solid",
         borderLeftWidth: 2,
         flexShrink: 0,
-        minWidth: MIN_WIDTH,
-        maxWidth: MAX_WIDTH,
+        minWidth,
+        maxWidth,
         width: infoPaneWidth,
       }}
     >
