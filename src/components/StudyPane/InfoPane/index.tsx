@@ -3,10 +3,10 @@ import { MdClose } from "react-icons/md";
 
 import Structure from "./Structure";
 import Motif from "./Motif/index";
-import Syntax from "./Syntax";
+import Syntax from "./Syntax/index";
 import Sounds from "./Sounds";
-import { InfoPaneActionType } from "@/lib/types";
 import Notes from "./Notes";
+import { InfoPaneActionType } from "@/lib/types";
 
 const InfoPane = ({
   infoPaneAction,
