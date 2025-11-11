@@ -32,8 +32,12 @@ export const StropheBlock = ({
   const firstWordId = stropheProps.lines[0].words[0].wordId;
   const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(() => (
+    stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL
+  ));
+  const [borderColorLocal, setBorderColorLocal] = useState(() => (
+    stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR
+  ));
 
   const stropheNoteTitle = useMemo(() => {
     if (!ctxStudyNotes) return "";
@@ -63,26 +67,13 @@ export const StropheBlock = ({
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
 
-  //comments and console logs: for parallel display bug: sometimes colour for strophe not applied when switching mode
   useEffect(() => {
-    if (stropheProps.metadata?.color) {
-      //when bug occurs this did not fire
-      //bug does not occur when mode switch happen while colour picker is on
-      console.log('if true stropheProps.metadata?.color set color')
-      const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
-      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
+    const selectedColorFill = stropheProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
+    const selectedBorderColor = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
 
-      const selectedBorderColor = stropheProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
-      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
-    }
-    else {
-      //when bug occurs this is fired
-      console.log('else stropheProps.metadata?.color set color')
-      setColorFillLocal(DEFAULT_COLOR_FILL);
-      setBorderColorLocal(DEFAULT_BORDER_COLOR);
-    }
-
-  }, [stropheProps.metadata?.color, colorFillLocal, borderColorLocal]);
+    setColorFillLocal(selectedColorFill);
+    setBorderColorLocal(selectedBorderColor);
+  }, [stropheProps.metadata?.color?.fill, stropheProps.metadata?.color?.border]);
 
   useEffect(() => {
     if (ctxColorAction != ColorActionType.none ) {
