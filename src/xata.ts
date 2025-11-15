@@ -114,9 +114,7 @@ const tables = [
   {
     name: "motif",
     columns: [
-      { name: "strongCode", type: "int" },
       { name: "categories", type: "multiple" },
-      { name: "relatedLink", type: "link", link: { table: "lexicon" } },
       { name: "lemmaLink", type: "link", link: { table: "lexicon" } },
       { name: "relatedStrongCodes", type: "multiple" },
     ],
@@ -131,12 +129,8 @@ const tables = [
     columns: [
       { name: "gloss", type: "text" },
       { name: "lemma", type: "text" },
-      { name: "relatedStrongCodes", type: "multiple" },
     ],
-    revLinks: [
-      { column: "relatedLink", table: "motif" },
-      { column: "lemmaLink", table: "motif" },
-    ],
+    revLinks: [{ column: "lemmaLink", table: "motif" }],
   },
   {
     name: "stepbible_tbesh",
@@ -268,8 +262,7 @@ export type DatabaseSchema = {
 const DatabaseClient = buildClient();
 
 const defaultOptions = {
-  databaseURL:
-    "https://BiblePoetry-s-workspace-ab123i.us-east-1.xata.sh/db/main",
+  databaseURL: "https://Sela-ab123i.us-east-1.xata.sh/db/main",
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {
