@@ -27,6 +27,8 @@ export const FormatContext = createContext({
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
+  ctxIsHebrew: false,
+  ctxSetIsHebrew: (arg: boolean) => {},
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
@@ -48,6 +50,8 @@ export const FormatContext = createContext({
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
+  ctxEditingWordId: null as number | null,
+  ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
   // color map used by identical words smart highlight
@@ -63,7 +67,9 @@ export const FormatContext = createContext({
   ctxNoteBox: undefined as undefined|DOMRect,
   ctxSetNoteBox: (arg: undefined|DOMRect) => {},
   ctxNoteMerge: true,
-  ctxSetNoteMerge: (arg: boolean) => {}
+  ctxSetNoteMerge: (arg: boolean) => {},
+  ctxActiveNotesPane: null as "heb" | "eng" | null,
+  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {}
 });
 
 const StudyPane = ({
@@ -107,9 +113,11 @@ const StudyPane = ({
 
   // set default language to English
   const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
+  const [editingWordId, setEditingWordId] = useState<number | null>(null);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
-  const [noteMerge, setNoteMerge] = useState(false);
+  const [noteMerge, setNoteMerge] = useState(true);
+  const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -151,6 +159,8 @@ const StudyPane = ({
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
+    ctxEditingWordId: editingWordId,
+    ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
     ctxRootsColorMap: rootsColorMap,
@@ -164,7 +174,9 @@ const StudyPane = ({
     ctxNoteBox: noteBox,
     ctxSetNoteBox: setNoteBox,
     ctxNoteMerge: noteMerge,
-    ctxSetNoteMerge: setNoteMerge
+    ctxSetNoteMerge: setNoteMerge,
+    ctxActiveNotesPane: activeNotesPane,
+    ctxSetActiveNotesPane: setActiveNotesPane
   };
 
   useEffect(() => {
@@ -328,4 +340,3 @@ const StudyPane = ({
 };
 
 export default StudyPane;
-

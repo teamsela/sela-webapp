@@ -226,6 +226,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
       }  
     }
 
+    if (wordProps.metadata?.glossOverride !== undefined) {
+      wordProps.gloss = wordProps.metadata.glossOverride;
+    }
+
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
     if (currentStanzaData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stanzaDiv)) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});

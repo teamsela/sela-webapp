@@ -1,6 +1,6 @@
 import { LanguageMode } from "@/lib/types";
 import { StanzaProps } from "@/lib/data";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
@@ -16,6 +16,25 @@ export const StanzaBlock = ({
   const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
+  const [stropheWidths, setStropheWidths] = useState<Record<number, number>>({});
+
+  const handleStropheWidthChange = useCallback((stropheId: number, width: number) => {
+    setStropheWidths((prev) => {
+      const previousWidth = prev[stropheId];
+      if (previousWidth === width) {
+        return prev;
+      }
+      return { ...prev, [stropheId]: width };
+    });
+  }, []);
+
+  const maxStropheNoteWidth = useMemo(() => {
+    const widths = Object.values(stropheWidths);
+    if (!widths.length) {
+      return undefined;
+    }
+    return Math.max(...widths);
+  }, [stropheWidths]);
   
 
   const handleCollapseBlockClick = () => {
@@ -99,6 +118,8 @@ export const StanzaBlock = ({
                   stropheProps={strophe}
                   key={strophe.stropheId}
                   stanzaExpanded={expanded}
+                  onWordAreaWidthChange={handleStropheWidthChange}
+                  maxStanzaNoteWidth={maxStropheNoteWidth}
                   />
               )
           })

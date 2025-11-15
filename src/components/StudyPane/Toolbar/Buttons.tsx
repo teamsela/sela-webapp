@@ -5,7 +5,7 @@ import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
-import { TbArrowAutofitContent, TbArrowAutofitContentFilled } from "react-icons/tb";
+import { TbArrowAutofitContent, TbArrowAutofitContentFilled, TbEdit } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 import { BsBox, BsBoxArrowUp } from "react-icons/bs";
 import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
@@ -247,6 +247,57 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           </div>
         )
       }
+    </div>
+  );
+};
+
+const EDIT_INDICATOR_COLOR = "#3C50E0";
+
+export const EditWordBtn = () => {
+  const {
+    ctxSelectedWords,
+    ctxNumSelectedWords,
+    ctxIsHebrew,
+    ctxInViewMode,
+    ctxEditingWordId,
+    ctxSetEditingWordId,
+  } = useContext(FormatContext);
+
+  const singleWordSelected = ctxNumSelectedWords === 1 && ctxSelectedWords.length === 1;
+  const selectedWordId = singleWordSelected ? ctxSelectedWords[0]?.wordId : undefined;
+  const hasSelectedWord = typeof selectedWordId === "number";
+  const buttonEnabled = hasSelectedWord && !ctxIsHebrew && !ctxInViewMode;
+  const isEditing = buttonEnabled && selectedWordId === ctxEditingWordId;
+
+  const handleClick = () => {
+    if (!buttonEnabled || selectedWordId === undefined) {
+      return;
+    }
+    ctxSetEditingWordId(isEditing ? null : selectedWordId);
+  };
+
+  return (
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+      <button
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        onClick={handleClick}
+      >
+        <TbEdit
+          fontSize="1.4em"
+          opacity={buttonEnabled ? "1" : "0.4"}
+          color={isEditing ? EDIT_INDICATOR_COLOR : undefined}
+        />
+        <div
+          style={{
+            width: "100%",
+            height: "0.25rem",
+            background: `${buttonEnabled && isEditing ? EDIT_INDICATOR_COLOR : '#FFFFFF'}`,
+            opacity: buttonEnabled ? 1 : 0.4,
+            marginTop: "0.05rem",
+          }}
+        />
+      </button>
+      <ToolTip text="Edit English gloss" />
     </div>
   );
 };
@@ -579,7 +630,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
-  let singleWordSelected = (ctxSelectedWords.length === 1);
+  // let singleWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
   let hasStrophesSelected = (ctxNumSelectedStrophes >= 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
