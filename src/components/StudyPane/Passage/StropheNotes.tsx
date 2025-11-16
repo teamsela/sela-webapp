@@ -6,6 +6,28 @@ import { LanguageContext } from "./PassageBlock";
 export const STROPHE_NOTE_TITLE_MIN_HEIGHT = 44;
 export const STROPHE_NOTE_TEXT_MIN_HEIGHT = 104;
 export const STROPHE_NOTE_VERTICAL_GAP = 22;
+export const STROPHE_NOTE_COMBINED_MIN_HEIGHT =
+  STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
+
+const splitCombinedNote = (content: string) => {
+  const normalized = content.replace(/\r\n/g, "\n");
+  const newlineIndex = normalized.indexOf("\n");
+  if (newlineIndex === -1) {
+    return { title: normalized, text: "" };
+  }
+  const title = normalized.slice(0, newlineIndex);
+  const text = normalized.slice(newlineIndex + 1);
+  return { title, text };
+};
+
+const combineTitleAndText = (title: string, text: string) => {
+  const safeTitle = title ?? "";
+  const safeText = text ?? "";
+  if (safeTitle && safeText) return `${safeTitle}\n${safeText}`;
+  if (safeTitle) return safeTitle;
+  if (safeText) return `\n${safeText}`;
+  return "";
+};
 
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
   const {
@@ -36,8 +58,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   }, []); // intentionally run once
 
   // 2) Local UI state that syncs from ctxStudyNotes when it changes
-  const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
+  const [combinedNote, setCombinedNote] = useState("");
   
   const claimActivePane = useCallback(() => {
     if (ctxActiveNotesPane !== viewId) {
@@ -69,8 +90,9 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     try {
       const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
       const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
-      setTitle(s?.title ?? "");
-      setText(s?.text ?? "");
+      const safeTitle = s?.title ?? "";
+      const safeText = s?.text ?? "";
+      setCombinedNote(combineTitleAndText(safeTitle, safeText));
       hydratedKeyRef.current = key;
     } catch {
       // ignore parse errors
@@ -122,11 +144,12 @@ async (payload: string, { keepalive = false } = {}) => {
   while (strophes.length <= stropheId) {
     strophes.push({ title: "", text: "" , firstWordId: firstWordId, lastWordId: lastWordId});
   }
+  const { title, text } = splitCombinedNote(combinedNote);
   strophes[stropheId] = { title, text, firstWordId: firstWordId, lastWordId: lastWordId };
 
   const next: StudyNotes = { ...parsed, strophes };
   return JSON.stringify(next);
-}, [ctxStudyNotes, stropheId, title, text, firstWordId, lastWordId]);
+}, [ctxStudyNotes, stropheId, combinedNote, firstWordId, lastWordId]);
 
 useEffect(() => {
   if (!ctxStudyNotes) return;
@@ -176,30 +199,17 @@ useEffect(() => {
   return (
     <div className="flex h-full bg-transparent flex-col gap-5.5">
       <textarea
-        rows={1}
-        value={title}
-        onChange={(e) => {
-          claimActivePane();
-          setTitle(e.target.value);
-        }}
-        onFocus={claimActivePane}
-        placeholder="Your title here..."
-        className="resize-none w-full flex-shrink-0 rounded border border-stroke bg-white px-5 py-1 font-bold text-lg text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        dir="ltr"
-        style={{ minHeight: STROPHE_NOTE_TITLE_MIN_HEIGHT }}
-      />
-      <textarea
         rows={3}
-        value={text}
+        value={combinedNote}
         onChange={(e) => {
           claimActivePane();
-          setText(e.target.value);
+          setCombinedNote(e.target.value);
         }}
         onFocus={claimActivePane}
-        placeholder="Your notes here..."
+        placeholder="First line is the title, continue typing for your notes..."
         className="resize-none w-full flex-1 rounded border border-stroke bg-white px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
-        style={{ minHeight: STROPHE_NOTE_TEXT_MIN_HEIGHT }}
+        style={{ minHeight: STROPHE_NOTE_COMBINED_MIN_HEIGHT }}
       />
     </div>
   );

@@ -71,7 +71,9 @@ export const FormatContext = createContext({
   ctxActiveNotesPane: null as "heb" | "eng" | null,
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNotesActive: false,
-  ctxSetStropheNotesActive: (arg: boolean) => {}
+  ctxSetStropheNotesActive: (arg: boolean) => {},
+  ctxStropheHeightMap: {} as Record<number, number>,
+  ctxSetStropheHeightMap: (arg: Record<number, number>) => {}
 });
 
 const StudyPane = ({
@@ -122,6 +124,7 @@ const StudyPane = ({
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
 
   const [stropheNotesActive, setStropheNotesActive] = useState(false);
+  const [stropheHeightMap, setStropheHeightMap] = useState<Record<number, number>>({});
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -182,7 +185,9 @@ const StudyPane = ({
     ctxActiveNotesPane: activeNotesPane,
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNotesActive: stropheNotesActive,
-    ctxSetStropheNotesActive: setStropheNotesActive
+    ctxSetStropheNotesActive: setStropheNotesActive,
+    ctxStropheHeightMap: stropheHeightMap,
+    ctxSetStropheHeightMap: setStropheHeightMap
   };
 
   useEffect(() => {
