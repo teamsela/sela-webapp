@@ -9,7 +9,7 @@ import { ColorData, StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
-import { StropheNotes, STROPHE_NOTE_COMBINED_MIN_HEIGHT } from './StropheNotes';
+import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
 export const StropheBlock = ({
@@ -243,7 +243,6 @@ export const StropheBlock = ({
     };
   }, [stropheNoteTitle, shouldShowNote]);
 
-  const minNoteHeight = STROPHE_NOTE_COMBINED_MIN_HEIGHT;
   const effectiveNoteWidth = maxStanzaNoteWidth ?? wordAreaWidth ?? undefined;
   // Keep notes view height aligned with the word view (including any rendered title).
   const localWordHeight = useMemo(() => {
@@ -259,16 +258,17 @@ export const StropheBlock = ({
     return localWordHeight;
   }, [ctxStropheHeightMap, isForNotes, localWordHeight, stropheProps.stropheId]);
   const noteContainerHeight = shouldShowNote
-    ? Math.max(minNoteHeight, combinedWordHeight)
+    ? (combinedWordHeight > 0 ? combinedWordHeight : undefined)
     : undefined;
   const noteContainerStyle = shouldShowNote
     ? (() => {
         const style: React.CSSProperties = {
           maxWidth: '100%',
-          minHeight: minNoteHeight,
-          height: noteContainerHeight,
           background: colorFillLocal,
         };
+        if (typeof noteContainerHeight === 'number') {
+          style.height = noteContainerHeight;
+        }
         if (typeof effectiveNoteWidth === 'number') {
           style.width = effectiveNoteWidth;
         }

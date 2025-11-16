@@ -3,12 +3,6 @@ import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
 import { LanguageContext } from "./PassageBlock";
 
-export const STROPHE_NOTE_TITLE_MIN_HEIGHT = 44;
-export const STROPHE_NOTE_TEXT_MIN_HEIGHT = 104;
-export const STROPHE_NOTE_VERTICAL_GAP = 22;
-export const STROPHE_NOTE_COMBINED_MIN_HEIGHT =
-  STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
-
 const splitCombinedNote = (content: string) => {
   const normalized = content.replace(/\r\n/g, "\n");
   const newlineIndex = normalized.indexOf("\n");
@@ -199,7 +193,7 @@ useEffect(() => {
   return (
     <div className="flex h-full bg-transparent flex-col gap-5.5">
       <textarea
-        rows={3}
+        rows={1}
         value={combinedNote}
         onChange={(e) => {
           claimActivePane();
@@ -209,7 +203,6 @@ useEffect(() => {
         placeholder="First line is the title, continue typing for your notes..."
         className="resize-none w-full flex-1 rounded border border-stroke bg-white px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
-        style={{ minHeight: STROPHE_NOTE_COMBINED_MIN_HEIGHT }}
       />
     </div>
   );
