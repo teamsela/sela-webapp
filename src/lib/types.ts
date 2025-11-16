@@ -66,4 +66,4 @@ export enum MotifType {
 }
 
 export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
-export type StudyNotes = { main: string; strophes: StropheNote[] };
+export type StudyNotes = { main: string; strophes: StropheNote[]; stropheNotesActive?: boolean };

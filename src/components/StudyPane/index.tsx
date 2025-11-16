@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useCallback, useRef } from "react";
 
 import Header from "./Header";
 import Passage from "./Passage";
@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, StudyNotes } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 
@@ -123,7 +123,20 @@ const StudyPane = ({
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
 
-  const [stropheNotesActive, setStropheNotesActive] = useState(false);
+  const parseInitialStropheNotesActive = () => {
+    try {
+      const parsed = JSON.parse(passageData.study.notes ?? "") as Partial<StudyNotes>;
+      if (typeof parsed.stropheNotesActive === "boolean") {
+        return parsed.stropheNotesActive;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return false;
+  };
+
+  const [stropheNotesActive, setStropheNotesActive] = useState<boolean>(parseInitialStropheNotesActive);
+  const stropheNotesActiveRef = useRef<boolean | null>(null);
   const [stropheHeightMap, setStropheHeightMap] = useState<Record<number, number>>({});
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
@@ -133,6 +146,53 @@ const StudyPane = ({
     setHistory(newHistory);
     setPointer(pointer + 1);
   };
+
+  const persistStropheNotesState = useCallback(async (payload: string, isActive: boolean) => {
+    if (!passageData.study.id) return;
+
+    try {
+      await fetch("/api/noteSync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studyId: passageData.study.id,
+          text: payload,
+          stropheNotesActive: isActive,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to persist strophe notes state", error);
+    }
+  }, [passageData.study.id]);
+
+  useEffect(() => {
+    if (stropheNotesActiveRef.current === stropheNotesActive) {
+      return;
+    }
+    stropheNotesActiveRef.current = stropheNotesActive;
+
+    setStudyNotes((prevNotes) => {
+      let parsed: StudyNotes = { main: "", strophes: [] };
+      if (prevNotes) {
+        try {
+          parsed = { main: "", strophes: [], ...(JSON.parse(prevNotes) as Partial<StudyNotes>) };
+        } catch {
+          // ignore parse errors
+        }
+      }
+      if (!Array.isArray(parsed.strophes)) {
+        parsed.strophes = [];
+      }
+
+      const nextNotes: StudyNotes = { ...parsed, stropheNotesActive };
+      const payload = JSON.stringify(nextNotes);
+      if (payload === prevNotes) {
+        return prevNotes;
+      }
+      void persistStropheNotesState(payload, stropheNotesActive);
+      return payload;
+    });
+  }, [persistStropheNotesState, stropheNotesActive]);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,

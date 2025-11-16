@@ -753,13 +753,13 @@ export const StropheNoteBtn = ({toolTip}: {toolTip : string}) =>{
 
   return (
     <div
-      className={`flex flex-col group relative items-center justify-center px-2 xsm:flex-row border-[2px] rounded-[5px] border-[#D9D9D9] ${ctxStropheNotesActive? 'bg-white': 'bg-[#F2F2F2]'}`}
+      className={`flex flex-col group relative items-center justify-center px-2 xsm:flex-row border-[2px] rounded-[5px] border-[#D9D9D9] ${ctxStropheNotesActive? 'bg-primary': 'bg-[#F2F2F2]'}`}
     >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={()=> {ctxSetStropheNotesActive(!ctxStropheNotesActive)}}
       >
-      <LuNotebookPen opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.3em"/>
+      <LuNotebookPen className={`${ctxStropheNotesActive ? 'text-white': 'text-graydark'}`} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.3em"/>
       <ToolTip text={toolTip} />
       </button>
     </div>

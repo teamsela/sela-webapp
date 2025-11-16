@@ -4,7 +4,7 @@ import { FormatContext } from "..";
 import { StropheNote, StudyNotes } from "@/lib/types";
 
 const Notes = () => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxStropheNotesActive } = useContext(FormatContext);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -55,7 +55,11 @@ const Notes = () => {
       const res = await fetch("/api/noteSync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studyId: ctxStudyId, text: payload }),
+        body: JSON.stringify({
+          studyId: ctxStudyId,
+          text: payload,
+          stropheNotesActive: ctxStropheNotesActive,
+        }),
         keepalive, // crucial during page/tab close
       });
 
@@ -68,7 +72,7 @@ const Notes = () => {
       if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
         try {
           const blob = new Blob(
-            [JSON.stringify({ studyId: ctxStudyId, text: payload })],
+            [JSON.stringify({ studyId: ctxStudyId, text: payload, stropheNotesActive: ctxStropheNotesActive })],
             { type: "application/json" }
           );
           const ok = navigator.sendBeacon("/api/noteSync", blob);
@@ -81,7 +85,7 @@ const Notes = () => {
         console.error("Save error:", err);
       }
     }
-  }, [ctxStudyId]);
+  }, [ctxStudyId, ctxStropheNotesActive]);
 
   // Debounced autosave whenever `text` changes
   useEffect(() => {

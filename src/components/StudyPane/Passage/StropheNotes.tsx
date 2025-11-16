@@ -33,6 +33,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     ctxSetNoteMerge,
     ctxActiveNotesPane,
     ctxSetActiveNotesPane,
+    ctxStropheNotesActive,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);
@@ -109,16 +110,23 @@ async (payload: string, { keepalive = false } = {}) => {
     const res = await fetch("/api/noteSync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studyId: ctxStudyId, text: payload }),
+      body: JSON.stringify({
+        studyId: ctxStudyId,
+        text: payload,
+        stropheNotesActive: ctxStropheNotesActive,
+      }),
       keepalive,
     });
     if (!res.ok) throw new Error("Save failed");
     lastSavedPayloadRef.current = payload;
   } catch (err) {
     if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
-      const blob = new Blob([JSON.stringify({ studyId: ctxStudyId, text: payload })], {
-        type: "application/json",
-      });
+      const blob = new Blob(
+        [JSON.stringify({ studyId: ctxStudyId, text: payload, stropheNotesActive: ctxStropheNotesActive })],
+        {
+          type: "application/json",
+        }
+      );
       const ok = navigator.sendBeacon("/api/noteSync", blob);
       if (ok) lastSavedPayloadRef.current = payload;
       else console.error("Beacon failed");
@@ -126,7 +134,7 @@ async (payload: string, { keepalive = false } = {}) => {
       console.error("Save error:", err);
     }
   }
-  },[ctxStudyId]);
+  }, [ctxStudyId, ctxStropheNotesActive]);
 
   const buildPayload = useCallback(() => {
   let parsed: StudyNotes = { main: "", strophes: [] };
