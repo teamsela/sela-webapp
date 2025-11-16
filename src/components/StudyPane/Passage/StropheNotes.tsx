@@ -16,7 +16,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     ctxNoteMerge,
     ctxSetNoteMerge,
     ctxActiveNotesPane,
-    ctxSetActiveNotesPane
+    ctxSetActiveNotesPane,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);

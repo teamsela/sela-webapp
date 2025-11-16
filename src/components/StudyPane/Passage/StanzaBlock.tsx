@@ -8,12 +8,12 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { LanguageContext } from "./PassageBlock";
 
 export const StanzaBlock = ({
-  stanzaProps
+  stanzaProps, isForNotes
 }: {
-  stanzaProps: StanzaProps
+  stanzaProps: StanzaProps, isForNotes: boolean
 }) => {
 
-  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNotesActive } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
   const [stropheWidths, setStropheWidths] = useState<Record<number, number>>({});
@@ -94,10 +94,10 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
+      className={`relative ${(ctxLanguageMode == LanguageMode.Parallel) || ctxStropheNotesActive ? 'flex flex-row-reverse' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
       >
       <div
-        className={`z-1 ${ctxLanguageMode == LanguageMode.Parallel ? 'relative' : 'absolute'} top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+        className={`z-1 ${ctxLanguageMode == LanguageMode.Parallel || ctxStropheNotesActive ? 'relative' : 'absolute'} top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
         >
       <button
         key={"strophe" + stanzaProps.stanzaId + "Selector"}
@@ -110,7 +110,7 @@ export const StanzaBlock = ({
 
       </button>
       </div>
-      <div className={`flex-column ${ctxLanguageMode == LanguageMode.Parallel ? 'w-full' : ''}`}>
+      <div className={`flex-column ${(ctxLanguageMode == LanguageMode.Parallel) || ctxStropheNotesActive ? 'w-full' : ''}`}>
       {
           stanzaProps.strophes.map((strophe) => {
               return (
@@ -120,6 +120,7 @@ export const StanzaBlock = ({
                   stanzaExpanded={expanded}
                   onWordAreaWidthChange={handleStropheWidthChange}
                   maxStanzaNoteWidth={maxStropheNoteWidth}
+                  isForNotes={isForNotes}
                   />
               )
           })

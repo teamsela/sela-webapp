@@ -1,6 +1,6 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow } from "react-icons/lu";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuNotebookPen } from "react-icons/lu";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
@@ -742,3 +742,26 @@ export const StudyBtn = ({
     </>   
   );
 };
+
+export const StropheNoteBtn = ({toolTip}: {toolTip : string}) =>{
+  const { ctxStropheNotesActive, ctxSetStropheNotesActive, ctxLanguageMode } = useContext(FormatContext);
+  const [buttonEnabled, setButtonEnabled] = useState(ctxLanguageMode != LanguageMode.Parallel);
+  
+  useEffect(() => {
+    setButtonEnabled(ctxLanguageMode != LanguageMode.Parallel);
+  }, [ctxLanguageMode])
+
+  return (
+    <div
+      className={`flex flex-col group relative items-center justify-center px-2 xsm:flex-row border-[2px] rounded-[5px] border-[#D9D9D9] ${ctxStropheNotesActive? 'bg-white': 'bg-[#F2F2F2]'}`}
+    >
+      <button
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        onClick={()=> {ctxSetStropheNotesActive(!ctxStropheNotesActive)}}
+      >
+      <LuNotebookPen opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.3em"/>
+      <ToolTip text={toolTip} />
+      </button>
+    </div>
+  )
+}

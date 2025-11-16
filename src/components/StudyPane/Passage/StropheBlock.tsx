@@ -17,18 +17,20 @@ export const StropheBlock = ({
     stanzaExpanded,
     maxStanzaNoteWidth,
     onWordAreaWidthChange,
+    isForNotes
   }: {
     stropheProps: StropheProps,
     stanzaExpanded: boolean,
     maxStanzaNoteWidth?: number,
-    onWordAreaWidthChange?: (stropheId: number, width: number) => void
+    onWordAreaWidthChange?: (stropheId: number, width: number) => void,
+    isForNotes: boolean
   }) => {
 
   const ACTION_ICON_SIZE = 22;
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNotesActive
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -272,6 +274,9 @@ export const StropheBlock = ({
     onWordAreaWidthChange(stropheProps.stropheId, wordAreaWidth);
   }, [onWordAreaWidthChange, stropheProps.stropheId, wordAreaWidth]);
 
+  useEffect(() => {
+    setShowNote(isForNotes && ctxStropheNotesActive);
+  }, [ctxStropheNotesActive])
   
   return (
     <div 
@@ -299,7 +304,7 @@ export const StropheBlock = ({
           style={{pointerEvents:'none'}}
         />
       </button>
-      {
+      {/* {
       expanded && stanzaExpanded?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
@@ -310,7 +315,7 @@ export const StropheBlock = ({
       </button>
       :
       <></>
-      }
+      } */}
       {
         stanzaExpanded?
         <button

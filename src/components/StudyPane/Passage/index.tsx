@@ -22,7 +22,7 @@ const Passage = ({
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNotesActive
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -456,20 +456,22 @@ const Passage = ({
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row w-[100%]`} id='selaPassage'>
-        { ctxLanguageMode == LanguageMode.English && 
+        { ctxLanguageMode == LanguageMode.English &&
           <div className='flex flex-row mx-auto w-[100%]'>
-            <PassageBlock isHebrew={false}/> 
+            {ctxStropheNotesActive && <PassageBlock isHebrew={true} isForNotes={true}/>}
+            <PassageBlock isHebrew={false} isForNotes={false}/> 
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
           <div className='flex flex-row mx-auto w-[100%]'>
-            <PassageBlock isHebrew={true}/>
-            <PassageBlock isHebrew={false}/>
+            <PassageBlock isHebrew={true} isForNotes={false}/>
+            <PassageBlock isHebrew={false} isForNotes={false}/>
           </div>
         }
-        { ctxLanguageMode == LanguageMode.Hebrew && 
+        { ctxLanguageMode == LanguageMode.Hebrew &&
           <div className='flex flex-row mx-auto w-[100%]'>
-          <PassageBlock isHebrew={true}/> 
+          {ctxStropheNotesActive && <PassageBlock isHebrew={false} isForNotes={true}/>}
+          <PassageBlock isHebrew={true} isForNotes={false}/> 
           </div>
         }
       </div>
