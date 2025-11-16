@@ -147,7 +147,7 @@ const Notes = () => {
       const containerHeight = container.clientHeight - containerPadding * 8;
       if (lineHeight > 0) {
         const calculatedRows = Math.floor(containerHeight / lineHeight);
-        setRows(calculatedRows);
+        setRows(calculatedRows - 2);
       }
     };
 

@@ -1,4 +1,4 @@
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 import { MdClose } from "react-icons/md";
 
 import Structure from "./Structure";
@@ -20,6 +20,38 @@ const InfoPane = ({
   setInfoPaneWidth: (width: number) => void;
 }) => {
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
+  const [topOffset, setTopOffset] = useState(0);
+  const asideRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const updateTopOffset = () => {
+      const asideEl = asideRef.current;
+      const headerEl = document.getElementById("selaHeader");
+      const parentEl = (asideEl?.offsetParent as HTMLElement | null) || null;
+
+      if (!asideEl || !headerEl || !parentEl) {
+        setTopOffset(0);
+        return;
+      }
+
+      const headerRect = headerEl.getBoundingClientRect();
+      const parentRect = parentEl.getBoundingClientRect();
+      const nextOffset = Math.max(headerRect.bottom - parentRect.top, 0);
+
+      setTopOffset((prev) => (prev === nextOffset ? prev : nextOffset));
+    };
+
+    updateTopOffset();
+    window.addEventListener("resize", updateTopOffset);
+
+    return () => {
+      window.removeEventListener("resize", updateTopOffset);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -90,7 +122,8 @@ const InfoPane = ({
 
   return (
     <aside
-      className="absolute right-0 top-0 flex h-full flex-col overflow-y-auto bg-white shadow-lg"
+      ref={asideRef}
+      className="absolute right-0 flex flex-col overflow-y-auto bg-white shadow-lg"
       style={{
         borderColor: "rgb(203 213 225)",
         borderLeftStyle: "solid",
@@ -99,7 +132,8 @@ const InfoPane = ({
         minWidth,
         maxWidth,
         width: infoPaneWidth,
-        height: "100%",
+        top: topOffset,
+        bottom: 0,
         zIndex: 20,
       }}
     >
