@@ -64,7 +64,7 @@ export const StanzaBlock = ({
   }, [stanzaProps.metadata?.expanded])
 
   const renderArrow = () => {
-    if (ctxLanguageMode == LanguageMode.Parallel) {
+    if ((ctxLanguageMode == LanguageMode.Parallel) || ctxStropheNotesActive) {
       if (expanded) {
         return (
             <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />

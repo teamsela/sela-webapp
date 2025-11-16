@@ -20,6 +20,13 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+        const target = event.target as HTMLElement;
+
+        // Let text inputs/areas receive focus normally (note panes).
+        if (target.closest('textarea, input, [contenteditable="true"]')) {
+            return;
+        }
+
         // to make selection of text inside text boxes possible ***  //
         const eventRectX = event.pageX;
         const eventRectY = event.pageY;
@@ -41,7 +48,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         //click to de-select
         //if clicked on wordBlock, set status here so de-select function doesnt fire
         //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
-        const target = event.target as HTMLElement;
         const clickedTarget = target.getAttribute('data-clickType');
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
     };
