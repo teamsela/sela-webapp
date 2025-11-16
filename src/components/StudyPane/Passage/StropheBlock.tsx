@@ -80,6 +80,7 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const NOTE_WIDTH_LIMIT = 600;
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
@@ -263,14 +264,17 @@ export const StropheBlock = ({
   const noteContainerStyle = shouldShowNote
     ? (() => {
         const style: React.CSSProperties = {
-          maxWidth: '100%',
+          maxWidth: NOTE_WIDTH_LIMIT,
           background: colorFillLocal,
         };
         if (typeof noteContainerHeight === 'number') {
           style.height = noteContainerHeight;
         }
-        if (typeof effectiveNoteWidth === 'number') {
-          style.width = effectiveNoteWidth;
+        const constrainedNoteWidth = typeof effectiveNoteWidth === 'number'
+          ? Math.max(effectiveNoteWidth, NOTE_WIDTH_LIMIT)
+          : undefined;
+        if (typeof constrainedNoteWidth === 'number') {
+          style.width = constrainedNoteWidth;
         }
         return style;
       })()
