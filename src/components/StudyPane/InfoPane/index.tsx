@@ -90,7 +90,7 @@ const InfoPane = ({
 
   return (
     <aside
-      className="relative right-0 top-0 flex h-full flex-col overflow-y-auto bg-white"
+      className="absolute right-0 top-0 flex h-full flex-col overflow-y-auto bg-white shadow-lg"
       style={{
         borderColor: "rgb(203 213 225)",
         borderLeftStyle: "solid",
@@ -99,6 +99,8 @@ const InfoPane = ({
         minWidth,
         maxWidth,
         width: infoPaneWidth,
+        height: "100%",
+        zIndex: 20,
       }}
     >
       <div
