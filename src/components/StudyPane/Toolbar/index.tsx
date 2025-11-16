@@ -2,7 +2,8 @@ import { useContext } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
-  ClearAllFormatBtn, EditWordBtn, BoxlessBtn} from "./Buttons";
+  ClearAllFormatBtn, EditWordBtn, BoxlessBtn,
+  StropheNoteBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } from "@/lib/types";
@@ -92,6 +93,7 @@ const Toolbar = ({
                   <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
                 </div>
               </div>
+                <StropheNoteBtn toolTip={'Toggle Notes in Strophes'}/>
               <div>
                 <LanguageSwitcher />
               </div>
