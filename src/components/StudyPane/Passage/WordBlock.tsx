@@ -35,9 +35,8 @@ export const WordBlock = ({
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap, ctxStudyMetadata,
-    ctxStudyId, ctxAddToHistory, ctxInViewMode,
-    ctxEditingWordId, ctxSetEditingWordId
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
