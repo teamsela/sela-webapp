@@ -17,7 +17,8 @@ export type WordMetadata = {
     stanzaMd?: StanzaMetadata;
     stropheDiv?: boolean,
     stropheMd?: StropheMetadata;
-    color?: ColorData
+    color?: ColorData;
+    glossOverride?: string; // optional custom English text
 }
 
 export type WordMap = {

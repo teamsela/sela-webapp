@@ -62,7 +62,7 @@ const Notes = () => {
       if (!res.ok) throw new Error("Save failed");
       lastSavedPayloadRef.current = payload;
       // Consider: toast or console only
-      console.log("Saved:", JSON.parse(payload).main);
+      console.log("Saved:", JSON.parse(payload));
     } catch (err) {
       // Try a best-effort beacon when we're in an unload scenario and fetch failed
       if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
