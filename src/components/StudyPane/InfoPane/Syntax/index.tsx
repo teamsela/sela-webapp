@@ -70,19 +70,19 @@ const verbConjugationPalette: Record<string, LabelPalette> = {
   "vc-imperfect": toUserPalette({ fill: "#4C75FF", border: "#2F52D4", text: "#FFFFFF" }),
   "vc-participle": toUserPalette({ fill: "#42C073", border: "#2A9154", text: "#FFFFFF" }),
   "vc-infinitive": toUserPalette({ fill: "#905DF6", border: "#6F3BCB", text: "#FFFFFF" }),
-  "vc-imperative": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
-  "vc-cohortative": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
-  "vc-jussive": toUserPalette({ fill: "#FED84A", border: "#C79F1E", text: "#000000" }),
+  "vc-imperative": toUserPalette({ fill: "#FFF176", border: "#FBC02D", text: "#000000" }),
+  "vc-cohortative": toUserPalette({ fill: "#FFF176", border: "#FBC02D", text: "#000000" }),
+  "vc-jussive": toUserPalette({ fill: "#FFF176", border: "#FBC02D", text: "#000000" }),
 };
 
 const verbalStemPalette: Record<string, LabelPalette> = {
-  "vs-qal": toUserPalette({ fill: "#EA4B9B", border: "#C4347C", text: "#FFFFFF" }),
-  "vs-niphal": toUserPalette({ fill: "#B12BA5", border: "#871F7C", text: "#FFFFFF" }),
-  "vs-piel": toUserPalette({ fill: "#4ce4ffff", border: "#017e94ff", text: "#FFFFFF" }),
-  "vs-pual": toUserPalette({ fill: "#0d3dadff", border: "#05216eff", text: "#FFFFFF" }),
-  "vs-hifil": toUserPalette({ fill: "#43ce5fff", border: "#299A40", text: "#FFFFFF" }),
-  "vs-hofal": toUserPalette({ fill: "#238f65ff", border: "#359086", text: "#FFFFFF" }),
-  "vs-hitpael": toUserPalette({ fill: "#165c38ff", border: "#0d331fff", text: "#FFFFFF" }),
+  "vs-qal": toUserPalette({ fill: "#F8BBD0", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
+  "vs-niphal": toUserPalette({ fill: "#E91E63", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
+  "vs-piel": toUserPalette({ fill: "#B3E5FC", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
+  "vs-pual": toUserPalette({ fill: "#03A9F4", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
+  "vs-hifil": toUserPalette({ fill: "#DCEDC8", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
+  "vs-hofal": toUserPalette({ fill: "#4CAF50", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
+  "vs-hitpael": toUserPalette({ fill: "#388E3C", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
 };
 
 const personPalette: Record<string, LabelPalette> = {
