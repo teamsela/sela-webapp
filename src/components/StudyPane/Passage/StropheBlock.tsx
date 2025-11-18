@@ -9,7 +9,7 @@ import { ColorData, StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
-import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
+import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
 export const StropheBlock = ({
@@ -17,18 +17,21 @@ export const StropheBlock = ({
     stanzaExpanded,
     maxStanzaNoteWidth,
     onWordAreaWidthChange,
+    isForNotes
   }: {
     stropheProps: StropheProps,
     stanzaExpanded: boolean,
     maxStanzaNoteWidth?: number,
-    onWordAreaWidthChange?: (stropheId: number, width: number) => void
+    onWordAreaWidthChange?: (stropheId: number, width: number) => void,
+    isForNotes: boolean
   }) => {
 
   const ACTION_ICON_SIZE = 22;
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNotesActive,
+    ctxStropheHeightMap, ctxSetStropheHeightMap
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -77,6 +80,7 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const NOTE_WIDTH_LIMIT = 600;
 
   const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
@@ -240,23 +244,37 @@ export const StropheBlock = ({
     };
   }, [stropheNoteTitle, shouldShowNote]);
 
-  const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
   const effectiveNoteWidth = maxStanzaNoteWidth ?? wordAreaWidth ?? undefined;
   // Keep notes view height aligned with the word view (including any rendered title).
-  const combinedWordHeight = (wordAreaHeight ?? 0) + ((stropheNoteTitle && stanzaExpanded) ? noteTitleHeight : 0);
+  const localWordHeight = useMemo(() => {
+    const areaHeight = wordAreaHeight ?? 0;
+    const titleHeight = (stropheNoteTitle && stanzaExpanded) ? noteTitleHeight : 0;
+    return areaHeight + titleHeight;
+  }, [wordAreaHeight, stropheNoteTitle, stanzaExpanded, noteTitleHeight]);
+
+  const combinedWordHeight = useMemo(() => {
+    if (isForNotes) {
+      return ctxStropheHeightMap[stropheProps.stropheId] ?? 0;
+    }
+    return localWordHeight;
+  }, [ctxStropheHeightMap, isForNotes, localWordHeight, stropheProps.stropheId]);
   const noteContainerHeight = shouldShowNote
-    ? Math.max(minNoteHeight, combinedWordHeight)
+    ? (combinedWordHeight > 0 ? combinedWordHeight : undefined)
     : undefined;
   const noteContainerStyle = shouldShowNote
     ? (() => {
         const style: React.CSSProperties = {
-          maxWidth: '100%',
-          minHeight: minNoteHeight,
-          height: noteContainerHeight,
+          maxWidth: NOTE_WIDTH_LIMIT,
           background: colorFillLocal,
         };
-        if (typeof effectiveNoteWidth === 'number') {
-          style.width = effectiveNoteWidth;
+        if (typeof noteContainerHeight === 'number') {
+          style.height = noteContainerHeight;
+        }
+        const constrainedNoteWidth = typeof effectiveNoteWidth === 'number'
+          ? Math.max(effectiveNoteWidth, NOTE_WIDTH_LIMIT)
+          : undefined;
+        if (typeof constrainedNoteWidth === 'number') {
+          style.width = constrainedNoteWidth;
         }
         return style;
       })()
@@ -272,6 +290,31 @@ export const StropheBlock = ({
     onWordAreaWidthChange(stropheProps.stropheId, wordAreaWidth);
   }, [onWordAreaWidthChange, stropheProps.stropheId, wordAreaWidth]);
 
+  useEffect(() => {
+    setShowNote(isForNotes && ctxStropheNotesActive);
+  }, [ctxStropheNotesActive])
+
+  useEffect(() => {
+    if (isForNotes) {
+      return;
+    }
+    if (localWordHeight <= 0) {
+      return;
+    }
+    if (ctxStropheHeightMap[stropheProps.stropheId] === localWordHeight) {
+      return;
+    }
+    ctxSetStropheHeightMap({
+      ...ctxStropheHeightMap,
+      [stropheProps.stropheId]: localWordHeight,
+    });
+  }, [
+    ctxSetStropheHeightMap,
+    ctxStropheHeightMap,
+    isForNotes,
+    localWordHeight,
+    stropheProps.stropheId,
+  ]);
   
   return (
     <div 
@@ -299,7 +342,7 @@ export const StropheBlock = ({
           style={{pointerEvents:'none'}}
         />
       </button>
-      {
+      {/* {
       expanded && stanzaExpanded?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
@@ -310,7 +353,7 @@ export const StropheBlock = ({
       </button>
       :
       <></>
-      }
+      } */}
       {
         stanzaExpanded?
         <button
