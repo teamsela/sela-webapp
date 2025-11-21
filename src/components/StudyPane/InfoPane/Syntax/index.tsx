@@ -53,7 +53,7 @@ const toUserPalette = (palette: LabelPalette): LabelPalette =>
 
 const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-verb": toUserPalette({ fill: "#F79AC2", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
-  "pos-noun": toUserPalette({ fill: "#7FC6F5", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
+  "pos-noun": toUserPalette({ fill: "#B3E5FC", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-adjective": toUserPalette({ fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-negative-particle": toUserPalette({ fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "pos-adverb": toUserPalette({ fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
@@ -63,7 +63,7 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-interjection": toUserPalette({ fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-interrogative": toUserPalette({ fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-conjunction": toUserPalette({ fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
-  "pos-proper-noun": toUserPalette({ fill: "#1D3BEC", border: "#0D1B76", text: "#FFFFFF" }),
+  "pos-proper-noun": toUserPalette({ fill: "#1D3BEC", text: "#FFFFFF" }),
 };
 
 const verbConjugationPalette: Record<string, LabelPalette> = {
