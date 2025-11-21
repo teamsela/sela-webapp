@@ -17,6 +17,7 @@ type NumberCode = "S" | "D" | "P";
 
 export type MorphFeatures = {
   tokens: Set<string>;
+  orderedTokens: string[];
   normalizedSegments: string[];
   persons: Set<PersonCode>;
   genders: Set<GenderCode>;
@@ -142,11 +143,12 @@ const addDerivedTokens = (token: string, target: Set<string>) => {
   });
 };
 
+const PROPER_PATTERNS = [/PROPER/, /PROPN/, /^NP/, /NOUNPROP/];
+
 const isProperNoun = (features: MorphFeatures): boolean => {
-  const properPatterns = [/PROPER/, /PROPN/, /^NP/, /NOUNPROP/];
 
   const hasProperToken = Array.from(features.tokens).some((token) =>
-    properPatterns.some((pattern) => pattern.test(token)),
+    PROPER_PATTERNS.some((pattern) => pattern.test(token)),
   );
 
   if (hasProperToken) {
@@ -154,8 +156,29 @@ const isProperNoun = (features: MorphFeatures): boolean => {
   }
 
   return features.normalizedSegments.some((segment) =>
-    properPatterns.some((pattern) => pattern.test(segment)),
+    PROPER_PATTERNS.some((pattern) => pattern.test(segment)),
   );
+};
+
+const hasPrepositionComponent = (features: MorphFeatures): boolean => {
+  if (!features.tokens.has("PREP")) {
+    return false;
+  }
+
+  const firstPrepIndex = features.orderedTokens.findIndex((token) => token === "PREP");
+  if (firstPrepIndex === -1) {
+    return false;
+  }
+
+  const firstProperIndex = features.orderedTokens.findIndex((token) =>
+    PROPER_PATTERNS.some((pattern) => pattern.test(token)),
+  );
+
+  if (firstProperIndex === -1) {
+    return true;
+  }
+
+  return firstPrepIndex < firstProperIndex;
 };
 
 const isObjectMarker = (features: MorphFeatures): boolean => {
@@ -235,7 +258,7 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     id: "pos-preposition",
     label: "Preposition",
     palette: partsOfSpeechPalette["pos-preposition"],
-    predicate: (features) => features.tokens.has("PREP"),
+    predicate: (features) => hasPrepositionComponent(features),
     highlightable: true,
   },
   {
@@ -536,6 +559,7 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   }
 
   const tokens = new Set<string>();
+  const orderedTokens: string[] = [];
   const normalizedSegments: string[] = [];
   const persons = new Set<PersonCode>();
   const genders = new Set<GenderCode>();
@@ -564,6 +588,7 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
         .filter(Boolean);
       camelSplit.forEach((part) => {
         const upperPart = part.toUpperCase();
+        orderedTokens.push(upperPart);
         tokens.add(upperPart);
         addDerivedTokens(upperPart, tokens);
       });
@@ -604,6 +629,7 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
 
   return {
     tokens,
+    orderedTokens,
     normalizedSegments,
     persons,
     genders,
