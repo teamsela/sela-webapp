@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useRef, MutableRefObject, useCallback } from "react";
 
 import Header from "./Header";
 import Passage from "./Passage";
@@ -8,15 +8,14 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
-export const DEFAULT_COLOR_FILL = "#FFFFFF";
-export const DEFAULT_BORDER_COLOR = "#D9D9D9";
-export const DEFAULT_TEXT_COLOR = "#656565";
+export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
 export const FormatContext = createContext({
   ctxStudyId: "",
@@ -38,6 +37,7 @@ export const FormatContext = createContext({
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
+  ctxSetColorAction: (_arg: ColorActionType) => {},
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
   ctxColorFill: "" as string,
@@ -54,10 +54,11 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  // color map used by identical words smart highlight
-  // might need to rename it if only used for identical words
-  ctxRootsColorMap: {} as Map<number, ColorData>,
-  ctxSetRootsColorMap: (arg: Map<number, ColorData>) => {},
+  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
+  ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
+  ctxWordsColorMap: {} as Map<number, ColorData>,
+  ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
   ctxHistory: [] as StudyMetadata[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
@@ -104,7 +105,12 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [infoPaneWidth, setInfoPaneWidth] = useState(360);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
-  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
+    syntax: null,
+    motif: null,
+  });
+  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
   
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
@@ -127,6 +133,18 @@ const StudyPane = ({
     setPointer(pointer + 1);
   };
 
+  const updateActiveHighlightId = useCallback(
+    (source: ColorSource, highlightId: string | null) => {
+      setActiveHighlightIds((prev) => {
+        if (prev[source] === highlightId) {
+          return prev;
+        }
+        return { ...prev, [source]: highlightId };
+      });
+    },
+    [],
+  );
+
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
@@ -147,6 +165,7 @@ const StudyPane = ({
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxColorAction: colorAction,
+    ctxSetColorAction: setColorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
     ctxColorFill: colorFill,
@@ -163,8 +182,11 @@ const StudyPane = ({
     ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
-    ctxRootsColorMap: rootsColorMap,
-    ctxSetRootsColorMap: setRootsColorMap,
+    ctxActiveHighlightIds: activeHighlightIds,
+    ctxSetActiveHighlightId: updateActiveHighlightId,
+    ctxHighlightCacheRef: highlightCacheRef,
+    ctxWordsColorMap: wordsColorMap,
+    ctxSetWordsColorMap: setWordsColorMap,
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
