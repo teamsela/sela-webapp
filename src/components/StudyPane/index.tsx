@@ -59,6 +59,7 @@ export const FormatContext = createContext({
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
   ctxStudyNotes: "",
   ctxSetStudyNotes: (args: string) => {},
+  ctxStudyBook: "" as string,
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
@@ -106,7 +107,9 @@ export const FormatContext = createContext({
   ctxNoteMerge: true,
   ctxSetNoteMerge: (arg: boolean) => {},
   ctxActiveNotesPane: null as "heb" | "eng" | null,
-  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {}
+  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
+  ctxStropheNoteBtnOn: false,
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
 });
 
 const StudyPane = ({
@@ -174,6 +177,7 @@ const StudyPane = ({
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
+  const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
 
   const addToHistory = (
     updatedMetadata: StudyMetadata,
@@ -184,6 +188,12 @@ const StudyPane = ({
     setHistory(newHistory);
     setPointer(pointer + 1);
   };
+
+  useEffect(() => {
+    if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
+      setStropheNoteBtnOn(false);
+    }
+  }, [languageMode, stropheNoteBtnOn]);
 
   const updateActiveHighlightId = useCallback(
     (source: ColorSource, highlightId: string | null) => {
@@ -241,6 +251,7 @@ const StudyPane = ({
     ctxSetStudyMetadata: setStudyMetadata,
     ctxStudyNotes: studyNotes,
     ctxSetStudyNotes: setStudyNotes,
+    ctxStudyBook: passageData.study.book,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
@@ -288,7 +299,9 @@ const StudyPane = ({
     ctxNoteMerge: noteMerge,
     ctxSetNoteMerge: setNoteMerge,
     ctxActiveNotesPane: activeNotesPane,
-    ctxSetActiveNotesPane: setActiveNotesPane
+    ctxSetActiveNotesPane: setActiveNotesPane,
+    ctxStropheNoteBtnOn: stropheNoteBtnOn,
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
   };
 
   useEffect(() => {
@@ -399,7 +412,8 @@ const StudyPane = ({
     });
 
     passageData.study.metadata = studyMetadata1;
-    setStudyMetadata(studyMetadata1)
+    setStudyMetadata(studyMetadata1);
+    setPointer(0);
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
@@ -422,7 +436,7 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14">
-          <main className={`flex flex-row overflow-y-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
+          <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
