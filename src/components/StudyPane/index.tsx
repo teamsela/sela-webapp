@@ -69,7 +69,9 @@ export const FormatContext = createContext({
   ctxNoteMerge: true,
   ctxSetNoteMerge: (arg: boolean) => {},
   ctxActiveNotesPane: null as "heb" | "eng" | null,
-  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {}
+  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
+  ctxStropheNoteBtnOn: false,
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
 });
 
 const StudyPane = ({
@@ -118,6 +120,8 @@ const StudyPane = ({
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
+
+  const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
 
   const addToHistory = (updatedMetadata: StudyMetadata) => { 
     const clonedObj = structuredClone(updatedMetadata);
@@ -176,7 +180,9 @@ const StudyPane = ({
     ctxNoteMerge: noteMerge,
     ctxSetNoteMerge: setNoteMerge,
     ctxActiveNotesPane: activeNotesPane,
-    ctxSetActiveNotesPane: setActiveNotesPane
+    ctxSetActiveNotesPane: setActiveNotesPane,
+    ctxStropheNoteBtnOn: stropheNoteBtnOn,
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
   };
 
   useEffect(() => {
