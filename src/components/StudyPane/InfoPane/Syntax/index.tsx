@@ -870,6 +870,18 @@ const Syntax = () => {
                 })
                 .filter((group) => group.words.length > 0)
             : [];
+          const sectionGroupsForToggle = section.highlightable
+            ? sectionHighlightLabels
+                .map((label) => {
+                  const words = labelWordMap.get(label.id) || [];
+                  return {
+                    label: label.label,
+                    words,
+                    palette: label.palette,
+                  };
+                })
+                .filter((group) => group.words.length > 0)
+            : [];
           const sectionHasActiveHighlight = activeHighlightId === section.id;
           return (
             <div
@@ -967,7 +979,7 @@ const Syntax = () => {
                     <div className="flex justify-center pt-2">
                       <SyntaxSmartHighlight
                         highlightId={section.id}
-                        groups={sectionGroups}
+                        groups={sectionGroupsForToggle}
                         activeHighlightId={activeHighlightId}
                         onToggle={handleHighlightToggle}
                       />
