@@ -17,6 +17,42 @@ import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/
 export const DEFAULT_SCALE_VALUE: number = 1;
 export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
+export type HistoryEntry = {
+  metadata: StudyMetadata;
+  wordsColorMap: Map<number, ColorData>;
+  activeHighlightIds: Record<ColorSource, string | null>;
+  highlightCache: Map<string, Map<number, ColorData | undefined>>;
+};
+
+export type HistorySnapshotOptions = {
+  wordsColorMap?: Map<number, ColorData>;
+  activeHighlightIds?: Record<ColorSource, string | null>;
+  highlightCache?: Map<string, Map<number, ColorData | undefined>>;
+};
+
+export const cloneWordsColorMap = (map: Map<number, ColorData> = new Map()) =>
+  new Map<number, ColorData>(
+    Array.from(map.entries()).map(([wordId, color]) => [wordId, color ? { ...color } : color]),
+  );
+
+export const cloneHighlightCache = (
+  cache: Map<string, Map<number, ColorData | undefined>> = new Map(),
+) => {
+  const clonedCache = new Map<string, Map<number, ColorData | undefined>>();
+  cache.forEach((wordMap, key) => {
+    clonedCache.set(
+      key,
+      new Map<number, ColorData | undefined>(
+        Array.from(wordMap.entries()).map(([wordId, color]) => [
+          wordId,
+          color ? { ...color } : color,
+        ]),
+      ),
+    );
+  });
+  return clonedCache;
+};
+
 export const FormatContext = createContext({
   ctxStudyId: "",
   ctxStudyMetadata: {} as StudyMetadata,
@@ -59,10 +95,10 @@ export const FormatContext = createContext({
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
   ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
-  ctxHistory: [] as StudyMetadata[],
+  ctxHistory: [] as HistoryEntry[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
-  ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxAddToHistory: (metadata: StudyMetadata, options?: HistorySnapshotOptions) => {},
   ctxLanguageMode: {} as LanguageMode,
   ctxSetLanguageMode: (arg: LanguageMode) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
@@ -111,10 +147,24 @@ const StudyPane = ({
     motif: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
-  
+
+  const snapshotHistoryEntry = (
+    metadata: StudyMetadata,
+    options?: HistorySnapshotOptions,
+  ): HistoryEntry => ({
+    metadata: structuredClone(metadata),
+    wordsColorMap: cloneWordsColorMap(options?.wordsColorMap ?? wordsColorMap),
+    activeHighlightIds: options?.activeHighlightIds
+      ? { ...options.activeHighlightIds }
+      : { ...activeHighlightIds },
+    highlightCache: cloneHighlightCache(options?.highlightCache ?? highlightCacheRef.current),
+  });
+
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
-  const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
+  const [history, setHistory] = useState<HistoryEntry[]>([
+    snapshotHistoryEntry(passageData.study.metadata),
+  ]);
   const [pointer, setPointer] = useState(0);
 
   // set default language to English
@@ -125,10 +175,12 @@ const StudyPane = ({
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
 
-  const addToHistory = (updatedMetadata: StudyMetadata) => { 
-    const clonedObj = structuredClone(updatedMetadata);
+  const addToHistory = (
+    updatedMetadata: StudyMetadata,
+    options?: HistorySnapshotOptions,
+  ) => { 
     const newHistory = history.slice(0, pointer + 1);
-    newHistory.push(clonedObj);
+    newHistory.push(snapshotHistoryEntry(updatedMetadata, options));
     setHistory(newHistory);
     setPointer(pointer + 1);
   };

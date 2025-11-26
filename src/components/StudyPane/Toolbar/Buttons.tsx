@@ -13,7 +13,7 @@ import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
-import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
@@ -29,17 +29,65 @@ export const ToolTip = ({ text }: { text: string }) => {
   )
 }
 
+const removeColorMapEntriesBySource = (colorMap: Map<number, ColorData>, source: ColorSource) => {
+  let changed = false;
+  Array.from(colorMap.entries()).forEach(([wordId, color]) => {
+    if (color?.source === source) {
+      colorMap.delete(wordId);
+      changed = true;
+    }
+  });
+  return changed;
+};
+
+const clearHighlightCacheForSource = (
+  cache: Map<string, Map<number, ColorData | undefined>>,
+  source: ColorSource,
+) => {
+  Array.from(cache.keys()).forEach((key) => {
+    if (key.startsWith(`${source}::`)) {
+      cache.delete(key);
+    }
+  });
+};
+
 export const UndoBtn = () => {
-  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxSetStudyMetadata,
+    ctxHistory,
+    ctxPointer,
+    ctxSetPointer,
+    ctxSetWordsColorMap,
+    ctxSetActiveHighlightId,
+    ctxHighlightCacheRef,
+  } = useContext(FormatContext);
+
+  const restoreHistoryEntry = useCallback(
+    (entry: HistoryEntry) => {
+      const metadataClone = structuredClone(entry.metadata);
+      ctxSetStudyMetadata(metadataClone);
+      ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
+      ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
+      Object.entries(entry.activeHighlightIds).forEach(([source, id]) =>
+        ctxSetActiveHighlightId(source as ColorSource, id),
+      );
+      updateMetadataInDb(ctxStudyId, metadataClone);
+    },
+    [ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxSetStudyMetadata, ctxSetWordsColorMap, ctxStudyId],
+  );
 
   const buttonEnabled = (ctxPointer !== 0);
 
   const handleClick = () => {
     if (buttonEnabled) {
       const newPointer = ctxPointer - 1;
+      const entry = ctxHistory[newPointer];
+      if (!entry) {
+        return;
+      }
       ctxSetPointer(newPointer);
-      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+      restoreHistoryEntry(entry);
     }
   }
 
@@ -56,16 +104,42 @@ export const UndoBtn = () => {
 };
 
 export const RedoBtn = () => {
-  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxSetStudyMetadata,
+    ctxHistory,
+    ctxPointer,
+    ctxSetPointer,
+    ctxSetWordsColorMap,
+    ctxSetActiveHighlightId,
+    ctxHighlightCacheRef,
+  } = useContext(FormatContext);
+
+  const restoreHistoryEntry = useCallback(
+    (entry: HistoryEntry) => {
+      const metadataClone = structuredClone(entry.metadata);
+      ctxSetStudyMetadata(metadataClone);
+      ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
+      ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
+      Object.entries(entry.activeHighlightIds).forEach(([source, id]) =>
+        ctxSetActiveHighlightId(source as ColorSource, id),
+      );
+      updateMetadataInDb(ctxStudyId, metadataClone);
+    },
+    [ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxSetStudyMetadata, ctxSetWordsColorMap, ctxStudyId],
+  );
 
   const buttonEnabled = (ctxPointer !== ctxHistory.length - 1);
 
   const handleClick = () => {
     if (buttonEnabled) {
       const newPointer = ctxPointer + 1;
+      const entry = ctxHistory[newPointer];
+      if (!entry) {
+        return;
+      }
       ctxSetPointer(newPointer);
-      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+      restoreHistoryEntry(entry);
     }
   }
   return (
@@ -86,7 +160,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory,
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -205,6 +280,43 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         wordMetadata.stropheMd ??= {};
         wordMetadata.stropheMd.color ??= colorObj;
         isChanged = true;
+      }
+    }
+
+    if (isChanged) {
+      const nextColorMap = new Map(ctxWordsColorMap);
+      let touchedMotif = false;
+      let touchedSyntax = false;
+
+      ctxSelectedWords.forEach((word) => {
+        const entry = nextColorMap.get(word.wordId);
+        if (entry?.source === "motif") {
+          touchedMotif = true;
+        }
+        if (entry?.source === "syntax") {
+          touchedSyntax = true;
+        }
+      });
+
+      if (touchedMotif) {
+        removeColorMapEntriesBySource(nextColorMap, "motif");
+        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "motif");
+        ctxSetActiveHighlightId("motif", null);
+      }
+
+      if (touchedSyntax) {
+        ctxSelectedWords.forEach((word) => {
+          const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
+          if (mdColor && Object.keys(mdColor).length > 0) {
+            nextColorMap.set(word.wordId, { ...mdColor, source: "syntax" });
+          } else {
+            nextColorMap.delete(word.wordId);
+          }
+        });
+      }
+
+      if (touchedMotif || touchedSyntax) {
+        ctxSetWordsColorMap(nextColorMap);
       }
     }
 
@@ -355,7 +467,21 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
         }
       }
       if (isChanged) {
-        ctxAddToHistory(ctxStudyMetadata);
+        const clearedActiveHighlights: Record<ColorSource, string | null> = {
+          ...ctxActiveHighlightIds,
+        };
+        Object.keys(clearedActiveHighlights).forEach(
+          (highlightSource) => (clearedActiveHighlights[highlightSource as ColorSource] = null),
+        );
+
+        const clearedColorMap = new Map<number, ColorData>();
+        const clearedHighlightCache = new Map<string, Map<number, ColorData | undefined>>();
+
+        ctxAddToHistory(ctxStudyMetadata, {
+          wordsColorMap: clearedColorMap,
+          activeHighlightIds: clearedActiveHighlights,
+          highlightCache: clearedHighlightCache,
+        });
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
 
@@ -425,7 +551,17 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
       ctxSetActiveHighlightId(highlightSource as ColorSource, null),
     );
     ctxSetStudyMetadata(metadataClone);
-    ctxAddToHistory(metadataClone);
+    const clearedActiveHighlights: Record<ColorSource, string | null> = {
+      ...ctxActiveHighlightIds,
+    };
+    Object.keys(clearedActiveHighlights).forEach(
+      (highlightSource) => (clearedActiveHighlights[highlightSource as ColorSource] = null),
+    );
+    ctxAddToHistory(metadataClone, {
+      wordsColorMap: colorMapClone,
+      activeHighlightIds: clearedActiveHighlights,
+      highlightCache: ctxHighlightCacheRef.current,
+    });
     updateMetadataInDb(ctxStudyId, metadataClone);
     setButtonEnabled(false);
   }

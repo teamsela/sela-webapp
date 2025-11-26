@@ -30,6 +30,22 @@ const stripSource = (color?: ColorData): ColorData | undefined => {
   return Object.keys(rest).length > 0 ? rest : undefined;
 };
 
+const colorsMatch = (a?: ColorData, b?: ColorData) => {
+  const normalize = (color?: ColorData) =>
+    color
+      ? {
+          fill: color.fill ?? null,
+          border: color.border ?? null,
+          text: color.text ?? null,
+        }
+      : { fill: null, border: null, text: null };
+
+  const left = normalize(a);
+  const right = normalize(b);
+
+  return left.fill === right.fill && left.border === right.border && left.text === right.text;
+};
+
 const snapshotAndClearWordColors = (
   metadata: StudyMetadata,
   colorMap: Map<number, ColorData>,
@@ -181,10 +197,15 @@ export const useHighlightManager = (
     colorMap: Map<number, ColorData>,
     newActive: string | null,
   ) => {
+    const nextActiveHighlightIds = { ...ctxActiveHighlightIds, [source]: newActive };
     ctxSetActiveHighlightId(source, newActive);
     ctxSetWordsColorMap(new Map(colorMap));
     ctxSetStudyMetadata(metadata);
-    ctxAddToHistory(metadata);
+    ctxAddToHistory(metadata, {
+      wordsColorMap: colorMap,
+      activeHighlightIds: nextActiveHighlightIds,
+      highlightCache: ctxHighlightCacheRef.current,
+    });
     updateMetadataInDb(ctxStudyId, metadata);
   };
 
@@ -267,6 +288,39 @@ export const useHighlightManager = (
     commitHighlightState(metadataClone, colorMapClone, highlightId);
     finalizeGlobalReset();
   };
+
+  useEffect(() => {
+    if (!activeHighlightId || source !== "motif") {
+      return;
+    }
+
+    const words = ctxStudyMetadata.words ?? {};
+    const hasMismatch = Array.from(ctxWordsColorMap.entries()).some(([wordId, color]) => {
+      if (color?.source !== source) {
+        return false;
+      }
+      return !colorsMatch(words[wordId]?.color, color);
+    });
+
+    if (!hasMismatch) {
+      return;
+    }
+
+    const cleanedMap = new Map(
+      Array.from(ctxWordsColorMap.entries()).filter(([_, color]) => color?.source !== source),
+    );
+    ctxHighlightCacheRef.current.delete(getHighlightCacheKey(source, activeHighlightId));
+    ctxSetWordsColorMap(cleanedMap);
+    ctxSetActiveHighlightId(source, null);
+  }, [
+    activeHighlightId,
+    ctxHighlightCacheRef,
+    ctxSetActiveHighlightId,
+    ctxSetWordsColorMap,
+    ctxStudyMetadata.words,
+    ctxWordsColorMap,
+    source,
+  ]);
 
   useEffect(() => {
     if (!activeHighlightId) {
