@@ -131,6 +131,12 @@ const StudyPane = ({
     setPointer(pointer + 1);
   };
 
+  useEffect(() => {
+    if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
+      setStropheNoteBtnOn(false);
+    }
+  }, [languageMode, stropheNoteBtnOn]);
+
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
     ctxStudyMetadata: studyMetadata,
