@@ -908,12 +908,14 @@ export const StudyBtn = ({
 };
 
 export const StropheNoteBtn = () => {
-  const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn } = useContext(FormatContext)
+  const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn, ctxLanguageMode } = useContext(FormatContext)
+  const disabled = ctxLanguageMode === LanguageMode.Parallel;
   return (
     <div >
       <button 
-        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center`}
-        onClick={() => {ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
+        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
+        disabled={disabled}
       >
       <LuNotebookPen />
       </button>
