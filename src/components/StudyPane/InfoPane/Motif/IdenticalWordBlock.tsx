@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { WordProps } from '@/lib/data';
 import { ColorActionType, LanguageMode } from "@/lib/types";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from '../../index';
+import { deriveUniformWordPalette } from '@/lib/utils';
 
 export const IdenticalWordBlock = ({
   id, count, identicalWords, relatedWords, selectRelated
@@ -14,33 +15,16 @@ export const IdenticalWordBlock = ({
   selectRelated: boolean
 }) => {
 
-  const { ctxColorAction, ctxSelectedColor, ctxRootsColorMap, ctxStudyMetadata,
+  const { ctxColorAction, ctxSelectedColor,
     ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode } = useContext(FormatContext)
 
   const toSelect = selectRelated ? [...identicalWords, ...relatedWords] : identicalWords;
-  
-  const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
-    return toSelect.every(dsd =>
-      dsd.metadata?.color &&
-      (!dsd.metadata.color[property] || dsd.metadata.color[property] === toSelect[0].metadata.color?.[property])
-    );
-  };
 
-  const idWordsColorMap = ctxRootsColorMap.get(toSelect[0].strongNumber);
+  const uniformPalette = deriveUniformWordPalette(toSelect);
 
-  const initialColorFill = idWordsColorMap?.fill 
-    || (matchColorProperty('fill') ? toSelect[0]?.metadata.color?.fill : DEFAULT_COLOR_FILL) 
-    || DEFAULT_COLOR_FILL;
-  const initialTextColor = idWordsColorMap?.text 
-    || (matchColorProperty('text') ? toSelect[0]?.metadata.color?.text : DEFAULT_TEXT_COLOR) 
-    || DEFAULT_TEXT_COLOR;
-  const initialBorderColor = 
-    (matchColorProperty('border') ? toSelect[0]?.metadata.color?.border : DEFAULT_BORDER_COLOR) 
-    || DEFAULT_BORDER_COLOR;
-
-  const [colorFillLocal, setColorFillLocal] = useState(initialColorFill);
-  const [textColorLocal, setTextColorLocal] = useState(initialTextColor);
-  const [borderColorLocal, setBorderColorLocal] = useState(initialBorderColor);
+  const [colorFillLocal, setColorFillLocal] = useState(uniformPalette?.fill ?? DEFAULT_COLOR_FILL);
+  const [textColorLocal, setTextColorLocal] = useState(uniformPalette?.text ?? DEFAULT_TEXT_COLOR);
+  const [borderColorLocal, setBorderColorLocal] = useState(uniformPalette?.border ?? DEFAULT_BORDER_COLOR);
 
   const [selected, setSelected] = useState(false);
 
@@ -53,25 +37,16 @@ export const IdenticalWordBlock = ({
   }, [ctxSelectedWords, toSelect]);
 
   useEffect(() => {
-    const idWordsColor = ctxRootsColorMap.get(toSelect[0].strongNumber)
-    if (idWordsColor) {
-      toSelect.forEach(dsd => {
-        dsd.metadata = dsd.metadata ? 
-        { ...dsd.metadata, color: idWordsColor } : 
-        { color: idWordsColor };
-      });
-      idWordsColor.fill && setColorFillLocal(idWordsColor.fill);
-      idWordsColor.text && setTextColorLocal(idWordsColor.text);
-      idWordsColor.border && setBorderColorLocal(idWordsColor.border);
+    if (uniformPalette) {
+      setColorFillLocal(uniformPalette.fill ?? DEFAULT_COLOR_FILL);
+      setTextColorLocal(uniformPalette.text ?? DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(uniformPalette.border ?? DEFAULT_BORDER_COLOR);
+    } else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setTextColorLocal(DEFAULT_TEXT_COLOR);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
     }
-    else if (ctxStudyMetadata.words[id]) {
-
-      let updatedColor = (ctxStudyMetadata.words[toSelect[0].wordId].color) ? ctxStudyMetadata.words[toSelect[0].wordId].color : {};
-      setColorFillLocal(updatedColor?.fill || DEFAULT_COLOR_FILL);
-      setTextColorLocal(updatedColor?.text || DEFAULT_TEXT_COLOR);
-      setBorderColorLocal(updatedColor?.border || DEFAULT_BORDER_COLOR);
-    }
-  }, [ctxRootsColorMap, ctxStudyMetadata, toSelect, id])
+  }, [uniformPalette]);
 
   useEffect(() => {
     if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
@@ -118,9 +93,10 @@ export const IdenticalWordBlock = ({
           })
         })
 
-        setColorFillLocal(matchColorProperty('fill') ? toSelect[0]?.metadata.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
-        setTextColorLocal(matchColorProperty('text') ? toSelect[0]?.metadata.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
-        setTextColorLocal(matchColorProperty('border') ? toSelect[0]?.metadata.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
+        const updatedPalette = deriveUniformWordPalette(toSelect);
+        setColorFillLocal(updatedPalette?.fill ?? DEFAULT_COLOR_FILL);
+        setTextColorLocal(updatedPalette?.text ?? DEFAULT_TEXT_COLOR);
+        setBorderColorLocal(updatedPalette?.border ?? DEFAULT_BORDER_COLOR);
       }
     }
   }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords]);

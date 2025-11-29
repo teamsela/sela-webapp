@@ -1,9 +1,12 @@
 import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
 
+export type ColorSource = "syntax" | "motif";
+
 export type ColorData = {
     fill?: string,
     border?: string,
-    text?: string
+    text?: string,
+    source?: ColorSource
 }
 
 export type WordMetadata = {
