@@ -4,7 +4,7 @@ import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/i
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType, StudyNotes, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, StudyNotes, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -25,7 +25,7 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -75,11 +75,15 @@ export const StropheBlock = ({
     () => {
       const base = 'z-1 absolute p-[0.5] m-[0.5] bg-transparent';
       if (!stanzaExpanded) {
+        const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
+        if (shouldPinToLanguageSide) {
+          return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+        }
         return `${base} inset-0 flex items-center justify-center`;
       }
       return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
     },
-    [ctxIsHebrew, stanzaExpanded]
+    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode]
   );
 
   const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
