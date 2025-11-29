@@ -22,12 +22,14 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
   }
 
   const shouldStackStanzas = ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel;
+  const allowPassageGrowth = ctxStropheNoteBtnOn;
+  const stackedWidthClass = allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
-    ? 'flex-col w-[100%] max-w-[100%] gap-2'
+    ? `flex-col ${stackedWidthClass} gap-2`
     : 'flex-row max-w-[600px]';
   const passageWidthClass = isHebrew
-    ? `hbFont ${shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
-    : 'w-[100%]';
+    ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
+    : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%]';
 
   return (
     <LanguageContext.Provider value={languageContextValue}>

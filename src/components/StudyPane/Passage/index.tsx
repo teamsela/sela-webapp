@@ -22,7 +22,7 @@ const Passage = ({
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
@@ -455,20 +455,23 @@ const Passage = ({
     >
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
-      <div className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row w-[100%]`} id='selaPassage'>
+      <div
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}
+        id='selaPassage'
+      >
         { ctxLanguageMode == LanguageMode.English && 
-          <div className='flex flex-row mx-auto w-[100%]'>
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
             <PassageBlock isHebrew={false}/> 
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className='flex flex-row mx-auto w-[100%]'>
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
             <PassageBlock isHebrew={true}/>
             <PassageBlock isHebrew={false}/>
           </div>
         }
         { ctxLanguageMode == LanguageMode.Hebrew && 
-          <div className='flex flex-row mx-auto w-[100%]'>
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
           <PassageBlock isHebrew={true}/> 
           </div>
         }
