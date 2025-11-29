@@ -177,6 +177,7 @@ export const StropheBlock = ({
   const showOverlayNote = shouldShowNote && !ctxStropheNoteBtnOn;
   const shouldRenderWordArea = expanded && stanzaExpanded;
   const renderSideBySide = ctxStropheNoteBtnOn && shouldShowNote && shouldShowWords;
+  const shouldShowCollapsedTitle = !expanded && stanzaExpanded && Boolean(stropheNoteTitle);
   const notePanelStyle = useMemo(() => {
     if (!ctxStropheNoteBtnOn) {
       return undefined;
@@ -267,6 +268,17 @@ export const StropheBlock = ({
         <></>
       }
       </div>
+      {shouldShowCollapsedTitle && (
+        <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+          <span
+            className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+            dir="auto"
+            style={{ color: contrastingForegroundColor }}
+          >
+            {stropheNoteTitle}
+          </span>
+        </div>
+      )}
       <div className={`${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
