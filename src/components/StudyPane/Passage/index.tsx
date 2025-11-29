@@ -388,7 +388,7 @@ const Passage = ({
           let updatedTitle = "";
           oldNotes.strophes.forEach((oldStrophe) => {
             if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
-              if (updatedText == "") {
+              if (updatedTitle === "") {
                 updatedTitle += oldStrophe.title;
                 updatedText += oldStrophe.text;
               }
