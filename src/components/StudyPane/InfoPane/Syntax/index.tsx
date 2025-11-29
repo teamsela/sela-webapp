@@ -1,8 +1,9 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
 import { PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
+import { deriveUniformWordPalette } from "@/lib/utils";
 
 import { FormatContext } from "../..";
 import AccordionToggleIcon from "../common/AccordionToggleIcon";
@@ -638,72 +639,22 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   };
 };
 
-const deriveUniformPalette = (words: WordProps[]): LabelPalette | undefined => {
-  if (!words.length) {
-    return undefined;
-  }
-
-  const overrides: LabelPalette = {};
-  let hasOverrides = false;
-
-  (["fill", "border", "text"] as (keyof LabelPalette)[]).forEach((key) => {
-    let uniformValue: string | undefined;
-    let isUniform = true;
-
-    for (const word of words) {
-      const value = word.metadata?.color?.[key];
-      if (value === undefined) {
-        if (uniformValue !== undefined) {
-          isUniform = false;
-          break;
-        }
-        continue;
-      }
-
-      if (uniformValue === undefined) {
-        uniformValue = value;
-        continue;
-      }
-
-      if (value !== uniformValue) {
-        isUniform = false;
-        break;
-      }
-    }
-
-    if (isUniform && uniformValue !== undefined) {
-      overrides[key] = uniformValue;
-      hasOverrides = true;
-    }
-  });
-
-  return hasOverrides ? overrides : undefined;
-};
-
 const getLabelPalette = (
   label: SyntaxLabelDefinition,
   words: WordProps[],
   sectionId: string,
   activeHighlightId: string | null,
-  customPalettes: Map<string, LabelPalette>,
+  uniformPalette?: LabelPalette,
 ): LabelPalette | undefined => {
   if (!activeHighlightId || activeHighlightId === sectionId) {
-    const derived = deriveUniformPalette(words);
+    const derived = uniformPalette ?? deriveUniformWordPalette(words);
     if (derived) {
       return label.palette ? { ...label.palette, ...derived } : derived;
     }
   }
 
-  const stored = customPalettes.get(label.id);
-  if (stored) {
-    return label.palette ? { ...label.palette, ...stored } : stored;
-  }
-
   return label.palette;
 };
-
-const palettesEqual = (a: LabelPalette | undefined, b: LabelPalette | undefined) =>
-  a?.fill === b?.fill && a?.border === b?.border && a?.text === b?.text;
 
 const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
   section.subSections
@@ -717,14 +668,12 @@ const Syntax = () => {
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
     ctxSetSelectedStrophes,
-    ctxWordsColorMap,
   } = useContext(FormatContext);
   const { toggleHighlight, activeHighlightId } = useHighlightManager("syntax", {
     preserveCustomColors: PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT,
   });
 
   const [openSection, setOpenSection] = useState<SyntaxType | null>(SyntaxType.partsOfSpeech);
-  const [labelCustomPalettes, setLabelCustomPalettes] = useState<Map<string, LabelPalette>>(new Map());
   const selectedWordIds = useMemo(() => {
     const ids = new Set<number>();
     ctxSelectedWords.forEach((word) => ids.add(word.wordId));
@@ -766,50 +715,6 @@ const Syntax = () => {
     });
     return map;
   }, []);
-
-  const updateCustomPalettes = useCallback(
-    (labels: SyntaxLabelDefinition[]) => {
-      if (!labels.length) {
-        return;
-      }
-      setLabelCustomPalettes((prev) => {
-        let changed = false;
-        const next = new Map(prev);
-
-        labels.forEach((label) => {
-          const words = labelWordMap.get(label.id) || [];
-          const overrides = deriveUniformPalette(words);
-
-          if (overrides) {
-            const existing = next.get(label.id);
-            if (!palettesEqual(existing, overrides)) {
-              next.set(label.id, overrides);
-              changed = true;
-            }
-          } else if (next.has(label.id)) {
-            next.delete(label.id);
-            changed = true;
-          }
-        });
-
-        return changed ? next : prev;
-      });
-    },
-    [labelWordMap],
-  );
-
-  useEffect(() => {
-    void ctxWordsColorMap;
-    if (!activeHighlightId) {
-      updateCustomPalettes(allLabelDefinitions);
-      return;
-    }
-
-    const labels = sectionLabelMap.get(activeHighlightId);
-    if (labels) {
-      updateCustomPalettes(labels);
-    }
-  }, [activeHighlightId, sectionLabelMap, updateCustomPalettes, ctxWordsColorMap]);
 
   const handleHighlightToggle = (highlightId: string, groups: HighlightGroup[]) => {
     toggleHighlight(
@@ -856,6 +761,7 @@ const Syntax = () => {
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
+                  const uniformPalette = deriveUniformWordPalette(words);
                   return {
                     label: label.label,
                     words,
@@ -864,7 +770,7 @@ const Syntax = () => {
                       words,
                       section.id,
                       activeHighlightId,
-                      labelCustomPalettes,
+                      uniformPalette,
                     ),
                   };
                 })
@@ -874,10 +780,18 @@ const Syntax = () => {
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
+                  const uniformPalette = deriveUniformWordPalette(words);
+                  const palette = getLabelPalette(
+                    label,
+                    words,
+                    section.id,
+                    activeHighlightId,
+                    uniformPalette,
+                  );
                   return {
                     label: label.label,
                     words,
-                    palette: label.palette,
+                    palette,
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -910,17 +824,18 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
+                            const uniformPalette = deriveUniformWordPalette(words);
                             const palette = getLabelPalette(
                               label,
                               words,
                               section.id,
                               activeHighlightId,
-                              labelCustomPalettes,
+                              uniformPalette,
                             );
-                            const hasCustomPalette = labelCustomPalettes.has(label.id);
                             const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
-                            const displayPalette =
-                              hasCustomPalette || canShowBasePalette ? palette : undefined;
+                            const shouldShowPalette =
+                              Boolean(uniformPalette) || canShowBasePalette;
+                            const displayPalette = shouldShowPalette ? palette : undefined;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -945,17 +860,18 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
+                          const uniformPalette = deriveUniformWordPalette(words);
                           const palette = getLabelPalette(
                             label,
                             words,
                             section.id,
                             activeHighlightId,
-                            labelCustomPalettes,
+                            uniformPalette,
                           );
-                          const hasCustomPalette = labelCustomPalettes.has(label.id);
                           const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
-                          const displayPalette =
-                            hasCustomPalette || canShowBasePalette ? palette : undefined;
+                          const shouldShowPalette =
+                            Boolean(uniformPalette) || canShowBasePalette;
+                          const displayPalette = shouldShowPalette ? palette : undefined;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
