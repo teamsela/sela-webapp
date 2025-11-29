@@ -71,6 +71,16 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const actionButtonWrapperClass = useMemo(
+    () => {
+      const base = 'z-1 absolute p-[0.5] m-[0.5] bg-transparent';
+      if (!stanzaExpanded) {
+        return `${base} inset-0 flex items-center justify-center`;
+      }
+      return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+    },
+    [ctxIsHebrew, stanzaExpanded]
+  );
 
   const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Stop bubbling so drag-select handler does not steal the first click
@@ -228,7 +238,7 @@ export const StropheBlock = ({
       }
     >
       <div
-        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+        className={actionButtonWrapperClass}
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
