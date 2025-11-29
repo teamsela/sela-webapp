@@ -72,7 +72,9 @@ export const StropheBlock = ({
     [ctxIsHebrew]
   );
 
-  const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Stop bubbling so drag-select handler does not steal the first click
+    e.stopPropagation();
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
 
@@ -286,7 +288,7 @@ export const StropheBlock = ({
               <div
                 className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
                 style={notePanelStyle}
-                onClick={handleNoteAreaClick}
+                onMouseDown={handleNoteAreaMouseDown}
               >
                 <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
               </div>
@@ -383,7 +385,7 @@ export const StropheBlock = ({
                 showOverlayNote &&
                 <div
                   className="absolute inset-0"
-                  onClick={handleNoteAreaClick}
+                  onMouseDown={handleNoteAreaMouseDown}
                 >
                   <div className="z-10 flex h-full w-full flex-col gap-5.5 rounded-md shadow-sm overflow-auto">
                     <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
