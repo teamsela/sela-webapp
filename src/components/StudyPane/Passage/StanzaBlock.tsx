@@ -13,9 +13,10 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
+  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
 
@@ -43,7 +44,7 @@ export const StanzaBlock = ({
   }, [stanzaProps.metadata?.expanded])
 
   const renderArrow = () => {
-    if (ctxLanguageMode == LanguageMode.Parallel) {
+    if (shouldStackStanzas) {
       if (expanded) {
         return (
             <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
