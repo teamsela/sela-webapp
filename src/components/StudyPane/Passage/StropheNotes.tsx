@@ -199,7 +199,7 @@ useEffect(() => {
           setNoteValue(e.target.value);
         }}
         onFocus={claimActivePane}
-        placeholder="Start with a title on the first line, notes continue below..."
+        placeholder="Title on the first line. Write your notes beneath it."
         className="resize-none w-full flex-1 rounded border border-stroke bg-white px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
         dir="ltr"
         // style={{ minHeight: STROPHE_NOTE_TEXT_MIN_HEIGHT }}
