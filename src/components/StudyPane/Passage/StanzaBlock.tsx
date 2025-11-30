@@ -1,6 +1,6 @@
 import { LanguageMode } from "@/lib/types";
 import { StanzaProps } from "@/lib/data";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FormatContext } from ".."
 import { StropheBlock } from "./StropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
@@ -13,30 +13,10 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
-  const [stropheWidths, setStropheWidths] = useState<Record<number, number>>({});
-
-  const handleStropheWidthChange = useCallback((stropheId: number, width: number) => {
-    setStropheWidths((prev) => {
-      const previousWidth = prev[stropheId];
-      if (previousWidth === width) {
-        return prev;
-      }
-      return { ...prev, [stropheId]: width };
-    });
-  }, []);
-
-  const maxStropheNoteWidth = useMemo(() => {
-    const widths = Object.values(stropheWidths);
-    if (!widths.length) {
-      return undefined;
-    }
-    return Math.max(...widths);
-  }, [stropheWidths]);
-  
-
+  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
 
@@ -64,7 +44,7 @@ export const StanzaBlock = ({
   }, [stanzaProps.metadata?.expanded])
 
   const renderArrow = () => {
-    if (ctxLanguageMode == LanguageMode.Parallel) {
+    if (shouldStackStanzas) {
       if (expanded) {
         return (
             <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
@@ -118,8 +98,6 @@ export const StanzaBlock = ({
                   stropheProps={strophe}
                   key={strophe.stropheId}
                   stanzaExpanded={expanded}
-                  onWordAreaWidthChange={handleStropheWidthChange}
-                  maxStanzaNoteWidth={maxStropheNoteWidth}
                   />
               )
           })
