@@ -641,18 +641,12 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
 
 const getLabelPalette = (
   label: SyntaxLabelDefinition,
-  words: WordProps[],
-  sectionId: string,
-  activeHighlightId: string | null,
   uniformPalette?: LabelPalette,
 ): LabelPalette | undefined => {
-  if (!activeHighlightId || activeHighlightId === sectionId) {
-    const derived = uniformPalette ?? deriveUniformWordPalette(words);
-    if (derived) {
-      return label.palette ? { ...label.palette, ...derived } : derived;
-    }
+  const derived = uniformPalette;
+  if (derived) {
+    return derived;
   }
-
   return label.palette;
 };
 
@@ -767,9 +761,6 @@ const Syntax = () => {
                     words,
                     palette: getLabelPalette(
                       label,
-                      words,
-                      section.id,
-                      activeHighlightId,
                       uniformPalette,
                     ),
                   };
@@ -780,14 +771,7 @@ const Syntax = () => {
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
-                  const uniformPalette = deriveUniformWordPalette(words);
-                  const palette = getLabelPalette(
-                    label,
-                    words,
-                    section.id,
-                    activeHighlightId,
-                    uniformPalette,
-                  );
+                  const palette = label.palette;
                   return {
                     label: label.label,
                     words,
@@ -827,15 +811,9 @@ const Syntax = () => {
                             const uniformPalette = deriveUniformWordPalette(words);
                             const palette = getLabelPalette(
                               label,
-                              words,
-                              section.id,
-                              activeHighlightId,
                               uniformPalette,
                             );
-                            const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
-                            const shouldShowPalette =
-                              Boolean(uniformPalette) || canShowBasePalette;
-                            const displayPalette = shouldShowPalette ? palette : undefined;
+                            const displayPalette = uniformPalette ? palette : undefined;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -863,15 +841,9 @@ const Syntax = () => {
                           const uniformPalette = deriveUniformWordPalette(words);
                           const palette = getLabelPalette(
                             label,
-                            words,
-                            section.id,
-                            activeHighlightId,
                             uniformPalette,
                           );
-                          const canShowBasePalette = section.highlightable && sectionHasActiveHighlight;
-                          const shouldShowPalette =
-                            Boolean(uniformPalette) || canShowBasePalette;
-                          const displayPalette = shouldShowPalette ? palette : undefined;
+                          const displayPalette = uniformPalette ? palette : undefined;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
