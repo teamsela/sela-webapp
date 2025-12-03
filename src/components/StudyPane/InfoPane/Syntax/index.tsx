@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
-import { PassageProps, WordProps, ColorData, WordMetadata } from "@/lib/data";
+import { ColorData, PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
 import { deriveUniformWordPalette } from "@/lib/utils";
 
@@ -639,33 +639,22 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   };
 };
 
-const getAnyPalette = (
+const isSectionHighlightFullyApplied = (
   words: WordProps[],
-  colorMap?: Map<number, ColorData>,
-  metadataMap?: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
-): LabelPalette | undefined => {
+  activeHighlightId: string | null,
+  sectionId: string,
+  colorMap: Map<number, ColorData>,
+) => {
   if (!words.length) {
-    return undefined;
+    return false;
   }
-
-  const map = colorMap ?? new Map<number, ColorData>();
-
-  for (const word of words) {
-    const mapColor = map.get(word.wordId);
-    if (mapColor && (mapColor.fill || mapColor.border || mapColor.text)) {
-      const { source: _s, ...rest } = mapColor;
-      return Object.keys(rest).length ? rest : undefined;
-    }
-    if (metadataMap) {
-      const md =
-        (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
-        (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
-      if (md?.color && (md.color.fill || md.color.border || md.color.text)) {
-        return { ...md.color };
-      }
-    }
+  if (activeHighlightId !== sectionId) {
+    return false;
   }
-  return undefined;
+  return words.every((word) => {
+    const color = colorMap.get(word.wordId);
+    return Boolean(color && color.source === "syntax");
+  });
 };
 
 const getLabelDisplayPalette = (
@@ -675,14 +664,12 @@ const getLabelDisplayPalette = (
   activeHighlightId: string | null,
   sectionId: string,
   colorMap: Map<number, ColorData>,
-  metadataMap: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
 ): LabelPalette | undefined => {
   if (uniformPalette) {
     return uniformPalette;
   }
-  const anyPalette = getAnyPalette(words, colorMap, metadataMap);
-  if (anyPalette) {
-    return anyPalette;
+  if (isSectionHighlightFullyApplied(words, activeHighlightId, sectionId, colorMap)) {
+    return labelPalette;
   }
   return undefined;
 };
@@ -809,7 +796,6 @@ const Syntax = () => {
                       activeHighlightId,
                       section.id,
                       ctxWordsColorMap,
-                      ctxStudyMetadata.words,
                     ),
                   };
                 })
@@ -834,7 +820,6 @@ const Syntax = () => {
                       activeHighlightId,
                       section.id,
                       ctxWordsColorMap,
-                      ctxStudyMetadata.words,
                     ),
                   };
                 })
@@ -879,7 +864,6 @@ const Syntax = () => {
                               activeHighlightId,
                               section.id,
                               ctxWordsColorMap,
-                              ctxStudyMetadata.words,
                             );
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
@@ -916,7 +900,6 @@ const Syntax = () => {
                             activeHighlightId,
                             section.id,
                             ctxWordsColorMap,
-                            ctxStudyMetadata.words,
                           );
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
