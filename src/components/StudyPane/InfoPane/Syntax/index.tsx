@@ -684,10 +684,6 @@ const getLabelDisplayPalette = (
   if (anyPalette) {
     return anyPalette;
   }
-  // When a smart highlight is active for this section, fall back to the base palette so chips stay colored.
-  if (activeHighlightId === sectionId) {
-    return labelPalette;
-  }
   return undefined;
 };
 
