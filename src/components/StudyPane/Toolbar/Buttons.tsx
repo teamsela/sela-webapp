@@ -321,7 +321,6 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           }
         });
         clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
-        ctxSetActiveHighlightId("syntax", null);
       }
 
       if (touchedMotif || touchedSyntax) {
