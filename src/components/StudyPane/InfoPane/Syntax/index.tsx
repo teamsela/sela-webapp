@@ -643,11 +643,7 @@ const getLabelPalette = (
   label: SyntaxLabelDefinition,
   uniformPalette?: LabelPalette,
 ): LabelPalette | undefined => {
-  const derived = uniformPalette;
-  if (derived) {
-    return derived;
-  }
-  return label.palette;
+  return uniformPalette ?? label.palette;
 };
 
 const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
@@ -764,10 +760,7 @@ const Syntax = () => {
                   return {
                     label: label.label,
                     words,
-                    palette: getLabelPalette(
-                      label,
-                      uniformPalette,
-                    ),
+                    palette: getLabelPalette(label, uniformPalette),
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -776,7 +769,11 @@ const Syntax = () => {
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
-                  const palette = label.palette;
+                  const uniformPalette = deriveUniformWordPalette(words, {
+                    colorMap: ctxWordsColorMap,
+                    metadataMap: ctxStudyMetadata.words,
+                  });
+                  const palette = getLabelPalette(label, uniformPalette);
                   return {
                     label: label.label,
                     words,
@@ -817,11 +814,8 @@ const Syntax = () => {
                               colorMap: ctxWordsColorMap,
                               metadataMap: ctxStudyMetadata.words,
                             });
-                            const palette = getLabelPalette(
-                              label,
-                              uniformPalette,
-                            );
-                            const displayPalette = uniformPalette ? palette : undefined;
+                            const palette = getLabelPalette(label, uniformPalette);
+                            const displayPalette = palette;
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -850,11 +844,8 @@ const Syntax = () => {
                             colorMap: ctxWordsColorMap,
                             metadataMap: ctxStudyMetadata.words,
                           });
-                          const palette = getLabelPalette(
-                            label,
-                            uniformPalette,
-                          );
-                          const displayPalette = uniformPalette ? palette : undefined;
+                          const palette = getLabelPalette(label, uniformPalette);
+                          const displayPalette = palette;
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
