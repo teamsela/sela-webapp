@@ -641,20 +641,28 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
 
 const getAnyPalette = (
   words: WordProps[],
-  colorMap: Map<number, ColorData>,
-  metadataMap: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
+  colorMap?: Map<number, ColorData>,
+  metadataMap?: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
 ): LabelPalette | undefined => {
+  if (!words.length) {
+    return undefined;
+  }
+
+  const map = colorMap ?? new Map<number, ColorData>();
+
   for (const word of words) {
-    const mapColor = colorMap.get(word.wordId);
+    const mapColor = map.get(word.wordId);
     if (mapColor && (mapColor.fill || mapColor.border || mapColor.text)) {
       const { source: _s, ...rest } = mapColor;
       return Object.keys(rest).length ? rest : undefined;
     }
-    const md =
-      (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
-      (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
-    if (md?.color && (md.color.fill || md.color.border || md.color.text)) {
-      return { ...md.color };
+    if (metadataMap) {
+      const md =
+        (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
+        (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
+      if (md?.color && (md.color.fill || md.color.border || md.color.text)) {
+        return { ...md.color };
+      }
     }
   }
   return undefined;
