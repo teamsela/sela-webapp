@@ -658,6 +658,8 @@ const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefi
 const Syntax = () => {
   const {
     ctxPassageProps,
+    ctxStudyMetadata,
+    ctxWordsColorMap,
     ctxSelectedWords,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
@@ -755,7 +757,10 @@ const Syntax = () => {
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
-                  const uniformPalette = deriveUniformWordPalette(words);
+                  const uniformPalette = deriveUniformWordPalette(words, {
+                    colorMap: ctxWordsColorMap,
+                    metadataMap: ctxStudyMetadata.words,
+                  });
                   return {
                     label: label.label,
                     words,
@@ -808,7 +813,10 @@ const Syntax = () => {
                         <div className="flex flex-wrap">
                           {subSection.labels.map((label) => {
                             const words = labelWordMap.get(label.id) || [];
-                            const uniformPalette = deriveUniformWordPalette(words);
+                            const uniformPalette = deriveUniformWordPalette(words, {
+                              colorMap: ctxWordsColorMap,
+                              metadataMap: ctxStudyMetadata.words,
+                            });
                             const palette = getLabelPalette(
                               label,
                               uniformPalette,
@@ -838,7 +846,10 @@ const Syntax = () => {
                       <div className="flex flex-wrap">
                         {section.labels?.map((label) => {
                           const words = labelWordMap.get(label.id) || [];
-                          const uniformPalette = deriveUniformWordPalette(words);
+                          const uniformPalette = deriveUniformWordPalette(words, {
+                            colorMap: ctxWordsColorMap,
+                            metadataMap: ctxStudyMetadata.words,
+                          });
                           const palette = getLabelPalette(
                             label,
                             uniformPalette,

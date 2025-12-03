@@ -21,9 +21,12 @@ export const CategoryBlock = ({
     lastSelectedWords: WordProps[],
     setLastSelectedWords: React.Dispatch<React.SetStateAction<WordProps[]>>
 }) => {
-    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
+    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxWordsColorMap, ctxStudyMetadata } = useContext(FormatContext);
 
-    const uniformPalette = deriveUniformWordPalette(value.wordProps);
+    const uniformPalette = deriveUniformWordPalette(value.wordProps, {
+        colorMap: ctxWordsColorMap,
+        metadataMap: ctxStudyMetadata.words,
+    });
 
     const [colorFillLocal, setColorFillLocal] = useState(uniformPalette?.fill ?? DEFAULT_COLOR_FILL);
     const [textColorLocal, setTextColorLocal] = useState(uniformPalette?.text ?? DEFAULT_TEXT_COLOR);

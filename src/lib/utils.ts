@@ -1,4 +1,4 @@
-import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata } from "./data";
+import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata, WordMetadata } from "./data";
 import { psalmBook, genesisBook, jonahBook } from "./chapterCounts";
 import { ColorActionType, StropheNote } from "./types";
 import { z } from 'zod';
@@ -156,8 +156,42 @@ export function getWordById(passage: PassageProps, id: number) : WordProps | nul
   return null;
 }
 
+type UniformPaletteOptions = {
+  colorMap?: Map<number, ColorData>;
+  metadataMap?: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>;
+};
+
+const resolveWordColorValue = (
+  word: WordProps,
+  key: keyof Omit<ColorData, "source">,
+  options?: UniformPaletteOptions,
+): string | undefined => {
+  const colorFromMap = options?.colorMap?.get(word.wordId)?.[key];
+  if (colorFromMap !== undefined) {
+    return colorFromMap;
+  }
+
+  const metadataMap = options?.metadataMap as
+    | Record<number, WordMetadata | undefined>
+    | Record<string, WordMetadata | undefined>
+    | undefined;
+
+  if (metadataMap) {
+    const metadataEntry =
+      (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
+      (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
+    const colorFromMetadata = metadataEntry?.color?.[key];
+    if (colorFromMetadata !== undefined) {
+      return colorFromMetadata;
+    }
+  }
+
+  return word.metadata?.color?.[key];
+};
+
 export const deriveUniformWordPalette = (
   words: WordProps[],
+  options?: UniformPaletteOptions,
 ): Omit<ColorData, "source"> | undefined => {
   if (!words.length) {
     return undefined;
@@ -167,10 +201,10 @@ export const deriveUniformWordPalette = (
   let hasColor = false;
 
   for (const key of ["fill", "border", "text"] as (keyof Omit<ColorData, "source">)[]) {
-    let value = words[0]?.metadata?.color?.[key];
+    let value = resolveWordColorValue(words[0], key, options);
 
     for (let i = 1; i < words.length; i++) {
-      const current = words[i]?.metadata?.color?.[key];
+      const current = resolveWordColorValue(words[i], key, options);
       if (current !== value) {
         return undefined;
       }

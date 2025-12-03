@@ -16,11 +16,14 @@ export const IdenticalWordBlock = ({
 }) => {
 
   const { ctxColorAction, ctxSelectedColor,
-    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode } = useContext(FormatContext)
+    ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxLanguageMode, ctxWordsColorMap, ctxStudyMetadata } = useContext(FormatContext)
 
   const toSelect = selectRelated ? [...identicalWords, ...relatedWords] : identicalWords;
 
-  const uniformPalette = deriveUniformWordPalette(toSelect);
+  const uniformPalette = deriveUniformWordPalette(toSelect, {
+    colorMap: ctxWordsColorMap,
+    metadataMap: ctxStudyMetadata.words,
+  });
 
   const [colorFillLocal, setColorFillLocal] = useState(uniformPalette?.fill ?? DEFAULT_COLOR_FILL);
   const [textColorLocal, setTextColorLocal] = useState(uniformPalette?.text ?? DEFAULT_TEXT_COLOR);
