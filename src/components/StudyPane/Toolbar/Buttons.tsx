@@ -161,7 +161,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
     ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory,
-    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -297,6 +297,11 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           touchedSyntax = true;
         }
       });
+
+      // If a syntax smart highlight is active, ensure we update the syntax color map
+      if (ctxActiveHighlightIds?.syntax) {
+        touchedSyntax = true;
+      }
 
       if (touchedMotif) {
         removeColorMapEntriesBySource(nextColorMap, "motif");
