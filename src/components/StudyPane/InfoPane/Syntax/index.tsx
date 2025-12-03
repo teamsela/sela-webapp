@@ -639,8 +639,21 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   };
 };
 
-const getLabelDisplayPalette = (uniformPalette?: LabelPalette): LabelPalette | undefined =>
-  uniformPalette;
+const getLabelDisplayPalette = (
+  uniformPalette: LabelPalette | undefined,
+  labelPalette: LabelPalette | undefined,
+  activeHighlightId: string | null,
+  sectionId: string,
+): LabelPalette | undefined => {
+  if (uniformPalette) {
+    return uniformPalette;
+  }
+  // When a smart highlight is active for this section, fall back to the base palette so chips stay colored.
+  if (activeHighlightId === sectionId) {
+    return labelPalette;
+  }
+  return undefined;
+};
 
 const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
   section.subSections
@@ -757,7 +770,12 @@ const Syntax = () => {
                     label: label.label,
                     words,
                     palette: label.palette,
-                    displayPalette: getLabelDisplayPalette(uniformPalette),
+                    displayPalette: getLabelDisplayPalette(
+                      uniformPalette,
+                      label.palette,
+                      activeHighlightId,
+                      section.id,
+                    ),
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -774,7 +792,12 @@ const Syntax = () => {
                     label: label.label,
                     words,
                     palette: label.palette,
-                    displayPalette: getLabelDisplayPalette(uniformPalette),
+                    displayPalette: getLabelDisplayPalette(
+                      uniformPalette,
+                      label.palette,
+                      activeHighlightId,
+                      section.id,
+                    ),
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -811,7 +834,12 @@ const Syntax = () => {
                               colorMap: ctxWordsColorMap,
                               metadataMap: ctxStudyMetadata.words,
                             });
-                            const displayPalette = getLabelDisplayPalette(uniformPalette);
+                            const displayPalette = getLabelDisplayPalette(
+                              uniformPalette,
+                              label.palette,
+                              activeHighlightId,
+                              section.id,
+                            );
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -840,7 +868,12 @@ const Syntax = () => {
                             colorMap: ctxWordsColorMap,
                             metadataMap: ctxStudyMetadata.words,
                           });
-                          const displayPalette = getLabelDisplayPalette(uniformPalette);
+                          const displayPalette = getLabelDisplayPalette(
+                            uniformPalette,
+                            label.palette,
+                            activeHighlightId,
+                            section.id,
+                          );
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
