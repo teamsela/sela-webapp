@@ -310,14 +310,18 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
 
       if (touchedSyntax) {
+        // Manual color overrides should supersede smart highlights; write user colors and clear the highlight state.
         ctxSelectedWords.forEach((word) => {
           const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
           if (mdColor && Object.keys(mdColor).length > 0) {
-            nextColorMap.set(word.wordId, { ...mdColor, source: "syntax" });
+            const { source: _source, ...userColor } = mdColor;
+            nextColorMap.set(word.wordId, { ...userColor });
           } else {
             nextColorMap.delete(word.wordId);
           }
         });
+        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
+        ctxSetActiveHighlightId("syntax", null);
       }
 
       if (touchedMotif || touchedSyntax) {
