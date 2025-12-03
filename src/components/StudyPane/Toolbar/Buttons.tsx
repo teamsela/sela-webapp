@@ -310,12 +310,16 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
 
       if (touchedSyntax) {
-        // Manual color overrides should supersede smart highlights; write user colors and clear the highlight state.
+        const activeSyntaxHighlightId = ctxActiveHighlightIds?.syntax;
+        // Manual color overrides should supersede smart highlights; write user colors. Keep syntax source on the map so the highlight remains active.
         ctxSelectedWords.forEach((word) => {
           const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
           if (mdColor && Object.keys(mdColor).length > 0) {
             const { source: _source, ...userColor } = mdColor;
-            nextColorMap.set(word.wordId, { ...userColor });
+            nextColorMap.set(
+              word.wordId,
+              activeSyntaxHighlightId ? { ...userColor, source: "syntax" } : { ...userColor },
+            );
           } else {
             nextColorMap.delete(word.wordId);
           }
