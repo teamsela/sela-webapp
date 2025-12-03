@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
-import { PassageProps, WordProps } from "@/lib/data";
+import { PassageProps, WordProps, ColorData, WordMetadata } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
 import { deriveUniformWordPalette } from "@/lib/utils";
 
@@ -639,14 +639,42 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   };
 };
 
+const getAnyPalette = (
+  words: WordProps[],
+  colorMap: Map<number, ColorData>,
+  metadataMap: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
+): LabelPalette | undefined => {
+  for (const word of words) {
+    const mapColor = colorMap.get(word.wordId);
+    if (mapColor && (mapColor.fill || mapColor.border || mapColor.text)) {
+      const { source: _s, ...rest } = mapColor;
+      return Object.keys(rest).length ? rest : undefined;
+    }
+    const md =
+      (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
+      (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
+    if (md?.color && (md.color.fill || md.color.border || md.color.text)) {
+      return { ...md.color };
+    }
+  }
+  return undefined;
+};
+
 const getLabelDisplayPalette = (
+  words: WordProps[],
   uniformPalette: LabelPalette | undefined,
   labelPalette: LabelPalette | undefined,
   activeHighlightId: string | null,
   sectionId: string,
+  colorMap: Map<number, ColorData>,
+  metadataMap: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>,
 ): LabelPalette | undefined => {
   if (uniformPalette) {
     return uniformPalette;
+  }
+  const anyPalette = getAnyPalette(words, colorMap, metadataMap);
+  if (anyPalette) {
+    return anyPalette;
   }
   // When a smart highlight is active for this section, fall back to the base palette so chips stay colored.
   if (activeHighlightId === sectionId) {
@@ -771,10 +799,13 @@ const Syntax = () => {
                     words,
                     palette: label.palette,
                     displayPalette: getLabelDisplayPalette(
+                      words,
                       uniformPalette,
                       label.palette,
                       activeHighlightId,
                       section.id,
+                      ctxWordsColorMap,
+                      ctxStudyMetadata.words,
                     ),
                   };
                 })
@@ -793,10 +824,13 @@ const Syntax = () => {
                     words,
                     palette: label.palette,
                     displayPalette: getLabelDisplayPalette(
+                      words,
                       uniformPalette,
                       label.palette,
                       activeHighlightId,
                       section.id,
+                      ctxWordsColorMap,
+                      ctxStudyMetadata.words,
                     ),
                   };
                 })
@@ -835,10 +869,13 @@ const Syntax = () => {
                               metadataMap: ctxStudyMetadata.words,
                             });
                             const displayPalette = getLabelDisplayPalette(
+                              words,
                               uniformPalette,
                               label.palette,
                               activeHighlightId,
                               section.id,
+                              ctxWordsColorMap,
+                              ctxStudyMetadata.words,
                             );
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
@@ -869,10 +906,13 @@ const Syntax = () => {
                             metadataMap: ctxStudyMetadata.words,
                           });
                           const displayPalette = getLabelDisplayPalette(
+                            words,
                             uniformPalette,
                             label.palette,
                             activeHighlightId,
                             section.id,
+                            ctxWordsColorMap,
+                            ctxStudyMetadata.words,
                           );
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
