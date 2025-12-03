@@ -639,12 +639,8 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   };
 };
 
-const getLabelPalette = (
-  label: SyntaxLabelDefinition,
-  uniformPalette?: LabelPalette,
-): LabelPalette | undefined => {
-  return uniformPalette ?? label.palette;
-};
+const getLabelDisplayPalette = (uniformPalette?: LabelPalette): LabelPalette | undefined =>
+  uniformPalette;
 
 const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
   section.subSections
@@ -760,7 +756,8 @@ const Syntax = () => {
                   return {
                     label: label.label,
                     words,
-                    palette: getLabelPalette(label, uniformPalette),
+                    palette: label.palette,
+                    displayPalette: getLabelDisplayPalette(uniformPalette),
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -773,11 +770,11 @@ const Syntax = () => {
                     colorMap: ctxWordsColorMap,
                     metadataMap: ctxStudyMetadata.words,
                   });
-                  const palette = getLabelPalette(label, uniformPalette);
                   return {
                     label: label.label,
                     words,
-                    palette,
+                    palette: label.palette,
+                    displayPalette: getLabelDisplayPalette(uniformPalette),
                   };
                 })
                 .filter((group) => group.words.length > 0)
@@ -814,8 +811,7 @@ const Syntax = () => {
                               colorMap: ctxWordsColorMap,
                               metadataMap: ctxStudyMetadata.words,
                             });
-                            const palette = getLabelPalette(label, uniformPalette);
-                            const displayPalette = palette;
+                            const displayPalette = getLabelDisplayPalette(uniformPalette);
                             const highlightId = `${section.id}__${label.id}`;
                             const isSelected =
                               words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
@@ -844,8 +840,7 @@ const Syntax = () => {
                             colorMap: ctxWordsColorMap,
                             metadataMap: ctxStudyMetadata.words,
                           });
-                          const palette = getLabelPalette(label, uniformPalette);
-                          const displayPalette = palette;
+                          const displayPalette = getLabelDisplayPalette(uniformPalette);
                           const highlightId = `${section.id}__${label.id}`;
                           const isSelected =
                             words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
