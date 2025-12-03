@@ -421,7 +421,7 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
     ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxSetWordsColorMap, ctxHighlightCacheRef,
+    ctxSetWordsColorMap, ctxWordsColorMap, ctxHighlightCacheRef,
     ctxActiveHighlightIds, ctxSetActiveHighlightId
   } = useContext(FormatContext);
 
@@ -467,29 +467,19 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
         }
       }
       if (isChanged) {
-        const clearedActiveHighlights: Record<ColorSource, string | null> = {
-          ...ctxActiveHighlightIds,
-        };
-        Object.keys(clearedActiveHighlights).forEach(
-          (highlightSource) => (clearedActiveHighlights[highlightSource as ColorSource] = null),
-        );
-
-        const clearedColorMap = new Map<number, ColorData>();
-        const clearedHighlightCache = new Map<string, Map<number, ColorData | undefined>>();
+        const nextColorMap = new Map(ctxWordsColorMap);
+        ctxSelectedWords.forEach((word) => nextColorMap.delete(word.wordId));
 
         ctxAddToHistory(ctxStudyMetadata, {
-          wordsColorMap: clearedColorMap,
-          activeHighlightIds: clearedActiveHighlights,
-          highlightCache: clearedHighlightCache,
+          wordsColorMap: nextColorMap,
+          activeHighlightIds: ctxActiveHighlightIds,
+          highlightCache: ctxHighlightCacheRef.current,
         });
+        ctxSetWordsColorMap(nextColorMap);
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
 
-      ctxSetWordsColorMap(new Map());
-      ctxHighlightCacheRef.current.clear();
-      Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
-        ctxSetActiveHighlightId(highlightSource as ColorSource, null),
-      );
+      // keep active highlights intact; we only cleared selected words
     }
   }
 
