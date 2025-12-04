@@ -16,6 +16,9 @@
 # production
 /build
 
+# local notes
+docs/syntax-coloring-log.md
+
 # misc
 .DS_Store
 *.pem
