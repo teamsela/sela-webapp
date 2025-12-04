@@ -286,22 +286,13 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     if (isChanged) {
       const nextColorMap = new Map(ctxWordsColorMap);
       let touchedMotif = false;
-      let touchedSyntax = false;
 
       ctxSelectedWords.forEach((word) => {
         const entry = nextColorMap.get(word.wordId);
         if (entry?.source === "motif") {
           touchedMotif = true;
         }
-        if (entry?.source === "syntax") {
-          touchedSyntax = true;
-        }
       });
-
-      // If a syntax smart highlight is active, ensure we update the syntax color map
-      if (ctxActiveHighlightIds?.syntax) {
-        touchedSyntax = true;
-      }
 
       if (touchedMotif) {
         removeColorMapEntriesBySource(nextColorMap, "motif");
@@ -309,40 +300,37 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxSetActiveHighlightId("motif", null);
       }
 
-      if (touchedSyntax) {
-        // Treat manual recolors as an override of the smart highlight: drop syntax highlight state,
-        // remove syntax-sourced cache entries, and keep only user colors in the map.
+      // Manual recolor should always clear syntax highlight state and sync the color map to user colors.
+      if (ctxActiveHighlightIds?.syntax) {
         clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
-        if (ctxActiveHighlightIds?.syntax) {
-          ctxSetActiveHighlightId("syntax", null);
+        ctxSetActiveHighlightId("syntax", null);
+      }
+
+      ctxSelectedWords.forEach((word) => {
+        // Strip syntax source tags and mirror user colors into the color map for uniform palette detection.
+        const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
+        if (mdColor && Object.keys(mdColor).length > 0) {
+          const { source: _source, ...userColor } = mdColor;
+          nextColorMap.set(word.wordId, userColor);
+        } else {
+          nextColorMap.delete(word.wordId);
         }
+      });
 
-        // Strip syntax source tags so chips reflect user-chosen palettes.
-        nextColorMap.forEach((color, wordId) => {
-          if (color?.source === "syntax") {
-            const { source: _source, ...userColor } = color;
-            if (Object.keys(userColor).length > 0) {
-              nextColorMap.set(wordId, userColor);
-            } else {
-              nextColorMap.delete(wordId);
-            }
-          }
-        });
-
-        ctxSelectedWords.forEach((word) => {
-          const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
-          if (mdColor && Object.keys(mdColor).length > 0) {
-            const { source: _source, ...userColor } = mdColor;
+      // Also remove any lingering syntax-sourced entries on the selected words.
+      ctxSelectedWords.forEach((word) => {
+        const color = nextColorMap.get(word.wordId);
+        if (color?.source === "syntax") {
+          const { source: _s, ...userColor } = color;
+          if (Object.keys(userColor).length > 0) {
             nextColorMap.set(word.wordId, userColor);
           } else {
             nextColorMap.delete(word.wordId);
           }
-        });
-      }
+        }
+      });
 
-      if (touchedMotif || touchedSyntax) {
-        ctxSetWordsColorMap(nextColorMap);
-      }
+      ctxSetWordsColorMap(nextColorMap);
     }
 
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
