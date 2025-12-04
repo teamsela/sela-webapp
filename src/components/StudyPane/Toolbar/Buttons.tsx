@@ -285,55 +285,20 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
     if (isChanged) {
       const nextColorMap = new Map(ctxWordsColorMap);
-      let touchedMotif = false;
-
-      ctxSelectedWords.forEach((word) => {
-        const entry = nextColorMap.get(word.wordId);
-        if (entry?.source === "motif") {
-          touchedMotif = true;
-        }
-      });
-
       // Manual recolor should always clear syntax highlight state and cache.
+      clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
       if (ctxActiveHighlightIds?.syntax) {
-        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
         ctxSetActiveHighlightId("syntax", null);
       }
 
-      if (touchedMotif) {
-        removeColorMapEntriesBySource(nextColorMap, "motif");
-        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "motif");
-        ctxSetActiveHighlightId("motif", null);
-      }
+      // Remove motif overlays if the selected words carried motif source entries.
+      removeColorMapEntriesBySource(nextColorMap, "motif");
 
-      ctxSelectedWords.forEach((word) => {
-        // Mirror user colors into the map and strip any syntax source tags so uniform detection works.
-        const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
-        if (mdColor && Object.keys(mdColor).length > 0) {
-          const { source: _source, ...userColor } = mdColor;
-          nextColorMap.set(word.wordId, userColor);
-        } else {
-          nextColorMap.delete(word.wordId);
-        }
-      });
-
-      // Remove any lingering syntax-sourced entries on the selected words.
-      ctxSelectedWords.forEach((word) => {
-        const color = nextColorMap.get(word.wordId);
-        if (color?.source === "syntax") {
-          const { source: _s, ...userColor } = color;
-          if (Object.keys(userColor).length > 0) {
-            nextColorMap.set(word.wordId, userColor);
-          } else {
-            nextColorMap.delete(word.wordId);
-          }
-        }
-      });
-
-      // Normalize all selected words to the same palette so the chip can surface the uniform color.
+      // Normalize all selected words to the same palette (the first selected word) and write it to the map.
       if (ctxSelectedWords.length > 0) {
-        const firstWordPalette = ctxStudyMetadata.words[ctxSelectedWords[0].wordId]?.color;
-        const { source: _src, ...normalized } = firstWordPalette || {};
+        const firstWordPalette = ctxStudyMetadata.words[ctxSelectedWords[0].wordId]?.color || {};
+        const { source: _src, ...normalized } = firstWordPalette;
+
         ctxSelectedWords.forEach((word) => {
           const wordMd = ctxStudyMetadata.words[word.wordId] ?? (ctxStudyMetadata.words[word.wordId] = {});
           if (Object.keys(normalized).length > 0) {
