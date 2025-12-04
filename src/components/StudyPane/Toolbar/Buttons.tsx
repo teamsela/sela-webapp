@@ -330,6 +330,22 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         }
       });
 
+      // Normalize all selected words to the same palette so the chip can surface the uniform color.
+      if (ctxSelectedWords.length > 0) {
+        const firstWordPalette = ctxStudyMetadata.words[ctxSelectedWords[0].wordId]?.color;
+        const { source: _src, ...normalized } = firstWordPalette || {};
+        ctxSelectedWords.forEach((word) => {
+          const wordMd = ctxStudyMetadata.words[word.wordId] ?? (ctxStudyMetadata.words[word.wordId] = {});
+          if (Object.keys(normalized).length > 0) {
+            wordMd.color = { ...normalized };
+            nextColorMap.set(word.wordId, { ...normalized });
+          } else {
+            delete wordMd.color;
+            nextColorMap.delete(word.wordId);
+          }
+        });
+      }
+
       ctxSetWordsColorMap(nextColorMap);
     }
 
