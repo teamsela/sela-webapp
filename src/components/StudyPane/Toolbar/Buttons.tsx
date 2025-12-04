@@ -310,21 +310,34 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
 
       if (touchedSyntax) {
-        const activeSyntaxHighlightId = ctxActiveHighlightIds?.syntax;
-        // Manual color overrides should supersede smart highlights; write user colors. Keep syntax source on the map so the highlight remains active.
+        // Treat manual recolors as an override of the smart highlight: drop syntax highlight state,
+        // remove syntax-sourced cache entries, and keep only user colors in the map.
+        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
+        if (ctxActiveHighlightIds?.syntax) {
+          ctxSetActiveHighlightId("syntax", null);
+        }
+
+        // Strip syntax source tags so chips reflect user-chosen palettes.
+        nextColorMap.forEach((color, wordId) => {
+          if (color?.source === "syntax") {
+            const { source: _source, ...userColor } = color;
+            if (Object.keys(userColor).length > 0) {
+              nextColorMap.set(wordId, userColor);
+            } else {
+              nextColorMap.delete(wordId);
+            }
+          }
+        });
+
         ctxSelectedWords.forEach((word) => {
           const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
           if (mdColor && Object.keys(mdColor).length > 0) {
             const { source: _source, ...userColor } = mdColor;
-            nextColorMap.set(
-              word.wordId,
-              activeSyntaxHighlightId ? { ...userColor, source: "syntax" } : { ...userColor },
-            );
+            nextColorMap.set(word.wordId, userColor);
           } else {
             nextColorMap.delete(word.wordId);
           }
         });
-        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
       }
 
       if (touchedMotif || touchedSyntax) {
