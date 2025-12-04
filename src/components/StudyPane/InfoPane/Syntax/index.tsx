@@ -657,27 +657,6 @@ const isSectionHighlightFullyApplied = (
   });
 };
 
-const getAnyPalette = (
-  words: WordProps[],
-  colorMap: Map<number, ColorData>,
-  metadataMap: Record<number, { color?: LabelPalette }> | Record<string, { color?: LabelPalette }>,
-): LabelPalette | undefined => {
-  for (const word of words) {
-    const mapColor = colorMap.get(word.wordId);
-    if (mapColor && (mapColor.fill || mapColor.border || mapColor.text)) {
-      const { source: _s, ...rest } = mapColor;
-      return Object.keys(rest).length ? rest : undefined;
-    }
-    const md =
-      (metadataMap as Record<number, { color?: LabelPalette }>)[word.wordId] ??
-      (metadataMap as Record<string, { color?: LabelPalette }>)[word.wordId.toString()];
-    if (md?.color && (md.color.fill || md.color.border || md.color.text)) {
-      return { ...md.color };
-    }
-  }
-  return undefined;
-};
-
 const getLabelDisplayPalette = (
   words: WordProps[],
   uniformPalette: LabelPalette | undefined,
@@ -693,11 +672,7 @@ const getLabelDisplayPalette = (
   if (isSectionHighlightFullyApplied(words, activeHighlightId, sectionId, colorMap)) {
     return labelPalette;
   }
-  // If a label is selected and recolored while a highlight is active, allow any consistent palette to surface.
-  const anyPalette = getAnyPalette(words, colorMap, metadataMap);
-  if (anyPalette) {
-    return anyPalette;
-  }
+  // Mixed or partial coverage should keep chips blank.
   return undefined;
 };
 
