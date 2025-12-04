@@ -294,20 +294,20 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         }
       });
 
+      // Manual recolor should always clear syntax highlight state and cache.
+      if (ctxActiveHighlightIds?.syntax) {
+        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
+        ctxSetActiveHighlightId("syntax", null);
+      }
+
       if (touchedMotif) {
         removeColorMapEntriesBySource(nextColorMap, "motif");
         clearHighlightCacheForSource(ctxHighlightCacheRef.current, "motif");
         ctxSetActiveHighlightId("motif", null);
       }
 
-      // Manual recolor should always clear syntax highlight state and sync the color map to user colors.
-      if (ctxActiveHighlightIds?.syntax) {
-        clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
-        ctxSetActiveHighlightId("syntax", null);
-      }
-
       ctxSelectedWords.forEach((word) => {
-        // Strip syntax source tags and mirror user colors into the color map for uniform palette detection.
+        // Mirror user colors into the map and strip any syntax source tags so uniform detection works.
         const mdColor = ctxStudyMetadata.words[word.wordId]?.color;
         if (mdColor && Object.keys(mdColor).length > 0) {
           const { source: _source, ...userColor } = mdColor;
@@ -317,7 +317,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         }
       });
 
-      // Also remove any lingering syntax-sourced entries on the selected words.
+      // Remove any lingering syntax-sourced entries on the selected words.
       ctxSelectedWords.forEach((word) => {
         const color = nextColorMap.get(word.wordId);
         if (color?.source === "syntax") {
