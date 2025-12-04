@@ -20,6 +20,17 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
 
+const colorsEqual = (a?: Partial<ColorData> | null, b?: Partial<ColorData> | null) => {
+  const norm = (c?: Partial<ColorData> | null) => ({
+    fill: c?.fill ?? null,
+    border: c?.border ?? null,
+    text: c?.text ?? null,
+  });
+  const left = norm(a);
+  const right = norm(b);
+  return left.fill === right.fill && left.border === right.border && left.text === right.text;
+};
+
 export const ToolTip = ({ text }: { text: string }) => {
   return (
     <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">
@@ -285,6 +296,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
     if (isChanged) {
       const nextColorMap = new Map(ctxWordsColorMap);
+      let mapChanged = false;
       // Manual recolor should always clear syntax highlight state and cache.
       clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
       if (ctxActiveHighlightIds?.syntax) {
@@ -292,9 +304,34 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
 
       // Remove motif overlays if the selected words carried motif source entries.
-      removeColorMapEntriesBySource(nextColorMap, "motif");
+      if (removeColorMapEntriesBySource(nextColorMap, "motif")) {
+        mapChanged = true;
+      }
 
-      ctxSetWordsColorMap(nextColorMap);
+      // If all selected words share a palette, mirror it into the map (keeps chips in sync) without looping updates.
+      if (ctxSelectedWords.length > 0) {
+        const firstPalette = ctxStudyMetadata.words[ctxSelectedWords[0].wordId]?.color;
+        const { source: _src, ...normalized } = firstPalette || {};
+        const hasColor = Object.keys(normalized).length > 0;
+        ctxSelectedWords.forEach((word) => {
+          const wordMd = ctxStudyMetadata.words[word.wordId] ?? (ctxStudyMetadata.words[word.wordId] = {});
+          const desired = hasColor ? { ...normalized } : undefined;
+          if (!colorsEqual(wordMd.color, desired)) {
+            if (desired) {
+              wordMd.color = { ...desired };
+              nextColorMap.set(word.wordId, { ...desired });
+            } else {
+              delete wordMd.color;
+              nextColorMap.delete(word.wordId);
+            }
+            mapChanged = true;
+          }
+        });
+      }
+
+      if (mapChanged) {
+        ctxSetWordsColorMap(nextColorMap);
+      }
     }
 
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
