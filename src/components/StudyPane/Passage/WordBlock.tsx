@@ -155,34 +155,7 @@ export const WordBlock = ({
     setGlossDraft(event.target.value);
   }, []);
 
-  useEffect(() => {
-    if (ctxColorAction === ColorActionType.none) return;
 
-    const shouldRemoveOverlay = ctxColorAction === ColorActionType.resetAllColor || selected;
-
-    if (shouldRemoveOverlay) {
-      const overlay = ctxWordsColorMap.get(wordProps.wordId);
-      if (overlay) {
-        const updatedMap = new Map(ctxWordsColorMap);
-        updatedMap.delete(wordProps.wordId);
-        ctxSetWordsColorMap(updatedMap);
-      }
-    }
-
-    if (selected) {
-      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor !== "") {
-        setColorFillLocal(ctxSelectedColor);
-      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor !== "") {
-        setBorderColorLocal(ctxSelectedColor);
-      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor !== "") {
-        setTextColorLocal(ctxSelectedColor);
-      } else if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
-        setColorFillLocal(DEFAULT_COLOR_FILL);
-        setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        setTextColorLocal(DEFAULT_TEXT_COLOR);
-      }
-    }
-  }, [ctxColorAction, ctxSelectedColor, selected, ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId]);
 
   useEffect(() => {
 
@@ -262,14 +235,7 @@ export const WordBlock = ({
     }
   }, [canEditEnglish, ctxEditingWordId, ctxSetEditingWordId, wordProps.wordId, isEditingGloss, startEditingGloss, cancelGlossEditing, commitGlossChange]);
 
-  useEffect(() => {
-  }, [borderColorLocal]);
 
-  useEffect(() => {
-  }, [selected]);
-
-  useEffect(() => {
-  }, [ctxColorAction]);
 
   const handleClick = (event: React.MouseEvent<HTMLSpanElement>) => {
     if (isEditingGloss) {
