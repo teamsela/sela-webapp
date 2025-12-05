@@ -244,20 +244,16 @@ export const WordBlock = ({
     const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
     if (wordsColor) {
       const { fill, text, border } = wordsColor;
-      wordProps.metadata = {
-        ...wordProps.metadata,
-        color: {
-          fill,
-          text,
-          border,
-          ...(wordProps.metadata?.color || {}),
-        },
-      };
 
-      fill && setColorFillLocal(fill);
-      text && setTextColorLocal(text);
-      border && setBorderColorLocal(border);
-
+      if (fill && !wordProps.metadata?.color?.fill) {
+        setColorFillLocal(fill);
+      }
+      if (text && !wordProps.metadata?.color?.text) {
+        setTextColorLocal(text);
+      }
+      if (border && !wordProps.metadata?.color?.border) {
+        setBorderColorLocal(border);
+      }
     }
   }, [ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId, wordProps.metadata]);
 
