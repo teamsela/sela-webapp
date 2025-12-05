@@ -10,7 +10,7 @@ import { Footer } from "./Footer";
 
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
-import { mergeData } from "@/lib/utils";
+import { mergeData, wordsHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
@@ -196,6 +196,44 @@ const StudyPane = ({
     },
     [],
   );
+
+  useEffect(() => {
+    if (selectedWords.length === 0) {
+      setColorFill(DEFAULT_COLOR_FILL);
+      setBorderColor(DEFAULT_BORDER_COLOR);
+      setTextColor(DEFAULT_TEXT_COLOR);
+      return;
+    }
+
+    const getEffectiveColor = (wordId: number) => {
+      const mapColor = wordsColorMap.get(wordId);
+      if (mapColor) return mapColor;
+      return studyMetadata.words[wordId]?.color;
+    };
+
+    const firstWordId = selectedWords[0].wordId;
+    const firstColor = getEffectiveColor(firstWordId);
+
+    let sameFill = true;
+    let sameBorder = true;
+    let sameText = true;
+
+    const targetFill = firstColor?.fill || DEFAULT_COLOR_FILL;
+    const targetBorder = firstColor?.border || DEFAULT_BORDER_COLOR;
+    const targetText = firstColor?.text || DEFAULT_TEXT_COLOR;
+
+    for (let i = 1; i < selectedWords.length; i++) {
+      const color = getEffectiveColor(selectedWords[i].wordId);
+      if ((color?.fill || DEFAULT_COLOR_FILL) !== targetFill) sameFill = false;
+      if ((color?.border || DEFAULT_BORDER_COLOR) !== targetBorder) sameBorder = false;
+      if ((color?.text || DEFAULT_TEXT_COLOR) !== targetText) sameText = false;
+    }
+
+    setColorFill(sameFill ? targetFill : DEFAULT_COLOR_FILL);
+    setBorderColor(sameBorder ? targetBorder : DEFAULT_BORDER_COLOR);
+    setTextColor(sameText ? targetText : DEFAULT_TEXT_COLOR);
+
+  }, [selectedWords, wordsColorMap, studyMetadata]);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,

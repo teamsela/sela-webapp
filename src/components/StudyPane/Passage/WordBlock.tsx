@@ -259,15 +259,7 @@ export const WordBlock = ({
 
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
-    if (ctxSelectedWords.length >= 1) {
-      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
-      if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
-      }
-    }
-  }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
+  }, [ctxSelectedWords, wordProps.wordId]);
 
   useEffect(() => {
     if (!selected && isEditingGloss) {
