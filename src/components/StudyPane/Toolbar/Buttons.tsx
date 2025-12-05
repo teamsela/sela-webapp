@@ -298,19 +298,6 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       const nextColorMap = new Map(ctxWordsColorMap);
       let mapChanged = false;
       
-      // If syntax highlight is active, remove the modified words from the cache
-      // so that the manual color change persists even if highlight is toggled off,
-      // and we don't need to clear the entire highlight state.
-      if (ctxActiveHighlightIds?.syntax) {
-        const cacheKey = `syntax::${ctxActiveHighlightIds.syntax}`;
-        const cache = ctxHighlightCacheRef.current.get(cacheKey);
-        if (cache) {
-          ctxSelectedWords.forEach((word) => {
-            cache.delete(word.wordId);
-          });
-        }
-      }
-
       // Remove motif overlays if the selected words carried motif source entries.
       if (removeColorMapEntriesBySource(nextColorMap, "motif")) {
         mapChanged = true;
@@ -491,16 +478,6 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       if (isChanged) {
         const nextColorMap = new Map(ctxWordsColorMap);
         ctxSelectedWords.forEach((word) => nextColorMap.delete(word.wordId));
-
-        if (ctxActiveHighlightIds?.syntax) {
-          const cacheKey = `syntax::${ctxActiveHighlightIds.syntax}`;
-          const cache = ctxHighlightCacheRef.current.get(cacheKey);
-          if (cache) {
-            ctxSelectedWords.forEach((word) => {
-              cache.delete(word.wordId);
-            });
-          }
-        }
 
         ctxAddToHistory(ctxStudyMetadata, {
           wordsColorMap: nextColorMap,
