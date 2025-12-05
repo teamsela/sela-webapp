@@ -155,9 +155,10 @@ export const WordBlock = ({
     setGlossDraft(event.target.value);
   }, []);
 
-  if (ctxColorAction != ColorActionType.none ) {
-    const shouldRemoveOverlay =
-      ctxColorAction === ColorActionType.resetAllColor || selected;
+  useEffect(() => {
+    if (ctxColorAction === ColorActionType.none) return;
+
+    const shouldRemoveOverlay = ctxColorAction === ColorActionType.resetAllColor || selected;
 
     if (shouldRemoveOverlay) {
       const overlay = ctxWordsColorMap.get(wordProps.wordId);
@@ -168,44 +169,20 @@ export const WordBlock = ({
       }
     }
 
-    const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
-
-    if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setColorFillLocal(ctxSelectedColor);
-      colorUpdates.fill = ctxSelectedColor;
-    }
-    else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setBorderColorLocal(ctxSelectedColor);
-      colorUpdates.border = ctxSelectedColor;
-    }
-    else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setTextColorLocal(ctxSelectedColor);
-      colorUpdates.text = ctxSelectedColor;
-    }
-    else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
-      if (colorFillLocal !== DEFAULT_COLOR_FILL) {
+    if (selected) {
+      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor !== "") {
+        setColorFillLocal(ctxSelectedColor);
+      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor !== "") {
+        setBorderColorLocal(ctxSelectedColor);
+      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor !== "") {
+        setTextColorLocal(ctxSelectedColor);
+      } else if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
-        colorUpdates.fill = DEFAULT_COLOR_FILL;
-      }
-      if (borderColorLocal !== DEFAULT_BORDER_COLOR) {
         setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        colorUpdates.border = DEFAULT_BORDER_COLOR;
-      }
-      if (textColorLocal !== DEFAULT_TEXT_COLOR) {
         setTextColorLocal(DEFAULT_TEXT_COLOR);
-        colorUpdates.text = DEFAULT_TEXT_COLOR;
       }
     }
-    if (Object.keys(colorUpdates).length > 0) {
-      wordProps.metadata = {
-        ...wordProps.metadata,
-        color: {
-          ...(wordProps.metadata?.color || {}),
-          ...colorUpdates,
-        },
-      };
-    }
-  }
+  }, [ctxColorAction, ctxSelectedColor, selected, ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId]);
 
   useEffect(() => {
 
@@ -320,18 +297,6 @@ export const WordBlock = ({
     ctxSetSelectedWords(newSelectedWords);
     ctxSetNumSelectedWords(newSelectedWords.length);
     ctxSetSelectedStrophes([]);
-
-    ctxSetColorFill(DEFAULT_COLOR_FILL);
-    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-    ctxSetTextColor(DEFAULT_TEXT_COLOR);
-    if (ctxSelectedWords.length >= 1) {
-      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
-      if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
-      }
-    }
   };
 
   const handleDoubleClick = () => {
