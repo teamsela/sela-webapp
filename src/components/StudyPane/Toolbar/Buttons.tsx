@@ -180,9 +180,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   const [stagedMetadata, setStagedMetadata] = useState<StudyMetadata | undefined>(undefined);
 
   const refreshDisplayColor = useCallback(() => {
-    (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
-    (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
-    (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+    (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill || DEFAULT_COLOR_FILL);
+    (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor || DEFAULT_BORDER_COLOR);
+    (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor || DEFAULT_TEXT_COLOR);
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
   
   useEffect(() => {
@@ -297,10 +297,18 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     if (isChanged) {
       const nextColorMap = new Map(ctxWordsColorMap);
       let mapChanged = false;
-      // Manual recolor should always clear syntax highlight state and cache.
-      clearHighlightCacheForSource(ctxHighlightCacheRef.current, "syntax");
+      
+      // If syntax highlight is active, remove the modified words from the cache
+      // so that the manual color change persists even if highlight is toggled off,
+      // and we don't need to clear the entire highlight state.
       if (ctxActiveHighlightIds?.syntax) {
-        ctxSetActiveHighlightId("syntax", null);
+        const cacheKey = `syntax::${ctxActiveHighlightIds.syntax}`;
+        const cache = ctxHighlightCacheRef.current.get(cacheKey);
+        if (cache) {
+          ctxSelectedWords.forEach((word) => {
+            cache.delete(word.wordId);
+          });
+        }
       }
 
       // Remove motif overlays if the selected words carried motif source entries.
@@ -369,7 +377,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker width={580} height={160} color={displayColor} onChange={handleColorPickerChange} />
+              <SwatchesPicker width={580} height={160} color={displayColor || "#FFFFFF"} onChange={handleColorPickerChange} />
             </div>
           </div>
         )
@@ -483,6 +491,16 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
       if (isChanged) {
         const nextColorMap = new Map(ctxWordsColorMap);
         ctxSelectedWords.forEach((word) => nextColorMap.delete(word.wordId));
+
+        if (ctxActiveHighlightIds?.syntax) {
+          const cacheKey = `syntax::${ctxActiveHighlightIds.syntax}`;
+          const cache = ctxHighlightCacheRef.current.get(cacheKey);
+          if (cache) {
+            ctxSelectedWords.forEach((word) => {
+              cache.delete(word.wordId);
+            });
+          }
+        }
 
         ctxAddToHistory(ctxStudyMetadata, {
           wordsColorMap: nextColorMap,
