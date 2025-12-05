@@ -213,21 +213,6 @@ export const useHighlightManager = (
     const metadataClone: StudyMetadata = cloneMetadata(ctxStudyMetadata);
     metadataClone.words ??= {};
     const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
-    let issuedGlobalReset = false;
-
-    const requestGlobalReset = () => {
-      if (ctxSetColorAction && !issuedGlobalReset) {
-        ctxSetColorAction(ColorActionType.resetAllColor);
-        issuedGlobalReset = true;
-      }
-    };
-
-    const finalizeGlobalReset = () => {
-      if (ctxSetColorAction && issuedGlobalReset) {
-        setTimeout(() => ctxSetColorAction(ColorActionType.none), 0);
-        issuedGlobalReset = false;
-      }
-    };
 
     (Object.entries(ctxActiveHighlightIds) as [ColorSource, string | null][]).forEach(
       ([highlightSource, activeId]) => {
@@ -240,13 +225,11 @@ export const useHighlightManager = (
     );
 
     if (activeHighlightId) {
-      requestGlobalReset();
       restoreHighlight(source, activeHighlightId, metadataClone, colorMapClone);
     }
 
     if (activeHighlightId === highlightId) {
       commitHighlightState(metadataClone, colorMapClone, null);
-      finalizeGlobalReset();
       return;
     }
 
@@ -255,11 +238,9 @@ export const useHighlightManager = (
     );
     if (!canApply) {
       commitHighlightState(metadataClone, colorMapClone, null);
-      finalizeGlobalReset();
       return;
     }
 
-    requestGlobalReset();
     let originalColorsSeed: Map<number, ColorData | undefined> | undefined;
     if (preserveCustomColors) {
       originalColorsSeed = snapshotAndClearWordColors(metadataClone, colorMapClone);
@@ -276,7 +257,6 @@ export const useHighlightManager = (
 
     if (!applied) {
       commitHighlightState(metadataClone, colorMapClone, null);
-      finalizeGlobalReset();
       return;
     }
 
@@ -286,7 +266,6 @@ export const useHighlightManager = (
     );
 
     commitHighlightState(metadataClone, colorMapClone, highlightId);
-    finalizeGlobalReset();
   };
 
   useEffect(() => {
