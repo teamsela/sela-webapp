@@ -48,11 +48,15 @@ export const WordBlock = ({
   const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
   const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
 
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const mapColor = ctxWordsColorMap.get(wordProps.wordId);
+  const metaColor = wordProps.metadata?.color;
+
+  const colorFillLocal = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
+  const borderColorLocal = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;
+  const textColorLocal = mapColor?.text ?? metaColor?.text ?? DEFAULT_TEXT_COLOR;
+
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
-  const [selected, setSelected] = useState(false);
+  const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -157,19 +161,7 @@ export const WordBlock = ({
 
 
 
-  useEffect(() => {
-    const mapColor = ctxWordsColorMap.get(wordProps.wordId);
-    const metaColor = wordProps.metadata?.color;
 
-    const effectiveFill = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
-    const effectiveBorder = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;
-    const effectiveText = mapColor?.text ?? metaColor?.text ?? DEFAULT_TEXT_COLOR;
-
-    if (colorFillLocal !== effectiveFill) setColorFillLocal(effectiveFill);
-    if (borderColorLocal !== effectiveBorder) setBorderColorLocal(effectiveBorder);
-    if (textColorLocal !== effectiveText) setTextColorLocal(effectiveText);
-
-  }, [ctxWordsColorMap, wordProps.metadata?.color, wordProps.wordId]);
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
@@ -185,9 +177,7 @@ export const WordBlock = ({
     }
   }, [wordProps.metadata?.indent]);
 
-  useEffect(() => {
-    setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
-  }, [ctxSelectedWords, wordProps.wordId]);
+
 
   useEffect(() => {
     if (!selected && isEditingGloss) {
