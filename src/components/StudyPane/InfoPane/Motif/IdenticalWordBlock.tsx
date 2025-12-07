@@ -35,7 +35,7 @@ export const IdenticalWordBlock = ({
 
   // select the block if all toSelect words are selected in the studyPane, otherwise unselect it
   useEffect(() => {
-    const allSelected = toSelect.every(word => ctxSelectedWords.includes(word));
+    const allSelected = toSelect.every(word => ctxSelectedWords.some(w => w.wordId === word.wordId));
     setSelected(allSelected);
   }, [ctxSelectedWords, toSelect]);
 
@@ -57,11 +57,12 @@ export const IdenticalWordBlock = ({
       setSelected(prevState => !prevState);
       let updatedSelectedWords = [...ctxSelectedWords];
       if (!selected) {
-        updatedSelectedWords = ctxSelectedWords.concat(toSelect);
+        // Filter out any words that are already selected to avoid duplicates
+        const newWords = toSelect.filter(word => !ctxSelectedWords.some(w => w.wordId === word.wordId));
+        updatedSelectedWords = updatedSelectedWords.concat(newWords);
       } else {
-        toSelect.forEach((dsd) => {
-          updatedSelectedWords.splice(updatedSelectedWords.indexOf(dsd), 1)
-        })
+        const idsToRemove = new Set(toSelect.map(w => w.wordId));
+        updatedSelectedWords = updatedSelectedWords.filter(w => !idsToRemove.has(w.wordId));
       }
       ctxSetSelectedWords(updatedSelectedWords);
       ctxSetNumSelectedWords(updatedSelectedWords.length);

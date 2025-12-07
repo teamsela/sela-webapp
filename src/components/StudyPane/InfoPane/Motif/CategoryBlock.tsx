@@ -36,7 +36,7 @@ export const CategoryBlock = ({
     useEffect(() => {
         let hasChildren = true;
         value.wordProps.forEach((word) => {
-            hasChildren = hasChildren && ctxSelectedWords.includes(word);
+            hasChildren = hasChildren && ctxSelectedWords.some(w => w.wordId === word.wordId);
         })
         setSelected(hasChildren);
     }, [ctxSelectedWords, value.wordProps]);
