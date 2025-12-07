@@ -235,8 +235,17 @@ export const WordBlock = ({
   // select or deselect word block
   const handleSingleClick = () => {
     setSelected(prevState => !prevState);
-    const newSelectedWords = [...ctxSelectedWords]; // Clone the array
-    (!selected) ? newSelectedWords.push(wordProps) : newSelectedWords.splice(newSelectedWords.indexOf(wordProps), 1);
+    let newSelectedWords = [...ctxSelectedWords]; // Clone the array
+    
+    if (!selected) {
+      // Add if not already present (by ID)
+      if (!newSelectedWords.some(w => w.wordId === wordProps.wordId)) {
+        newSelectedWords.push(wordProps);
+      }
+    } else {
+      // Remove by ID
+      newSelectedWords = newSelectedWords.filter(w => w.wordId !== wordProps.wordId);
+    }
 
     ctxSetSelectedWords(newSelectedWords);
     ctxSetNumSelectedWords(newSelectedWords.length);
