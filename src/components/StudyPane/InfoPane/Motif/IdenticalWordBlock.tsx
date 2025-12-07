@@ -51,58 +51,7 @@ export const IdenticalWordBlock = ({
     }
   }, [uniformPalette]);
 
-  useEffect(() => {
-    if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
-
-    if (selected) {
-      if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-        setColorFillLocal(ctxSelectedColor);
-        toSelect.forEach((word) => {
-          word.metadata.color ??= {};
-          word.metadata.color.fill = ctxSelectedColor;
-        });
-      } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-        setBorderColorLocal(ctxSelectedColor);
-        toSelect.forEach((word) => {
-          word.metadata.color ??= {};
-          word.metadata.color.border = ctxSelectedColor;
-        });
-      } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-        setTextColorLocal(ctxSelectedColor);
-        toSelect.forEach((word) => {
-          word.metadata.color ??= {};
-          word.metadata.color.text = ctxSelectedColor;
-        });
-      } else if (ctxColorAction === ColorActionType.resetColor) {
-        setColorFillLocal(DEFAULT_COLOR_FILL);
-        setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        setTextColorLocal(DEFAULT_TEXT_COLOR);
-        toSelect.forEach((word) => {
-          delete word.metadata.color;
-        });
-      }
-    }
-    else {
-      if (ctxSelectedWords.some(word => word.strongNumber == toSelect[0].strongNumber)) {
-        const selectedDescendants = ctxSelectedWords.filter(word => word.strongNumber == toSelect[0].strongNumber);
-        selectedDescendants.forEach(word => {
-          toSelect.forEach((dsd) => {
-            if (dsd.wordId === word.wordId) {
-              dsd.metadata.color ??= {};
-              dsd.metadata.color.fill = (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) ? ctxSelectedColor : dsd.metadata.color.fill;
-              dsd.metadata.color.border = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.border;
-              dsd.metadata.color.text = ctxColorAction === ColorActionType.textColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.text;
-            }
-          })
-        })
-
-        const updatedPalette = deriveUniformWordPalette(toSelect);
-        setColorFillLocal(updatedPalette?.fill ?? DEFAULT_COLOR_FILL);
-        setTextColorLocal(updatedPalette?.text ?? DEFAULT_TEXT_COLOR);
-        setBorderColorLocal(updatedPalette?.border ?? DEFAULT_BORDER_COLOR);
-      }
-    }
-  }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords]);
+;
 
   const handleClick = (e: React.MouseEvent) => {
       setSelected(prevState => !prevState);

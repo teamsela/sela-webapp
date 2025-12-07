@@ -53,23 +53,7 @@ export const CategoryBlock = ({
         }
     }, [uniformPalette]);
 
-    useEffect(() => {
-        if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
-    
-        if (selected) {
-            if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-                setColorFillLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-                setBorderColorLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-                setTextColorLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.resetColor) {
-                setColorFillLocal(DEFAULT_COLOR_FILL);
-                setBorderColorLocal(DEFAULT_BORDER_COLOR);
-                setTextColorLocal(DEFAULT_TEXT_COLOR);
-            }
-        }
-    }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords])
+
 
     const handleClick = () => {
         setSelected(prevState => !prevState);
