@@ -158,24 +158,18 @@ export const WordBlock = ({
 
 
   useEffect(() => {
+    const mapColor = ctxWordsColorMap.get(wordProps.wordId);
+    const metaColor = wordProps.metadata?.color;
 
-    if (wordProps.metadata?.color) {
-      const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
-      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
+    const effectiveFill = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
+    const effectiveBorder = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;
+    const effectiveText = mapColor?.text ?? metaColor?.text ?? DEFAULT_TEXT_COLOR;
 
-      const selectedBorderColor = wordProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
-      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
+    if (colorFillLocal !== effectiveFill) setColorFillLocal(effectiveFill);
+    if (borderColorLocal !== effectiveBorder) setBorderColorLocal(effectiveBorder);
+    if (textColorLocal !== effectiveText) setTextColorLocal(effectiveText);
 
-      const selectedTextColor = wordProps.metadata?.color?.text ?? DEFAULT_TEXT_COLOR;
-      (textColorLocal !== selectedTextColor) && setTextColorLocal(selectedTextColor);
-    }
-    else {
-      setColorFillLocal(DEFAULT_COLOR_FILL);
-      setBorderColorLocal(DEFAULT_BORDER_COLOR);
-      setTextColorLocal(DEFAULT_TEXT_COLOR);
-    }
-
-  }, [wordProps.metadata?.color]);
+  }, [ctxWordsColorMap, wordProps.metadata?.color, wordProps.wordId]);
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
@@ -190,22 +184,6 @@ export const WordBlock = ({
       setIndentsLocal(indent);
     }
   }, [wordProps.metadata?.indent]);
-  useEffect(() => {
-    const wordsColor = ctxWordsColorMap.get(wordProps.wordId);
-    if (wordsColor) {
-      const { fill, text, border } = wordsColor;
-
-      if (fill && !wordProps.metadata?.color?.fill) {
-        setColorFillLocal(fill);
-      }
-      if (text && !wordProps.metadata?.color?.text) {
-        setTextColorLocal(text);
-      }
-      if (border && !wordProps.metadata?.color?.border) {
-        setBorderColorLocal(border);
-      }
-    }
-  }, [ctxWordsColorMap, ctxSetWordsColorMap, wordProps.wordId, wordProps.metadata]);
 
   useEffect(() => {
     setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
