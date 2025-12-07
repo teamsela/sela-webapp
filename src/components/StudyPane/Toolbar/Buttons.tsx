@@ -294,7 +294,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
     }
 
-    if (isChanged) {
+    if (isChanged || ctxSelectedWords.length > 0) {
       const nextColorMap = new Map(ctxWordsColorMap);
       let mapChanged = false;
       
