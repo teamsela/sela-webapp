@@ -311,15 +311,24 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxSelectedWords.forEach((word) => {
           const wordMd = ctxStudyMetadata.words[word.wordId] ?? (ctxStudyMetadata.words[word.wordId] = {});
           const desired = hasColor ? { ...normalized } : undefined;
+          
           if (!colorsEqual(wordMd.color, desired)) {
             if (desired) {
               wordMd.color = { ...desired };
-              nextColorMap.set(word.wordId, { ...desired });
             } else {
               delete wordMd.color;
-              nextColorMap.delete(word.wordId);
             }
+          }
+
+          // Always update the map to ensure manual override takes precedence over highlights
+          if (desired) {
+            nextColorMap.set(word.wordId, { ...desired });
             mapChanged = true;
+          } else {
+            if (nextColorMap.has(word.wordId)) {
+              nextColorMap.delete(word.wordId);
+              mapChanged = true;
+            }
           }
         });
       }
