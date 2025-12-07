@@ -224,7 +224,6 @@ export const WordBlock = ({
 
   // select or deselect word block
   const handleSingleClick = () => {
-    setSelected(prevState => !prevState);
     let newSelectedWords = [...ctxSelectedWords]; // Clone the array
     
     if (!selected) {
