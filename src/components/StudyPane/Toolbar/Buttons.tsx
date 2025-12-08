@@ -303,22 +303,14 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         mapChanged = true;
       }
 
-      // If all selected words share a palette, mirror it into the map (keeps chips in sync) without looping updates.
+      // Update the visual map to reflect the changes we just made to the metadata
       if (ctxSelectedWords.length > 0) {
-        const firstPalette = ctxStudyMetadata.words[ctxSelectedWords[0].wordId]?.color;
-        const { source: _src, ...normalized } = firstPalette || {};
-        const hasColor = Object.keys(normalized).length > 0;
         ctxSelectedWords.forEach((word) => {
-          const wordMd = ctxStudyMetadata.words[word.wordId] ?? (ctxStudyMetadata.words[word.wordId] = {});
+          const wordMd = ctxStudyMetadata.words[word.wordId];
+          const palette = wordMd?.color;
+          const { source: _src, ...normalized } = palette || {};
+          const hasColor = Object.keys(normalized).length > 0;
           const desired = hasColor ? { ...normalized } : undefined;
-          
-          if (!colorsEqual(wordMd.color, desired)) {
-            if (desired) {
-              wordMd.color = { ...desired };
-            } else {
-              delete wordMd.color;
-            }
-          }
 
           // Always update the map to ensure manual override takes precedence over highlights
           if (desired) {
