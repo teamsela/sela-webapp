@@ -219,6 +219,26 @@ export const deriveUniformWordPalette = (
   return hasColor ? palette : undefined;
 };
 
+export const deriveUniformFill = (
+  words: WordProps[],
+  options?: UniformPaletteOptions,
+): string | undefined => {
+  if (!words.length) {
+    return undefined;
+  }
+
+  let value = resolveWordColorValue(words[0], "fill", options);
+
+  for (let i = 1; i < words.length; i++) {
+    const current = resolveWordColorValue(words[i], "fill", options);
+    if (current !== value) {
+      return undefined;
+    }
+  }
+
+  return value;
+};
+
 export function wordsHasSameColor(words: WordProps[], actionType: ColorActionType) : boolean {
 
   if (words.length <= 1) return true;

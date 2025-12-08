@@ -3,7 +3,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
 import { ColorData, PassageProps, WordProps } from "@/lib/data";
 import { SyntaxType } from "@/lib/types";
-import { deriveUniformWordPalette } from "@/lib/utils";
+import { deriveUniformWordPalette, deriveUniformFill } from "@/lib/utils";
 
 import { FormatContext } from "../..";
 import AccordionToggleIcon from "../common/AccordionToggleIcon";
@@ -58,7 +58,7 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-adjective": toUserPalette({ fill: "#CDE7AE", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-negative-particle": toUserPalette({ fill: "#B80F3A", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "pos-adverb": toUserPalette({ fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
-  "pos-object-marker": toUserPalette({ fill: "#0F1B4C", border: "#070C26", text: "#FFFFFF" }),
+  "pos-object-marker": toUserPalette({ fill: "#0F1B4C", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "pos-pronoun": toUserPalette({ fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
   "pos-preposition": toUserPalette({ border: "#000000", text: DEFAULT_TEXT_COLOR }),
   "pos-interjection": toUserPalette({ fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
@@ -669,6 +669,12 @@ const getLabelDisplayPalette = (
   if (uniformPalette) {
     return uniformPalette;
   }
+
+  const uniformFill = deriveUniformFill(words, { colorMap, metadataMap });
+  if (uniformFill) {
+    return { fill: uniformFill };
+  }
+
   if (isSectionHighlightFullyApplied(words, activeHighlightId, sectionId, colorMap)) {
     return labelPalette;
   }

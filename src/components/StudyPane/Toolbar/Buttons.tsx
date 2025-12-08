@@ -235,7 +235,41 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
     ctxSelectedWords.forEach((word) => {
       const wordId = word.wordId;
-      const wordMetadata = ctxStudyMetadata.words[wordId];
+      let wordMetadata = ctxStudyMetadata.words[wordId];
+
+      // If the word has a Smart Highlight (source is present), we should try to find the original color
+      // to avoid baking in the highlight traits (like Black Border).
+      const currentMapColor = ctxWordsColorMap.get(wordId);
+      if (currentMapColor?.source) {
+        const source = currentMapColor.source;
+        const activeId = ctxActiveHighlightIds[source];
+        if (activeId) {
+          const cacheKey = `${source}::${activeId}`;
+          const cachedMap = ctxHighlightCacheRef.current.get(cacheKey);
+          
+          // If the cache exists, it means we have original colors stored.
+          // If cachedMap.has(wordId), we use that value (even if undefined, which means uncolored).
+          if (cachedMap && cachedMap.has(wordId)) {
+            const cachedOriginal = cachedMap.get(wordId);
+            
+            // Update metadata to match the original state before applying new color
+            if (cachedOriginal) {
+              if (!wordMetadata) {
+                ctxStudyMetadata.words[wordId] = { color: { ...cachedOriginal } };
+              } else {
+                wordMetadata.color = { ...cachedOriginal };
+              }
+            } else {
+              // Original was uncolored
+              if (wordMetadata) {
+                delete wordMetadata.color;
+              }
+            }
+            // Refresh reference
+            wordMetadata = ctxStudyMetadata.words[wordId];
+          }
+        }
+      }
     
       if (!wordMetadata) {
         isChanged = true;
