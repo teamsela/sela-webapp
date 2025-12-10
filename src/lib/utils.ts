@@ -202,15 +202,17 @@ export const deriveUniformWordPalette = (
 
   for (const key of ["fill", "border", "text"] as (keyof Omit<ColorData, "source">)[]) {
     let value = resolveWordColorValue(words[0], key, options);
+    let isUniform = true;
 
     for (let i = 1; i < words.length; i++) {
       const current = resolveWordColorValue(words[i], key, options);
       if (current !== value) {
-        return undefined;
+        isUniform = false;
+        break;
       }
     }
 
-    if (value !== undefined) {
+    if (isUniform && value !== undefined) {
       palette[key] = value;
       hasColor = true;
     }
