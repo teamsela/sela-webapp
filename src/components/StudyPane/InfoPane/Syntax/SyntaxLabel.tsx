@@ -20,22 +20,24 @@ const SyntaxLabel = ({
   palette?: LabelPalette;
   isActive: boolean;
   isSelected: boolean;
-  onToggleSelection?: () => void;
+  onToggleSelection?: (isMultiSelect: boolean) => void;
 }) => {
   const disabled = wordCount === 0 || !onToggleSelection;
 
-  const handleToggle = () => {
+  const handleToggle = (event: React.MouseEvent<HTMLSpanElement>) => {
     if (disabled) {
       return;
     }
-    onToggleSelection?.();
+    const isMultiSelect = event.ctrlKey || event.metaKey || event.shiftKey;
+    onToggleSelection?.(isMultiSelect);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
     if (KEYBOARD_ACTIVATION_KEYS.has(event.key)) {
       event.preventDefault();
       if (!disabled) {
-        onToggleSelection?.();
+        const isMultiSelect = event.ctrlKey || event.metaKey || event.shiftKey;
+        onToggleSelection?.(isMultiSelect);
       }
     }
   };

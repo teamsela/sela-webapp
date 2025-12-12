@@ -757,7 +757,7 @@ const Syntax = () => {
     );
   };
 
-  const handleLabelSelectionToggle = (words: WordProps[]) => {
+  const handleLabelSelectionToggle = (words: WordProps[], isMultiSelect: boolean) => {
     if (!words.length) {
       return;
     }
@@ -766,16 +766,26 @@ const Syntax = () => {
     const allSelected = words.every((word) => selectedWordIds.has(word.wordId));
     let updatedSelection = [...ctxSelectedWords];
 
-    if (allSelected) {
-      updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+    if (!isMultiSelect) {
+      if (allSelected && ctxSelectedWords.length === words.length) {
+        // Exact match, toggle off
+        updatedSelection = [];
+      } else {
+        // Replace selection
+        updatedSelection = [...words];
+      }
     } else {
-      const existingIds = new Set(updatedSelection.map((word) => word.wordId));
-      words.forEach((word) => {
-        if (!existingIds.has(word.wordId)) {
-          updatedSelection.push(word);
-          existingIds.add(word.wordId);
-        }
-      });
+      if (allSelected) {
+        updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+      } else {
+        const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+        words.forEach((word) => {
+          if (!existingIds.has(word.wordId)) {
+            updatedSelection.push(word);
+            existingIds.add(word.wordId);
+          }
+        });
+      }
     }
 
     ctxSetSelectedWords(updatedSelection);
@@ -894,7 +904,9 @@ const Syntax = () => {
                                 palette={displayPalette}
                                 isActive={activeHighlightId === highlightId}
                                 isSelected={isSelected}
-                                onToggleSelection={() => handleLabelSelectionToggle(words)}
+                                onToggleSelection={(isMultiSelect) =>
+                                  handleLabelSelectionToggle(words, isMultiSelect)
+                                }
                               />
                             );
                           })}
@@ -931,7 +943,9 @@ const Syntax = () => {
                               palette={displayPalette}
                               isActive={activeHighlightId === highlightId}
                               isSelected={isSelected}
-                              onToggleSelection={() => handleLabelSelectionToggle(words)}
+                              onToggleSelection={(isMultiSelect) =>
+                                handleLabelSelectionToggle(words, isMultiSelect)
+                              }
                             />
                           );
                         })}
