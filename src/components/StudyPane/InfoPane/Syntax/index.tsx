@@ -60,7 +60,7 @@ const partsOfSpeechPalette: Record<string, LabelPalette> = {
   "pos-adverb": toUserPalette({ fill: "#D42E86", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "pos-object-marker": toUserPalette({ fill: "#0F1B4C", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "pos-pronoun": toUserPalette({ fill: "#77D9D9", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
-  "pos-preposition": toUserPalette({ border: "#000000", text: DEFAULT_TEXT_COLOR }),
+  "pos-preposition": toUserPalette({ border: "#000000" }),
   "pos-interjection": toUserPalette({ fill: "#FBEA8C", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-interrogative": toUserPalette({ fill: "#F7C06F", border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
   "pos-conjunction": toUserPalette({ fill: DEFAULT_COLOR_FILL, border: DEFAULT_BORDER_COLOR, text: DEFAULT_TEXT_COLOR }),
@@ -667,11 +667,17 @@ const getLabelDisplayPalette = (
   metadataMap: Record<number, { color?: LabelPalette }> | Record<string, { color?: LabelPalette }>,
 ): LabelPalette | undefined => {
   if (uniformPalette) {
+    if (activeHighlightId === sectionId && labelPalette) {
+      return { ...labelPalette, ...uniformPalette };
+    }
     return uniformPalette;
   }
 
   const uniformFill = deriveUniformFill(words, { colorMap, metadataMap });
   if (uniformFill) {
+    if (activeHighlightId === sectionId && labelPalette) {
+      return { ...labelPalette, fill: uniformFill };
+    }
     return { fill: uniformFill };
   }
 
