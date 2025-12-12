@@ -54,18 +54,36 @@ export const IdenticalWordBlock = ({
 ;
 
   const handleClick = (e: React.MouseEvent) => {
-      setSelected(prevState => !prevState);
-      let updatedSelectedWords = [...ctxSelectedWords];
-      if (!selected) {
-        // Filter out any words that are already selected to avoid duplicates
-        const newWords = toSelect.filter(word => !ctxSelectedWords.some(w => w.wordId === word.wordId));
-        updatedSelectedWords = updatedSelectedWords.concat(newWords);
+      const isMultiSelect = e.ctrlKey || e.metaKey || e.shiftKey;
+      
+      const idsToToggle = new Set(toSelect.map((word) => word.wordId));
+      const allSelected = toSelect.every((word) => ctxSelectedWords.some(w => w.wordId === word.wordId));
+      let updatedSelection = [...ctxSelectedWords];
+
+      if (!isMultiSelect) {
+        if (allSelected && ctxSelectedWords.length === toSelect.length) {
+          // Exact match, toggle off
+          updatedSelection = [];
+        } else {
+          // Replace selection
+          updatedSelection = [...toSelect];
+        }
       } else {
-        const idsToRemove = new Set(toSelect.map(w => w.wordId));
-        updatedSelectedWords = updatedSelectedWords.filter(w => !idsToRemove.has(w.wordId));
+        if (allSelected) {
+          updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+        } else {
+          const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+          toSelect.forEach((word) => {
+            if (!existingIds.has(word.wordId)) {
+              updatedSelection.push(word);
+              existingIds.add(word.wordId);
+            }
+          });
+        }
       }
-      ctxSetSelectedWords(updatedSelectedWords);
-      ctxSetNumSelectedWords(updatedSelectedWords.length);
+
+      ctxSetSelectedWords(updatedSelection);
+      ctxSetNumSelectedWords(updatedSelection.length);
   };
 
   return (

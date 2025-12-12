@@ -667,17 +667,11 @@ const getLabelDisplayPalette = (
   metadataMap: Record<number, { color?: LabelPalette }> | Record<string, { color?: LabelPalette }>,
 ): LabelPalette | undefined => {
   if (uniformPalette) {
-    if (activeHighlightId === sectionId && labelPalette) {
-      return { ...labelPalette, ...uniformPalette };
-    }
     return uniformPalette;
   }
 
   const uniformFill = deriveUniformFill(words, { colorMap, metadataMap });
   if (uniformFill) {
-    if (activeHighlightId === sectionId && labelPalette) {
-      return { ...labelPalette, fill: uniformFill };
-    }
     return { fill: uniformFill };
   }
 

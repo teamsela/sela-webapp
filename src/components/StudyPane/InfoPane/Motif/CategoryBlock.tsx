@@ -55,27 +55,38 @@ export const CategoryBlock = ({
 
 
 
-    const handleClick = () => {
-        setSelected(prevState => !prevState);
-        if (category === selectedCategory) {
-            const newSelectedHebWords = ctxSelectedWords.filter(
-                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
-            );
-            ctxSetSelectedWords(newSelectedHebWords);
-            ctxSetNumSelectedWords(newSelectedHebWords.length);
-            setLastSelectedWords([]);
+    const handleClick = (e: React.MouseEvent) => {
+        const isMultiSelect = e.ctrlKey || e.metaKey || e.shiftKey;
+        const words = value.wordProps;
+
+        const idsToToggle = new Set(words.map((word) => word.wordId));
+        const allSelected = words.every((word) => ctxSelectedWords.some(w => w.wordId === word.wordId));
+        let updatedSelection = [...ctxSelectedWords];
+  
+        if (!isMultiSelect) {
+          if (allSelected && ctxSelectedWords.length === words.length) {
+            // Exact match, toggle off
+            updatedSelection = [];
+          } else {
+            // Replace selection
+            updatedSelection = [...words];
+          }
         } else {
-            const wordsWithoutPrevCategory = ctxSelectedWords.filter(
-                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
-            );
-            
-            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));           
-            
-            //setSelectedCategory(category);
-            ctxSetSelectedWords(newSelectedHebWords);
-            ctxSetNumSelectedWords(newSelectedHebWords.length);            
-            setLastSelectedWords(value.wordProps);
+          if (allSelected) {
+            updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+          } else {
+            const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+            words.forEach((word) => {
+              if (!existingIds.has(word.wordId)) {
+                updatedSelection.push(word);
+                existingIds.add(word.wordId);
+              }
+            });
+          }
         }
+  
+        ctxSetSelectedWords(updatedSelection);
+        ctxSetNumSelectedWords(updatedSelection.length);
     };
     return (
         <div className="flex my-1">
