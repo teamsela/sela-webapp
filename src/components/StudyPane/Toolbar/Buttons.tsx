@@ -248,31 +248,15 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           const cachedMap = ctxHighlightCacheRef.current.get(cacheKey);
           
           // If the cache exists, it means we have original colors stored.
-          // If cachedMap.has(wordId), we use that value (even if undefined, which means uncolored).
-          if (cachedMap && cachedMap.has(wordId)) {
-            const cachedOriginal = cachedMap.get(wordId) || {};
-            
-            // Create a new original based on the cached one to preserve manual changes
-            // even when the highlight is toggled off later.
-            const newOriginal = { ...cachedOriginal };
-            
-            switch (colorAction) {
-              case ColorActionType.colorFill: newOriginal.fill = color.hex; break;
-              case ColorActionType.borderColor: newOriginal.border = color.hex; break;
-              case ColorActionType.textColor: newOriginal.text = color.hex; break;
-            }
-            
-            // Update the cache with the new "original" state
-            cachedMap.set(wordId, Object.keys(newOriginal).length > 0 ? newOriginal : undefined);
-            
-            // Ensure metadata exists so we can update it below (merging manual change with current highlight)
-            if (!wordMetadata) {
-               ctxStudyMetadata.words[wordId] = { color: {} };
-               wordMetadata = ctxStudyMetadata.words[wordId];
-            }
-            
-            // Do NOT revert metadata to cachedOriginal. 
-            // We want to apply the manual change ON TOP of the current highlight.
+          // We do NOT revert to the cached original here, because we want the manual change
+          // to apply on top of the active highlight (e.g. changing fill while keeping highlight border).
+          // We also do NOT update the cache, because "Clear Highlight" should revert everything
+          // including these manual changes.
+          
+          // Ensure metadata exists so we can update it below
+          if (!wordMetadata) {
+             ctxStudyMetadata.words[wordId] = { color: {} };
+             wordMetadata = ctxStudyMetadata.words[wordId];
           }
         }
       }
