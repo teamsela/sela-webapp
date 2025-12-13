@@ -250,23 +250,29 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           // If the cache exists, it means we have original colors stored.
           // If cachedMap.has(wordId), we use that value (even if undefined, which means uncolored).
           if (cachedMap && cachedMap.has(wordId)) {
-            const cachedOriginal = cachedMap.get(wordId);
+            const cachedOriginal = cachedMap.get(wordId) || {};
             
-            // Update metadata to match the original state before applying new color
-            if (cachedOriginal) {
-              if (!wordMetadata) {
-                ctxStudyMetadata.words[wordId] = { color: { ...cachedOriginal } };
-              } else {
-                wordMetadata.color = { ...cachedOriginal };
-              }
-            } else {
-              // Original was uncolored
-              if (wordMetadata) {
-                delete wordMetadata.color;
-              }
+            // Create a new original based on the cached one to preserve manual changes
+            // even when the highlight is toggled off later.
+            const newOriginal = { ...cachedOriginal };
+            
+            switch (colorAction) {
+              case ColorActionType.colorFill: newOriginal.fill = color.hex; break;
+              case ColorActionType.borderColor: newOriginal.border = color.hex; break;
+              case ColorActionType.textColor: newOriginal.text = color.hex; break;
             }
-            // Refresh reference
-            wordMetadata = ctxStudyMetadata.words[wordId];
+            
+            // Update the cache with the new "original" state
+            cachedMap.set(wordId, Object.keys(newOriginal).length > 0 ? newOriginal : undefined);
+            
+            // Ensure metadata exists so we can update it below (merging manual change with current highlight)
+            if (!wordMetadata) {
+               ctxStudyMetadata.words[wordId] = { color: {} };
+               wordMetadata = ctxStudyMetadata.words[wordId];
+            }
+            
+            // Do NOT revert metadata to cachedOriginal. 
+            // We want to apply the manual change ON TOP of the current highlight.
           }
         }
       }
@@ -348,7 +354,11 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
           // Always update the map to ensure manual override takes precedence over highlights
           if (desired) {
-            nextColorMap.set(word.wordId, { ...desired });
+            // Preserve the source if it exists, so subsequent edits can still access the highlight cache
+            const currentMapColor = ctxWordsColorMap.get(word.wordId);
+            const preservedSource = currentMapColor?.source;
+            
+            nextColorMap.set(word.wordId, { ...desired, ...(preservedSource ? { source: preservedSource } : {}) });
             mapChanged = true;
           } else {
             if (nextColorMap.has(word.wordId)) {
