@@ -760,26 +760,16 @@ const Syntax = () => {
     const allSelected = words.every((word) => selectedWordIds.has(word.wordId));
     let updatedSelection = [...ctxSelectedWords];
 
-    if (!isMultiSelect) {
-      if (allSelected && ctxSelectedWords.length === words.length) {
-        // Exact match, toggle off
-        updatedSelection = [];
-      } else {
-        // Replace selection
-        updatedSelection = [...words];
-      }
+    if (allSelected) {
+      updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
     } else {
-      if (allSelected) {
-        updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
-      } else {
-        const existingIds = new Set(updatedSelection.map((word) => word.wordId));
-        words.forEach((word) => {
-          if (!existingIds.has(word.wordId)) {
-            updatedSelection.push(word);
-            existingIds.add(word.wordId);
-          }
-        });
-      }
+      const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+      words.forEach((word) => {
+        if (!existingIds.has(word.wordId)) {
+          updatedSelection.push(word);
+          existingIds.add(word.wordId);
+        }
+      });
     }
 
     ctxSetSelectedWords(updatedSelection);
