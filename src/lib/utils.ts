@@ -1,9 +1,9 @@
 import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata, WordMetadata } from "./data";
-import { psalmBook, genesisBook, jonahBook } from "./chapterCounts";
+import { psalmBook, genesisBook, isaiahBook, jonahBook } from "./chapterCounts";
 import { ColorActionType, StropheNote } from "./types";
 import { z } from 'zod';
 
-const otBookSchema = z.enum(['genesis', 'psalms', 'jonah'])
+const otBookSchema = z.enum(['genesis', 'psalms', 'isaiah', 'jonah'])
 
 export type PassageInfo = {
     book: string|null|undefined,
@@ -27,6 +27,7 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
   const bookMap = {
     genesis: genesisBook,
     psalms: psalmBook,
+    isaiah: isaiahBook,
     jonah: jonahBook,
   }[book];
   const totalChapters = Object.keys(bookMap).length;
