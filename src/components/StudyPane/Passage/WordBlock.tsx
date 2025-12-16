@@ -36,7 +36,7 @@ export const WordBlock = ({
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
-    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
@@ -334,7 +334,12 @@ export const WordBlock = ({
           onClick={handleClick}
         >
           {wordProps.showVerseNum ?
-            <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
+            <EsvPopover
+              verseNumStyles={verseNumStyles}
+              chapterNumber={wordProps.chapter}
+              verseNumber={wordProps.verse}
+              bookName={ctxStudyBook}
+            /> :
             (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
