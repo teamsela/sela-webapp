@@ -1320,12 +1320,26 @@ export async function fetchPassageContentOld(studyId: string) {
   }
 }
 
-export async function fetchESVTranslation(chapter: number, verse: number) {
+export async function fetchESVTranslation(book: string, chapter: number, verse: number) {
 
   const ESV_API_KEY = process.env.ESV_API_KEY;
+  const normalizedBook = (book || 'psalms').trim().toLowerCase();
+  const esvBookNameMap: Record<string, string> = {
+    psalms: 'Psalm',
+    genesis: 'Genesis',
+    isaiah: 'Isaiah',
+    jonah: 'Jonah',
+  };
+  const formatBookName = (value: string) =>
+    value
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  const queryBook = esvBookNameMap[normalizedBook] ?? (formatBookName(normalizedBook) || 'Psalm');
 
   const esvApiEndpoint = new URL('https://api.esv.org/v3/passage/text/?');
-  esvApiEndpoint.searchParams.append('q', 'Psalm+' + chapter + ':' + verse);
+  esvApiEndpoint.searchParams.append('q', `${queryBook}+${chapter}:${verse}`);
   esvApiEndpoint.searchParams.append('include-headings', 'false');
   esvApiEndpoint.searchParams.append('include-footnotes', 'false');
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
