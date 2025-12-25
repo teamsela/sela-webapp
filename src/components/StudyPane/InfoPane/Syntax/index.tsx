@@ -256,6 +256,14 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     highlightable: true,
   },
   {
+    id: "pos-interrogative",
+    label: "Interrogative",
+    palette: partsOfSpeechPalette["pos-interrogative"],
+    predicate: (features) =>
+      features.tokens.has("INTERROG") || features.tokens.has("INTERROGATIVE"),
+    highlightable: true,
+  },
+  {
     id: "pos-preposition",
     label: "Preposition",
     palette: partsOfSpeechPalette["pos-preposition"],
@@ -268,14 +276,6 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     palette: partsOfSpeechPalette["pos-interjection"],
     predicate: (features) =>
       features.tokens.has("INTERJECTION") || features.tokens.has("INTERJ"),
-    highlightable: true,
-  },
-  {
-    id: "pos-interrogative",
-    label: "Interrogative",
-    palette: partsOfSpeechPalette["pos-interrogative"],
-    predicate: (features) =>
-      features.tokens.has("INTERROG") || features.tokens.has("INTERROGATIVE"),
     highlightable: true,
   },
   {

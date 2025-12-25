@@ -321,11 +321,6 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     if (isChanged || ctxSelectedWords.length > 0) {
       const nextColorMap = new Map(ctxWordsColorMap);
       let mapChanged = false;
-      
-      // Remove motif overlays if the selected words carried motif source entries.
-      if (removeColorMapEntriesBySource(nextColorMap, "motif")) {
-        mapChanged = true;
-      }
 
       // Update the visual map to reflect the changes we just made to the metadata
       if (ctxSelectedWords.length > 0) {
