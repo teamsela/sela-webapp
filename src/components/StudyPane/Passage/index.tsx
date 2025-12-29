@@ -378,7 +378,14 @@ const Passage = ({
       const updatedPassageProps = mergeData(bibleData, newMetadata);
 
       const updatedStropheNotes: StropheNote[] = [];
-      const oldNotes: StudyNotes = JSON.parse(ctxStudyNotes) || {main: "", strophes: []};
+      let oldNotes: StudyNotes = { main: "", strophes: [] };
+      try {
+        if (ctxStudyNotes) {
+          oldNotes = JSON.parse(ctxStudyNotes);
+        }
+      } catch (err) {
+        console.warn("Failed to parse study notes; resetting to defaults", err);
+      }
       updatedPassageProps.stanzaProps.forEach((stanza) => {
         stanza.strophes.forEach((strophe) => {
           const firstWord = strophe.lines[0].words[0].wordId;
