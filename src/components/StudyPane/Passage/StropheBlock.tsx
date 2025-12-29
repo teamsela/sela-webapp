@@ -326,7 +326,7 @@ export const StropheBlock = ({
                       return (
                         <div 
                           key={"line_" + lineId}
-                          className={`flex`}
+                          className={`flex my-1`}
                         >
                         {
                           line.words.map((word) => {
@@ -372,7 +372,7 @@ export const StropheBlock = ({
                       return (
                         <div 
                           key={"line_" + lineId}
-                          className={`flex`}
+                          className={`flex my-1 `}
                         >
                         {
                           line.words.map((word) => {
