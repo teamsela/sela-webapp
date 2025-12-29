@@ -307,7 +307,7 @@ export const StropheBlock = ({
                 <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
               </div>
               <div
-                className={`${shouldShowWords ? '' : 'hidden'} flex-1`}
+                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
               >
                 <div ref={wordAreaRef}>
                   {stropheNoteTitle && shouldRenderWordArea && (
@@ -353,7 +353,7 @@ export const StropheBlock = ({
           ) : (
             <div className="relative">
               <div
-                className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''}`}
+                className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
               >
                 <div ref={wordAreaRef}>
                   {stropheNoteTitle && shouldRenderWordArea && (
