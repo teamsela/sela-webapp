@@ -272,7 +272,7 @@ export const StropheBlock = ({
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
-          className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
+          className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -285,7 +285,7 @@ export const StropheBlock = ({
       }
       </div>
       {shouldShowCollapsedTitle && (
-        <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+        <div className={`flex w-full items-center ${noteTitleWrapperClass}`}>
           <span
             className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
             dir="auto"
