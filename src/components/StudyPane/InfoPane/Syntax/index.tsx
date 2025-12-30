@@ -264,13 +264,6 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     highlightable: true,
   },
   {
-    id: "pos-preposition",
-    label: "Preposition",
-    palette: partsOfSpeechPalette["pos-preposition"],
-    predicate: (features) => hasPrepositionComponent(features),
-    highlightable: true,
-  },
-  {
     id: "pos-interjection",
     label: "Interjection",
     palette: partsOfSpeechPalette["pos-interjection"],
@@ -291,6 +284,13 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
     label: "Proper Noun",
     palette: partsOfSpeechPalette["pos-proper-noun"],
     predicate: (features) => isProperNoun(features),
+    highlightable: true,
+  },
+  {
+    id: "pos-preposition",
+    label: "Preposition",
+    palette: partsOfSpeechPalette["pos-preposition"],
+    predicate: (features) => hasPrepositionComponent(features),
     highlightable: true,
   },
 ];

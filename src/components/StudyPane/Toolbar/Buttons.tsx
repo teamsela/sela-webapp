@@ -333,11 +333,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
           // Always update the map to ensure manual override takes precedence over highlights
           if (desired) {
-            // Preserve the source if it exists, so subsequent edits can still access the highlight cache
-            const currentMapColor = ctxWordsColorMap.get(word.wordId);
-            const preservedSource = currentMapColor?.source;
-            
-            nextColorMap.set(word.wordId, { ...desired, ...(preservedSource ? { source: preservedSource } : {}) });
+            nextColorMap.set(word.wordId, { ...desired });
             mapChanged = true;
           } else {
             if (nextColorMap.has(word.wordId)) {
