@@ -462,6 +462,7 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
+        // primary window
           <div className='flex flex-row mx-auto w-[100%]'>
             <PassageBlock isHebrew={true}/>
             <PassageBlock isHebrew={false}/>
