@@ -24,6 +24,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
   return (
     <LanguageContext.Provider value={languageContextValue}>
     <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${isHebrew ? "hbFont w-[70%]" : "w-[100%]"} flex relative pl-2 py-4`}>
+    {/* <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${isHebrew ? "hbFont w-fit" : "w-fit"} flex relative pl-2 py-4`}> */}
         <div className={`flex ${ctxLanguageMode == LanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {
