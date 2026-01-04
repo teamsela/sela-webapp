@@ -300,9 +300,12 @@ const StudyPane = ({
       })
     });
 
-    passageData.study.metadata = studyMetadata1;
-    setStudyMetadata(studyMetadata1)
-    updateMetadataInDb(passageData.study.id, studyMetadata1);
+    const newMetadata = structuredClone(studyMetadata1);
+    passageData.study.metadata = newMetadata;
+    setStudyMetadata(newMetadata);
+    setHistory([structuredClone(newMetadata)]);
+    setPointer(0);
+    updateMetadataInDb(passageData.study.id, newMetadata);
   }
 
   return (
