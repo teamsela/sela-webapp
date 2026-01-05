@@ -33,7 +33,10 @@ const tables = [
       { name: "lemmaLink", type: "link", link: { table: "lexicon" } },
       { name: "relatedStrongCodes", type: "multiple" },
     ],
-    revLinks: [{ column: "motifLink", table: "heb_bible" }],
+    revLinks: [
+      { column: "motifLink", table: "heb_bible" },
+      { column: "motifLink", table: "heb_bible_genesis_and_psalms" },
+    ],
   },
   {
     name: "lexicon",
@@ -118,6 +121,35 @@ const tables = [
       { name: "stanzaId", type: "int", notNull: true, defaultValue: "0" },
     ],
   },
+  {
+    name: "heb_bible_genesis_and_psalms",
+    columns: [
+      { name: "hebId", type: "int" },
+      { name: "book", type: "text" },
+      { name: "chapter", type: "int" },
+      { name: "verse", type: "int" },
+      { name: "wlcWord", type: "text" },
+      { name: "hebUnicode", type: "text" },
+      { name: "strongNumber", type: "float" },
+      { name: "gloss", type: "text" },
+      { name: "morphology", type: "text" },
+      { name: "WLCsort", type: "float" },
+      { name: "poetryMarker", type: "bool" },
+      { name: "paragraphMarker", type: "bool" },
+      { name: "stropheBreak", type: "bool" },
+      { name: "verseBreak", type: "bool" },
+      { name: "BSBnewStanza", type: "bool" },
+      { name: "ETCBCgloss", type: "text" },
+      { name: "HebSort", type: "float" },
+      { name: "BSBSort", type: "float" },
+      { name: "Vs", type: "int" },
+      { name: "BSBVersion", type: "text" },
+      { name: "mergecolumn", type: "float" },
+      { name: "BSBnewLine", type: "bool" },
+      { name: "motifLink_old", type: "float" },
+      { name: "motifLink", type: "link", link: { table: "motif" } },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -147,6 +179,11 @@ export type StropheStylingRecord = StropheStyling & XataRecord;
 export type StanzaStyling = InferredTypes["stanzaStyling"];
 export type StanzaStylingRecord = StanzaStyling & XataRecord;
 
+export type HebBibleGenesisAndPsalms =
+  InferredTypes["heb_bible_genesis_and_psalms"];
+export type HebBibleGenesisAndPsalmsRecord = HebBibleGenesisAndPsalms &
+  XataRecord;
+
 export type DatabaseSchema = {
   study: StudyRecord;
   motif: MotifRecord;
@@ -156,6 +193,7 @@ export type DatabaseSchema = {
   styling: StylingRecord;
   stropheStyling: StropheStylingRecord;
   stanzaStyling: StanzaStylingRecord;
+  heb_bible_genesis_and_psalms: HebBibleGenesisAndPsalmsRecord;
 };
 
 const DatabaseClient = buildClient();

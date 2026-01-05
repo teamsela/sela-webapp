@@ -719,7 +719,7 @@ export async function fetchPassageData(studyId: string) {
       if (passageInfo instanceof Error === false)
       {
         const passageFilter = createPassageRangeFilter(passageInfo);
-        const passageContent = await xataClient.db.heb_bible
+        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
           .filter(passageFilter)
           .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
@@ -1185,7 +1185,7 @@ export async function fetchPassageContentOld(studyId: string) {
         });
 
         const passageFilter = createPassageRangeFilter(passageInfo);
-        const passageContent = await xataClient.db.heb_bible
+        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
           .filter(passageFilter)
           .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
