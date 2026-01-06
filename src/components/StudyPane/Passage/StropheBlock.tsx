@@ -246,7 +246,7 @@ export const StropheBlock = ({
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
-        className={`${stanzaExpanded ? 'mx-[0.5]' : 'pt-2 mx-1'} hover:bg-theme active:bg-transparent`}
+        className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
