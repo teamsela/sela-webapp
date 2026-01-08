@@ -7,13 +7,7 @@ import { FormatContext } from '../../index';
 import { IdenticalWordBlock } from "./IdenticalWordBlock";
 import RelatedWordSwitcher from "./RelatedWordSwitcher";
 
-import SmartHighlight from '@/components/Modals/SmartHighlight';
-
-export const IdenticalWordColorPalette = [
-    '#e57373', '#64b5f6', '#81c784', '#ffeb3b', '#ffb74d', '#90a4ae', '#9575cd', '#00bcd4', '#f06292', '#a1887f',
-    '#ffccbc', '#bbdefb', '#c8e6c9', '#fff9c4', '#ffe0b2', '#cfd8dc', '#d1c4e9', '#b2ebf2', '#f8bbd0', '#d7ccc8',
-    '#b71c1c', '#1976d2', '#388e3c', '#afb42b', '#ff6f00', '#607d8b', '#673ab7', '#0097a7', '#e91e63', '#795548'
-];
+import SmartHighlight from '@/components/StudyPane/InfoPane/Motif/SmartHighlight';
 
 export type IdenticalWordProps = {
     wordId: number,
@@ -62,7 +56,7 @@ const IdenticalWord = () => {
                 </div>
             </div>
             <div className="w-full bottom-0 left-0 flex justify-center mt-3">
-                <SmartHighlight indeticalWords={identicalWordPropsArray} />
+                <SmartHighlight identicalWords={identicalWordPropsArray} />
             </div>
         </div>
     );

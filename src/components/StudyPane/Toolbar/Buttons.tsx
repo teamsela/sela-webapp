@@ -1,6 +1,6 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow } from "react-icons/lu";
+import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuNotebookPen } from "react-icons/lu";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
@@ -13,11 +13,23 @@ import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 import { SwatchesPicker } from 'react-color';
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
-import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
 import { updateMetadataInDb } from "@/lib/actions";
 
-import { StudyMetadata, StropheProps, WordProps } from '@/lib/data';
+import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
+import { clearAllFormattingState } from "@/lib/formatting";
+
+const colorsEqual = (a?: Partial<ColorData> | null, b?: Partial<ColorData> | null) => {
+  const norm = (c?: Partial<ColorData> | null) => ({
+    fill: c?.fill ?? null,
+    border: c?.border ?? null,
+    text: c?.text ?? null,
+  });
+  const left = norm(a);
+  const right = norm(b);
+  return left.fill === right.fill && left.border === right.border && left.text === right.text;
+};
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
@@ -28,17 +40,65 @@ export const ToolTip = ({ text }: { text: string }) => {
   )
 }
 
+const removeColorMapEntriesBySource = (colorMap: Map<number, ColorData>, source: ColorSource) => {
+  let changed = false;
+  Array.from(colorMap.entries()).forEach(([wordId, color]) => {
+    if (color?.source === source) {
+      colorMap.delete(wordId);
+      changed = true;
+    }
+  });
+  return changed;
+};
+
+const clearHighlightCacheForSource = (
+  cache: Map<string, Map<number, ColorData | undefined>>,
+  source: ColorSource,
+) => {
+  Array.from(cache.keys()).forEach((key) => {
+    if (key.startsWith(`${source}::`)) {
+      cache.delete(key);
+    }
+  });
+};
+
 export const UndoBtn = () => {
-  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxSetStudyMetadata,
+    ctxHistory,
+    ctxPointer,
+    ctxSetPointer,
+    ctxSetWordsColorMap,
+    ctxSetActiveHighlightId,
+    ctxHighlightCacheRef,
+  } = useContext(FormatContext);
+
+  const restoreHistoryEntry = useCallback(
+    (entry: HistoryEntry) => {
+      const metadataClone = structuredClone(entry.metadata);
+      ctxSetStudyMetadata(metadataClone);
+      ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
+      ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
+      Object.entries(entry.activeHighlightIds).forEach(([source, id]) =>
+        ctxSetActiveHighlightId(source as ColorSource, id),
+      );
+      updateMetadataInDb(ctxStudyId, metadataClone);
+    },
+    [ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxSetStudyMetadata, ctxSetWordsColorMap, ctxStudyId],
+  );
 
   const buttonEnabled = (ctxPointer !== 0);
 
   const handleClick = () => {
     if (buttonEnabled) {
       const newPointer = ctxPointer - 1;
+      const entry = ctxHistory[newPointer];
+      if (!entry) {
+        return;
+      }
       ctxSetPointer(newPointer);
-      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+      restoreHistoryEntry(entry);
     }
   }
 
@@ -55,16 +115,42 @@ export const UndoBtn = () => {
 };
 
 export const RedoBtn = () => {
-  const { ctxStudyId, ctxSetStudyMetadata, ctxHistory, ctxPointer, ctxSetPointer } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxSetStudyMetadata,
+    ctxHistory,
+    ctxPointer,
+    ctxSetPointer,
+    ctxSetWordsColorMap,
+    ctxSetActiveHighlightId,
+    ctxHighlightCacheRef,
+  } = useContext(FormatContext);
+
+  const restoreHistoryEntry = useCallback(
+    (entry: HistoryEntry) => {
+      const metadataClone = structuredClone(entry.metadata);
+      ctxSetStudyMetadata(metadataClone);
+      ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
+      ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
+      Object.entries(entry.activeHighlightIds).forEach(([source, id]) =>
+        ctxSetActiveHighlightId(source as ColorSource, id),
+      );
+      updateMetadataInDb(ctxStudyId, metadataClone);
+    },
+    [ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxSetStudyMetadata, ctxSetWordsColorMap, ctxStudyId],
+  );
 
   const buttonEnabled = (ctxPointer !== ctxHistory.length - 1);
 
   const handleClick = () => {
     if (buttonEnabled) {
       const newPointer = ctxPointer + 1;
+      const entry = ctxHistory[newPointer];
+      if (!entry) {
+        return;
+      }
       ctxSetPointer(newPointer);
-      ctxSetStudyMetadata(structuredClone(ctxHistory[newPointer]));
-      updateMetadataInDb(ctxStudyId, ctxHistory[newPointer]);  
+      restoreHistoryEntry(entry);
     }
   }
   return (
@@ -85,7 +171,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory,
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -93,9 +180,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   const [stagedMetadata, setStagedMetadata] = useState<StudyMetadata | undefined>(undefined);
 
   const refreshDisplayColor = useCallback(() => {
-    (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill);
-    (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor);
-    (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor);
+    (colorAction === ColorActionType.colorFill) && setDisplayColor(ctxColorFill || DEFAULT_COLOR_FILL);
+    (colorAction === ColorActionType.borderColor) && setDisplayColor(ctxBorderColor || DEFAULT_BORDER_COLOR);
+    (colorAction === ColorActionType.textColor) && setDisplayColor(ctxTextColor || DEFAULT_TEXT_COLOR);
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
   
   useEffect(() => {
@@ -148,7 +235,31 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 
     ctxSelectedWords.forEach((word) => {
       const wordId = word.wordId;
-      const wordMetadata = ctxStudyMetadata.words[wordId];
+      let wordMetadata = ctxStudyMetadata.words[wordId];
+
+      // If the word has a Smart Highlight (source is present), we should try to find the original color
+      // to avoid baking in the highlight traits (like Black Border).
+      const currentMapColor = ctxWordsColorMap.get(wordId);
+      if (currentMapColor?.source) {
+        const source = currentMapColor.source;
+        const activeId = ctxActiveHighlightIds[source];
+        if (activeId) {
+          const cacheKey = `${source}::${activeId}`;
+          const cachedMap = ctxHighlightCacheRef.current.get(cacheKey);
+          
+          // If the cache exists, it means we have original colors stored.
+          // We do NOT revert to the cached original here, because we want the manual change
+          // to apply on top of the active highlight (e.g. changing fill while keeping highlight border).
+          // We also do NOT update the cache, because "Clear Highlight" should revert everything
+          // including these manual changes.
+          
+          // Ensure metadata exists so we can update it below
+          if (!wordMetadata) {
+             ctxStudyMetadata.words[wordId] = { color: {} };
+             wordMetadata = ctxStudyMetadata.words[wordId];
+          }
+        }
+      }
     
       if (!wordMetadata) {
         isChanged = true;
@@ -207,6 +318,37 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
     }
 
+    if (isChanged || ctxSelectedWords.length > 0) {
+      const nextColorMap = new Map(ctxWordsColorMap);
+      let mapChanged = false;
+
+      // Update the visual map to reflect the changes we just made to the metadata
+      if (ctxSelectedWords.length > 0) {
+        ctxSelectedWords.forEach((word) => {
+          const wordMd = ctxStudyMetadata.words[word.wordId];
+          const palette = wordMd?.color;
+          const { source: _src, ...normalized } = palette || {};
+          const hasColor = Object.keys(normalized).length > 0;
+          const desired = hasColor ? { ...normalized } : undefined;
+
+          // Always update the map to ensure manual override takes precedence over highlights
+          if (desired) {
+            nextColorMap.set(word.wordId, { ...desired });
+            mapChanged = true;
+          } else {
+            if (nextColorMap.has(word.wordId)) {
+              nextColorMap.delete(word.wordId);
+              mapChanged = true;
+            }
+          }
+        });
+      }
+
+      if (mapChanged) {
+        ctxSetWordsColorMap(nextColorMap);
+      }
+    }
+
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
   } 
 
@@ -242,7 +384,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker width={580} height={160} color={displayColor} onChange={handleColorPickerChange} />
+              <SwatchesPicker width={580} height={160} color={displayColor || "#FFFFFF"} onChange={handleColorPickerChange} />
             </div>
           </div>
         )
@@ -307,7 +449,9 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   const { ctxStudyId, ctxStudyMetadata, ctxAddToHistory,
     ctxNumSelectedWords, ctxSelectedWords, 
     ctxNumSelectedStrophes, ctxSelectedStrophes,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
+    ctxSetWordsColorMap, ctxWordsColorMap, ctxHighlightCacheRef,
+    ctxActiveHighlightIds, ctxSetActiveHighlightId
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -352,9 +496,19 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
         }
       }
       if (isChanged) {
-        ctxAddToHistory(ctxStudyMetadata);
+        const nextColorMap = new Map(ctxWordsColorMap);
+        ctxSelectedWords.forEach((word) => nextColorMap.delete(word.wordId));
+
+        ctxAddToHistory(ctxStudyMetadata, {
+          wordsColorMap: nextColorMap,
+          activeHighlightIds: ctxActiveHighlightIds,
+          highlightCache: ctxHighlightCacheRef.current,
+        });
+        ctxSetWordsColorMap(nextColorMap);
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
+
+      // keep active highlights intact; we only cleared selected words
     }
   }
 
@@ -374,7 +528,9 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
 
   const { ctxStudyId, ctxStudyMetadata, ctxNumSelectedWords,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxAddToHistory, ctxSetRootsColorMap
+    ctxAddToHistory, ctxSetWordsColorMap,
+    ctxSetActiveHighlightId, ctxHighlightCacheRef, ctxActiveHighlightIds,
+    ctxWordsColorMap, ctxSetStudyMetadata,
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -400,25 +556,33 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
     ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
-    let isChanged = false;
+    const metadataClone = structuredClone(ctxStudyMetadata);
+    const colorMapClone = new Map<number, ColorData>(ctxWordsColorMap);
+    const cleared = clearAllFormattingState(metadataClone, colorMapClone);
 
-    Object.values(ctxStudyMetadata.words).forEach((wordMetadata) => {
-      if (wordMetadata && wordMetadata?.color) {
-        isChanged = true;
-        delete wordMetadata["color"];
-      }
-      if (wordMetadata && wordMetadata?.stropheMd && wordMetadata.stropheMd.color) {
-        isChanged = true;
-        delete wordMetadata.stropheMd.color;
-      }
-    });
-
-    if (isChanged) {
-      ctxSetRootsColorMap(new Map());
-      ctxAddToHistory(ctxStudyMetadata);
-      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-      setButtonEnabled(false);
+    if (!cleared) {
+      return;
     }
+
+    ctxSetWordsColorMap(colorMapClone);
+    ctxHighlightCacheRef.current.clear();
+    Object.keys(ctxActiveHighlightIds).forEach((highlightSource) =>
+      ctxSetActiveHighlightId(highlightSource as ColorSource, null),
+    );
+    ctxSetStudyMetadata(metadataClone);
+    const clearedActiveHighlights: Record<ColorSource, string | null> = {
+      ...ctxActiveHighlightIds,
+    };
+    Object.keys(clearedActiveHighlights).forEach(
+      (highlightSource) => (clearedActiveHighlights[highlightSource as ColorSource] = null),
+    );
+    ctxAddToHistory(metadataClone, {
+      wordsColorMap: colorMapClone,
+      activeHighlightIds: clearedActiveHighlights,
+      highlightCache: ctxHighlightCacheRef.current,
+    });
+    updateMetadataInDb(ctxStudyId, metadataClone);
+    setButtonEnabled(false);
   }
 
   return (
@@ -742,3 +906,19 @@ export const StudyBtn = ({
     </>   
   );
 };
+
+export const StropheNoteBtn = () => {
+  const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn, ctxLanguageMode } = useContext(FormatContext)
+  const disabled = ctxLanguageMode === LanguageMode.Parallel;
+  return (
+    <div >
+      <button 
+        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
+        disabled={disabled}
+      >
+      <LuNotebookPen />
+      </button>
+    </div>
+  )
+}

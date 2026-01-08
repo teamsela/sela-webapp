@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useRef, MutableRefObject, useCallback } from "react";
 
 import Header from "./Header";
 import Passage from "./Passage";
@@ -8,15 +8,50 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
-import { mergeData } from "@/lib/utils";
+import { mergeData, wordsHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
+import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
-export const DEFAULT_COLOR_FILL = "#FFFFFF";
-export const DEFAULT_BORDER_COLOR = "#D9D9D9";
-export const DEFAULT_TEXT_COLOR = "#656565";
+export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+
+export type HistoryEntry = {
+  metadata: StudyMetadata;
+  wordsColorMap: Map<number, ColorData>;
+  activeHighlightIds: Record<ColorSource, string | null>;
+  highlightCache: Map<string, Map<number, ColorData | undefined>>;
+};
+
+export type HistorySnapshotOptions = {
+  wordsColorMap?: Map<number, ColorData>;
+  activeHighlightIds?: Record<ColorSource, string | null>;
+  highlightCache?: Map<string, Map<number, ColorData | undefined>>;
+};
+
+export const cloneWordsColorMap = (map: Map<number, ColorData> = new Map()) =>
+  new Map<number, ColorData>(
+    Array.from(map.entries()).map(([wordId, color]) => [wordId, color ? { ...color } : color]),
+  );
+
+export const cloneHighlightCache = (
+  cache: Map<string, Map<number, ColorData | undefined>> = new Map(),
+) => {
+  const clonedCache = new Map<string, Map<number, ColorData | undefined>>();
+  cache.forEach((wordMap, key) => {
+    clonedCache.set(
+      key,
+      new Map<number, ColorData | undefined>(
+        Array.from(wordMap.entries()).map(([wordId, color]) => [
+          wordId,
+          color ? { ...color } : color,
+        ]),
+      ),
+    );
+  });
+  return clonedCache;
+};
 
 export const FormatContext = createContext({
   ctxStudyId: "",
@@ -24,6 +59,7 @@ export const FormatContext = createContext({
   ctxSetStudyMetadata: (arg: StudyMetadata) => {},
   ctxStudyNotes: "",
   ctxSetStudyNotes: (args: string) => {},
+  ctxStudyBook: "" as string,
   ctxPassageProps: {} as PassageProps,
   ctxSetPassageProps: (arg: PassageProps) => {},
   ctxScaleValue: DEFAULT_SCALE_VALUE,
@@ -38,6 +74,7 @@ export const FormatContext = createContext({
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
+  ctxSetColorAction: (_arg: ColorActionType) => {},
   ctxSelectedColor: "" as string,
   ctxSetSelectedColor: (arg: string) => {},
   ctxColorFill: "" as string,
@@ -54,14 +91,15 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  // color map used by identical words smart highlight
-  // might need to rename it if only used for identical words
-  ctxRootsColorMap: {} as Map<number, ColorData>,
-  ctxSetRootsColorMap: (arg: Map<number, ColorData>) => {},
-  ctxHistory: [] as StudyMetadata[],
+  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
+  ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
+  ctxWordsColorMap: {} as Map<number, ColorData>,
+  ctxSetWordsColorMap: (arg: Map<number, ColorData>) => {},
+  ctxHistory: [] as HistoryEntry[],
   ctxPointer: {} as number,
   ctxSetPointer: (arg: number) => {},
-  ctxAddToHistory: (arg: StudyMetadata) => {},
+  ctxAddToHistory: (metadata: StudyMetadata, options?: HistorySnapshotOptions) => {},
   ctxLanguageMode: {} as LanguageMode,
   ctxSetLanguageMode: (arg: LanguageMode) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
@@ -69,7 +107,9 @@ export const FormatContext = createContext({
   ctxNoteMerge: true,
   ctxSetNoteMerge: (arg: boolean) => {},
   ctxActiveNotesPane: null as "heb" | "eng" | null,
-  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {}
+  ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
+  ctxStropheNoteBtnOn: false,
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
 });
 
 const StudyPane = ({
@@ -104,11 +144,30 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [infoPaneWidth, setInfoPaneWidth] = useState(360);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
-  const [rootsColorMap, setRootsColorMap] = useState<Map<number, ColorData>>(new Map());
-  
+  const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
+    syntax: null,
+    motif: null,
+  });
+  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
+
+  const snapshotHistoryEntry = (
+    metadata: StudyMetadata,
+    options?: HistorySnapshotOptions,
+  ): HistoryEntry => ({
+    metadata: structuredClone(metadata),
+    wordsColorMap: cloneWordsColorMap(options?.wordsColorMap ?? wordsColorMap),
+    activeHighlightIds: options?.activeHighlightIds
+      ? { ...options.activeHighlightIds }
+      : { ...activeHighlightIds },
+    highlightCache: cloneHighlightCache(options?.highlightCache ?? highlightCacheRef.current),
+  });
+
   const [cloneStudyOpen, setCloneStudyOpen] = useState(false);
 
-  const [history, setHistory] = useState<StudyMetadata[]>([structuredClone(passageData.study.metadata)]);
+  const [history, setHistory] = useState<HistoryEntry[]>([
+    snapshotHistoryEntry(passageData.study.metadata),
+  ]);
   const [pointer, setPointer] = useState(0);
 
   // set default language to English
@@ -118,14 +177,73 @@ const StudyPane = ({
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
+  const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
 
-  const addToHistory = (updatedMetadata: StudyMetadata) => { 
-    const clonedObj = structuredClone(updatedMetadata);
+  const addToHistory = (
+    updatedMetadata: StudyMetadata,
+    options?: HistorySnapshotOptions,
+  ) => { 
     const newHistory = history.slice(0, pointer + 1);
-    newHistory.push(clonedObj);
+    newHistory.push(snapshotHistoryEntry(updatedMetadata, options));
     setHistory(newHistory);
     setPointer(pointer + 1);
   };
+
+  useEffect(() => {
+    if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
+      setStropheNoteBtnOn(false);
+    }
+  }, [languageMode, stropheNoteBtnOn]);
+
+  const updateActiveHighlightId = useCallback(
+    (source: ColorSource, highlightId: string | null) => {
+      setActiveHighlightIds((prev) => {
+        if (prev[source] === highlightId) {
+          return prev;
+        }
+        return { ...prev, [source]: highlightId };
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (selectedWords.length === 0) {
+      setColorFill(DEFAULT_COLOR_FILL);
+      setBorderColor(DEFAULT_BORDER_COLOR);
+      setTextColor(DEFAULT_TEXT_COLOR);
+      return;
+    }
+
+    const getEffectiveColor = (wordId: number) => {
+      const mapColor = wordsColorMap.get(wordId);
+      if (mapColor) return mapColor;
+      return studyMetadata.words[wordId]?.color;
+    };
+
+    const firstWordId = selectedWords[0].wordId;
+    const firstColor = getEffectiveColor(firstWordId);
+
+    let sameFill = true;
+    let sameBorder = true;
+    let sameText = true;
+
+    const targetFill = firstColor?.fill || DEFAULT_COLOR_FILL;
+    const targetBorder = firstColor?.border || DEFAULT_BORDER_COLOR;
+    const targetText = firstColor?.text || DEFAULT_TEXT_COLOR;
+
+    for (let i = 1; i < selectedWords.length; i++) {
+      const color = getEffectiveColor(selectedWords[i].wordId);
+      if ((color?.fill || DEFAULT_COLOR_FILL) !== targetFill) sameFill = false;
+      if ((color?.border || DEFAULT_BORDER_COLOR) !== targetBorder) sameBorder = false;
+      if ((color?.text || DEFAULT_TEXT_COLOR) !== targetText) sameText = false;
+    }
+
+    setColorFill(sameFill ? targetFill : DEFAULT_COLOR_FILL);
+    setBorderColor(sameBorder ? targetBorder : DEFAULT_BORDER_COLOR);
+    setTextColor(sameText ? targetText : DEFAULT_TEXT_COLOR);
+
+  }, [selectedWords, wordsColorMap, studyMetadata]);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
@@ -133,6 +251,7 @@ const StudyPane = ({
     ctxSetStudyMetadata: setStudyMetadata,
     ctxStudyNotes: studyNotes,
     ctxSetStudyNotes: setStudyNotes,
+    ctxStudyBook: passageData.study.book,
     ctxPassageProps: passageProps,
     ctxSetPassageProps: setPassageProps,
     ctxScaleValue: scaleValue,
@@ -147,6 +266,7 @@ const StudyPane = ({
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
     ctxColorAction: colorAction,
+    ctxSetColorAction: setColorAction,
     ctxSelectedColor: selectedColor,
     ctxSetSelectedColor: setSelectedColor,
     ctxColorFill: colorFill,
@@ -163,8 +283,11 @@ const StudyPane = ({
     ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: structureUpdateType,
     ctxSetStructureUpdateType: setStructureUpdateType,
-    ctxRootsColorMap: rootsColorMap,
-    ctxSetRootsColorMap: setRootsColorMap,
+    ctxActiveHighlightIds: activeHighlightIds,
+    ctxSetActiveHighlightId: updateActiveHighlightId,
+    ctxHighlightCacheRef: highlightCacheRef,
+    ctxWordsColorMap: wordsColorMap,
+    ctxSetWordsColorMap: setWordsColorMap,
     ctxHistory: history,
     ctxPointer: pointer,
     ctxSetPointer: setPointer,
@@ -176,7 +299,9 @@ const StudyPane = ({
     ctxNoteMerge: noteMerge,
     ctxSetNoteMerge: setNoteMerge,
     ctxActiveNotesPane: activeNotesPane,
-    ctxSetActiveNotesPane: setActiveNotesPane
+    ctxSetActiveNotesPane: setActiveNotesPane,
+    ctxStropheNoteBtnOn: stropheNoteBtnOn,
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
   };
 
   useEffect(() => {
@@ -287,7 +412,8 @@ const StudyPane = ({
     });
 
     passageData.study.metadata = studyMetadata1;
-    setStudyMetadata(studyMetadata1)
+    setStudyMetadata(studyMetadata1);
+    setPointer(0);
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
 
@@ -310,7 +436,7 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14">
-          <main className={`flex flex-row overflow-y-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
+          <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {

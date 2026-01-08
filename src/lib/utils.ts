@@ -1,9 +1,9 @@
-import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata } from "./data";
-import { psalmBook, genesisBook, jonahBook } from "./chapterCounts";
+import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata, WordMetadata } from "./data";
+import { psalmBook, genesisBook, isaiahBook, jonahBook } from "./chapterCounts";
 import { ColorActionType, StropheNote } from "./types";
 import { z } from 'zod';
 
-const otBookSchema = z.enum(['genesis', 'psalms', 'jonah'])
+const otBookSchema = z.enum(['genesis', 'psalms', 'isaiah', 'jonah'])
 
 export type PassageInfo = {
     book: string|null|undefined,
@@ -14,56 +14,109 @@ export type PassageInfo = {
 };
 
 export function parsePassageInfo(inputString: string, bookString: string) : PassageInfo | Error {
-
-  // Verify the book is in the set of otBookSchema:
   const book = otBookSchema.parse(bookString);
-  // Define a regular expression for the Bible passage format
   const passageFormatRegex = /^(\d+)(:(\d+))?(-(\d+)(:(\d+))?)?$/;
-
-  // Check if the input matches the regular expression
-  const match = inputString.match(passageFormatRegex);
+  const normalizedInput = inputString.trim();
+  const match = normalizedInput.match(passageFormatRegex);
 
   if (!match) {
     return Error("Type in passage, e.g.: '23' or '48:1-4'");
   }
-  
 
-  //console.log(match);
   const [, strStartChapter, , strStartVerse, , strEndChapter, , strEndVerse] = match;
+  const bookMap = {
+    genesis: genesisBook,
+    psalms: psalmBook,
+    isaiah: isaiahBook,
+    jonah: jonahBook,
+  }[book];
+  const totalChapters = Object.keys(bookMap).length;
+  const startChapter = parseInt(strStartChapter, 10);
+  const startChapterVerseCount = bookMap[startChapter];
 
-  let result : PassageInfo = {
-    book: bookString,
-    startChapter: parseInt(strStartChapter),
-    startVerse: (strStartVerse) ? parseInt(strStartVerse) : 1,
-    endChapter: (strEndChapter && ((strStartVerse && strEndVerse) || strStartVerse == undefined && strEndVerse == undefined)) ? parseInt(strEndChapter) : parseInt(strStartChapter),
-    endVerse:   (strEndVerse) ? parseInt(strEndVerse) : parseInt(strEndChapter)
-  };
-
-  var bookMap 
-
-  switch (result.book) {
-    case "genesis":
-      bookMap = genesisBook;
-      break
-    case "psalms":
-      bookMap = psalmBook;
-      break
-    case "jonah":
-      bookMap = jonahBook;
-      break
-    default:
-      bookMap = psalmBook;
-  }
-
-  if (strStartVerse == undefined && strEndVerse == undefined) {
-    result.endVerse = bookMap[result.endChapter];
-  }
-  
-  if (result.startChapter <= 0 || bookMap[result.startChapter] == undefined || bookMap[result.endChapter] == undefined) {
+  if (startChapter <= 0 || startChapterVerseCount === undefined) {
     return Error("Invalid Chapter");
-  } else if (result.startVerse <= 0 || result.startVerse > bookMap[result.startChapter]) {
-    return Error("Invalid start verse: Chapter " + result.startChapter + " only has " + bookMap[result.startChapter] + " verses");
-  } else if (result.endVerse <= 0 || result.startVerse > result.endVerse || result.endVerse > bookMap[result.endChapter]) {
+  }
+
+  let startVerse = strStartVerse ? parseInt(strStartVerse, 10) : 1;
+  let endChapter = startChapter;
+  let endVerse = strStartVerse ? startVerse : startChapterVerseCount;
+
+  if (!strEndChapter) {
+    if (!strStartVerse) {
+      endVerse = startChapterVerseCount;
+    }
+  } else {
+    const rawEndNumber = parseInt(strEndChapter, 10);
+
+    if (!strStartVerse && !strEndVerse) {
+      endChapter = rawEndNumber;
+      const endChapterVerseCount = bookMap[endChapter];
+      if (endChapter <= 0 || endChapterVerseCount === undefined) {
+        return Error("Invalid Chapter");
+      }
+      startVerse = 1;
+      endVerse = endChapterVerseCount;
+    } else if (!strStartVerse && strEndVerse) {
+      endChapter = rawEndNumber;
+      const endChapterVerseCount = bookMap[endChapter];
+      if (endChapter <= 0 || endChapterVerseCount === undefined) {
+        return Error("Invalid Chapter");
+      }
+      startVerse = 1;
+      endVerse = parseInt(strEndVerse, 10);
+    } else if (strStartVerse && strEndVerse) {
+      endChapter = rawEndNumber;
+      const endChapterVerseCount = bookMap[endChapter];
+      if (endChapter <= 0 || endChapterVerseCount === undefined) {
+        return Error("Invalid Chapter");
+      }
+      endVerse = parseInt(strEndVerse, 10);
+    } else {
+      // Decide if the trailing number is referencing a chapter or verse.
+      const treatAsChapter =
+        rawEndNumber > startChapterVerseCount || rawEndNumber <= totalChapters;
+      if (treatAsChapter) {
+        endChapter = rawEndNumber;
+        const endChapterVerseCount = bookMap[endChapter];
+        if (endChapter <= 0 || endChapterVerseCount === undefined) {
+          return Error("Invalid Chapter");
+        }
+        endVerse = endChapterVerseCount;
+      } else {
+        endVerse = rawEndNumber;
+      }
+    }
+  }
+
+  const result: PassageInfo = {
+    book: bookString,
+    startChapter,
+    startVerse,
+    endChapter,
+    endVerse,
+  };
+  console.log(result);
+
+  const endChapterVerseCount = bookMap[result.endChapter];
+
+  if (!endChapterVerseCount) {
+    return Error("Invalid Chapter");
+  } else if (result.endChapter < result.startChapter) {
+    return Error("End chapter must be greater than or equal to start chapter");
+  } else if (result.startVerse <= 0 || result.startVerse > startChapterVerseCount) {
+    return Error(
+      "Invalid start verse: Chapter " +
+        result.startChapter +
+        " only has " +
+        startChapterVerseCount +
+        " verses"
+    );
+  } else if (
+    result.endVerse <= 0 ||
+    (result.startChapter === result.endChapter && result.startVerse > result.endVerse) ||
+    result.endVerse > endChapterVerseCount
+  ) {
     return Error("Invalid end verse");
   }
 
@@ -90,6 +143,8 @@ export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : 
 
   return strongNumWordsMap;
 }
+
+
 
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
   // Measure the width of the text
@@ -153,6 +208,91 @@ export function getWordById(passage: PassageProps, id: number) : WordProps | nul
   }
   return null;
 }
+
+type UniformPaletteOptions = {
+  colorMap?: Map<number, ColorData>;
+  metadataMap?: Record<number, WordMetadata | undefined> | Record<string, WordMetadata | undefined>;
+};
+
+const resolveWordColorValue = (
+  word: WordProps,
+  key: keyof Omit<ColorData, "source">,
+  options?: UniformPaletteOptions,
+): string | undefined => {
+  const colorFromMap = options?.colorMap?.get(word.wordId)?.[key];
+  if (colorFromMap !== undefined) {
+    return colorFromMap;
+  }
+
+  const metadataMap = options?.metadataMap as
+    | Record<number, WordMetadata | undefined>
+    | Record<string, WordMetadata | undefined>
+    | undefined;
+
+  if (metadataMap) {
+    const metadataEntry =
+      (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
+      (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
+    const colorFromMetadata = metadataEntry?.color?.[key];
+    if (colorFromMetadata !== undefined) {
+      return colorFromMetadata;
+    }
+  }
+
+  return word.metadata?.color?.[key];
+};
+
+export const deriveUniformWordPalette = (
+  words: WordProps[],
+  options?: UniformPaletteOptions,
+): Omit<ColorData, "source"> | undefined => {
+  if (!words.length) {
+    return undefined;
+  }
+
+  const palette: Omit<ColorData, "source"> = {};
+  let hasColor = false;
+
+  for (const key of ["fill", "border", "text"] as (keyof Omit<ColorData, "source">)[]) {
+    let value = resolveWordColorValue(words[0], key, options);
+    let isUniform = true;
+
+    for (let i = 1; i < words.length; i++) {
+      const current = resolveWordColorValue(words[i], key, options);
+      if (current !== value) {
+        isUniform = false;
+        break;
+      }
+    }
+
+    if (isUniform && value !== undefined) {
+      palette[key] = value;
+      hasColor = true;
+    }
+  }
+
+  return hasColor ? palette : undefined;
+};
+
+export const deriveUniformFill = (
+  words: WordProps[],
+  options?: UniformPaletteOptions,
+): string | undefined => {
+  if (!words.length) {
+    return undefined;
+  }
+
+  let value = resolveWordColorValue(words[0], "fill", options);
+
+  for (let i = 1; i < words.length; i++) {
+    const current = resolveWordColorValue(words[i], "fill", options);
+    if (current !== value) {
+      return undefined;
+    }
+  }
+
+  return value;
+};
 
 export function wordsHasSameColor(words: WordProps[], actionType: ColorActionType) : boolean {
 
@@ -296,3 +436,4 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
   return passageProps;
 }
+
