@@ -25,7 +25,7 @@ export const CategoryBlock = ({
     const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
         return value.wordProps.every(dsd =>
           dsd.metadata?.color &&
-          (!dsd.metadata.color[property] || dsd.metadata.color[property] === value.wordProps[0].metadata.color?.[property])
+          (dsd.metadata.color[property] && dsd.metadata.color[property] === value.wordProps[0].metadata.color?.[property])
         );
     };
 

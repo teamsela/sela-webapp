@@ -69,10 +69,9 @@ export const FormatContext = createContext({
 });
 
 const StudyPane = ({
-  passageData, content, inViewMode
+  passageData, inViewMode
 }: {
   passageData: PassageStaticData, // heb word data
-  content: PassageData; // to be deprecated
   inViewMode: boolean;
 }) => {
 
@@ -204,85 +203,12 @@ const StudyPane = ({
     // convert content to StudyMetadata
     let studyMetadata1 : StudyMetadata = { words: {} };
 
-    content.stanzas.forEach((stanza, stanzaIdx) => {
-
-      const stanzaMetadata : StanzaMetadata = (stanza.expanded === false) ? { expanded: false } : {};
-
-      stanza.strophes.forEach((strophe, stropheIdx) => {
-
-        let stropheMetadata : StropheMetadata = (strophe.expanded) ? {} : {expanded: false};
-        if (strophe.borderColor) {
-          stropheMetadata.color = { border: strophe.borderColor }
-        }
-        if (strophe.colorFill) {
-          if (stropheMetadata.color) {
-            stropheMetadata.color.fill = strophe.colorFill;
-          } else {
-            stropheMetadata.color = { fill: strophe.colorFill }
-          }
-        }
-      
-        strophe.lines.forEach((line, lineIdx) => {
-
-          line.words.forEach((word, wordIdx) => {
-
-            let wordMetadata : WordMetadata = {};
-
-            if (word.borderColor) {
-              wordMetadata.color = { border: word.borderColor }
-            }
-            if (word.colorFill) {
-              if (wordMetadata.color) {
-                wordMetadata.color.fill = word.colorFill;
-              } else {
-                wordMetadata.color = { fill: word.colorFill }
-              }
-            }
-            if (word.textColor) {
-              if (wordMetadata.color) {
-                wordMetadata.color.text = word.textColor;
-              } else {
-                wordMetadata.color = { text: word.textColor }
-              }
-            }          
-            if (word.numIndent > 0) {
-              wordMetadata.indent = word.numIndent;
-            }
-            //if (word.lineBreak) {
-            //   wordMetadata.lineBreak = word.lineBreak;
-            //}
-            if (word.stropheDiv) {
-              wordMetadata.stropheDiv = word.stropheDiv;
-              if (Object.keys(stropheMetadata).length > 0) {
-                wordMetadata.stropheMd = stropheMetadata;
-              }
-            }
-            if (word.stanzaDiv) {
-              wordMetadata.stanzaDiv = word.stanzaDiv;
-              if (Object.keys(stanzaMetadata).length > 0) {
-                wordMetadata.stanzaMd = stanzaMetadata;
-              }
-            }
-
-            if (Object.keys(wordMetadata).length > 0) {
-              if (!studyMetadata1.words) {
-                studyMetadata1.words = {};
-              }
-
-              studyMetadata1.words[word.id] = wordMetadata;
-            }
-
-          })
-        })
-
-      })
-    });
 
     passageData.study.metadata = studyMetadata1;
     setStudyMetadata(studyMetadata1)
     updateMetadataInDb(passageData.study.id, studyMetadata1);
   }
-
+   
   return (
 
     <>

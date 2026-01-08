@@ -21,7 +21,7 @@ export const PartsOfSpeechBlock = ({
   const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
       return posWords.every(dsd =>
         dsd.metadata?.color &&
-        (!dsd.metadata.color[property] || dsd.metadata.color[property] === posWords[0].metadata.color?.[property])
+        (dsd.metadata.color[property] && dsd.metadata.color[property] === posWords[0].metadata.color?.[property])
       );
   };    
 

@@ -93,7 +93,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
         if (ctxSelectedWords.length >= 1) {
-            const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
+            //const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
             // if (lastSelectedWord) {
             //     wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill);
             //     wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);

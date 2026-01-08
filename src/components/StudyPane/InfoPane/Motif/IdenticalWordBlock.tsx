@@ -22,7 +22,7 @@ export const IdenticalWordBlock = ({
   const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
     return toSelect.every(dsd =>
       dsd.metadata?.color &&
-      (!dsd.metadata.color[property] || dsd.metadata.color[property] === toSelect[0].metadata.color?.[property])
+      (dsd.metadata.color[property] && dsd.metadata.color[property] === toSelect[0].metadata.color?.[property])
     );
   };
 
@@ -65,11 +65,11 @@ export const IdenticalWordBlock = ({
       idWordsColor.border && setBorderColorLocal(idWordsColor.border);
     }
     else if (ctxStudyMetadata.words[id]) {
-
-      let updatedColor = (ctxStudyMetadata.words[toSelect[0].wordId].color) ? ctxStudyMetadata.words[toSelect[0].wordId].color : {};
-      setColorFillLocal(updatedColor?.fill || DEFAULT_COLOR_FILL);
-      setTextColorLocal(updatedColor?.text || DEFAULT_TEXT_COLOR);
-      setBorderColorLocal(updatedColor?.border || DEFAULT_BORDER_COLOR);
+      
+       let updatedColor = (ctxStudyMetadata.words[toSelect[0].wordId].color) ? ctxStudyMetadata.words[toSelect[0].wordId].color : {};
+       setColorFillLocal(matchColorProperty('fill') ? updatedColor?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
+       setTextColorLocal(matchColorProperty('text') ? updatedColor?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
+       setBorderColorLocal(matchColorProperty('border') ? updatedColor?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
     }
   }, [ctxRootsColorMap, ctxStudyMetadata, toSelect, id])
 
@@ -112,8 +112,8 @@ export const IdenticalWordBlock = ({
             if (dsd.wordId === word.wordId) {
               dsd.metadata.color ??= {};
               dsd.metadata.color.fill = (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) ? ctxSelectedColor : dsd.metadata.color.fill;
-              dsd.metadata.color.border = ctxColorAction === ColorActionType.borderColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.border;
-              dsd.metadata.color.text = ctxColorAction === ColorActionType.textColor && ctxSelectedColor? ctxSelectedColor: dsd.metadata.color.text;
+              dsd.metadata.color.border = (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) ? ctxSelectedColor: dsd.metadata.color.border;
+              dsd.metadata.color.text = (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) ? ctxSelectedColor: dsd.metadata.color.text;
             }
           })
         })

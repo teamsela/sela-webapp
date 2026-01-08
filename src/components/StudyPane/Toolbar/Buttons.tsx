@@ -274,12 +274,12 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   const handleClick = () => {
     if (buttonEnabled) {
       setColorAction(ColorActionType.resetColor);
-      ctxSetColorFill(DEFAULT_COLOR_FILL);
-      ctxSetBorderColor(DEFAULT_BORDER_COLOR);
 
       let isChanged = false;
       if (ctxSelectedWords.length > 0) {
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
+        ctxSetColorFill(DEFAULT_COLOR_FILL);
+        ctxSetBorderColor(DEFAULT_BORDER_COLOR);
         ctxSelectedWords.map((word) => {
           const wordMetadata = ctxStudyMetadata.words[word.wordId];
           if (wordMetadata && wordMetadata?.color) {

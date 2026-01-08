@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs';
 
-import { fetchStudyById, fetchPassageContentOld, fetchPassageData } from '@/lib/actions';
+import { fetchStudyById, fetchPassageData } from '@/lib/actions';
 import StudyPane from "@/components/StudyPane";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
@@ -22,9 +22,8 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 export default async function StudyPage({ params }: { params: { id: string } }) {
   const studyId = "rec_" + params.id;
 
-  const [thisUser, passageContent, result] = await Promise.all([
+  const [thisUser, result] = await Promise.all([
     currentUser(),
-    fetchPassageContentOld(studyId),
     fetchPassageData(studyId)
   ]);
 
@@ -36,7 +35,7 @@ export default async function StudyPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <StudyPane passageData={result} content={passageContent} inViewMode={true}/>
+    <StudyPane passageData={result} inViewMode={true}/>
   );
 
 }
