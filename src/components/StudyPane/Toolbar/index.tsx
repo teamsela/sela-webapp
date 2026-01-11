@@ -63,34 +63,49 @@ const Toolbar = ({
                   <UndoBtn />
                   <RedoBtn />
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <EditWordBtn />
-                  <ClearFormatBtn setColorAction={setColorAction} />
-                  <ClearAllFormatBtn setColorAction={setColorAction} />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Color</span>
+                  <div className="flex flex-row">
+                    <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ClearFormatBtn setColorAction={setColorAction} />
+                    <ClearAllFormatBtn setColorAction={setColorAction} />
+                  </div>
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <UniformWidthBtn setBoxStyle={setBoxStyle} />
-                  <BoxlessBtn setBoxStyle={setBoxStyle}/>
-                  <IndentBtn leftIndent={true} />
-                  <IndentBtn leftIndent={false} />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Word</span>
+                  <div className="flex flex-row">
+                    <UniformWidthBtn setBoxStyle={setBoxStyle} />
+                    <BoxlessBtn setBoxStyle={setBoxStyle}/>
+                    <IndentBtn leftIndent={true} />
+                    <IndentBtn leftIndent={false} />
+                    <EditWordBtn />
+                  </div>
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Line</span>
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
+                  </div>
                 </div>
-                <div className="border-r px-3 border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Strophe</span>
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
+                  </div>
                 </div>
-                <div className="border-r px-3 border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
-                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
-                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Stanza</span>
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
+                    <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
+                    <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
+                  </div>
                 </div>
               </div>
               <div className="flex flex-row">
