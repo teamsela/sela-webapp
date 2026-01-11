@@ -49,3 +49,5 @@ next-env.d.ts
 
 # migration api routes
 /src/app/api/admin/migrate/route.ts
+
+package-lock.json
