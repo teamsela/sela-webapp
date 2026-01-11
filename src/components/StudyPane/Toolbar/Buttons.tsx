@@ -7,7 +7,6 @@ import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled, TbEdit } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
-import { BsBox, BsBoxArrowUp } from "react-icons/bs";
 import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
@@ -39,28 +38,6 @@ export const ToolTip = ({ text }: { text: string }) => {
     </div>
   )
 }
-
-const removeColorMapEntriesBySource = (colorMap: Map<number, ColorData>, source: ColorSource) => {
-  let changed = false;
-  Array.from(colorMap.entries()).forEach(([wordId, color]) => {
-    if (color?.source === source) {
-      colorMap.delete(wordId);
-      changed = true;
-    }
-  });
-  return changed;
-};
-
-const clearHighlightCacheForSource = (
-  cache: Map<string, Map<number, ColorData | undefined>>,
-  source: ColorSource,
-) => {
-  Array.from(cache.keys()).forEach((key) => {
-    if (key.startsWith(`${source}::`)) {
-      cache.delete(key);
-    }
-  });
-};
 
 export const UndoBtn = () => {
   const {
@@ -263,13 +240,13 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     
       if (!wordMetadata) {
         isChanged = true;
-        ctxStudyMetadata.words[wordId] = { color: colorObj };
+        ctxStudyMetadata.words[wordId].color = { ...colorObj };
         return;
       }
     
       if (!wordMetadata.color) {
         isChanged = (wordMetadata.color !== colorObj);
-        wordMetadata.color = colorObj;
+        wordMetadata.color = { ...colorObj };
         return;
       }
     
@@ -313,7 +290,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
       else {
         wordMetadata.stropheMd ??= {};
-        wordMetadata.stropheMd.color ??= colorObj;
+        wordMetadata.stropheMd.color ??= { ...colorObj};
         isChanged = true;
       }
     }
