@@ -58,13 +58,19 @@ const Toolbar = ({
         : (
             <div className="flex justify-between">
               <div className="flex">
-                <ScaleDropDown setScaleValue={setScaleValue} />
-                <div className="border-r border-stroke flex flex-row">
-                  <UndoBtn />
-                  <RedoBtn />
+                <div className="border-r border-stroke flex flex-col items-center pt-2 px-2">
+                  <div className="flex flex-row">
+                    <ScaleDropDown setScaleValue={setScaleValue} />
+                  </div>
+                </div>
+                <div className="border-r border-stroke flex flex-col items-center pt-3 px-2">
+                  <div className="flex flex-row">
+                    <UndoBtn />
+                    <RedoBtn />
+                  </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Color</span>
+                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Format</span>
                   <div className="flex flex-row">
                     <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
                     <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
