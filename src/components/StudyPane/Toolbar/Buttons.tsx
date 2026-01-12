@@ -890,7 +890,7 @@ export const StropheNoteBtn = () => {
   return (
     <div >
       <button 
-        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
         disabled={disabled}
       >

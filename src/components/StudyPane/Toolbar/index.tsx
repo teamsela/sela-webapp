@@ -114,7 +114,7 @@ const Toolbar = ({
                   </div>
                 </div>
               </div>
-              <div className="flex flex-row">
+              <div className="flex flex-row items-center">
                 <StropheNoteBtn />
                 <LanguageSwitcher />
               </div>
