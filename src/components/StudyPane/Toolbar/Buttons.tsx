@@ -201,7 +201,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     setColorAction(colorAction);
     setSelectedColor(color.hex);
     setDisplayColor(color.hex);
-    let colorObj = {};
+    let colorObj : ColorData = {};
     switch (colorAction) {
       case (ColorActionType.colorFill): { colorObj = { fill: color.hex }; break; }
       case (ColorActionType.borderColor): { colorObj = { border: color.hex }; break; }
@@ -240,7 +240,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     
       if (!wordMetadata) {
         isChanged = true;
-        ctxStudyMetadata.words[wordId].color = { ...colorObj };
+        ctxStudyMetadata.words[wordId] = { color: { ...colorObj } };
         return;
       }
     
