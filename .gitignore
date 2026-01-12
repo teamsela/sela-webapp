@@ -49,3 +49,6 @@ next-env.d.ts
 
 # migration api routes
 /src/app/api/admin/migrate/route.ts
+
+pnpm-lock.yaml
+yarn.lock
