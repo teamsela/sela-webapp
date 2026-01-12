@@ -50,7 +50,7 @@ export const Tabs = ({
         Motif
       </button>
       <button
-        className={`inline-flex border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
           ${
             infoPaneAction === InfoPaneActionType.syntax ? activeClasses : inactiveClasses
           }`}
