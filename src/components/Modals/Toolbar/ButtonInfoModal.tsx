@@ -2,7 +2,7 @@
 
 import { IconType } from "react-icons";
 
-import { LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuNotebookPen } from "react-icons/lu";
+import { LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow } from "react-icons/lu";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
@@ -10,6 +10,10 @@ import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbEdit } from "react-icons/tb";
 import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
 import { TbBoxModel2 } from "react-icons/tb";
+import { BsInfoCircle } from "react-icons/bs";
+import { IconInfoCircle, IconX } from "@tabler/icons-react";
+
+import { createPortal } from "react-dom";
 
 import {
   useEffect,
@@ -18,9 +22,6 @@ import {
   useId,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { createPortal } from "react-dom";
-import { AiOutlineInfoCircle } from "react-icons/ai";
-import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 export type InfoModalSection = "Format" | "Word" | "Line" | "Strophe" | "Stanza";
 
@@ -30,6 +31,7 @@ type ButtonInfoModalProps = {
 
 type InfoItem = {
   icon: IconType;
+  iconStyle?: React.CSSProperties | {};
   title: string;
   description: string;
 };
@@ -170,12 +172,14 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
       },
       {
         icon: LuArrowDownWideNarrow,
+        iconStyle: { transform: 'rotate(90deg)' },
         title: "Merge with Previous Stanza",
         description:
           "Merge the selected strophe and all preceding strophes into the previous stanza. Multiple strophes can be merged at once.",
       },
       {
         icon: LuArrowUpNarrowWide,
+        iconStyle: { transform: 'rotate(90deg)' },
         title: "Merge with Next Stanza",
         description:
           "Merge the selected strophe and all following strophes into the next stanza. Multiple strophes can be merged at once.",
@@ -246,26 +250,26 @@ const ButtonInfoModal = ({
           </button>
 
             <div className="flex items-center gap-2 text-primary">
-            <IconInfoCircle size={22} stroke={2.2} />
+            <BsInfoCircle size={22} />
             <h3 id="toolbar-info-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {infoSection.title}
             </h3>
             </div>
 
-            <div className="mt-4 space-y-4 text-sm text-gray-700 dark:text-gray-300">
+            <div className="mt-2 space-y-2 text-sm text-gray-700 dark:text-gray-300">
             {infoSection.description && (
-                <div className="space-y-3 rounded-lg bg-gray-50 p-4 leading-relaxed dark:bg-gray-800/60">
+                <div className="space-y-2 rounded-lg bg-gray-50 p-4 leading-relaxed dark:bg-gray-800/60">
                 {infoSection.description.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
+                    <p key={paragraph} className="text-sm">{paragraph}</p>
                 ))}
                 </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-1 rounded-xl border border-gray-200 bg-white ">
                 {infoSection.items.map((item) => (
-                <div key={item.title} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                    <div className="flex items-center gap-2">
-                        <item.icon />
+                <div key={item.title} className="p-2 shadow-sm dark:border-gray-800 dark:bg-white/[0.03] sm:p-3">
+                    <div className="flex items-center gap-1">
+                        <item.icon style={item.iconStyle} />
                         <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.title}</span>
                     </div>
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.description}</p>
@@ -293,7 +297,7 @@ const ButtonInfoModal = ({
         onClick={() => setOpen(true)}
         className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
       >
-        <AiOutlineInfoCircle aria-hidden="true" />
+        <BsInfoCircle aria-hidden="true" />
       </button>
       {isMounted && modalMarkup ? createPortal(modalMarkup, document.body) : null}
       </div>
