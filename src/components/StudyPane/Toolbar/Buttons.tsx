@@ -19,17 +19,6 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
 
-const colorsEqual = (a?: Partial<ColorData> | null, b?: Partial<ColorData> | null) => {
-  const norm = (c?: Partial<ColorData> | null) => ({
-    fill: c?.fill ?? null,
-    border: c?.border ?? null,
-    text: c?.text ?? null,
-  });
-  const left = norm(a);
-  const right = norm(b);
-  return left.fill === right.fill && left.border === right.border && left.text === right.text;
-};
-
 export const ToolTip = ({ text }: { text: string }) => {
   return (
     <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">

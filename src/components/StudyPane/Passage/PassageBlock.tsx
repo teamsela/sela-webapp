@@ -33,7 +33,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} flex relative pl-2 py-6`}>
+    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} flex relative pl-2 py-4`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {

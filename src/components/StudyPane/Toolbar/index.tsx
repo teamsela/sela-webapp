@@ -10,6 +10,7 @@ import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } 
 import { StudyData } from '@/lib/data';
 
 import LanguageSwitcher from "../Header/LanguageSwitcher";
+import ButtonInfoModal from "@/components/Modals/Toolbar/ButtonInfoModal";
 
 const Toolbar = ({
   study,
@@ -70,7 +71,7 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Format</span>
+                  <ButtonInfoModal section="Format" />
                   <div className="flex flex-row">
                     <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
                     <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
@@ -80,7 +81,7 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Word</span>
+                  <ButtonInfoModal section="Word" />
                   <div className="flex flex-row">
                     <UniformWidthBtn setBoxStyle={setBoxStyle} />
                     <BoxlessBtn setBoxStyle={setBoxStyle}/>
@@ -90,7 +91,7 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Line</span>
+                  <ButtonInfoModal section="Line" />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
@@ -98,7 +99,7 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Strophe</span>
+                  <ButtonInfoModal section="Strophe" />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
@@ -106,7 +107,7 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <span className="text-[0.7rem] text-gray-500 tracking-wide">Stanza</span>
+                  <ButtonInfoModal section="Stanza" />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
                     <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
