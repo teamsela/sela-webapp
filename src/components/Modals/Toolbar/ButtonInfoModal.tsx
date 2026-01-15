@@ -214,10 +214,6 @@ const ButtonInfoModal = ({
     
   }, [open]);
  
-  if (section == null) {
-    return;
-  }
-
   const modalMarkup = useMemo(() => {
     if (!open) {
       return null;
@@ -280,8 +276,12 @@ const ButtonInfoModal = ({
         </div>
       </div>
     );
-  }, [modalTitleId, open]);
+  }, [modalTitleId, open, section]);
 
+  if (section == null) {
+    return;
+  }
+    
   return (
     <>
       <div className="relative w-full text-[0.7rem] text-gray-500 tracking-wide">
