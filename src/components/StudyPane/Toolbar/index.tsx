@@ -92,8 +92,8 @@ const Toolbar = ({
                     setActiveSection={setActiveInfoSection}
                   />
                   <div className="flex flex-row">
-                    <UniformWidthBtn setBoxStyle={setBoxStyle} />
                     <BoxlessBtn setBoxStyle={setBoxStyle}/>
+                    <UniformWidthBtn setBoxStyle={setBoxStyle} />
                     <IndentBtn leftIndent={true} />
                     <IndentBtn leftIndent={false} />
                     <EditWordBtn />

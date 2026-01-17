@@ -237,7 +237,7 @@ const ButtonInfoModal = ({
 
     return (
       <div
-        className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 px-4 py-8"
+        className="fixed inset-0 z-[1200] flex items-start justify-center bg-black/60 px-4 pb-8 pt-[200px]"
         role="dialog"
         aria-modal="true"
         aria-labelledby={modalTitleId}
