@@ -472,7 +472,7 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-fit'}`}>
             <PassageBlock isHebrew={true}/>
             <PassageBlock isHebrew={false}/>
           </div>

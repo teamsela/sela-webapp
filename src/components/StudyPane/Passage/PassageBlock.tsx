@@ -44,12 +44,13 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
     ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
     : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%]';
 
-      //if window <1350px, apply w-fit instead to make sure word box doesnt run out
-  const widthClass = isNarrow ? "w-fit" : (isHebrew ? "w-[70%]" : "w-[100%]");
+  //if window <1350px, apply w-fit instead to make sure word box doesnt run out
+  // const widthClass = isNarrow ? "w-fit" : (isHebrew ? "w-[70%]" : "w-[100%]");
+  // const widthClass = "w-fit"
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} ${widthClass} flex relative pl-2 py-4`}>
+    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} max-w-full w-fit flex relative px-2 py-4`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {
