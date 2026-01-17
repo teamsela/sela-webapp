@@ -27,6 +27,8 @@ export type InfoModalSection = "Format" | "Word" | "Line" | "Strophe" | "Stanza"
 
 type ButtonInfoModalProps = {
   section: InfoModalSection;
+  activeSection: InfoModalSection | null;
+  setActiveSection: (section: InfoModalSection | null) => void;
 };
 
 type InfoItem = {
@@ -189,10 +191,12 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
 };
 
 const ButtonInfoModal = ({
-  section
+  section,
+  activeSection,
+  setActiveSection,
 }: ButtonInfoModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [open, setOpen] = useState(false);
+  const open = activeSection === section;
   const modalTitleId = useId();
 
   useEffect(() => {
@@ -206,7 +210,7 @@ const ButtonInfoModal = ({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false);
+        setActiveSection(null);
       }
     };
 
@@ -216,7 +220,7 @@ const ButtonInfoModal = ({
     };
 
     
-  }, [open]);
+  }, [open, setActiveSection]);
  
   const modalMarkup = useMemo(() => {
     if (!open) {
@@ -225,7 +229,7 @@ const ButtonInfoModal = ({
 
     const handleOverlayClick = (event: ReactMouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget) {
-        setOpen(false);
+        setActiveSection(null);
       }
     };
 
@@ -242,7 +246,7 @@ const ButtonInfoModal = ({
         <div className="relative w-full max-w-xl rounded-2xl bg-white p-6 text-left text-sm text-gray-700 shadow-2xl dark:bg-gray-900 dark:text-gray-200">
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => setActiveSection(null)}
             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             aria-label="Close toolbar information"
           >
@@ -280,7 +284,7 @@ const ButtonInfoModal = ({
         </div>
       </div>
     );
-  }, [modalTitleId, open, section]);
+  }, [modalTitleId, open, section, setActiveSection]);
 
   if (section == null) {
     return;
@@ -294,7 +298,7 @@ const ButtonInfoModal = ({
 
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => setActiveSection(section)}
         className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
       >
         <BsInfoCircle aria-hidden="true" />
