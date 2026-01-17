@@ -269,7 +269,7 @@ const ButtonInfoModal = ({
                 </div>
             )}
 
-            <div className="space-y-1 rounded-xl border border-gray-200 bg-white ">
+            <div className="bg-white ">
                 {infoSection.items.map((item) => (
                 <div key={item.title} className="p-2 shadow-sm dark:border-gray-800 dark:bg-white/[0.03] sm:p-3">
                     <div className="flex items-center gap-1">
