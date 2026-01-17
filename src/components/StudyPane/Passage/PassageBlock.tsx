@@ -10,7 +10,7 @@ export const LanguageContext = createContext({
 
 export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
-  const { ctxPassageProps, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
 
   const [isNarrow, setIsNarrow] = useState(false);
 
@@ -34,13 +34,23 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
     ctxIsHebrew: isHebrew
   }
 
-  //if window <1350px, apply w-fit instead to make sure word box doesnt run out
+  const shouldStackStanzas = ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel;
+  const allowPassageGrowth = ctxStropheNoteBtnOn;
+  const stackedWidthClass = allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%] max-w-[100%]';
+  const stanzaLayoutClass = shouldStackStanzas
+    ? `flex-col ${stackedWidthClass} gap-2`
+    : 'flex-row max-w-[600px]';
+  const passageWidthClass = isHebrew
+    ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
+    : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%]';
+
+      //if window <1350px, apply w-fit instead to make sure word box doesnt run out
   const widthClass = isNarrow ? "w-fit" : (isHebrew ? "w-[70%]" : "w-[100%]");
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${isHebrew ? "hbFont" : ""} ${widthClass} flex relative pl-2 py-4`}>
-        <div className={`flex ${ctxLanguageMode == LanguageMode.Parallel ? 'flex-col w-[100%] max-w-[100%]' : 'flex-row max-w-[600px]'}`}>
+    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} ${widthClass} flex relative pl-2 py-4`}>
+        <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {
             return (

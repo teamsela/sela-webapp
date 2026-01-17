@@ -4,31 +4,28 @@ import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/i
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType, StudyNotes, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, StudyNotes, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
-import { StropheNotes, STROPHE_NOTE_TEXT_MIN_HEIGHT, STROPHE_NOTE_TITLE_MIN_HEIGHT, STROPHE_NOTE_VERTICAL_GAP } from './StropheNotes';
+import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
 export const StropheBlock = ({
     stropheProps,
     stanzaExpanded,
-    maxStanzaNoteWidth,
-    onWordAreaWidthChange,
   }: {
     stropheProps: StropheProps,
     stanzaExpanded: boolean,
-    maxStanzaNoteWidth?: number,
-    onWordAreaWidthChange?: (stropheId: number, width: number) => void
   }) => {
 
   const ACTION_ICON_SIZE = 22;
+  const NOTE_PANEL_WIDTH = 360;
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -36,10 +33,7 @@ export const StropheBlock = ({
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
   const [showNote, setShowNote] = useState(false);
   const wordAreaRef = useRef<HTMLDivElement | null>(null);
-  const [wordAreaWidth, setWordAreaWidth] = useState<number | null>(null);
   const [wordAreaHeight, setWordAreaHeight] = useState<number | null>(null);
-  const noteTitleRef = useRef<HTMLDivElement | null>(null);
-  const [noteTitleHeight, setNoteTitleHeight] = useState<number>(0);
   const firstWordId = stropheProps.lines[0].words[0].wordId;
   const lastWordId = stropheProps.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
 
@@ -77,8 +71,24 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const actionButtonWrapperClass = useMemo(
+    () => {
+      const base = 'z-1 absolute p-[0.5] m-[0.5] bg-transparent';
+      if (!stanzaExpanded) {
+        const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
+        if (shouldPinToLanguageSide) {
+          return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+        }
+        return `${base} inset-0 flex items-center justify-center`;
+      }
+      return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+    },
+    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode]
+  );
 
-  const handleNoteAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Stop bubbling so drag-select handler does not steal the first click
+    e.stopPropagation();
     ctxSetNoteBox(e.currentTarget.getBoundingClientRect());
   }
 
@@ -124,8 +134,6 @@ export const StropheBlock = ({
         }
       }
     }
-    //if (strophe.colorFill != colorFillLocal) { setColorFillLocal(strophe.colorFill || DEFAULT_COLOR_FILL) }
-    //if (strophe.borderColor != borderColorLocal) { setBorderColorLocal(strophe.borderColor || DEFAULT_BORDER_COLOR) }
   }, [ctxColorAction, selected, stropheProps, colorFillLocal, borderColorLocal, ctxSelectedColor, persistStropheColor]);
   
   useEffect(() => {
@@ -180,6 +188,28 @@ export const StropheBlock = ({
     }    
   }, [stropheProps.metadata.expanded])
 
+  const shouldShowNote = (ctxStropheNoteBtnOn || showNote) && expanded && stanzaExpanded;
+  const shouldShowWords = expanded && stanzaExpanded && (!showNote || ctxStropheNoteBtnOn);
+  const showOverlayNote = shouldShowNote && !ctxStropheNoteBtnOn;
+  const shouldRenderWordArea = expanded && stanzaExpanded;
+  const renderSideBySide = ctxStropheNoteBtnOn && shouldShowNote && shouldShowWords;
+  const shouldShowCollapsedTitle = !expanded && stanzaExpanded && Boolean(stropheNoteTitle);
+  const notePanelStyle = useMemo(() => {
+    if (!ctxStropheNoteBtnOn) {
+      return undefined;
+    }
+    const sizeStyles: React.CSSProperties = {
+      width: NOTE_PANEL_WIDTH,
+      minWidth: NOTE_PANEL_WIDTH,
+      maxWidth: NOTE_PANEL_WIDTH,
+      flexShrink: 0,
+    };
+    if (wordAreaHeight) {
+      sizeStyles.height = wordAreaHeight;
+      sizeStyles.minHeight = wordAreaHeight;
+    }
+    return sizeStyles;
+  }, [ctxStropheNoteBtnOn, wordAreaHeight]);
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
     const el = wordAreaRef.current;
@@ -187,9 +217,6 @@ export const StropheBlock = ({
 
     const updateMetrics = () => {
       const rect = el.getBoundingClientRect();
-      if (rect.width > 0) {
-        setWordAreaWidth(rect.width);
-      }
       if (rect.height > 0) {
         setWordAreaHeight(rect.height);
       }
@@ -201,78 +228,8 @@ export const StropheBlock = ({
     return () => {
       observer.disconnect();
     };
-  }, [stanzaExpanded, expanded]);
+  }, [stanzaExpanded, expanded, stropheNoteTitle, shouldShowNote]);
 
-  const shouldShowNote = showNote && expanded && stanzaExpanded;
-  useEffect(() => {
-    if (!stropheNoteTitle || shouldShowNote) {
-      if (!stropheNoteTitle) {
-        setNoteTitleHeight(0);
-      }
-      return;
-    }
-    if (typeof ResizeObserver === "undefined") return;
-    const el = noteTitleRef.current;
-    if (!el) return;
-
-    const updateNoteTitleHeight = () => {
-      const rect = el.getBoundingClientRect();
-      let total = rect.height;
-      if (typeof window !== "undefined") {
-        const style = window.getComputedStyle(el);
-        const marginTop = parseFloat(style.marginTop || "0");
-        const marginBottom = parseFloat(style.marginBottom || "0");
-        if (!Number.isNaN(marginTop)) {
-          total += marginTop;
-        }
-        if (!Number.isNaN(marginBottom)) {
-          total += marginBottom;
-        }
-      }
-      setNoteTitleHeight(total);
-    };
-
-    updateNoteTitleHeight();
-    const observer = new ResizeObserver(() => updateNoteTitleHeight());
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-    };
-  }, [stropheNoteTitle, shouldShowNote]);
-
-  const minNoteHeight = STROPHE_NOTE_TITLE_MIN_HEIGHT + STROPHE_NOTE_TEXT_MIN_HEIGHT + STROPHE_NOTE_VERTICAL_GAP;
-  const effectiveNoteWidth = maxStanzaNoteWidth ?? wordAreaWidth ?? undefined;
-  // Keep notes view height aligned with the word view (including any rendered title).
-  const combinedWordHeight = (wordAreaHeight ?? 0) + ((stropheNoteTitle && stanzaExpanded) ? noteTitleHeight : 0);
-  const noteContainerHeight = shouldShowNote
-    ? Math.max(minNoteHeight, combinedWordHeight)
-    : undefined;
-  const noteContainerStyle = shouldShowNote
-    ? (() => {
-        const style: React.CSSProperties = {
-          maxWidth: '100%',
-          minHeight: minNoteHeight,
-          height: noteContainerHeight,
-          background: colorFillLocal,
-        };
-        if (typeof effectiveNoteWidth === 'number') {
-          style.width = effectiveNoteWidth;
-        }
-        return style;
-      })()
-    : undefined;
-
-  useEffect(() => {
-    if (!onWordAreaWidthChange) {
-      return;
-    }
-    if (wordAreaWidth === null || wordAreaWidth <= 0) {
-      return;
-    }
-    onWordAreaWidthChange(stropheProps.stropheId, wordAreaWidth);
-  }, [onWordAreaWidthChange, stropheProps.stropheId, wordAreaWidth]);
-
-  
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
@@ -285,7 +242,7 @@ export const StropheBlock = ({
       }
     >
       <div
-        className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
+        className={actionButtonWrapperClass}
         >
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
@@ -300,7 +257,7 @@ export const StropheBlock = ({
         />
       </button>
       {
-      expanded && stanzaExpanded?
+      expanded && stanzaExpanded && !ctxStropheNoteBtnOn ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
         className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
@@ -315,7 +272,7 @@ export const StropheBlock = ({
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
-          className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
+          className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}
         >
@@ -327,15 +284,8 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      <div
-        className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'}`}
-        style={noteContainerStyle}
-        onClick={handleNoteAreaClick}
-      >
-          <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
-      </div>
-      {stropheNoteTitle && stanzaExpanded && !shouldShowNote && (
-        <div ref={noteTitleRef} className={`mt-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+      {shouldShowCollapsedTitle && (
+        <div className={`flex w-full items-center ${noteTitleWrapperClass}`}>
           <span
             className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
             dir="auto"
@@ -345,35 +295,119 @@ export const StropheBlock = ({
           </span>
         </div>
       )}
-      <div
-        ref={wordAreaRef}
-        className={`w-fit ${expanded && stanzaExpanded && !showNote ? '' : 'hidden'}`}
-      >
+      <div className={`w-fit ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
-          stropheProps.lines.map((line, lineId) => {
-            return (
-              <div 
-                key={"line_" + lineId}
-                className={`flex`}
+          ctxStropheNoteBtnOn ? (
+            <>
+              <div
+                className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
+                style={notePanelStyle}
+                onMouseDown={handleNoteAreaMouseDown}
               >
-              {
-                line.words.map((word) => {
-                  return (
-                    <div
-                      className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                      key={word.wordId}
-                    >
-                      <WordBlock
-                        key={"word_" + word.wordId}
-                        wordProps={word}
-                      />
-                    </div>
-                  )
-                })
-              }
+                <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
               </div>
-            )
-          })
+              <div
+                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
+              >
+                <div ref={wordAreaRef}>
+                  {stropheNoteTitle && shouldRenderWordArea && (
+                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+                    <span
+                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+                      dir="auto"
+                      style={{ color: contrastingForegroundColor }}
+                    >
+                      {stropheNoteTitle}
+                    </span>
+                  </div>
+                  )}
+                  {
+                    stropheProps.lines.map((line, lineId) => {
+                      return (
+                        <div 
+                          key={"line_" + lineId}
+                          className={`flex my-1`}
+                        >
+                        {
+                          line.words.map((word) => {
+                            return (
+                              <div
+                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+                                key={word.wordId}
+                              >
+                                <WordBlock
+                                  key={"word_" + word.wordId}
+                                  wordProps={word}
+                                />
+                              </div>
+                            )
+                          })
+                        }
+                        </div>
+                      )
+                    })
+                  }
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="relative">
+              <div
+                className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
+              >
+                <div ref={wordAreaRef}>
+                  {stropheNoteTitle && shouldRenderWordArea && (
+                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+                    <span
+                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+                      dir="auto"
+                      style={{ color: contrastingForegroundColor }}
+                    >
+                      {stropheNoteTitle}
+                    </span>
+                  </div>
+                  )}
+                  {
+                    stropheProps.lines.map((line, lineId) => {
+                      return (
+                        <div 
+                          key={"line_" + lineId}
+                          className={`flex my-1 `}
+                        >
+                        {
+                          line.words.map((word) => {
+                            return (
+                              <div
+                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+                                key={word.wordId}
+                              >
+                                <WordBlock
+                                  key={"word_" + word.wordId}
+                                  wordProps={word}
+                                />
+                              </div>
+                            )
+                          })
+                        }
+                        </div>
+                      )
+                    })
+                  }
+                </div>
+              </div>
+              {
+                showOverlayNote &&
+                <div
+                  className="absolute inset-0"
+                  onMouseDown={handleNoteAreaMouseDown}
+                >
+                  <div className="z-10 flex h-full w-full flex-col gap-5.5 rounded-md shadow-sm overflow-auto">
+                    <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
+                  </div>
+                </div>
+              }
+            </div>
+          )
         }
       </div>
     </div>

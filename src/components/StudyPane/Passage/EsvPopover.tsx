@@ -6,11 +6,13 @@ import { FormatContext } from '../index';
 const EsvPopover = ({
     chapterNumber,
     verseNumber,
-    verseNumStyles
+    verseNumStyles,
+    bookName
   } : {
     chapterNumber: number;
     verseNumber: number;
     verseNumStyles: { className: string }
+    bookName: string;
   }) => {
 
   const { ctxLanguageMode } = useContext(FormatContext);
@@ -56,7 +58,7 @@ const EsvPopover = ({
           <button
             ref={trigger}
             onClick={() => {
-              const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+              const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>
                 setEsvData(data)
               )              

@@ -4,10 +4,9 @@ import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getXataClient, StudyRecord, HebBibleRecord, StepbibleTbeshRecord } from '@/xata';
-import { equals, ge, le } from "@xata.io/client";
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
-import { parsePassageInfo } from './utils';
+import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
 import { equal } from 'assert';
 
@@ -29,6 +28,55 @@ export type State = {
       studyName?: string[];
     };
     message?: string | null;
+};
+
+const buildChapterRangeFilter = (passageInfo: PassageInfo) => {
+  if (passageInfo.startChapter === passageInfo.endChapter) {
+    return {
+      $all: [
+        { chapter: passageInfo.startChapter },
+        { verse: { $ge: passageInfo.startVerse } },
+        { verse: { $le: passageInfo.endVerse } },
+      ],
+    };
+  }
+
+  const middleChapterCondition =
+    passageInfo.endChapter - passageInfo.startChapter > 1
+      ? [
+          {
+            chapter: {
+              $gt: passageInfo.startChapter,
+              $lt: passageInfo.endChapter,
+            },
+          },
+        ]
+      : [];
+
+  return {
+    $any: [
+      {
+        $all: [
+          { chapter: passageInfo.startChapter },
+          { verse: { $ge: passageInfo.startVerse } },
+        ],
+      },
+      {
+        $all: [
+          { chapter: passageInfo.endChapter },
+          { verse: { $le: passageInfo.endVerse } },
+        ],
+      },
+      ...middleChapterCondition,
+    ],
+  };
+};
+
+const createPassageRangeFilter = (passageInfo: PassageInfo) => {
+  const bookValue = passageInfo.book ?? "psalms";
+  return {
+    $all: [{ book: bookValue }, buildChapterRangeFilter(passageInfo)],
+  };
 };
 
 export async function fetchStudyById(studyId: string) {
@@ -670,12 +718,9 @@ export async function fetchPassageData(studyId: string) {
       // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
       {
+        const passageFilter = createPassageRangeFilter(passageInfo);
         const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
-          .filter("book", equals(passageInfo.book))
-          .filter("chapter", ge(passageInfo.startChapter))
-          .filter("chapter", le(passageInfo.endChapter))
-          .filter("verse", ge(passageInfo.startVerse))
-          .filter("verse", le(passageInfo.endVerse))
+          .filter(passageFilter)
           .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
@@ -1139,12 +1184,9 @@ export async function fetchPassageContentOld(studyId: string) {
           stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
+        const passageFilter = createPassageRangeFilter(passageInfo);
         const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
-          .filter("book", equals(passageInfo.book))
-          .filter("chapter", ge(passageInfo.startChapter))
-          .filter("chapter", le(passageInfo.endChapter))
-          .filter("verse", ge(passageInfo.startVerse))
-          .filter("verse", le(passageInfo.endVerse))
+          .filter(passageFilter)
           .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
           .sort("hebId", "asc")
           .getAll();
@@ -1278,12 +1320,26 @@ export async function fetchPassageContentOld(studyId: string) {
   }
 }
 
-export async function fetchESVTranslation(chapter: number, verse: number) {
+export async function fetchESVTranslation(book: string, chapter: number, verse: number) {
 
   const ESV_API_KEY = process.env.ESV_API_KEY;
+  const normalizedBook = (book || 'psalms').trim().toLowerCase();
+  const esvBookNameMap: Record<string, string> = {
+    psalms: 'Psalm',
+    genesis: 'Genesis',
+    isaiah: 'Isaiah',
+    jonah: 'Jonah',
+  };
+  const formatBookName = (value: string) =>
+    value
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  const queryBook = esvBookNameMap[normalizedBook] ?? (formatBookName(normalizedBook) || 'Psalm');
 
   const esvApiEndpoint = new URL('https://api.esv.org/v3/passage/text/?');
-  esvApiEndpoint.searchParams.append('q', 'Psalm+' + chapter + ':' + verse);
+  esvApiEndpoint.searchParams.append('q', `${queryBook}+${chapter}:${verse}`);
   esvApiEndpoint.searchParams.append('include-headings', 'false');
   esvApiEndpoint.searchParams.append('include-footnotes', 'false');
   esvApiEndpoint.searchParams.append('include-verse-numbers', 'false');
