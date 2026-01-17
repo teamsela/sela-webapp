@@ -580,7 +580,7 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
 
   const filter = {
     model: { $is: false }, public: { $is: true },
-    $any: [{ name: { $contains: query } }, { name: { $contains: query } }]
+    $any: [{ name: { $iContains: query } }, { passage: {$contains: query} }]
   };
   const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
     .getPaginated({
@@ -626,11 +626,11 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
   const user = await currentUser();
 
   const xataClient = getXataClient();
-
+  
   const filter = {
     $all:[
       { owner: user?.id },
-      { $any: [{ name: { $contains: query } }, { name: { $contains: query } }] }
+      { $any: [{ name: { $iContains: query } }, { passage: { $contains: query } }] }
     ]
   };
   const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
@@ -667,7 +667,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
       {
         $any: [
           { name: {$iContains: query }},
-          { passage: {$iContains: query }}
+          { passage: {$contains: query }}
         ]
       },  
     ]
