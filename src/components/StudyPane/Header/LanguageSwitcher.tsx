@@ -22,7 +22,7 @@ const LanguageSwitcher = () => {
     <div>
       <label
         htmlFor="toggleLang"
-        className="flex cursor-pointer select-none items-center"
+        className="flex cursor-pointer select-none items-center ml-2"
       >
         <div className="relative">
 

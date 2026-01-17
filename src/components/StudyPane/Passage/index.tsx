@@ -373,6 +373,18 @@ const Passage = ({
         }
       }
 
+      const firstWordIdInPassage = bibleData[0]?.wordId;
+      if (firstWordIdInPassage !== undefined) {
+        const preservedStanzaMd =
+          newMetadata.words[firstWordIdInPassage]?.stanzaMd ??
+          ctxStudyMetadata.words[firstWordIdInPassage]?.stanzaMd;
+        newMetadata.words[firstWordIdInPassage] = {
+          ...(newMetadata.words[firstWordIdInPassage] || {}),
+          stanzaDiv: true,
+          stanzaMd: preservedStanzaMd
+        };
+      }
+
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
       const updatedPassageProps = mergeData(bibleData, newMetadata);

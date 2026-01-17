@@ -299,6 +299,8 @@ export const StropheBlock = ({
         {
           ctxStropheNoteBtnOn ? (
             <>
+            {
+              !ctxIsHebrew && 
               <div
                 className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
                 style={notePanelStyle}
@@ -306,6 +308,7 @@ export const StropheBlock = ({
               >
                 <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
               </div>
+            }
               <div
                 className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
               >
@@ -349,6 +352,16 @@ export const StropheBlock = ({
                   }
                 </div>
               </div>
+            {
+              ctxIsHebrew && 
+              <div
+                className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
+                style={notePanelStyle}
+                onMouseDown={handleNoteAreaMouseDown}
+              >
+                <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
+              </div>
+            }
             </>
           ) : (
             <div className="relative">

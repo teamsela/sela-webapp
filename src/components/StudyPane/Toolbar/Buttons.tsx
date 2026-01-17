@@ -19,17 +19,6 @@ import { updateMetadataInDb } from "@/lib/actions";
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
 
-const colorsEqual = (a?: Partial<ColorData> | null, b?: Partial<ColorData> | null) => {
-  const norm = (c?: Partial<ColorData> | null) => ({
-    fill: c?.fill ?? null,
-    border: c?.border ?? null,
-    text: c?.text ?? null,
-  });
-  const left = norm(a);
-  const right = norm(b);
-  return left.fill === right.fill && left.border === right.border && left.text === right.text;
-};
-
 export const ToolTip = ({ text }: { text: string }) => {
   return (
     <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">
@@ -890,7 +879,7 @@ export const StropheNoteBtn = () => {
   return (
     <div >
       <button 
-        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
         disabled={disabled}
       >
