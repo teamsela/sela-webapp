@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
@@ -10,7 +10,7 @@ import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } 
 import { StudyData } from '@/lib/data';
 
 import LanguageSwitcher from "../Header/LanguageSwitcher";
-import ButtonInfoModal from "@/components/Modals/Toolbar/ButtonInfoModal";
+import ButtonInfoModal, { InfoModalSection } from "@/components/Modals/Toolbar/ButtonInfoModal";
 
 const Toolbar = ({
   study,
@@ -31,6 +31,7 @@ const Toolbar = ({
 }) => {
 
   const { ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const [activeInfoSection, setActiveInfoSection] = useState<InfoModalSection | null>(null);
 
   const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
@@ -71,7 +72,11 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <ButtonInfoModal section="Format" />
+                  <ButtonInfoModal
+                    section="Format"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
                   <div className="flex flex-row">
                     <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
                     <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
@@ -81,7 +86,11 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <ButtonInfoModal section="Word" />
+                  <ButtonInfoModal
+                    section="Word"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
                   <div className="flex flex-row">
                     <UniformWidthBtn setBoxStyle={setBoxStyle} />
                     <BoxlessBtn setBoxStyle={setBoxStyle}/>
@@ -91,7 +100,11 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <ButtonInfoModal section="Line" />
+                  <ButtonInfoModal
+                    section="Line"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
@@ -99,7 +112,11 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <ButtonInfoModal section="Strophe" />
+                  <ButtonInfoModal
+                    section="Strophe"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
@@ -107,7 +124,11 @@ const Toolbar = ({
                   </div>
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
-                  <ButtonInfoModal section="Stanza" />
+                  <ButtonInfoModal
+                    section="Stanza"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
                   <div className="flex flex-row">
                     <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
                     <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
