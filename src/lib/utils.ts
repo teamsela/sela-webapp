@@ -144,8 +144,6 @@ export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : 
   return strongNumWordsMap;
 }
 
-
-
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {
   // Measure the width of the text
   const metrics = context.measureText(text);
@@ -437,3 +435,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
   return passageProps;
 }
 
+export const formatBookAndPassage = (book:string, passage:string):string => {
+  if (!book || book.trim() === "") {
+    return passage;
+  }
+  const formattedBook = book.charAt(0).toUpperCase()+book.slice(1);
+  return `${formattedBook} ${passage}`;
+}

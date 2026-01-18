@@ -580,7 +580,11 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
 
   const filter = {
     model: { $is: false }, public: { $is: true },
-    $any: [{ name: { $iContains: query } }, { passage: {$contains: query} }]
+    $any: [
+      { name: { $iContains: query } }, 
+      { book: { $iContains: query } },
+      { passage: {$contains: query} }
+    ]
   };
   const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
     .getPaginated({
@@ -626,11 +630,18 @@ export async function fetchRecentStudies(query: string, currentPage: number, sor
   const user = await currentUser();
 
   const xataClient = getXataClient();
-  
+
+  // filter by study name, book, and passage
+  // book+passage is displayed for the passage column, so we need to filter by book here
+  // update the filter if UI changes, same for fetchPublicStudies and fetchModelStudies
   const filter = {
     $all:[
       { owner: user?.id },
-      { $any: [{ name: { $iContains: query } }, { passage: { $contains: query } }] }
+      { $any: [
+        { name: { $iContains: query } },
+        { book: { $iContains: query } },
+        { passage: { $contains: query } }
+      ]}
     ]
   };
   const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
@@ -667,6 +678,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
       {
         $any: [
           { name: {$iContains: query }},
+          { book: {$iContains: query }},
           { passage: {$contains: query }}
         ]
       },  
