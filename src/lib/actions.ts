@@ -1325,8 +1325,11 @@ export async function fetchESVTranslation(book: string, chapter: number, verse: 
   const ESV_API_KEY = process.env.ESV_API_KEY;
   const normalizedBook = (book || 'psalms').trim().toLowerCase();
   const esvBookNameMap: Record<string, string> = {
-    psalms: 'Psalm',
     genesis: 'Genesis',
+    psalms: 'Psalm',
+    proverbs: 'Proverbs',
+    ecclesiastes: 'Ecclesiastes',
+    songs: 'Song of Solomon',
     isaiah: 'Isaiah',
     jonah: 'Jonah',
   };
