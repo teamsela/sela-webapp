@@ -90,7 +90,7 @@ export const StanzaBlock = ({
 
       </button>
       </div>
-      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? 'w-full' : ''}`}>
+      <div className={`flex-column ${ctxLanguageMode == LanguageMode.Parallel ? 'w-full' : ''}`}>
       {
           stanzaProps.strophes.map((strophe) => {
               return (

@@ -12,24 +12,11 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
   const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
 
-  const [isNarrow, setIsNarrow] = useState(false);
-
-  //check window size of passage
-  useEffect(() => {
-    const primaryWindow = document.querySelector('#selaPassage')?.parentElement;
-    if (!primaryWindow) return;
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setIsNarrow(entry.contentRect.width < 1350);
-      }
-    });
-
-    resizeObserver.observe(primaryWindow);
-
-    return () => resizeObserver.disconnect();
-  }, []);
-
+  // const [isHebrew, setHebrew] = useState(false);
+  // useEffect(() => {
+  //   setHebrew(isHeb);
+  // }, [isHeb])
+  
   const languageContextValue = {
     ctxIsHebrew: isHebrew
   }
@@ -46,7 +33,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} max-w-full w-fit flex relative px-2 py-4`}>
+    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} flex relative pl-2 py-4`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {

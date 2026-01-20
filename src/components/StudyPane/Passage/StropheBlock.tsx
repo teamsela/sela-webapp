@@ -233,7 +233,7 @@ export const StropheBlock = ({
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
-      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+      className={`relative flex-column px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
@@ -295,7 +295,7 @@ export const StropheBlock = ({
           </span>
         </div>
       )}
-      <div className={`w-fit ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
+      <div className={`${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
             <>
