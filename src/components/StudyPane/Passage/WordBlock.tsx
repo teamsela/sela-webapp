@@ -1,5 +1,5 @@
 import { WordProps } from '@/lib/data';
-import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback, useLayoutEffect } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types";
@@ -44,6 +44,7 @@ export const WordBlock = ({
   const [isEditingGloss, setIsEditingGloss] = useState(false);
   const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
   const glossInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const [glossEditWidth, setGlossEditWidth] = useState<number | null>(null);
   const skipBlurCommitRef = useRef(false);
   const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
   const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
@@ -156,7 +157,11 @@ export const WordBlock = ({
   }, [commitGlossChange]);
 
   const handleGlossChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setGlossDraft(event.target.value);
+    const nextValue = event.target.value;
+    setGlossDraft(nextValue);
+    const inputEl = event.currentTarget;
+    inputEl.style.width = 'auto';
+    setGlossEditWidth(Math.ceil(inputEl.scrollWidth) + 12);
   }, []);
 
 
@@ -277,6 +282,19 @@ export const WordBlock = ({
     }
   }
 
+  useLayoutEffect(() => {
+    if (!isEditingGloss) {
+      setGlossEditWidth(null);
+      return;
+    }
+    const inputEl = glossInputRef.current;
+    if (!inputEl) {
+      return;
+    }
+    inputEl.style.width = 'auto';
+    setGlossEditWidth(Math.ceil(inputEl.scrollWidth) + 12);
+  }, [isEditingGloss, glossDraft, fontSize]);
+
   const isDefaultBorderColor = (color: string) => {
     const normalizedColor = (color.startsWith('#') ? color : `#${color}`).toLowerCase();
     const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
@@ -344,23 +362,31 @@ export const WordBlock = ({
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
             data-clicktype="clickable"
           >
             {ctxIsHebrew ? wordProps.wlcWord : (
               isEditingGloss ? (
-                <textarea
-                  ref={glossInputRef}
-                  value={glossDraft}
-                  onChange={handleGlossChange}
-                  onKeyDown={handleGlossKeyDown}
-                  onBlur={handleGlossBlur}
-                  rows={1}
-                  className="w-full h-full resize-none bg-transparent text-current text-center leading-none focus:outline-none"
-                  style={{ fontSize: 'inherit', fontFamily: 'inherit', lineHeight: 'inherit' }}
-                  onClick={(event) => event.stopPropagation()}
-                  onMouseDown={(event) => event.stopPropagation()}
-                />
+                <>
+                  <textarea
+                    ref={glossInputRef}
+                    value={glossDraft}
+                    onChange={handleGlossChange}
+                    onKeyDown={handleGlossKeyDown}
+                    onBlur={handleGlossBlur}
+                    rows={1}
+                    className="h-full resize-none bg-transparent text-current text-center leading-none focus:outline-none"
+                    style={{
+                      width: glossEditWidth ? `${glossEditWidth}px` : 'auto',
+                      minWidth: '4ch',
+                      fontSize: 'inherit',
+                      fontFamily: 'inherit',
+                      lineHeight: 'inherit',
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                    onMouseDown={(event) => event.stopPropagation()}
+                  />
+                </>
               ) : currentGlossValue
             )}
           </span>

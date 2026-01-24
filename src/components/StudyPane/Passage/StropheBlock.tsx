@@ -233,7 +233,7 @@ export const StropheBlock = ({
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
-      className={`relative flex-column px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
@@ -295,10 +295,12 @@ export const StropheBlock = ({
           </span>
         </div>
       )}
-      <div className={`${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
+      <div className={`w-fit ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
             <>
+            {
+              !ctxIsHebrew && 
               <div
                 className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
                 style={notePanelStyle}
@@ -306,6 +308,7 @@ export const StropheBlock = ({
               >
                 <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
               </div>
+            }
               <div
                 className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
               >
@@ -349,6 +352,16 @@ export const StropheBlock = ({
                   }
                 </div>
               </div>
+            {
+              ctxIsHebrew && 
+              <div
+                className={`flex flex-col gap-5.5 z-10 rounded-md shadow-sm ${shouldShowNote ? '' : 'hidden'} w-full max-w-[360px] overflow-auto`}
+                style={notePanelStyle}
+                onMouseDown={handleNoteAreaMouseDown}
+              >
+                <StropheNotes firstWordId={firstWordId} lastWordId={lastWordId} stropheId={stropheProps.stropheId}/>
+              </div>
+            }
             </>
           ) : (
             <div className="relative">

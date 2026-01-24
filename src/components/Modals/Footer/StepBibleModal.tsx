@@ -1,6 +1,6 @@
 "use client";
 
-import CopyrightModal from "@/components/common/CopyrightModal";
+import CopyrightModal from "@/components/Modals/Footer/CopyrightModal";
 
 type StepBibleModalProps = {
   triggerClassName?: string;

@@ -44,13 +44,6 @@ const Passage = ({
           const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
             .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
           lastSelectedWordId = line.words[line.words.length - 1].wordId;
-        } else if (ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine) {
-          const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
-            .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
-          const isLineStart = line.words[0]?.wordId === selectedWordId;
-          if (isLineStart) {
-            lastSelectedWordId = line.words[line.words.length - 1].wordId;
-          }
         } else if (ctxStructureUpdateType === StructureUpdateType.newStrophe ||
                    ctxStructureUpdateType === StructureUpdateType.mergeWithPrevStrophe ||
                    ctxStructureUpdateType === StructureUpdateType.mergeWithNextStrophe) {
@@ -371,6 +364,18 @@ const Passage = ({
             stanzaMd: undefined
           };
         }
+      }
+
+      const firstWordIdInPassage = bibleData[0]?.wordId;
+      if (firstWordIdInPassage !== undefined) {
+        const preservedStanzaMd =
+          newMetadata.words[firstWordIdInPassage]?.stanzaMd ??
+          ctxStudyMetadata.words[firstWordIdInPassage]?.stanzaMd;
+        newMetadata.words[firstWordIdInPassage] = {
+          ...(newMetadata.words[firstWordIdInPassage] || {}),
+          stanzaDiv: true,
+          stanzaMd: preservedStanzaMd
+        };
       }
 
       ctxSetStudyMetadata(newMetadata);

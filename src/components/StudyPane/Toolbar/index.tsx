@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
@@ -10,6 +10,7 @@ import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } 
 import { StudyData } from '@/lib/data';
 
 import LanguageSwitcher from "../Header/LanguageSwitcher";
+import ButtonInfoModal, { InfoModalSection } from "@/components/Modals/Toolbar/ButtonInfoModal";
 
 const Toolbar = ({
   study,
@@ -30,6 +31,7 @@ const Toolbar = ({
 }) => {
 
   const { ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const [activeInfoSection, setActiveInfoSection] = useState<InfoModalSection | null>(null);
 
   const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
@@ -58,42 +60,83 @@ const Toolbar = ({
         : (
             <div className="flex justify-between">
               <div className="flex">
-                <ScaleDropDown setScaleValue={setScaleValue} />
-                <div className="border-r border-stroke flex flex-row">
-                  <UndoBtn />
-                  <RedoBtn />
+                <div className="border-r border-stroke flex flex-col items-center pt-2 px-2">
+                  <div className="flex flex-row">
+                    <ScaleDropDown setScaleValue={setScaleValue} />
+                  </div>
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
-                  <EditWordBtn />
-                  <ClearFormatBtn setColorAction={setColorAction} />
-                  <ClearAllFormatBtn setColorAction={setColorAction} />
+                <div className="border-r border-stroke flex flex-col items-center pt-3 px-2">
+                  <div className="flex flex-row">
+                    <UndoBtn />
+                    <RedoBtn />
+                  </div>
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <UniformWidthBtn setBoxStyle={setBoxStyle} />
-                  <BoxlessBtn setBoxStyle={setBoxStyle}/>
-                  <IndentBtn leftIndent={true} />
-                  <IndentBtn leftIndent={false} />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <ButtonInfoModal
+                    section="Format"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
+                  <div className="flex flex-row">
+                    <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
+                    <ClearFormatBtn setColorAction={setColorAction} />
+                    <ClearAllFormatBtn setColorAction={setColorAction} />
+                  </div>
                 </div>
-                <div className="border-r border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <ButtonInfoModal
+                    section="Word"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
+                  <div className="flex flex-row">
+                    <BoxlessBtn setBoxStyle={setBoxStyle}/>
+                    <UniformWidthBtn setBoxStyle={setBoxStyle} />
+                    <IndentBtn leftIndent={true} />
+                    <IndentBtn leftIndent={false} />
+                    <EditWordBtn />
+                  </div>
                 </div>
-                <div className="border-r px-3 border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
-                  <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <ButtonInfoModal
+                    section="Line"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newLine} toolTip="New line" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevLine} toolTip="Merge with previous line" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
+                  </div>
                 </div>
-                <div className="border-r px-3 border-stroke flex flex-row">
-                  <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
-                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
-                  <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <ButtonInfoModal
+                    section="Strophe"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newStrophe} toolTip="New strophe" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithPrevStrophe} toolTip="Merge with previous strophe" />
+                    <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
+                  </div>
+                </div>
+                <div className="border-r border-stroke flex flex-col items-center px-2">
+                  <ButtonInfoModal
+                    section="Stanza"
+                    activeSection={activeInfoSection}
+                    setActiveSection={setActiveInfoSection}
+                  />
+                  <div className="flex flex-row">
+                    <StructureUpdateBtn updateType={StructureUpdateType.newStanza} toolTip="New stanza" />
+                    <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithNextStanza : StructureUpdateType.mergeWithPrevStanza} toolTip={isHebrew ? "Merge with next stanza" : "Merge with previous stanza"} />
+                    <StructureUpdateBtn updateType={isHebrew ? StructureUpdateType.mergeWithPrevStanza : StructureUpdateType.mergeWithNextStanza} toolTip={isHebrew ? "Merge with previous stanza" : "Merge with next stanza"} />
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-row">
+              <div className="flex flex-row items-center">
                 <StropheNoteBtn />
                 <LanguageSwitcher />
               </div>

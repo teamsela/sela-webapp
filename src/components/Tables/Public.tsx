@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import Image from 'next/image'
-
-import SearchBar from "@/components/Tables/Search";
-import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
-import Pagination from "@/components/Paginations/Pagination";
+import Image from 'next/image';
 import Link from 'next/link';
 
-import { FetchStudiesResult } from '@/lib/data';
+import Pagination from "@/components/Paginations/Pagination";
+import SearchBar from "@/components/Tables/Search";
+import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import { fetchPublicStudies } from '@/lib/actions';
-
+import { FetchStudiesResult } from '@/lib/data';
+import { formatBookAndPassage } from "@/lib/utils";
 
 export default function PublicTable({
   query,
@@ -82,7 +81,7 @@ export default function PublicTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
-                    {studyItem.book.charAt(0).toUpperCase() + studyItem.book.slice(1)} {studyItem.passage}
+                    {formatBookAndPassage(studyItem.book, studyItem.passage)}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

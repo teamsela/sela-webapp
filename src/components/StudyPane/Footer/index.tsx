@@ -80,7 +80,7 @@ export const Footer = () => {
 
   return (
     <>
-      <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 py-3 shadow-inner backdrop-blur dark:border-slate-700 dark:bg-gray-900/95">
+      <footer className="fixed max-[645px]:!relative bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 py-3 shadow-inner backdrop-blur dark:border-slate-700 dark:bg-gray-900/95">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <button

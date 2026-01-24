@@ -7,13 +7,10 @@ import { FaBible } from "react-icons/fa";
 import { StudyData } from '@/lib/data';
 
 import Tabs from "./Tabs";
-import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
-import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
 import { BoxDisplayConfig, InfoPaneActionType } from "@/lib/types";
-
 
 const Header = ({
   study,
@@ -24,7 +21,7 @@ const Header = ({
   setColorAction,
   setSelectedColor,
   setBoxStyle,
-  setCloneStudyOpen  
+  setCloneStudyOpen
 }: {
   study: StudyData;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
@@ -34,7 +31,7 @@ const Header = ({
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
   setBoxStyle: (arg: BoxDisplayConfig) => void;  
-  setCloneStudyOpen: (arg: boolean) => void;  
+  setCloneStudyOpen: (arg: boolean) => void;
 }) => {
 
   const capitalizedBook = study.book.charAt(0).toUpperCase() + study.book.slice(1);
