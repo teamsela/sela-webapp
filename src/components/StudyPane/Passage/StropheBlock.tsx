@@ -230,6 +230,8 @@ export const StropheBlock = ({
     };
   }, [stanzaExpanded, expanded, stropheNoteTitle, shouldShowNote]);
 
+  const contentWidthClass = showOverlayNote ? "w-full" : "w-fit";
+
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
@@ -295,7 +297,7 @@ export const StropheBlock = ({
           </span>
         </div>
       )}
-      <div className={`w-fit ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
+      <div className={`${contentWidthClass} ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
             <>
