@@ -1,27 +1,27 @@
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
 export const DEFAULT_BORDER_COLOR = "#D9D9D9";
-export const DEFAULT_TEXT_COLOR = "#656565";
+export const DEFAULT_TEXT_COLOR = "#525252";
 
-const FALLBACK_SWATCH_GROUPS: string[][] = [
-  ["#B71C1C", "#D32F2F", "#F44336", "#E57373", "#FFCDD2"],
-  ["#880E4F", "#C2185B", "#E91E63", "#F06292", "#F8BBD0"],
-  ["#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#E1BEE7"],
-  ["#311B92", "#512DA8", "#673AB7", "#9575CD", "#D1C4E9"],
-  ["#1A237E", "#303F9F", "#3F51B5", "#7986CB", "#C5CAE9"],
-  ["#0D47A1", "#1976D2", "#2196F3", "#64B5F6", "#BBDEFB"],
-  ["#01579B", "#0288D1", "#03A9F4", "#4FC3F7", "#B3E5FC"],
-  ["#006064", "#0097A7", "#00BCD4", "#4DD0E1", "#B2EBF2"],
-  ["#004D40", "#00796B", "#009688", "#4DB6AC", "#B2DFDB"],
-  ["#194D33", "#388E3C", "#4CAF50", "#81C784", "#C8E6C9"],
-  ["#33691E", "#689F38", "#8BC34A", "#AED581", "#DCEDC8"],
-  ["#827717", "#AFB42B", "#CDDC39", "#DCE775", "#F0F4C3"],
-  ["#F57F17", "#FBC02D", "#FFEB3B", "#FFF176", "#FFF9C4"],
-  ["#FF6F00", "#FFA000", "#FFC107", "#FFD54F", "#FFECB3"],
-  ["#E65100", "#F57C00", "#FF9800", "#FFB74D", "#FFE0B2"],
-  ["#BF360C", "#E64A19", "#FF5722", "#FF8A65", "#FFCCBC"],
-  ["#3E2723", "#5D4037", "#795548", "#A1887F", "#D7CCC8"],
-  ["#263238", "#455A64", "#607D8B", "#90A4AE", "#CFD8DC"],
-  ["#000000", "#525252", "#969696", "#D9D9D9", "#FFFFFF"],
+export const FALLBACK_SWATCH_GROUPS: string[][] = [
+  ["#B71C1C", "#D32F2F", "#F44336", "#E57373", "#FFCDD2", "#FFE6E9"],
+  ["#880E4F", "#C2185B", "#E91E63", "#F06292", "#F8BBD0", "#FCE0EA"],
+  ["#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#E1BEE7", "#EFE4F5"],
+  ["#311B92", "#512DA8", "#673AB7", "#9575CD", "#D1C4E9", "#E9E3F6"],
+  ["#1A237E", "#303F9F", "#3F51B5", "#7986CB", "#C5CAE9", "#E3E6F7"],
+  ["#0D47A1", "#1976D2", "#2196F3", "#64B5F6", "#BBDEFB", "#E3F0FE"],
+  ["#01579B", "#0288D1", "#03A9F4", "#4FC3F7", "#B3E5FC", "#E0F2FE"],
+  ["#006064", "#0097A7", "#00BCD4", "#4DD0E1", "#B2EBF2", "#E0F7FA"],
+  ["#004D40", "#00796B", "#009688", "#4DB6AC", "#B2DFDB", "#E0F2F1"],
+  ["#194D33", "#388E3C", "#4CAF50", "#81C784", "#C8E6C9", "#E6F4E6"],
+  ["#33691E", "#689F38", "#8BC34A", "#AED581", "#DCEDC8", "#EFF7E6"],
+  ["#827717", "#AFB42B", "#CDDC39", "#DCE775", "#F0F4C3", "#F7FAE6"],
+  ["#F57F17", "#FBC02D", "#FFEB3B", "#FFF176", "#FFF9C4", "#FFFCDF"],
+  ["#FF6F00", "#FFA000", "#FFC107", "#FFD54F", "#FFECB3", "#FFF6DD"],
+  ["#E65100", "#F57C00", "#FF9800", "#FFB74D", "#FFE0B2", "#FFF0E0"],
+  ["#BF360C", "#E64A19", "#FF5722", "#FF8A65", "#FFCCBC", "#FFE6DF"],
+  ["#3E2723", "#5D4037", "#795548", "#A1887F", "#D7CCC8", "#EEEAE7"],
+  ["#263238", "#455A64", "#607D8B", "#90A4AE", "#CFD8DC", "#E7EEF2"],
+  ["#000000", "#525252", "#969696", "#D9D9D9", "#EFEFEF", "#FFFFFF"],
 ] ;
 
 const loadSwatchGroups = (): string[][] | undefined => {

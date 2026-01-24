@@ -10,6 +10,7 @@ import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatInden
 import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
+import { FALLBACK_SWATCH_GROUPS } from "@/lib/colors";
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
@@ -350,8 +351,14 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
         ctxColorAction === colorAction && buttonEnabled && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
-              <SwatchesPicker width={580} height={160} color={displayColor || "#FFFFFF"} onChange={handleColorPickerChange} />
-            </div>
+              <SwatchesPicker
+                width={580}
+                height={180}
+                color={displayColor || "#FFFFFF"}
+                colors={FALLBACK_SWATCH_GROUPS}
+                onChange={handleColorPickerChange}
+              />
+             </div>
           </div>
         )
       }
