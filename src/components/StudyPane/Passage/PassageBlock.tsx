@@ -22,7 +22,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
   }
 
   const shouldStackStanzas = ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel;
-  const allowPassageGrowth = ctxStropheNoteBtnOn;
+  const allowPassageGrowth = ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel;
   const stackedWidthClass = allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`

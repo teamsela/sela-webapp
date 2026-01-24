@@ -463,7 +463,7 @@ const Passage = ({
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div
-        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit min-w-full' : 'w-[100%]'}`}
         id='selaPassage'
       >
         { ctxLanguageMode == LanguageMode.English && 
@@ -472,7 +472,7 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+          <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit min-w-full' : 'w-[100%]'}`}>
             <PassageBlock isHebrew={true}/>
             <PassageBlock isHebrew={false}/>
           </div>
