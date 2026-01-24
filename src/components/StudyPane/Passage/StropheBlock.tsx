@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, useLayoutEffect } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { PiNotePencil } from "react-icons/pi";
@@ -210,25 +210,38 @@ export const StropheBlock = ({
     }
     return sizeStyles;
   }, [ctxStropheNoteBtnOn, wordAreaHeight]);
+  const syncWordAreaHeight = useCallback(() => {
+    const el = wordAreaRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0) {
+      const nextHeight = Math.ceil(rect.height);
+      setWordAreaHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
     const el = wordAreaRef.current;
     if (!el) return;
 
-    const updateMetrics = () => {
-      const rect = el.getBoundingClientRect();
-      if (rect.height > 0) {
-        setWordAreaHeight(rect.height);
-      }
-    };
-
-    updateMetrics();
-    const observer = new ResizeObserver(() => updateMetrics());
+    syncWordAreaHeight();
+    const observer = new ResizeObserver(() => syncWordAreaHeight());
     observer.observe(el);
     return () => {
       observer.disconnect();
     };
-  }, [stanzaExpanded, expanded, stropheNoteTitle, shouldShowNote]);
+  }, [syncWordAreaHeight]);
+
+  useLayoutEffect(() => {
+    if (!shouldRenderWordArea) return;
+    const frame = requestAnimationFrame(() => {
+      syncWordAreaHeight();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
 
   const contentWidthClass = showOverlayNote ? "w-full" : "w-fit";
 
