@@ -43,6 +43,9 @@ export const UndoBtn = () => {
   const restoreHistoryEntry = useCallback(
     (entry: HistoryEntry) => {
       const metadataClone = structuredClone(entry.metadata);
+      if (!metadataClone.words) {
+        metadataClone.words = {};
+      }
       ctxSetStudyMetadata(metadataClone);
       ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
       ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
@@ -95,6 +98,9 @@ export const RedoBtn = () => {
   const restoreHistoryEntry = useCallback(
     (entry: HistoryEntry) => {
       const metadataClone = structuredClone(entry.metadata);
+      if (!metadataClone.words) {
+        metadataClone.words = {};
+      }
       ctxSetStudyMetadata(metadataClone);
       ctxSetWordsColorMap(cloneWordsColorMap(entry.wordsColorMap));
       ctxHighlightCacheRef.current = cloneHighlightCache(entry.highlightCache);
