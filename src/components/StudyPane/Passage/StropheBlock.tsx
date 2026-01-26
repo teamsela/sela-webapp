@@ -243,7 +243,7 @@ export const StropheBlock = ({
     };
   }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
 
-  const contentWidthClass = showOverlayNote ? "w-full" : "w-fit";
+  const contentWidthClass = "w-full min-w-0";
 
   return (
     <div 
@@ -325,7 +325,7 @@ export const StropheBlock = ({
               </div>
             }
               <div
-                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
+                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
               >
                 <div ref={wordAreaRef}>
                   {stropheNoteTitle && shouldRenderWordArea && (
@@ -395,6 +395,7 @@ export const StropheBlock = ({
                     </span>
                   </div>
                   )}
+                  
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
