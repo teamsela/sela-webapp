@@ -25,7 +25,7 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -215,10 +215,11 @@ export const StropheBlock = ({
     if (!el) return;
     const rect = el.getBoundingClientRect();
     if (rect.height > 0) {
-      const nextHeight = Math.ceil(rect.height);
+      const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+      const nextHeight = Math.ceil(rect.height / scale);
       setWordAreaHeight((prev) => (prev === nextHeight ? prev : nextHeight));
     }
-  }, []);
+  }, [ctxScaleValue]);
 
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
