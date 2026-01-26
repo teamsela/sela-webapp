@@ -465,6 +465,7 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className='h-0 w-[100%]'
     >
+      <div className="h-4 w-full" />
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div
