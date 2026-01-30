@@ -74,7 +74,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} mr-1 px-1 py-2 my-1 rounded border`} 
+      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} ${ctxIsHebrew ? 'pl-2' : 'pr-2'} rounded border`} 
       >
       <div
         className={`z-1 ${ctxLanguageMode == LanguageMode.Parallel ? 'relative' : 'absolute'} top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}

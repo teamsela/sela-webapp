@@ -77,7 +77,7 @@ export const StropheBlock = ({
       if (!stanzaExpanded) {
         const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
         if (shouldPinToLanguageSide) {
-          return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+          return `${base} top-[2.5] ${ctxIsHebrew ? 'left-2' : 'right-2'}`;
         }
         return `${base} inset-0 flex items-center justify-center`;
       }
