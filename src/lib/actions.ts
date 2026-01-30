@@ -3,17 +3,32 @@
 import { z } from 'zod';
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getXataClient, StudyRecord, HebBibleRecord, StepbibleTbeshRecord } from '@/xata';
+import { randomUUID } from 'crypto';
+import { getDb } from '@/db/client';
+import {
+  study,
+  stepbibleTbesh,
+  hebBibleGenesisAndPsalms,
+  styling,
+  stropheStyling,
+  stanzaStyling,
+  motif,
+  lexicon,
+  type StudyRecord,
+  type StepbibleTbeshRecord,
+} from '@/db/schema';
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyProps, PassageProps, StudyMetadata, WordProps, StropheData, HebWord, StanzaData, FetchStudiesResult } from './data';
-import { equal } from 'assert';
+import { and, asc, desc, eq, gt, gte, ilike, like, lt, lte, or, sql } from 'drizzle-orm';
 
 const formatStrongNumberForDisplay = (value: string) => {
   const normalized = value.trim().toUpperCase();
   return normalized.replace(/([0-9])([A-Z]+)$/, '$1');
 };
+
+const createRecordId = () => `rec_${randomUUID()}`;
 
 const RenameFormSchema = z.object({
   id: z.string(),
@@ -32,51 +47,40 @@ export type State = {
 
 const buildChapterRangeFilter = (passageInfo: PassageInfo) => {
   if (passageInfo.startChapter === passageInfo.endChapter) {
-    return {
-      $all: [
-        { chapter: passageInfo.startChapter },
-        { verse: { $ge: passageInfo.startVerse } },
-        { verse: { $le: passageInfo.endVerse } },
-      ],
-    };
+    return and(
+      eq(hebBibleGenesisAndPsalms.chapter, passageInfo.startChapter),
+      gte(hebBibleGenesisAndPsalms.verse, passageInfo.startVerse),
+      lte(hebBibleGenesisAndPsalms.verse, passageInfo.endVerse)
+    );
   }
 
   const middleChapterCondition =
     passageInfo.endChapter - passageInfo.startChapter > 1
-      ? [
-          {
-            chapter: {
-              $gt: passageInfo.startChapter,
-              $lt: passageInfo.endChapter,
-            },
-          },
-        ]
-      : [];
+      ? and(
+          gt(hebBibleGenesisAndPsalms.chapter, passageInfo.startChapter),
+          lt(hebBibleGenesisAndPsalms.chapter, passageInfo.endChapter)
+        )
+      : undefined;
 
-  return {
-    $any: [
-      {
-        $all: [
-          { chapter: passageInfo.startChapter },
-          { verse: { $ge: passageInfo.startVerse } },
-        ],
-      },
-      {
-        $all: [
-          { chapter: passageInfo.endChapter },
-          { verse: { $le: passageInfo.endVerse } },
-        ],
-      },
-      ...middleChapterCondition,
-    ],
-  };
+  return or(
+    and(
+      eq(hebBibleGenesisAndPsalms.chapter, passageInfo.startChapter),
+      gte(hebBibleGenesisAndPsalms.verse, passageInfo.startVerse)
+    ),
+    and(
+      eq(hebBibleGenesisAndPsalms.chapter, passageInfo.endChapter),
+      lte(hebBibleGenesisAndPsalms.verse, passageInfo.endVerse)
+    ),
+    ...(middleChapterCondition ? [middleChapterCondition] : [])
+  );
 };
 
 const createPassageRangeFilter = (passageInfo: PassageInfo) => {
   const bookValue = passageInfo.book ?? "psalms";
-  return {
-    $all: [{ book: bookValue }, buildChapterRangeFilter(passageInfo)],
-  };
+  return and(
+    eq(hebBibleGenesisAndPsalms.book, bookValue),
+    buildChapterRangeFilter(passageInfo)
+  );
 };
 
 export async function fetchStudyById(studyId: string) {
@@ -84,22 +88,25 @@ export async function fetchStudyById(studyId: string) {
   // Add noStore() here to prevent the response from being cached.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
   //noStore();
-  const xataClient = getXataClient();
+  const db = getDb();
 
   try {
-      // fetch a study by id from xata
-      const study = await xataClient.db.study.filter({ id: studyId }).getFirst();
+      const [studyRecord] = await db
+        .select()
+        .from(study)
+        .where(eq(study.id, studyId))
+        .limit(1);
 
       let result : StudyData = {
           id: studyId,
-          name: study?.name || "",
-          owner: study?.owner || "",
-          book: study?.book || "", 
-          passage: study?.passage || "",
-          public: study?.public || false,
-          model: study?.model || false,
-          metadata: study?.metadata || {},
-          notes: study?.notes || ""
+          name: studyRecord?.name || "",
+          owner: studyRecord?.owner || "",
+          book: studyRecord?.book || "", 
+          passage: studyRecord?.passage || "",
+          public: studyRecord?.public || false,
+          model: studyRecord?.model || false,
+          metadata: (studyRecord?.metadata as StudyMetadata) || {},
+          notes: studyRecord?.notes || ""
       };
 
       return result;
@@ -111,9 +118,9 @@ export async function fetchStudyById(studyId: string) {
 
 export async function updateStudyName(id: string, studyName: string) {
 
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    await xataClient.db.study.updateOrThrow({ id: id, name: studyName});
+    await db.update(study).set({ name: studyName }).where(eq(study.id, id));
   } catch (error) {
     return { message: 'Database Error: Failed to update study name.' };
   }
@@ -121,9 +128,9 @@ export async function updateStudyName(id: string, studyName: string) {
 
 export async function updateStudyNotes(id: string, content: string) {
   
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    await xataClient.db.study.updateOrThrow({ id: id, notes: content})
+    await db.update(study).set({ notes: content }).where(eq(study.id, id));
   } catch (error) {
     return { message: "Database Error: Failed to update study notes"}
   }
@@ -132,9 +139,12 @@ export async function updateStudyNotes(id: string, content: string) {
 export async function updatePublic(studyId: string, publicAccess: boolean) {
   "use server";
 
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    await xataClient.db.study.updateOrThrow({ id: studyId, public: publicAccess});
+    await db
+      .update(study)
+      .set({ public: publicAccess })
+      .where(eq(study.id, studyId));
   } catch (error) {
     return { message: 'Database Error: Failed to update study public access.' };
   }
@@ -142,9 +152,12 @@ export async function updatePublic(studyId: string, publicAccess: boolean) {
 
 export async function updateStar(studyId: string, isStarred: boolean) {
 
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    await xataClient.db.study.updateOrThrow({ id: studyId, starred: isStarred });
+    await db
+      .update(study)
+      .set({ starred: isStarred })
+      .where(eq(study.id, studyId));
   } catch (error) {
     return { message: 'Database Error: Failed to update study star.' };
   }
@@ -153,381 +166,28 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
 
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
     const metadataJson = JSON.stringify(studyMetadata);
     if (metadataJson) {
-      await xataClient.db.study.updateOrThrow({ id: studyId, metadata: studyMetadata });
+      await db
+        .update(study)
+        .set({ metadata: studyMetadata })
+        .where(eq(study.id, studyId));
     }
   } catch (error) {
     return { message: 'Database Error: Failed to update study star.' };
   }
 }
 
-/*
-export async function updateWordColor(studyId: string, selectedWordIds: number[], actionType: ColorActionType, newColor: string | null) {
-  "use server";
-  const user = await currentUser();
-  if (!user || !user.id) {
-    return { message: 'Not a user' + studyId };
-  }
-  const study = await fetchStudyById(studyId);
-  if (user.id !== study.owner) {
-    return { message: 'Current user is not the author of study ' + studyId};
-  }
 
-  let operations: any = [];
 
-  let fieldsToUpdate: {};
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      fieldsToUpdate = { colorFill: newColor };
-      break;
-    case ColorActionType.borderColor:
-      fieldsToUpdate = { borderColor: newColor };
-      break;
-    case ColorActionType.textColor:
-      fieldsToUpdate = { textColor: newColor };
-      break;
-    case ColorActionType.resetColor:
-      fieldsToUpdate = {
-        colorFill: null,
-        borderColor: null,
-        textColor: null
-      }
-      break;
-    default:
-      break;
-  }
-
-  selectedWordIds.forEach((wordId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + wordId,
-        fields: { studyId: studyId, hebId: wordId, ...fieldsToUpdate },
-        upsert: true,
-      },
-    })
-  })
-  //console.log(util.inspect(operations, {showHidden: false, depth: null, colors: true}))
-
-  const xataClient = getXataClient();
-  let result : any;
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update word color for study:' + studyId + ', result: ' + result };
-  }
-}
-
-export async function updateIndented(studyId: string, hebId: number, numIndent: number) {
-  "use server";
-
-  const xataClient = getXataClient();
-
-  let result : any;
-
-  try {
-    result = await xataClient.transactions.run([
-      {
-        update: {
-          table: "styling" as const,
-          id: studyId + "_" + hebId,
-          fields: { studyId: studyId, hebId: hebId, numIndent: numIndent },
-          upsert: true,
-        }
-      }
-    ]);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update indented for study:' + studyId + ', result: ' + result };
-  }
-}
-
-export async function updateStropheColor(studyId: string, selectedStropheIds: number[], actionType: ColorActionType, newColor: string | null) {
-  "use server";
-
-  let operations: any = [];
-
-  let fieldsToUpdate: {};
-
-  switch (actionType) {
-    case ColorActionType.colorFill:
-      fieldsToUpdate = { colorFill: newColor };
-      break;
-    case ColorActionType.borderColor:
-      fieldsToUpdate = { borderColor: newColor };
-      break;
-    case ColorActionType.resetColor:
-      fieldsToUpdate = {
-        colorFill: null,
-        borderColor: null,
-      }
-      break;
-    default:
-      break;
-  }
-
-  selectedStropheIds.forEach((stropheId) => {
-    operations.push({
-      update: {
-        table: "stropheStyling" as const,
-        id: studyId + "_" + stropheId,
-        fields: { studyId: studyId, stropheId: stropheId, ...fieldsToUpdate },
-        upsert: true,
-      },
-    })
-  })
-  //console.log(util.inspect(operations, {showHidden: false, depth: null, colors: true}))
-
-  const xataClient = getXataClient();
-  let result : any;
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update strophe color for study:' + studyId + ', result: ' + result };
-  }
-}
-
-export async function updateStropheState(studyId: string, stropheId: number, newState: boolean) {
-  "use server";
-  
-  const user = await currentUser();
-  if (!user || !user.id) {
-    return { message: 'Not a user' + studyId };
-  }
-  const study = await fetchStudyById(studyId);
-  if (user.id !== study.owner) {
-    return { message: 'Current user is not the author of study ' + studyId};
-  }
-
-  const xataClient = getXataClient();
-
-  let result : any;
-  let operations: any = [];
-
-  operations.push({
-      update: {
-        table: "stropheStyling" as const,
-        id: studyId + "_" + stropheId,
-        fields: { studyId: studyId, stropheId: stropheId, expanded: newState },
-        upsert: true,
-      }
-  })
-
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update styling strophe expanded state.' };
-  }
-}
-
-export async function updateStanzaState(studyId: string, stanzaId: number, newState: boolean) {
-  "use server";
-
-  const user = await currentUser();
-  if (!user || !user.id) {
-    return { message: 'Not a user' + studyId };
-  }
-  const study = await fetchStudyById(studyId);
-  if (user.id !== study.owner) {
-    return { message: 'Current user is not the author of study ' + studyId};
-  }
-
-  const xataClient = getXataClient();
-
-  let result : any;
-  let operations: any = [];
-
-  operations.push({
-      update: {
-        table: "stanzaStyling" as const,
-        id: studyId + "_" + stanzaId,
-        fields: { studyId: studyId, stanzaId: stanzaId, expanded: newState },
-        upsert: true,
-      }
-  })
-
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update styling strophe expanded state.' };
-  }
-}
-
-export async function updateLineBreak(studyId: string, hebIdsToAddBreak: number[], hebIdsToRemoveBreak: number[]) {
-  "use server";
-
-  const xataClient = getXataClient();
-
-  let result : any;
-  let operations: any = [];
-
-  hebIdsToAddBreak.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, lineBreak: true },
-        upsert: true,
-      }
-    })
-  })
-
-  hebIdsToRemoveBreak.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, lineBreak: false },
-        upsert: true,
-      }
-    })
-  })
-
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update line break in styling.' };
-  }
-}
-
-export async function updateStropheDiv(studyId: string, hebIdsToAddDiv: number[], hebIdsToRemoveDiv: number[], strophesToUpdate: StropheData[]) {
-  "use server";
-
-  const xataClient = getXataClient();
-
-  let result : any;
-  let operations: any = [];
-
-  hebIdsToAddDiv.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, stropheDiv: true },
-        upsert: true,
-      }
-    })
-  })
-
-  hebIdsToRemoveDiv.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, stropheDiv: false },
-        upsert: true,
-      }
-    })
-  })
-
-  if (strophesToUpdate.length > 0) {
-    try {
-      const stropheRecords = await xataClient.db.stropheStyling.select(["id"]).filter({"studyId.id": studyId}).getMany();
-      stropheRecords.forEach((stropheRecord) => {
-        operations.push({
-          delete: {
-            table: "stropheStyling" as const,
-            id: stropheRecord.id,
-          }    
-        })
-      });
-    } catch (error) {
-      console.log(error);
-    } 
-  }
-
-  strophesToUpdate.forEach((strophe) => {
-    operations.push({
-      update: {
-        table: "stropheStyling" as const,
-        id: studyId + "_" + strophe.id,
-        fields: { studyId: studyId, stropheId: strophe.id, colorFill: strophe.colorFill, borderColor: strophe.borderColor, expanded: strophe.expanded },
-        upsert: true,
-      }
-    })
-  })
-
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update strophe division in styling.' };
-  }
-}
-
-export async function updateStanzaDiv(studyId: string, hebIdsToAddBreak: number[], hebIdsToRemoveDiv: number[], stanzasToUpDate: StanzaData[]) {
-  "use server"
-
-  const xataClient = getXataClient();
-
-  let result: any;
-  let operations: any =[];
-
-  hebIdsToAddBreak.forEach((hebId) => {
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, stanzaDiv: true },
-        upsert: true,
-      }
-    });
-  })
-
-  hebIdsToRemoveDiv.forEach((hebId) =>{
-    operations.push({
-      update: {
-        table: "styling" as const,
-        id: studyId + "_" + hebId,
-        fields: { studyId: studyId, hebId: hebId, stanzaDiv: false },
-        upsert: true,
-      }
-    });
-  })
-
-  if (stanzasToUpDate.length > 0) {
-    try {
-      const stanzaRecords = await xataClient.db.stanzaStyling.select(["id"]).filter({"studyId.id": studyId}).getMany();
-      stanzaRecords.forEach((stanzaRecord) => {
-        operations.push({
-          delete: {
-            table: "stanzaStyling" as const,
-            id: stanzaRecord.id,
-          }
-        })
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  stanzasToUpDate.forEach((stanza) => {
-    operations.push({
-      update: {
-        table: "stanzaStyling" as const,
-        id: studyId + "_" + stanza.id,
-        fields: { studyId, stanzaId: stanza.id, expanded: stanza.expanded },
-        upsert: true,
-      }
-    });
-  })
-
-  try {
-    result = await xataClient.transactions.run(operations);
-  } catch (error) {
-    return { message: 'Database Error: Failed to update stanza division in styling.' };
-  }
-
-}
-*/
 
 export async function deleteStudy(studyId: string) {
 
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    await xataClient.db.study.deleteOrThrow({ id: studyId });
+    await db.delete(study).where(eq(study.id, studyId));
   } catch (error) {
     return { message: 'Database Error: Failed to delete study.' };
   }
@@ -539,10 +199,20 @@ export async function createStudy(passage: string, book: string) {
 
   if (user)
   {
-    var record : StudyRecord;
-    const xataClient = getXataClient();
+    var record : StudyRecord | undefined;
+    const db = getDb();
     try {
-      record = await xataClient.db.study.create({ name: "Untitled Study", passage: passage, book:book, owner: user.id });
+      const [created] = await db
+        .insert(study)
+        .values({
+          id: createRecordId(),
+          name: "Untitled Study",
+          passage,
+          book,
+          owner: user.id,
+        })
+        .returning();
+      record = created;
     } catch (error) {
       return { message: 'Database Error: Failed to Create Study.' };
     }
@@ -557,10 +227,21 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
 
   if (user)
   {
-    var record : StudyRecord;
-    const xataClient = getXataClient();
+    var record : StudyRecord | undefined;
+    const db = getDb();
     try {
-      record = await xataClient.db.study.create({ name: newName, book: originalStudy.book, passage: originalStudy.passage, owner: user.id, metadata: originalStudy.metadata });
+      const [created] = await db
+        .insert(study)
+        .values({
+          id: createRecordId(),
+          name: newName,
+          book: originalStudy.book,
+          passage: originalStudy.passage,
+          owner: user.id,
+          metadata: originalStudy.metadata,
+        })
+        .returning();
+      record = created;
     } catch (error) {
       return { message: 'Database Error: Failed to Clone Study.' };
     }
@@ -570,36 +251,59 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
 }
 
 const PAGINATION_SIZE = 10;
+const studySortColumns = {
+  name: study.name,
+  passage: study.passage,
+  createdAt: study.xataCreatedAt,
+  updatedAt: study.xataUpdatedAt,
+  public: study.public,
+};
 
-export async function fetchPublicStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
+const resolveStudySortColumn = (sortKey: string) =>
+  studySortColumns[sortKey as keyof typeof studySortColumns] ??
+  study.xataUpdatedAt;
+
+export async function fetchPublicStudies(query: string, currentPage: number, sortKey: string, sortAsc: boolean) {
   const searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
   const user = await currentUser();
+  const db = getDb();
 
-  const xataClient = getXataClient();
+  const searchFilter = and(
+    eq(study.model, false),
+    eq(study.public, true),
+    or(
+      ilike(study.name, `%${query}%`),
+      ilike(study.book, `%${query}%`),
+      ilike(study.passage, `%${query}%`)
+    )
+  );
 
-  const filter = {
-    model: { $is: false }, public: { $is: true },
-    $any: [
-      { name: { $iContains: query } }, 
-      { book: { $iContains: query } },
-      { passage: {$contains: query} }
-    ]
-  };
-  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
-    .getPaginated({
-      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
-    }));
-  const dbQuery = await xataClient.db.study.filter(filter).getAll();
+  const sortColumn = resolveStudySortColumn(sortKey);
+
+  const search = await db
+    .select()
+    .from(study)
+    .where(searchFilter)
+    .orderBy(sortAsc ? asc(sortColumn) : desc(sortColumn))
+    .limit(PAGINATION_SIZE)
+    .offset((currentPage - 1) * PAGINATION_SIZE);
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(study)
+    .where(searchFilter);
 
   // extract the ids from owner column and add them into a set
   const uniqueIds = new Set<string>();
-  search.records.forEach((study) => {
-    uniqueIds.add(study?.owner ? study.owner : "");
+  search.forEach((studyRecord) => {
+    if (studyRecord?.owner) {
+      uniqueIds.add(studyRecord.owner);
+    }
   });
 
   // fetch ids and sessions of owners from clerk
-  const users = await clerkClient.users.getUserList( { userId: Array.from( uniqueIds ) } );
+  const users = await clerkClient.users.getUserList({ userId: Array.from(uniqueIds) });
 
   let mp = new Map();
   for (let i = 0; i < users.length; i++) {
@@ -608,134 +312,189 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
 
   const thisUser = await currentUser();
 
-  search.records.map((studyRecord) => {   
+  search.forEach((studyRecord) => {
     searchResult.records.push({
-      id: studyRecord.id, name: studyRecord.name, owner: user?.id, 
-      ownerDisplayName: thisUser?.id === studyRecord.owner ? "me" : mp.get(studyRecord.owner)?.firstName + " " + mp.get(studyRecord.owner)?.lastName,  
+      id: studyRecord.id,
+      name: studyRecord.name,
+      owner: user?.id,
+      ownerDisplayName:
+        thisUser?.id === studyRecord.owner
+          ? "me"
+          : mp.get(studyRecord.owner)?.firstName + " " + mp.get(studyRecord.owner)?.lastName,
       ownerAvatarUrl: mp.get(studyRecord.owner)?.imageUrl,
-      passage: studyRecord.passage, book: studyRecord.book!,
-      public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt, 
-      createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata,
-      notes: studyRecord.notes || "" })
+      passage: studyRecord.passage,
+      book: studyRecord.book!,
+      public: studyRecord.public || false,
+      starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xataUpdatedAt ?? undefined,
+      createdAt: studyRecord.xataCreatedAt ?? undefined,
+      metadata: studyRecord.metadata as StudyMetadata,
+      notes: studyRecord.notes || "",
+    });
   });
-  searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
+  searchResult.totalPages = Math.ceil((count ?? 0) / PAGINATION_SIZE);
   return searchResult;
 }
 
-export async function fetchRecentStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
+export async function fetchRecentStudies(query: string, currentPage: number, sortKey: string, sortAsc: boolean) {
   let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
   const user = await currentUser();
+  if (!user?.id) {
+    return searchResult;
+  }
 
-  const xataClient = getXataClient();
+  const db = getDb();
 
   // filter by study name, book, and passage
   // book+passage is displayed for the passage column, so we need to filter by book here
   // update the filter if UI changes, same for fetchPublicStudies and fetchModelStudies
-  const filter = {
-    $all:[
-      { owner: user?.id },
-      { $any: [
-        { name: { $iContains: query } },
-        { book: { $iContains: query } },
-        { passage: { $contains: query } }
-      ]}
-    ]
-  };
-  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
-    .getPaginated({
-      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
-    }));
-  const dbQuery = await xataClient.db.study.filter(filter).getAll();
+  const searchFilter = and(
+    eq(study.owner, user.id),
+    or(
+      ilike(study.name, `%${query}%`),
+      ilike(study.book, `%${query}%`),
+      ilike(study.passage, `%${query}%`)
+    )
+  );
 
-  search.records.map((studyRecord) => {   
+  const sortColumn = resolveStudySortColumn(sortKey);
+
+  const search = await db
+    .select()
+    .from(study)
+    .where(searchFilter)
+    .orderBy(sortAsc ? asc(sortColumn) : desc(sortColumn))
+    .limit(PAGINATION_SIZE)
+    .offset((currentPage - 1) * PAGINATION_SIZE);
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(study)
+    .where(searchFilter);
+
+  search.forEach((studyRecord) => {
     searchResult.records.push({
-      id: studyRecord.id, name: studyRecord.name, owner: user?.id, book: studyRecord.book || "", passage: studyRecord.passage, 
-      public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt, 
-      createdAt: studyRecord.xata.createdAt, 
-      metadata: studyRecord.metadata,
-      notes: studyRecord.notes || "" })
+      id: studyRecord.id,
+      name: studyRecord.name,
+      owner: user?.id,
+      book: studyRecord.book || "",
+      passage: studyRecord.passage,
+      public: studyRecord.public || false,
+      starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xataUpdatedAt ?? undefined,
+      createdAt: studyRecord.xataCreatedAt ?? undefined,
+      metadata: studyRecord.metadata as StudyMetadata,
+      notes: studyRecord.notes || "",
+    });
   });
-  searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
+  searchResult.totalPages = Math.ceil((count ?? 0) / PAGINATION_SIZE);
   return searchResult;
 }
 
-export async function fetchModelStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
+export async function fetchModelStudies(query: string, currentPage: number, sortKey: string, sortAsc: boolean) {
   const PAGINATION_SIZE = 10;
-  
+
   let searchResult : FetchStudiesResult = { records: [], totalPages: 1 };
 
   const user = await currentUser();
 
-  const xataClient = getXataClient();
+  const db = getDb();
 
-  const filter = {
-    $all:[
-      {model: true},
-      {
-        $any: [
-          { name: {$iContains: query }},
-          { book: {$iContains: query }},
-          { passage: {$contains: query }}
-        ]
-      },  
-    ]
-  };
+  const searchFilter = and(
+    eq(study.model, true),
+    or(
+      ilike(study.name, `%${query}%`),
+      ilike(study.book, `%${query}%`),
+      ilike(study.passage, `%${query}%`)
+    )
+  );
 
-  const search = (await xataClient.db.study.filter(filter).sort(sortKey, sortAsc ? "asc" : "desc")
-    .getPaginated({
-      pagination: { size: PAGINATION_SIZE, offset: (currentPage-1) * PAGINATION_SIZE }
-    }));
+  const sortColumn = resolveStudySortColumn(sortKey);
 
-  const dbQuery = await xataClient.db.study.filter(filter).getAll();
-  
-  search.records.map((studyRecord) => {   
+  const search = await db
+    .select()
+    .from(study)
+    .where(searchFilter)
+    .orderBy(sortAsc ? asc(sortColumn) : desc(sortColumn))
+    .limit(PAGINATION_SIZE)
+    .offset((currentPage - 1) * PAGINATION_SIZE);
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(study)
+    .where(searchFilter);
+
+  search.forEach((studyRecord) => {
     searchResult.records.push({
-      id: studyRecord.id, name: studyRecord.name, owner: user?.id, book: studyRecord.book || "", passage: studyRecord.passage, 
-      public: studyRecord.public || false, starred: studyRecord.starred || false,
-      lastUpdated: studyRecord.xata.updatedAt, metadata: studyRecord.metadata, notes: studyRecord.notes || "" })
+      id: studyRecord.id,
+      name: studyRecord.name,
+      owner: user?.id,
+      book: studyRecord.book || "",
+      passage: studyRecord.passage,
+      public: studyRecord.public || false,
+      starred: studyRecord.starred || false,
+      lastUpdated: studyRecord.xataUpdatedAt ?? undefined,
+      metadata: studyRecord.metadata as StudyMetadata,
+      notes: studyRecord.notes || "",
+    });
   });
-  searchResult.totalPages = Math.ceil(dbQuery.length/PAGINATION_SIZE);
+  searchResult.totalPages = Math.ceil((count ?? 0) / PAGINATION_SIZE);
   return searchResult;
 }
 
 export async function fetchPassageData(studyId: string) {
-  const xataClient = getXataClient();
+  const db = getDb();
 
   try {
-    // fetch a study by id from xata
-    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
+    const [studyRecord] = await db
+      .select()
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1);
 
     let studyData : StudyData = {
       id: studyId,
-      name: study?.name || "",
-      owner: study?.owner || "",
-      book: study?.book || "",
-      passage: study?.passage || "",
-      public: study?.public || false,
-      model: study?.model || false,
-      metadata: study?.metadata || {},
-      notes: study?.notes || ""
+      name: studyRecord?.name || "",
+      owner: studyRecord?.owner || "",
+      book: studyRecord?.book || "",
+      passage: studyRecord?.passage || "",
+      public: studyRecord?.public || false,
+      model: studyRecord?.model || false,
+      metadata: (studyRecord?.metadata as StudyMetadata) || {},
+      notes: studyRecord?.notes || ""
     };
 
     let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
 
-    if (study)
+    if (studyRecord)
     {
-      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
+      const passageInfo = parsePassageInfo(studyRecord.passage, studyRecord.book||'psalms');
       console.log(passageInfo)
-      // fetch all words from xata by start/end chapter and verse
+      // fetch all words from the database by start/end chapter and verse
       if (passageInfo instanceof Error === false)
       {
         const passageFilter = createPassageRangeFilter(passageInfo);
-        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
-          .filter(passageFilter)
-          .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
-          .sort("hebId", "asc")
-          .getAll();
+        const passageContent = await db
+          .select({
+            hebId: hebBibleGenesisAndPsalms.hebId,
+            chapter: hebBibleGenesisAndPsalms.chapter,
+            verse: hebBibleGenesisAndPsalms.verse,
+            strongNumber: hebBibleGenesisAndPsalms.strongNumber,
+            wlcWord: hebBibleGenesisAndPsalms.wlcWord,
+            gloss: hebBibleGenesisAndPsalms.gloss,
+            ETCBCgloss: hebBibleGenesisAndPsalms.ETCBCgloss,
+            morphology: hebBibleGenesisAndPsalms.morphology,
+            BSBnewLine: hebBibleGenesisAndPsalms.BSBnewLine,
+            motifCategories: motif.categories,
+            motifRelatedStrongCodes: motif.relatedStrongCodes,
+            lemma: lexicon.lemma,
+          })
+          .from(hebBibleGenesisAndPsalms)
+          .leftJoin(motif, eq(hebBibleGenesisAndPsalms.motifLink, motif.id))
+          .leftJoin(lexicon, eq(motif.lemmaLink, lexicon.id))
+          .where(passageFilter)
+          .orderBy(asc(hebBibleGenesisAndPsalms.hebId));
 
         const uniqueStrongNumbers = new Set<number>();
         passageContent.forEach((word) => {
@@ -897,17 +656,28 @@ export async function fetchPassageData(studyId: string) {
             return undefined;
           }
 
-          const filter =
+          const columnRef = stepbibleTbesh[column];
+          const whereClause =
             matchType === "equals"
-              ? { [column]: normalizedCode }
-              : { [column]: { $startsWith: normalizedCode } };
+              ? eq(columnRef, normalizedCode)
+              : like(columnRef, `${normalizedCode}%`);
 
-          const query = xataClient.db.stepbible_tbesh
-            .filter(filter)
-            .select([...STEP_BIBLE_SELECT_COLUMNS]);
+          const query = db
+            .select({
+              Hebrew: stepbibleTbesh.Hebrew,
+              Transliteration: stepbibleTbesh.Transliteration,
+              Gloss: stepbibleTbesh.Gloss,
+              Meaning: stepbibleTbesh.Meaning,
+              Morph: stepbibleTbesh.Morph,
+              eStrong: stepbibleTbesh.eStrong,
+              dStrong: stepbibleTbesh.dStrong,
+              uStrong: stepbibleTbesh.uStrong,
+            })
+            .from(stepbibleTbesh)
+            .where(whereClause);
 
           if (matchType === "startsWith") {
-            const records = await query.getMany();
+            const records = await query;
 
             for (const record of records) {
               const columnValue = record[column]?.trim();
@@ -922,7 +692,7 @@ export async function fetchPassageData(studyId: string) {
             return undefined;
           }
 
-          const record = await query.getFirst();
+          const [record] = await query.limit(1);
 
           if (!record) {
             return undefined;
@@ -1014,13 +784,14 @@ export async function fetchPassageData(studyId: string) {
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
 
-          if (word.motifLink) {
-            const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
-                                        .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
+          if (word.motifCategories || word.motifRelatedStrongCodes || word.lemma) {
+            const relatedStrongNums = word.motifRelatedStrongCodes
+              ?.map((code) => parseInt(code))
+              .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
             hebWord.motifData = {
-              lemma: word.motifLink.lemmaLink?.lemma || "",
+              lemma: word.lemma || "",
               relatedStrongNums: relatedStrongNums || [],
-              categories: word.motifLink?.categories || []
+              categories: word.motifCategories || []
             }
             //console.log(hebWord.motifData);
           }
@@ -1150,58 +921,90 @@ export async function fetchPassageData(studyId: string) {
 
 export async function fetchPassageContentOld(studyId: string) {
   
-  const xataClient = getXataClient();
+  const db = getDb();
 
   try {
-    // fetch a study by id from xata
-    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
+    const [studyRecord] = await db
+      .select()
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1);
 
     let passageData = { studyId: studyId, stanzas: [] } as PassageData;
 
-    if (study)
+    if (studyRecord)
     {
-      const book = (study.book ?? 'psalms').toLowerCase();
-      const passageInfo = parsePassageInfo(study.passage, book);
+      const book = (studyRecord.book ?? 'psalms').toLowerCase();
+      const passageInfo = parsePassageInfo(studyRecord.passage, book);
 
-      // fetch all words from xata by start/end chapter and verse
+      // fetch all words from the database by start/end chapter and verse
       if (passageInfo instanceof Error === false)
       {
-        const wordStyling = await xataClient.db.styling
-          .filter({studyId: study.id})
-          .select(['hebId', 'colorFill', 'borderColor', 'textColor', 'numIndent', 'lineBreak', 'stropheDiv', 'stanzaDiv'])
-          .sort("hebId", "asc")
-          .getAll();
+        const wordStyling = await db
+          .select({
+            hebId: styling.hebId,
+            colorFill: styling.colorFill,
+            borderColor: styling.borderColor,
+            textColor: styling.textColor,
+            numIndent: styling.numIndent,
+            lineBreak: styling.lineBreak,
+            stropheDiv: styling.stropheDiv,
+            stanzaDiv: styling.stanzaDiv,
+          })
+          .from(styling)
+          .where(eq(styling.studyId, studyRecord.id))
+          .orderBy(asc(styling.hebId));
         const wordStylingMap = new Map();
         wordStyling.forEach((obj) => {
           wordStylingMap.set(obj.hebId, { colorFill: obj.colorFill, borderColor: obj.borderColor, textColor: obj.textColor, numIndent: obj.numIndent, lineBreak: obj.lineBreak, stropheDiv: obj.stropheDiv, stanzaDiv: obj.stanzaDiv });
         });
         
-        const stanzaStyling = await xataClient.db.stanzaStyling
-          .filter({studyId: study.id})
-          .select(['stanzaId', 'expanded'])
-          .sort("stanzaId", "asc")
-          .getAll();
+        const stanzaStylingRows = await db
+          .select({ stanzaId: stanzaStyling.stanzaId, expanded: stanzaStyling.expanded })
+          .from(stanzaStyling)
+          .where(eq(stanzaStyling.studyId, studyRecord.id))
+          .orderBy(asc(stanzaStyling.stanzaId));
         const stanzaStylingMap = new Map();
-        stanzaStyling.forEach((obj) => {
+        stanzaStylingRows.forEach((obj) => {
           stanzaStylingMap.set(obj.stanzaId, { expanded: obj.expanded })
         })
 
-        const stropheStyling = await xataClient.db.stropheStyling
-          .filter({studyId: study.id})
-          .select(['stropheId', 'expanded', 'borderColor', 'colorFill'])
-          .sort("stropheId", "asc")
-          .getAll();
+        const stropheStylingRows = await db
+          .select({
+            stropheId: stropheStyling.stropheId,
+            expanded: stropheStyling.expanded,
+            borderColor: stropheStyling.borderColor,
+            colorFill: stropheStyling.colorFill,
+          })
+          .from(stropheStyling)
+          .where(eq(stropheStyling.studyId, studyRecord.id))
+          .orderBy(asc(stropheStyling.stropheId));
         const stropheStylingMap = new Map();
-        stropheStyling.forEach((obj) => {
+        stropheStylingRows.forEach((obj) => {
           stropheStylingMap.set(obj.stropheId, { borderColor: obj.borderColor, colorFill: obj.colorFill, expanded: obj.expanded });
         });
 
         const passageFilter = createPassageRangeFilter(passageInfo);
-        const passageContent = await xataClient.db.heb_bible_genesis_and_psalms
-          .filter(passageFilter)
-          .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
-          .sort("hebId", "asc")
-          .getAll();
+        const passageContent = await db
+          .select({
+            hebId: hebBibleGenesisAndPsalms.hebId,
+            chapter: hebBibleGenesisAndPsalms.chapter,
+            verse: hebBibleGenesisAndPsalms.verse,
+            strongNumber: hebBibleGenesisAndPsalms.strongNumber,
+            wlcWord: hebBibleGenesisAndPsalms.wlcWord,
+            gloss: hebBibleGenesisAndPsalms.gloss,
+            ETCBCgloss: hebBibleGenesisAndPsalms.ETCBCgloss,
+            morphology: hebBibleGenesisAndPsalms.morphology,
+            BSBnewLine: hebBibleGenesisAndPsalms.BSBnewLine,
+            motifCategories: motif.categories,
+            motifRelatedStrongCodes: motif.relatedStrongCodes,
+            lemma: lexicon.lemma,
+          })
+          .from(hebBibleGenesisAndPsalms)
+          .leftJoin(motif, eq(hebBibleGenesisAndPsalms.motifLink, motif.id))
+          .leftJoin(lexicon, eq(motif.lemmaLink, lexicon.id))
+          .where(passageFilter)
+          .orderBy(asc(hebBibleGenesisAndPsalms.hebId));
         
         let currentStanzaIdx = -1;
         let currentStropheIdx = -1;
@@ -1227,15 +1030,15 @@ export async function fetchPassageContentOld(studyId: string) {
           hebWord.firstWordInStrophe = false;
           hebWord.firstStropheInStanza = false; 
           hebWord.lastStropheInStanza = false;
-          if (word.motifLink?.lemmaLink) {
-            hebWord.lemma = word.motifLink.lemmaLink.lemma || ""
+          if (word.lemma) {
+            hebWord.lemma = word.lemma || ""
           }
-          const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
+          const relatedStrongNums = word.motifRelatedStrongCodes?.map(code => parseInt(code))
                                       .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
           if (relatedStrongNums && relatedStrongNums.length > 0) {
             hebWord.relatedStrongNums = relatedStrongNums;
           }
-          hebWord.categories = word.motifLink?.categories || [];
+          hebWord.categories = word.motifCategories || [];
 
           const currentWordStyling = wordStylingMap.get(hebWord.id);
           if (currentWordStyling !== undefined) {
@@ -1373,10 +1176,14 @@ export async function fetchESVTranslation(book: string, chapter: number, verse: 
 };
 
 export async function fetchStudyOwner(studyId: string) {
-  const xataClient = getXataClient();
+  const db = getDb();
   try {
-    const study = await xataClient.db.study.read(studyId);
-    return study?.owner ?? null;
+    const [studyRecord] = await db
+      .select({ owner: study.owner })
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1);
+    return studyRecord?.owner ?? null;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch study owner.');
