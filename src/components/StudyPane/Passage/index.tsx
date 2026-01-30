@@ -465,10 +465,11 @@ const Passage = ({
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
       className='h-0 w-[100%]'
     >
+      <div className="h-4 w-full" />
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div
-        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
         id='selaPassage'
       >
         { ctxLanguageMode == LanguageMode.English && 
@@ -477,7 +478,7 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-fit'}`}>
+          <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
             <PassageBlock isHebrew={true}/>
             <PassageBlock isHebrew={false}/>
           </div>

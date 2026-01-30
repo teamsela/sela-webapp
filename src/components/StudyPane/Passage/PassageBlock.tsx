@@ -34,19 +34,24 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
     ctxIsHebrew: isHebrew
   }
 
-  const shouldStackStanzas = ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel;
+  const isParallel = ctxLanguageMode == LanguageMode.Parallel;
+  const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel;
   const allowPassageGrowth = ctxStropheNoteBtnOn;
-  const stackedWidthClass = allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%] max-w-[100%]';
+  const stackedWidthClass = allowPassageGrowth
+    ? 'w-fit min-w-full max-w-none'
+    : isParallel
+      ? 'w-fit max-w-none'
+      : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`
     : 'flex-row max-w-[600px]';
   const passageWidthClass = isHebrew
-    ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
-    : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : 'w-[100%]';
+    ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
+    : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : 'w-[100%]';
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} max-w-full w-fit flex relative px-2 py-4`}>
+    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} max-w-full flex relative px-2 py-4`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {

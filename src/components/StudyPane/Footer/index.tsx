@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useMemo, useState } from "react";
-import { IconChevronDown, IconInfoCircle } from "@tabler/icons-react";
+import { IconChevronDown, IconCopyright, IconInfoCircle } from "@tabler/icons-react";
 import clsx from "clsx";
 
 import BSBModal from "@/components/Modals/Footer/BSBModal";
@@ -17,6 +17,7 @@ export const Footer = () => {
   const { ctxSelectedWords } = useContext(FormatContext);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [showCopyright, setShowCopyright] = useState(false);
 
   const activeWord = useMemo(() => {
     if (!ctxSelectedWords.length) {
@@ -108,9 +109,37 @@ export const Footer = () => {
                 {inlineWordSummary}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => setShowCopyright((prev) => !prev)}
+              className={clsx(
+                "flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:hidden",
+                showCopyright
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-slate-300 text-slate-600 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+              )}
+              aria-expanded={showCopyright}
+              aria-controls="copyright-information-bar"
+            >
+              <IconCopyright size={18} stroke={2.2} />
+              <span>Copyright</span>
+              <IconChevronDown
+                size={16}
+                stroke={2}
+                className={clsx("transition-transform", showCopyright ? "rotate-180" : "rotate-0")}
+              />
+            </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+          <div
+            id="copyright-information-bar"
+            className={clsx(
+              "flex-wrap items-center gap-x-1 gap-y-1 text-xs text-slate-500 dark:text-slate-400",
+              showCopyright ? "flex" : "hidden",
+              "sm:flex"
+            )}
+          >
             <span>Copyright Information for</span>
             <DiscoveryModal triggerClassName="px-0 hover:underline" />
             <span>,</span>

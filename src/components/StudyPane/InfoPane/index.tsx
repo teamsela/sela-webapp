@@ -110,7 +110,7 @@ const InfoPane = ({
 
       {/* Fixed close button */}
       <button
-        className="absolute right-6 top-4 md:right-8"
+        className="absolute right-6 top-6 md:right-8"
         onClick={handleClick}
         style={{ zIndex: 1000 }} // Keep z-index for the close button
       >
@@ -118,7 +118,7 @@ const InfoPane = ({
       </button>
 
       {/* Conditionally render the content based on infoPaneAction */}
-      <div className="h-full">
+      <div className="h-full pt-4">
         {infoPaneAction === InfoPaneActionType.notes && <Notes />}
         {infoPaneAction === InfoPaneActionType.structure && <Structure />}
         {infoPaneAction === InfoPaneActionType.motif && <Motif />}

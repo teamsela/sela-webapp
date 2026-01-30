@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, useLayoutEffect } from 'react';
 import { LuTextSelect } from "react-icons/lu";
 import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
 import { PiNotePencil } from "react-icons/pi";
@@ -25,7 +25,7 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -77,7 +77,7 @@ export const StropheBlock = ({
       if (!stanzaExpanded) {
         const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
         if (shouldPinToLanguageSide) {
-          return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
+          return `${base} top-[2.5] ${ctxIsHebrew ? 'left-2' : 'right-2'}`;
         }
         return `${base} inset-0 flex items-center justify-center`;
       }
@@ -210,25 +210,41 @@ export const StropheBlock = ({
     }
     return sizeStyles;
   }, [ctxStropheNoteBtnOn, wordAreaHeight]);
+  const syncWordAreaHeight = useCallback(() => {
+    const el = wordAreaRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.height > 0) {
+      const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+      const nextHeight = Math.ceil(rect.height / scale);
+      setWordAreaHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+    }
+  }, [ctxScaleValue]);
+
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
     const el = wordAreaRef.current;
     if (!el) return;
 
-    const updateMetrics = () => {
-      const rect = el.getBoundingClientRect();
-      if (rect.height > 0) {
-        setWordAreaHeight(rect.height);
-      }
-    };
-
-    updateMetrics();
-    const observer = new ResizeObserver(() => updateMetrics());
+    syncWordAreaHeight();
+    const observer = new ResizeObserver(() => syncWordAreaHeight());
     observer.observe(el);
     return () => {
       observer.disconnect();
     };
-  }, [stanzaExpanded, expanded, stropheNoteTitle, shouldShowNote]);
+  }, [syncWordAreaHeight]);
+
+  useLayoutEffect(() => {
+    if (!shouldRenderWordArea) return;
+    const frame = requestAnimationFrame(() => {
+      syncWordAreaHeight();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
+
+  const contentWidthClass = "w-full min-w-0";
 
   return (
     <div 
@@ -295,7 +311,7 @@ export const StropheBlock = ({
           </span>
         </div>
       )}
-      <div className={`w-fit ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
+      <div className={`${contentWidthClass} ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
             <>
@@ -310,7 +326,7 @@ export const StropheBlock = ({
               </div>
             }
               <div
-                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-2-0 overflow-x-auto`}
+                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
               >
                 <div ref={wordAreaRef}>
                   {stropheNoteTitle && shouldRenderWordArea && (
@@ -380,6 +396,7 @@ export const StropheBlock = ({
                     </span>
                   </div>
                   )}
+                  
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
