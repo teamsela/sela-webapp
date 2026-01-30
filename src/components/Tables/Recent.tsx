@@ -32,12 +32,12 @@ export default function RecentTable({
   const sortDict: Record<string, any> = {
     name: "name",
     passage: "passage",
-    created_at: "xata.createdAt",
-    last_modified: "xata.updatedAt",
+    created_at: "createdAt",
+    last_modified: "updatedAt",
     shared_to_public: "public"
   };
   
-  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
+  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "updatedAt" : "updatedAt";
   async function fetchStudies() {
     const [result] = await Promise.all([fetchRecentStudies(query, currentPage, sortKey, sortAsc)]);
     setStudiesResult(result);

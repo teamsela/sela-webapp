@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Study {
+  id        String   @id @default(cuid())
+  name      String   @default("Untitled")
+  owner     String?
+  public    Boolean  @default(false)
+  starred   Boolean  @default(false)
+  passage   String   @default("1")
+  model     Boolean  @default(false)
+  metadata  Json?
+  book      String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  styling        Styling[]
+  stropheStyling StropheStyling[]
+  stanzaStyling  StanzaStyling[]
+
+  @@map("study")
+}
+
+model Motif {
+  id                 String   @id @default(cuid())
+  categories         String[]
+  relatedStrongCodes String[]
+  lemmaLinkId        String?
+  lemmaLink          Lexicon? @relation(fields: [lemmaLinkId], references: [id])
+
+  hebBible                 HebBible[]
+  hebBibleGenesisAndPsalms HebBibleGenesisAndPsalms[]
+
+  @@map("motif")
+}
+
+model Lexicon {
+  id    String  @id @default(cuid())
+  gloss String?
+  lemma String?
+
+  motifs Motif[]
+
+  @@map("lexicon")
+}
+
+model StepbibleTbesh {
+  id              String  @id @default(cuid())
+  eStrong         String?
+  dStrong         String?
+  uStrong         String?
+  Hebrew          String?
+  Transliteration String?
+  Morph           String?
+  Gloss           String?
+  Meaning         String?
+
+  @@map("stepbible_tbesh")
+}
+
+model HebBible {
+  id              String   @id @default(cuid())
+  hebId           Int?
+  book            String?
+  chapter         Int?
+  verse           Int?
+  wlcWord         String?
+  hebUnicode      String?
+  strongNumber    Float?
+  gloss           String?
+  morphology      String?
+  WLCsort         Float?
+  poetryMarker    Boolean?
+  paragraphMarker Boolean?
+  stropheBreak    Boolean?
+  verseBreak      Boolean?
+  BSBnewStanza    Boolean?
+  ETCBCgloss      String?
+  HebSort         Float?
+  BSBSort         Float?
+  Vs              Int?
+  BSBVersion      String?
+  mergecolumn     Float?
+  BSBnewLine      Boolean?
+  motifLink_old   Float?
+  motifLinkId     String?  @map("motifLink")
+  motifLink       Motif?   @relation(fields: [motifLinkId], references: [id])
+
+  @@map("heb_bible")
+}
+
+model Styling {
+  id          String   @id @default(cuid())
+  studyId     String?
+  colorFill   String?
+  borderColor String?
+  textColor   String?
+  hebId       Int      @default(0)
+  numIndent   Int      @default(0)
+  indented    Boolean  @default(false)
+  stropheDiv  Boolean?
+  lineBreak   Boolean?
+  stanzaDiv   Boolean?
+
+  study Study? @relation(fields: [studyId], references: [id])
+
+  @@map("styling")
+}
+
+model StropheStyling {
+  id          String   @id @default(cuid())
+  studyId     String?
+  colorFill   String?
+  borderColor String?
+  stropheId   Int      @default(0)
+  expanded    Boolean  @default(true)
+
+  study Study? @relation(fields: [studyId], references: [id])
+
+  @@map("stropheStyling")
+}
+
+model StanzaStyling {
+  id       String  @id @default(cuid())
+  studyId  String?
+  expanded Boolean?
+  stanzaId Int     @default(0)
+
+  study Study? @relation(fields: [studyId], references: [id])
+
+  @@map("stanzaStyling")
+}
+
+model HebBibleGenesisAndPsalms {
+  id              String   @id @default(cuid())
+  hebId           Int?
+  book            String?
+  chapter         Int?
+  verse           Int?
+  wlcWord         String?
+  hebUnicode      String?
+  strongNumber    Float?
+  gloss           String?
+  morphology      String?
+  WLCsort         Float?
+  poetryMarker    Boolean?
+  paragraphMarker Boolean?
+  stropheBreak    Boolean?
+  verseBreak      Boolean?
+  BSBnewStanza    Boolean?
+  ETCBCgloss      String?
+  HebSort         Float?
+  BSBSort         Float?
+  Vs              Int?
+  BSBVersion      String?
+  mergecolumn     Float?
+  BSBnewLine      Boolean?
+  motifLink_old   Float?
+  motifLinkId     String?  @map("motifLink")
+  motifLink       Motif?   @relation(fields: [motifLinkId], references: [id])
+
+  @@map("heb_bible_genesis_and_psalms")
+}

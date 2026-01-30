@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.5",
+    "@prisma/client": "^5.22.0",
     "@tabler/icons-react": "^2.47.0",
     "@vercel/analytics": "^1.5.0",
-    "@xata.io/client": "^0.29.5",
     "clsx": "^2.1.0",
     "mitt": "^3.0.1",
     "next": "^14.2.6",
@@ -28,11 +28,11 @@
     "@types/react": "^18",
     "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18",
-    "@xata.io/cli": "^0.16.12",
     "autoprefixer": "^10.0.1",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.2.6",
     "postcss": "^8.4.34",
+    "prisma": "^5.22.0",
     "react-color": "github:teamsela/react-color#master",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
