@@ -14,34 +14,54 @@ const Notes = () => {
   const pendingPayloadRef = useRef<string | null>(null);   // what we intend to save next
   const lastSavedPayloadRef = useRef<string | null>(null); // what backend already has
 
-  // Initialize local text
-  const [text, setText] = useState(() => {
+  const buildEmptyStrophes = useCallback(
+    () =>
+      Array.from({ length: ctxPassageProps.stropheCount }, () => ({
+        title: "",
+        text: "",
+        firstWordId: -1,
+        lastWordId: -1,
+      })),
+    [ctxPassageProps.stropheCount]
+  );
+
+  const getSafeNotes = useCallback((): StudyNotes => {
+    const fallback: StudyNotes = { main: "", strophes: buildEmptyStrophes() };
+    if (!ctxStudyNotes) return fallback;
     try {
-      return ctxStudyNotes ? (JSON.parse(ctxStudyNotes).main ?? "") : "";
+      const parsed = JSON.parse(ctxStudyNotes) as StudyNotes;
+      return {
+        main: typeof parsed?.main === "string" ? parsed.main : "",
+        strophes: Array.isArray(parsed?.strophes) ? parsed.strophes : fallback.strophes,
+      };
     } catch {
-      return "";
+      return fallback;
     }
-  });
+  }, [ctxStudyNotes, buildEmptyStrophes]);
+
+  // Initialize local text
+  const [text, setText] = useState(() => getSafeNotes().main ?? "");
   const [rows, setRows] = useState(1);
 
   // Ensure context has default shape AFTER mount
   useEffect(() => {
     if (!ctxStudyNotes) {
-      const array: StropheNote[] = Array.from({ length: ctxPassageProps.stropheCount}, () => ({title: "", text: "", firstWordId: -1, lastWordId: -1}))
-      ctxSetStudyNotes(JSON.stringify({ main: "" , strophes: array}));
+      const array: StropheNote[] = buildEmptyStrophes();
+      ctxSetStudyNotes(JSON.stringify({ main: "", strophes: array }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ctxStudyNotes, ctxSetStudyNotes, buildEmptyStrophes]);
 
   // Keep context in sync with local text
   useEffect(() => {
-    const currentJSON = JSON.parse(ctxStudyNotes);
-    const updatedJSON = {...currentJSON, main:text};
+    const currentJSON = getSafeNotes();
+    const updatedJSON = { ...currentJSON, main: text };
     const payload = JSON.stringify(updatedJSON);
-    ctxSetStudyNotes(payload);
+    if (payload !== ctxStudyNotes) {
+      ctxSetStudyNotes(payload);
+    }
     // keep our pending payload up to date for quick flush
     pendingPayloadRef.current = payload;
-  }, [text, ctxSetStudyNotes]);
+  }, [text, ctxStudyNotes, ctxSetStudyNotes, getSafeNotes]);
 
   // A stable "save now" that supports keepalive and beacon
   const saveNow = useCallback(async (payload: string, { keepalive = false } = {}) => {
@@ -87,9 +107,9 @@ const Notes = () => {
   useEffect(() => {
     // clear previous debounce
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    const currentJSON = JSON.parse(ctxStudyNotes);
-    const updatedJSON = {...currentJSON, main:text};
-    const payload = JSON.stringify(updatedJSON);
+    const payload =
+      pendingPayloadRef.current ??
+      JSON.stringify({ ...getSafeNotes(), main: text });
     pendingPayloadRef.current = payload;
 
     timeoutRef.current = setTimeout(() => {
@@ -100,7 +120,7 @@ const Notes = () => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [text, saveNow]);
+  }, [text, saveNow, getSafeNotes]);
 
   // Flush on unmount and tab/page visibility changes
   useEffect(() => {
