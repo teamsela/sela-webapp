@@ -357,6 +357,7 @@ export const StropheBlock = ({
                                 <WordBlock
                                   key={"word_" + word.wordId}
                                   wordProps={word}
+                                  isFirstLineInStrophe={lineId === 0}
                                 />
                               </div>
                             )
@@ -414,6 +415,7 @@ export const StropheBlock = ({
                                 <WordBlock
                                   key={"word_" + word.wordId}
                                   wordProps={word}
+                                  isFirstLineInStrophe={lineId === 0}
                                 />
                               </div>
                             )
