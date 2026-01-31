@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { createPortal } from "react-dom";
 import { fetchESVTranslation } from "@/lib/actions";
-import { LanguageMode } from "@/lib/types";
-import { FormatContext } from '../index';
+import { LanguageContext } from './PassageBlock';
 
 const EsvPopover = ({
     chapterNumber,
@@ -18,7 +17,7 @@ const EsvPopover = ({
     renderFromBottom?: boolean;
   }) => {
 
-  const { ctxLanguageMode } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
@@ -28,7 +27,7 @@ const EsvPopover = ({
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
 
-  const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
+  const isHebrew = ctxIsHebrew;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
