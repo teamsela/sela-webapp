@@ -7,17 +7,13 @@ import { FaBible } from "react-icons/fa";
 import { StudyData } from '@/lib/data';
 
 import Tabs from "./Tabs";
-import DarkModeSwitcher from "./DarkModeSwitcher";
 import DropdownUser from "./DropdownUser";
-import LanguageSwitcher from "./LanguageSwitcher";
 import Title from "./Title";
 import Toolbar from "../Toolbar";
-import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
-
+import { BoxDisplayConfig, InfoPaneActionType } from "@/lib/types";
 
 const Header = ({
   study,
-  setLangToHebrew,
   setInfoPaneAction,
   infoPaneAction,
   setScaleValue,
@@ -25,19 +21,20 @@ const Header = ({
   setColorAction,
   setSelectedColor,
   setBoxStyle,
-  setCloneStudyOpen  
+  setCloneStudyOpen
 }: {
   study: StudyData;
-  setLangToHebrew: (arg: boolean) => void;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
   setScaleValue: (arg: number) => void;
   //color functions
   setColorAction: (arg: number) => void,
   setSelectedColor: (arg: string) => void;
-  setBoxStyle: (arg: BoxDisplayStyle) => void;  
-  setCloneStudyOpen: (arg: boolean) => void;  
+  setBoxStyle: (arg: BoxDisplayConfig) => void;  
+  setCloneStudyOpen: (arg: boolean) => void;
 }) => {
+
+  const capitalizedBook = study.book.charAt(0).toUpperCase() + study.book.slice(1);
 
   return (
     <header id="selaHeader" className="fixed top-0 left-0 w-full z-50 bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
@@ -60,14 +57,14 @@ const Header = ({
         <div className="flex-1">
           <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
-            <div className="text-black text-md md:text-lg dark:text-white">Psalm {study.passage}</div>
+            <div className="text-black text-md md:text-lg dark:text-white">{capitalizedBook} {study.passage}</div>
           </div>
         </div>
         <div className="flex-1">
           <div className="flex justify-end items-center sm:gap-1 md:gap-2 lg:gap-4">
               <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
 
-              <LanguageSwitcher setLangToHebrew={setLangToHebrew}/>
+              {/* <LanguageSwitcher /> */}
 
               {/* <!-- Dark Mode Toggler --> */}
               {/*<DarkModeSwitcher />*/}

@@ -1,31 +1,33 @@
 import React, { useEffect, useContext } from 'react';
 
 import { FormatContext } from '../index';
-import { StanzaBlock } from './StanzaBlock';
+import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
-import { StructureUpdateType } from '@/lib/types';
+import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
-
+import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+
 
 const Passage = ({
   bibleData,
 }: {
   bibleData: WordProps[];
 }) => {
+
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
-    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory
+    ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
   useEffect(() => {
-
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
@@ -38,7 +40,6 @@ const Passage = ({
 
       if (sortedWords.length === 1) {
         if (ctxStructureUpdateType === StructureUpdateType.newLine ||
-            ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine ||
             ctxStructureUpdateType === StructureUpdateType.mergeWithNextLine) {
           const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
             .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
@@ -365,20 +366,71 @@ const Passage = ({
         }
       }
 
+      const firstWordIdInPassage = bibleData[0]?.wordId;
+      if (firstWordIdInPassage !== undefined) {
+        const preservedStanzaMd =
+          newMetadata.words[firstWordIdInPassage]?.stanzaMd ??
+          ctxStudyMetadata.words[firstWordIdInPassage]?.stanzaMd;
+        newMetadata.words[firstWordIdInPassage] = {
+          ...(newMetadata.words[firstWordIdInPassage] || {}),
+          stanzaDiv: true,
+          stanzaMd: preservedStanzaMd
+        };
+      }
+
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
       const updatedPassageProps = mergeData(bibleData, newMetadata);
+
+      const updatedStropheNotes: StropheNote[] = [];
+      let oldNotes: StudyNotes = { main: "", strophes: [] };
+      try {
+        if (ctxStudyNotes) {
+          oldNotes = JSON.parse(ctxStudyNotes);
+        }
+      } catch (err) {
+        console.warn("Failed to parse study notes; resetting to defaults", err);
+      }
+      updatedPassageProps.stanzaProps.forEach((stanza) => {
+        stanza.strophes.forEach((strophe) => {
+          const firstWord = strophe.lines[0].words[0].wordId;
+          const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
+          const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
+          let updatedText = "";
+          let updatedTitle = "";
+          oldNotes.strophes.forEach((oldStrophe) => {
+            if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
+              if (updatedTitle === "") {
+                updatedTitle += oldStrophe.title;
+                updatedText += oldStrophe.text;
+              }
+              else {
+                updatedTitle += " | " + oldStrophe.title;
+                updatedText += "\n" + oldStrophe.text;
+              }
+            };
+          });
+          updatedStropheNotes[newIndex].title = updatedTitle;
+          updatedStropheNotes[newIndex].text = updatedText;
+        });
+      });
+      const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
+      ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
+      ctxSetNoteMerge(true);
+
+      // create a new array of notes, then migrate the old notes over:
+
+      
       ctxSetPassageProps(updatedPassageProps);
 
       updateMetadataInDb(ctxStudyId, newMetadata);
 
       ctxSetSelectedStrophes([]);
       ctxSetNumSelectedStrophes(0);
+      
+      // Reset the structure update type
+      ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-   
-    // Reset the structure update type
-    ctxSetStructureUpdateType(StructureUpdateType.none);
-
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
@@ -405,24 +457,42 @@ const Passage = ({
   }, [ctxSelectedWords]);
 
   return (  
+    
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className="h-0"
+      className='h-0 w-[100%]'
     >
-      <div id="selaPassage" className='flex relative pl-2 py-4'>
-        {
-          ctxPassageProps.stanzaProps.map((stanza) => {
-            return (
-              <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
-            )
-          })
+      <div className="h-4 w-full" />
+      {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
+      {/* selaPassage is causing selection box shifting bug */}
+      <div
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
+        id='selaPassage'
+      >
+        { ctxLanguageMode == LanguageMode.English && 
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+            <PassageBlock isHebrew={false}/> 
+          </div>
+        }
+        { ctxLanguageMode == LanguageMode.Parallel && 
+          <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
+            <PassageBlock isHebrew={true}/>
+            <PassageBlock isHebrew={false}/>
+          </div>
+        }
+        { ctxLanguageMode == LanguageMode.Hebrew && 
+          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+          <PassageBlock isHebrew={true}/> 
+          </div>
         }
       </div>
+      
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
+    
   );
 };
 

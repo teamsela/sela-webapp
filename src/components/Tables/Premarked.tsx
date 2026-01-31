@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+import Pagination from "@/components/Paginations/Pagination";
 import SearchBar from "@/components/Tables/Search";
 import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
-import Pagination from "@/components/Paginations/Pagination";
-import Link from 'next/link';
-import { FetchStudiesResult } from '@/lib/data';
 import { fetchModelStudies } from '@/lib/actions';
+import { FetchStudiesResult } from '@/lib/data';
+import { formatBookAndPassage } from "@/lib/utils";
+import Link from 'next/link';
 
-export default async function PremarkedTable({
+export default function PremarkedTable({
   query,
   currentPage,
   sortBy,
@@ -76,7 +77,7 @@ export default async function PremarkedTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
-                    Psalm {studyItem.passage}
+                    {formatBookAndPassage(studyItem.book, studyItem.passage)}
                   </p>
                 </td>
               </tr>

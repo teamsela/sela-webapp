@@ -1,24 +1,38 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
+import { createPortal } from "react-dom";
 import { fetchESVTranslation } from "@/lib/actions";
-import { FormatContext } from '../index';
+import { LanguageContext } from './PassageBlock';
 
 const EsvPopover = ({
     chapterNumber,
     verseNumber,
-    verseNumStyles
+    verseNumStyles,
+    bookName,
+    renderFromBottom = false
   } : {
     chapterNumber: number;
     verseNumber: number;
     verseNumStyles: { className: string }
+    bookName: string;
+    renderFromBottom?: boolean;
   }) => {
 
-  const { ctxIsHebrew } = useContext(FormatContext);
+  const { ctxIsHebrew } = useContext(LanguageContext);
 
   const [popoversOpen, setPopoversOpen] = useState(false);
   const [esvData, setEsvData] = useState("Loading...");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
+
+  const isHebrew = ctxIsHebrew;
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setPortalTarget(document.body);
+  }, []);
 
   // close on click outside
   useEffect(() => {
@@ -46,14 +60,49 @@ const EsvPopover = ({
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
+  useEffect(() => {
+    if (!popoversOpen) return;
+    const updatePosition = () => {
+      if (!trigger.current) return;
+      const rect = trigger.current.getBoundingClientRect();
+      const margin = 4;
+      const top = renderFromBottom ? rect.bottom + margin : rect.top - margin;
+      const left = isHebrew ? rect.right + margin : rect.left;
+      setPopoverPosition({ top, left });
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [popoversOpen, renderFromBottom, isHebrew]);
+
+  const popoverContent = (
+    <div
+      ref={popovers}
+      onFocus={() => setPopoversOpen(true)}
+      onBlur={() => setPopoversOpen(false)}
+      style={{ top: popoverPosition.top, left: popoverPosition.left }}
+      className={`fixed ${renderFromBottom ? '' : '-translate-y-full'} ${isHebrew ? '-translate-x-full max-w-[420px]' : 'max-w-[560px]'} text-left z-20 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+        popoversOpen === true ? "block" : "hidden"
+      }`}
+    >
+      <p className="text-sm text-white text-wrap">
+        {esvData}
+      </p>
+    </div>
+  );
+
   return (
     <div>
       <div>
-        <div className="relative inline-block">
+        <div className={`relative inline-block ${popoversOpen ? 'z-30' : 'z-0'}`}>
           <button
             ref={trigger}
             onClick={() => {
-              const esvContent = fetchESVTranslation(chapterNumber, verseNumber);
+              const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>
                 setEsvData(data)
               )              
@@ -63,18 +112,8 @@ const EsvPopover = ({
           >
             {verseNumber}
           </button>
-          <div
-            ref={popovers}
-            onFocus={() => setPopoversOpen(true)}
-            onBlur={() => setPopoversOpen(false)}
-            className={`absolute bottom-full text-left ${ctxIsHebrew ? 'right-1 max-w-[420px]' : 'left-0 max-w-[560px]'} z-20 mb-1 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
-              popoversOpen === true ? "block" : "hidden"
-            }`}
-          >
-            <p className="text-sm text-white text-wrap">
-              {esvData}
-            </p>
-          </div>
+          {/* Render in a portal so the popover is not clipped by stacking contexts. */}
+          {portalTarget ? createPortal(popoverContent, portalTarget) : null}
         </div>
       </div>
     </div>

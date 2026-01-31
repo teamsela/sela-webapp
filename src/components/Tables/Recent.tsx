@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-import SearchBar from "@/components/Tables/Search";
-import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
-import StarToggler from '@/components/Tables/Recent/StarToggler';
-import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
 import Pagination from "@/components/Paginations/Pagination";
-import { FetchStudiesResult } from '@/lib/data';
+import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
+import StarToggler from '@/components/Tables/Recent/StarToggler';
+import SearchBar from "@/components/Tables/Search";
+import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import { fetchRecentStudies } from '@/lib/actions';
+import { FetchStudiesResult } from '@/lib/data';
+import { formatBookAndPassage } from "@/lib/utils";
 
 export default function RecentTable({
   query,
@@ -93,7 +94,7 @@ export default function RecentTable({
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 pl-9 dark:border-strokedark xl:pl-11">
                   <p className="text-black dark:text-white">
-                    Psalm {studyItem.passage}
+                    {formatBookAndPassage(studyItem.book, studyItem.passage)}
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

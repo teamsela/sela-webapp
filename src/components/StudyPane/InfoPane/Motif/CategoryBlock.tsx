@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatContext } from "../..";
 import { WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
+import { deriveUniformWordPalette } from "@/lib/utils";
 
 export const CategoryBlock = ({
     category,
@@ -20,73 +21,61 @@ export const CategoryBlock = ({
     lastSelectedWords: WordProps[],
     setLastSelectedWords: React.Dispatch<React.SetStateAction<WordProps[]>>
 }) => {
-    const { ctxStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor } = useContext(FormatContext);
+    const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxWordsColorMap, ctxStudyMetadata } = useContext(FormatContext);
 
-    const matchColorProperty = (property: 'fill' | 'text' | 'border') : boolean => {
-        return value.wordProps.every(dsd =>
-          dsd.metadata?.color &&
-          (!dsd.metadata.color[property] || dsd.metadata.color[property] === value.wordProps[0].metadata.color?.[property])
-        );
-      };
+    const uniformPalette = deriveUniformWordPalette(value.wordProps, {
+        colorMap: ctxWordsColorMap,
+        metadataMap: ctxStudyMetadata.words,
+    });
 
-    const [colorFillLocal, setColorFillLocal] = useState(matchColorProperty('fill') ? value.wordProps[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
-    const [textColorLocal, setTextColorLocal] = useState(matchColorProperty('text') ? value.wordProps[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
-    const [borderColorLocal, setBorderColorLocal] = useState(matchColorProperty('border') ? value.wordProps[0].metadata?.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
+    const [colorFillLocal, setColorFillLocal] = useState(uniformPalette?.fill ?? DEFAULT_COLOR_FILL);
+    const [textColorLocal, setTextColorLocal] = useState(uniformPalette?.text ?? DEFAULT_TEXT_COLOR);
+    const [borderColorLocal, setBorderColorLocal] = useState(uniformPalette?.border ?? DEFAULT_BORDER_COLOR);
     const [selected, setSelected] = useState(false);
 
     useEffect(() => {
         let hasChildren = true;
         value.wordProps.forEach((word) => {
-            hasChildren = hasChildren && ctxSelectedWords.includes(word);
+            hasChildren = hasChildren && ctxSelectedWords.some(w => w.wordId === word.wordId);
         })
         setSelected(hasChildren);
     }, [ctxSelectedWords, value.wordProps]);
 
     useEffect(() => {
-        if (ctxSelectedWords.length == 0 || ctxColorAction === ColorActionType.none) { return; }
-    
-        if (selected) {
-            if (ctxColorAction === ColorActionType.colorFill && ctxSelectedColor) {
-                setColorFillLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.borderColor && ctxSelectedColor) {
-                setBorderColorLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.textColor && ctxSelectedColor) {
-                setTextColorLocal(ctxSelectedColor);
-            } else if (ctxColorAction === ColorActionType.resetColor) {
-                setColorFillLocal(DEFAULT_COLOR_FILL);
-                setBorderColorLocal(DEFAULT_BORDER_COLOR);
-                setTextColorLocal(DEFAULT_TEXT_COLOR);
-            }
-        }
-    }, [ctxSelectedColor, ctxColorAction, ctxSelectedWords])
-
-    useEffect(() => {
-        setColorFillLocal(matchColorProperty('fill') ? value.wordProps[0].metadata?.color?.fill || DEFAULT_COLOR_FILL : DEFAULT_COLOR_FILL);
-        setTextColorLocal(matchColorProperty('text') ? value.wordProps[0].metadata?.color?.text || DEFAULT_TEXT_COLOR : DEFAULT_TEXT_COLOR);
-        setBorderColorLocal(matchColorProperty('border') ? value.wordProps[0].metadata?.color?.border || DEFAULT_BORDER_COLOR : DEFAULT_BORDER_COLOR);
-    }, [value, ctxStudyMetadata]);
-
-    const handleClick = () => {
-        setSelected(prevState => !prevState);
-        if (category === selectedCategory) {
-            const newSelectedHebWords = ctxSelectedWords.filter(
-                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
-            );
-            ctxSetSelectedWords(newSelectedHebWords);
-            ctxSetNumSelectedWords(newSelectedHebWords.length);
-            setLastSelectedWords([]);
+        if (uniformPalette) {
+            setColorFillLocal(uniformPalette.fill ?? DEFAULT_COLOR_FILL);
+            setTextColorLocal(uniformPalette.text ?? DEFAULT_TEXT_COLOR);
+            setBorderColorLocal(uniformPalette.border ?? DEFAULT_BORDER_COLOR);
         } else {
-            const wordsWithoutPrevCategory = ctxSelectedWords.filter(
-                word => !lastSelectedWords.some(categoryWord => categoryWord.wordId === word.wordId)
-            );
-            
-            const newSelectedHebWords = Array.from(new Set([...wordsWithoutPrevCategory, ...value.wordProps]));           
-            
-            //setSelectedCategory(category);
-            ctxSetSelectedWords(newSelectedHebWords);
-            ctxSetNumSelectedWords(newSelectedHebWords.length);            
-            setLastSelectedWords(value.wordProps);
+            setColorFillLocal(DEFAULT_COLOR_FILL);
+            setBorderColorLocal(DEFAULT_BORDER_COLOR);
+            setTextColorLocal(DEFAULT_TEXT_COLOR);
         }
+    }, [uniformPalette]);
+
+
+
+    const handleClick = (e: React.MouseEvent) => {
+        const words = value.wordProps;
+
+        const idsToToggle = new Set(words.map((word) => word.wordId));
+        const allSelected = words.every((word) => ctxSelectedWords.some(w => w.wordId === word.wordId));
+        let updatedSelection = [...ctxSelectedWords];
+  
+        if (allSelected) {
+          updatedSelection = updatedSelection.filter((word) => !idsToToggle.has(word.wordId));
+        } else {
+          const existingIds = new Set(updatedSelection.map((word) => word.wordId));
+          words.forEach((word) => {
+            if (!existingIds.has(word.wordId)) {
+              updatedSelection.push(word);
+              existingIds.add(word.wordId);
+            }
+          });
+        }
+  
+        ctxSetSelectedWords(updatedSelection);
+        ctxSetNumSelectedWords(updatedSelection.length);
     };
     return (
         <div className="flex my-1">

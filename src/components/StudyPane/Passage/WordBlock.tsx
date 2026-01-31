@@ -1,10 +1,12 @@
 import { WordProps } from '@/lib/data';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback, useLayoutEffect } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../index';
 import { eventBus } from '@/lib/eventBus';
-import { BoxDisplayStyle, ColorActionType, ColorType } from "@/lib/types";
+import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types";
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
+import { LanguageContext } from './PassageBlock';
+import { updateMetadataInDb } from '@/lib/actions';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
@@ -24,87 +26,149 @@ const zoomLevelMap: ZoomLevel = {
 const DEFAULT_ZOOM_LEVEL = 5;
 
 export const WordBlock = ({
-  wordProps
+  wordProps,
+  isFirstLineInStrophe = false
 }: {
   wordProps: WordProps;
+  isFirstLineInStrophe?: boolean;
 }) => {
 
-  const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
+  const { ctxBoxDisplayConfig, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
-    ctxRootsColorMap, ctxSetRootsColorMap
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook
   } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
+  const { ctxIsHebrew } = useContext(LanguageContext)
+
+  const [isEditingGloss, setIsEditingGloss] = useState(false);
+  const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
+  const glossInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const [glossEditWidth, setGlossEditWidth] = useState<number | null>(null);
+  const skipBlurCommitRef = useRef(false);
+  const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
+  const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
+
+  const mapColor = ctxWordsColorMap.get(wordProps.wordId);
+  const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color ?? wordProps.metadata?.color;
+
+  const colorFillLocal = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
+  const borderColorLocal = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;
+  const textColorLocal = mapColor?.text ?? metaColor?.text ?? DEFAULT_TEXT_COLOR;
+
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
-  const [selected, setSelected] = useState(false);
+  const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  if (ctxColorAction != ColorActionType.none ) {
-    ctxRootsColorMap.delete(wordProps.strongNumber);
-
-    const colorUpdates: Partial<typeof wordProps.metadata.color> = {};
-
-    if (ctxColorAction === ColorActionType.colorFill && colorFillLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setColorFillLocal(ctxSelectedColor);
-      colorUpdates.fill = ctxSelectedColor;
+  useEffect(() => {
+    if (!isEditingGloss) {
+      setGlossDraft(currentGlossValue);
     }
-    else if (ctxColorAction === ColorActionType.borderColor && borderColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setBorderColorLocal(ctxSelectedColor);
-      colorUpdates.border = ctxSelectedColor;
-    }
-    else if (ctxColorAction === ColorActionType.textColor && textColorLocal != ctxSelectedColor && ctxSelectedColor != "" && selected) {
-      setTextColorLocal(ctxSelectedColor);
-      colorUpdates.text = ctxSelectedColor;
-    }
-    else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
-      if (colorFillLocal !== DEFAULT_COLOR_FILL) {
-        setColorFillLocal(DEFAULT_COLOR_FILL);
-        colorUpdates.fill = DEFAULT_COLOR_FILL;
-      }
-      if (borderColorLocal !== DEFAULT_BORDER_COLOR) {
-        setBorderColorLocal(DEFAULT_BORDER_COLOR);
-        colorUpdates.border = DEFAULT_BORDER_COLOR;
-      }
-      if (textColorLocal !== DEFAULT_TEXT_COLOR) {
-        setTextColorLocal(DEFAULT_TEXT_COLOR);
-        colorUpdates.text = DEFAULT_TEXT_COLOR;
-      }
-    }
-    if (Object.keys(colorUpdates).length > 0) {
-      wordProps.metadata = {
-        ...wordProps.metadata,
-        color: {
-          ...(wordProps.metadata?.color || {}),
-          ...colorUpdates,
-        },
-      };
-    }
-  }
+  }, [currentGlossValue, isEditingGloss]);
 
   useEffect(() => {
-
-    if (wordProps.metadata?.color) {
-      const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
-      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
-
-      const selectedBorderColor = wordProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
-      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
-
-      const selectedTextColor = wordProps.metadata?.color?.text ?? DEFAULT_TEXT_COLOR;
-      (textColorLocal !== selectedTextColor) && setTextColorLocal(selectedTextColor);
+    if (isEditingGloss) {
+      glossInputRef.current?.focus();
+      glossInputRef.current?.select();
     }
-    else {
-      setColorFillLocal(DEFAULT_COLOR_FILL);
-      setBorderColorLocal(DEFAULT_BORDER_COLOR);
-      setTextColorLocal(DEFAULT_TEXT_COLOR);
+  }, [isEditingGloss]);
+
+  const ensureWordMetadataEntry = useCallback(() => {
+    if (!ctxStudyMetadata.words[wordProps.wordId]) {
+      ctxStudyMetadata.words[wordProps.wordId] = { ...(wordProps.metadata || {}) };
+    }
+    if (wordProps.metadata !== ctxStudyMetadata.words[wordProps.wordId]) {
+      wordProps.metadata = ctxStudyMetadata.words[wordProps.wordId];
+    }
+    return ctxStudyMetadata.words[wordProps.wordId];
+  }, [ctxStudyMetadata, wordProps]);
+
+  const startEditingGloss = useCallback(() => {
+    if (!canEditEnglish) return;
+    skipBlurCommitRef.current = false;
+    setGlossDraft(currentGlossValue);
+    setIsEditingGloss(true);
+    ctxSetEditingWordId(wordProps.wordId);
+  }, [canEditEnglish, currentGlossValue, ctxSetEditingWordId, wordProps.wordId]);
+
+  const cancelGlossEditing = useCallback((options?: { preserveEditingContext?: boolean }) => {
+    skipBlurCommitRef.current = true;
+    setIsEditingGloss(false);
+    setGlossDraft(currentGlossValue);
+    if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+      ctxSetEditingWordId(null);
+    }
+  }, [currentGlossValue, ctxEditingWordId, ctxSetEditingWordId, wordProps.wordId]);
+
+  const commitGlossChange = useCallback((value?: string, options?: { preserveEditingContext?: boolean }) => {
+    if (!canEditEnglish) {
+      setIsEditingGloss(false);
+      if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
+      return;
     }
 
-    ctxSetRootsColorMap(new Map());
-  }, [wordProps.metadata?.color]);
+    const nextValue = value !== undefined ? value : glossDraft;
+    const sanitized = nextValue.replace(/\r?\n/g, ' ').trim();
+
+    if (sanitized === currentGlossValue) {
+      skipBlurCommitRef.current = true;
+      setIsEditingGloss(false);
+      setGlossDraft(currentGlossValue);
+      if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
+      return;
+    }
+
+    const metadataEntry = ensureWordMetadataEntry();
+    metadataEntry.glossOverride = sanitized;
+    wordProps.gloss = sanitized;
+
+    skipBlurCommitRef.current = true;
+    setIsEditingGloss(false);
+    setGlossDraft(sanitized);
+    ctxAddToHistory(ctxStudyMetadata);
+    updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    if (!options?.preserveEditingContext && ctxEditingWordId === wordProps.wordId) {
+      ctxSetEditingWordId(null);
+    }
+  }, [canEditEnglish, currentGlossValue, ensureWordMetadataEntry, glossDraft, ctxAddToHistory, ctxStudyId, ctxStudyMetadata, wordProps, ctxEditingWordId, ctxSetEditingWordId]);
+
+  const handleGlossKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      commitGlossChange(event.currentTarget.value);
+      event.currentTarget.blur();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelGlossEditing();
+      event.currentTarget.blur();
+    }
+  }, [cancelGlossEditing, commitGlossChange]);
+
+  const handleGlossBlur = useCallback(() => {
+    if (skipBlurCommitRef.current) {
+      skipBlurCommitRef.current = false;
+      return;
+    }
+    commitGlossChange();
+  }, [commitGlossChange]);
+
+  const handleGlossChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const nextValue = event.target.value;
+    setGlossDraft(nextValue);
+    const inputEl = event.currentTarget;
+    inputEl.style.width = 'auto';
+    setGlossEditWidth(Math.ceil(inputEl.scrollWidth) + 12);
+  }, []);
+
+
+
+
 
   useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
@@ -120,45 +184,38 @@ export const WordBlock = ({
     }
   }, [wordProps.metadata?.indent]);
 
-  useEffect(() => {
-    const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
-    if (rootsColor) {
-      wordProps.metadata = {
-        ...wordProps.metadata,
-        color: {
-          fill: rootsColor.fill,
-          text: rootsColor.text,
-          ...(wordProps.metadata?.color || {}),
-        },
-      };
 
-      (rootsColor.fill) && setColorFillLocal(rootsColor.fill);
-      (rootsColor.text) && setTextColorLocal(rootsColor.text);
+
+  useEffect(() => {
+    if (!selected && isEditingGloss) {
+      commitGlossChange();
     }
-  }, [ctxRootsColorMap])
+  }, [selected, isEditingGloss, commitGlossChange]);
 
   useEffect(() => {
-    setSelected(ctxSelectedWords.some(word => word.wordId === wordProps.wordId));
-    if (ctxSelectedWords.length >= 1) {
-      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
-      if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
+    if (!canEditEnglish) {
+      if (isEditingGloss) {
+        cancelGlossEditing();
       }
+      if (ctxEditingWordId === wordProps.wordId) {
+        ctxSetEditingWordId(null);
+      }
+      return;
     }
-  }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
 
-  useEffect(() => {
-  }, [borderColorLocal]);
+    if (ctxEditingWordId === wordProps.wordId && !isEditingGloss) {
+      startEditingGloss();
+    } else if (ctxEditingWordId !== wordProps.wordId && isEditingGloss) {
+      commitGlossChange(undefined, { preserveEditingContext: true });
+    }
+  }, [canEditEnglish, ctxEditingWordId, ctxSetEditingWordId, wordProps.wordId, isEditingGloss, startEditingGloss, cancelGlossEditing, commitGlossChange]);
 
-  useEffect(() => {
-  }, [selected]);
 
-  useEffect(() => {
-  }, [ctxColorAction]);
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    if (isEditingGloss) {
+      return;
+    }
     if (clickTimeout) {
       clearTimeout(clickTimeout);
       setClickTimeout(null);
@@ -174,25 +231,21 @@ export const WordBlock = ({
 
   // select or deselect word block
   const handleSingleClick = () => {
-    setSelected(prevState => !prevState);
-    const newSelectedWords = [...ctxSelectedWords]; // Clone the array
-    (!selected) ? newSelectedWords.push(wordProps) : newSelectedWords.splice(newSelectedWords.indexOf(wordProps), 1);
+    let newSelectedWords = [...ctxSelectedWords]; // Clone the array
+    
+    if (!selected) {
+      // Add if not already present (by ID)
+      if (!newSelectedWords.some(w => w.wordId === wordProps.wordId)) {
+        newSelectedWords.push(wordProps);
+      }
+    } else {
+      // Remove by ID
+      newSelectedWords = newSelectedWords.filter(w => w.wordId !== wordProps.wordId);
+    }
 
     ctxSetSelectedWords(newSelectedWords);
     ctxSetNumSelectedWords(newSelectedWords.length);
     ctxSetSelectedStrophes([]);
-
-    ctxSetColorFill(DEFAULT_COLOR_FILL);
-    ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-    ctxSetTextColor(DEFAULT_TEXT_COLOR);
-    if (ctxSelectedWords.length >= 1) {
-      const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
-      if (lastSelectedWord) {
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) ? ctxSetColorFill(lastSelectedWord.metadata?.color?.fill || DEFAULT_COLOR_FILL) : ctxSetColorFill(DEFAULT_COLOR_FILL);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) ? ctxSetBorderColor(lastSelectedWord.metadata?.color?.border || DEFAULT_BORDER_COLOR) : ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-        wordsHasSameColor(ctxSelectedWords, ColorActionType.textColor) ? ctxSetTextColor(lastSelectedWord.metadata?.color?.text || DEFAULT_TEXT_COLOR) : ctxSetTextColor(DEFAULT_TEXT_COLOR);
-      }
-    }
   };
 
   const handleDoubleClick = () => {
@@ -200,15 +253,17 @@ export const WordBlock = ({
   }
 
   const verseNumStyles = {
-    className: `text-base top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'mr-1' : 'ml-1'}`
+    className: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'text-xs' : 'text-base'} top-0 ${ctxIsHebrew ? 'right-0' : 'left-0'} sups w-1 position-absolute ${ctxIsHebrew ? 'ml-2' : ''}`,
+    style: ctxIsHebrew ? {} : { marginRight: wordProps.verse.toString().length === 1 ? '0.25rem' : wordProps.verse.toString().length === 2 ? '0.25rem' : '0.125rem' }
   }
 
-  const hebBlockSizeStyle = `w-20 h-8`;
+  const hebBlockSizeStyle = `w-[5.25rem] h-10`;
   const engBlockSizeStyle = `w-28 h-10 text-wrap`;
 
-  let fontSize = zoomLevelMap[(ctxIsHebrew) ? DEFAULT_ZOOM_LEVEL + 2 : DEFAULT_ZOOM_LEVEL].fontSize;
+  let fontSize = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontSize;
 
-  if (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
+  // Apply uniform width logic when uniformBoxes style is enabled
+  if (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && !ctxIsHebrew) {
     const canvas = document.createElement('canvas');
     if (canvas) {
       // Get the 2D rendering context
@@ -229,6 +284,19 @@ export const WordBlock = ({
     }
   }
 
+  useLayoutEffect(() => {
+    if (!isEditingGloss) {
+      setGlossEditWidth(null);
+      return;
+    }
+    const inputEl = glossInputRef.current;
+    if (!inputEl) {
+      return;
+    }
+    inputEl.style.width = 'auto';
+    setGlossEditWidth(Math.ceil(inputEl.scrollWidth) + 12);
+  }, [isEditingGloss, glossDraft, fontSize]);
+
   const isDefaultBorderColor = (color: string) => {
     const normalizedColor = (color.startsWith('#') ? color : `#${color}`).toLowerCase();
     const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
@@ -241,7 +309,7 @@ export const WordBlock = ({
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]`}
+            className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mx-0' : 'mx-1'} select-none rounded border outline-offset-[-4px]`}
             style={{
               boxSizing: 'border-box',
               border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid transparent`,
@@ -249,8 +317,8 @@ export const WordBlock = ({
             }}>
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
-              <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
-              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
+              <span className={`whitespace-nowrap break-keep flex select-none px-2 ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center leading-none ${fontSize}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
@@ -261,31 +329,69 @@ export const WordBlock = ({
 
   return (
     <div className="flex">
-      {ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && indentsLocal > 0 && renderIndents(indentsLocal)}
+      {/* Show indents when uniformBoxes style is enabled */}
+      {ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && indentsLocal > 0 && renderIndents(indentsLocal)}
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock mx-1 ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={{
-          background: colorFillLocal,
+          background: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
+            (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
+            colorFillLocal}`,
           boxSizing: 'border-box',
-          border: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '3px'} solid ${borderColorLocal}`,
-          padding: `${isDefaultBorderColor(borderColorLocal) ? '2px' : '1px'}`,
-          color: textColorLocal,
+          border: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
+            (!isDefaultBorderColor(borderColorLocal) ? `2px solid ${borderColorLocal}` : '2px solid transparent') : 
+            `${!isDefaultBorderColor(borderColorLocal) ? '3px' : '2px'} solid ${borderColorLocal}`}`,
+          padding: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
+            '0px' : 
+            !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
+          color: `${textColorLocal}`,
+          lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
         }}>
         <span
           className="flex"
           onClick={handleClick}
         >
           {wordProps.showVerseNum ?
-            <EsvPopover verseNumStyles={verseNumStyles} chapterNumber={wordProps.chapter} verseNumber={wordProps.verse} /> :
-            (ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
+            <EsvPopover
+              verseNumStyles={verseNumStyles}
+              chapterNumber={wordProps.chapter}
+              verseNumber={wordProps.verse}
+              bookName={ctxStudyBook}
+              renderFromBottom={isFirstLineInStrophe}
+            /> :
+            (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
-            className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
+            className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
+              (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
             data-clicktype="clickable"
           >
-            {ctxIsHebrew ? wordProps.wlcWord : wordProps.gloss}
+            {ctxIsHebrew ? wordProps.wlcWord : (
+              isEditingGloss ? (
+                <>
+                  <textarea
+                    ref={glossInputRef}
+                    value={glossDraft}
+                    onChange={handleGlossChange}
+                    onKeyDown={handleGlossKeyDown}
+                    onBlur={handleGlossBlur}
+                    rows={1}
+                    className="h-full resize-none bg-transparent text-current text-center leading-none focus:outline-none"
+                    style={{
+                      width: glossEditWidth ? `${glossEditWidth}px` : 'auto',
+                      minWidth: '4ch',
+                      fontSize: 'inherit',
+                      fontFamily: 'inherit',
+                      lineHeight: 'inherit',
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                    onMouseDown={(event) => event.stopPropagation()}
+                  />
+                </>
+              ) : currentGlossValue
+            )}
           </span>
         </span>
       </div>

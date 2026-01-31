@@ -1,9 +1,12 @@
-import { BoxDisplayStyle } from "@/lib/types"
+import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
+
+export type ColorSource = "syntax" | "motif";
 
 export type ColorData = {
     fill?: string,
     border?: string,
-    text?: string
+    text?: string,
+    source?: ColorSource
 }
 
 export type WordMetadata = {
@@ -14,7 +17,8 @@ export type WordMetadata = {
     stanzaMd?: StanzaMetadata;
     stropheDiv?: boolean,
     stropheMd?: StropheMetadata;
-    color?: ColorData
+    color?: ColorData;
+    glossOverride?: string; // optional custom English text
 }
 
 export type WordMap = {
@@ -41,7 +45,8 @@ export type StanzaMap = {
 export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
-    boxStyle?: BoxDisplayStyle;
+    boxStyle?: BoxDisplayConfig;
+    lang?: LanguageMode;
 }
 
 export interface StudyProps {
@@ -62,10 +67,19 @@ export type LexiconData = {
 }
 
 export type MotifData = {
-    relatedWords: LexiconData | undefined;
+    lemma: string;
     relatedStrongNums: number[] | undefined;
     categories: string[];
 }
+
+export type WordInformation = {
+    hebrew: string;
+    transliteration: string;
+    gloss: string;
+    morphology: string;
+    strongsNumber: string;
+    meaning: string;
+};
 
 export interface WordProps {
     wordId: number;
@@ -78,6 +92,7 @@ export interface WordProps {
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     metadata: WordMetadata;
     newLine: boolean;
     showVerseNum: boolean;
@@ -85,6 +100,7 @@ export interface WordProps {
     firstStropheInStanza: boolean;
     lastStropheInStanza: boolean;
     motifData: MotifData;
+    wordInformation?: WordInformation;
 }
 
 export interface LineProps {
@@ -119,6 +135,7 @@ export interface StudyData {
     owner: string | undefined;
     ownerDisplayName?: string;
     ownerAvatarUrl?: string;
+    book: string;
     passage: string;
     public: boolean;
     starred?: boolean;
@@ -126,6 +143,7 @@ export interface StudyData {
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata;
+    notes: string;
 }
 
 export type PassageStaticData = {
@@ -133,15 +151,22 @@ export type PassageStaticData = {
     bibleData: WordProps[];
 }
 
+export type FetchStudiesResult = {
+    records: StudyData[];
+    totalPages: number;
+}
+
 // TO BE DEPRECATED - START
 export type HebWord = {
     id: number;
+    book: string;
     chapter: number;
     verse: number;
     strongNumber: number;
     wlcWord: string;
     gloss: string;
     ETCBCgloss: string | undefined;
+    morphology?: string;
     colorFill: string;
     borderColor: string;
     textColor: string;
@@ -189,8 +214,3 @@ export type PassageData = {
     stanzas: StanzaData[];
 }
 // TO BE DEPRECATED - END
-
-export type FetchStudiesResult = {
-    records: StudyData[];
-    totalPages: number;
-}
