@@ -26,9 +26,11 @@ const zoomLevelMap: ZoomLevel = {
 const DEFAULT_ZOOM_LEVEL = 5;
 
 export const WordBlock = ({
-  wordProps
+  wordProps,
+  isFirstLineInStrophe = false
 }: {
   wordProps: WordProps;
+  isFirstLineInStrophe?: boolean;
 }) => {
 
   const { ctxBoxDisplayConfig, ctxIndentNum,
@@ -357,6 +359,7 @@ export const WordBlock = ({
               chapterNumber={wordProps.chapter}
               verseNumber={wordProps.verse}
               bookName={ctxStudyBook}
+              renderFromBottom={isFirstLineInStrophe}
             /> :
             (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) ? <sup {...verseNumStyles}></sup> : ''}
           <span
