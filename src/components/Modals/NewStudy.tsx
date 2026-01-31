@@ -83,6 +83,9 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                         <option value={""}>--Book--</option>
                         <option value="genesis">Genesis</option>
                         <option value="psalms">Psalms</option>
+                        <option value="proverbs">Proverbs</option>
+                        <option value="ecclesiastes">Ecclesiastes</option>
+                        <option value="songs">Song of Solomon</option>
                         <option value="isaiah">Isaiah</option>
                         <option value="jonah">Jonah</option>
                     </select>
