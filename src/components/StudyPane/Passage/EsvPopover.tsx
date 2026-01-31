@@ -113,6 +113,7 @@ const EsvPopover = ({
           >
             {verseNumber}
           </button>
+          {/* Render in a portal so the popover is not clipped by stacking contexts. */}
           {portalTarget ? createPortal(popoverContent, portalTarget) : null}
         </div>
       </div>
