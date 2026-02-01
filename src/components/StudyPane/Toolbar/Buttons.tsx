@@ -400,10 +400,11 @@ export const EditWordBtn = () => {
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick}
       >
         <TbEdit
+          className="ClickBlock"
           fontSize="1.4em"
           opacity={buttonEnabled ? "1" : "0.4"}
           color={isEditing ? EDIT_INDICATOR_COLOR : undefined}

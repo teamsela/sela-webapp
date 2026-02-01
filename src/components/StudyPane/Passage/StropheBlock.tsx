@@ -345,6 +345,7 @@ export const StropheBlock = ({
                       return (
                         <div 
                           key={"line_" + lineId}
+                          data-strophe-line="true"
                           className={`flex my-1`}
                         >
                         {
@@ -403,6 +404,7 @@ export const StropheBlock = ({
                       return (
                         <div 
                           key={"line_" + lineId}
+                          data-strophe-line="true"
                           className={`flex my-1 `}
                         >
                         {
