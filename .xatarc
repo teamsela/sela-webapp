@@ -1,5 +1,5 @@
 {
-  "databaseURL": "https://Sela-ab123i.us-east-1.xata.sh/db/main",
+  "databaseURL": "https://Sela-ab123i.us-west-2.xata.sh/db/main-sql",
   "codegen": {
     "output": "src/xata.ts"
   }

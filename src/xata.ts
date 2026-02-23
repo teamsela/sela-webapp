@@ -20,11 +20,6 @@ const tables = [
       { name: "book", type: "text" },
       { name: "notes", type: "text" },
     ],
-    revLinks: [
-      { column: "studyId", table: "styling" },
-      { column: "studyId", table: "stropheStyling" },
-      { column: "studyId", table: "stanzaStyling" },
-    ],
   },
   {
     name: "motif",
@@ -35,7 +30,6 @@ const tables = [
     ],
     revLinks: [
       { column: "motifLink", table: "heb_bible" },
-      { column: "motifLink", table: "heb_bible_genesis_and_psalms" },
     ],
   },
   {
@@ -84,69 +78,6 @@ const tables = [
       { name: "BSBVersion", type: "text" },
       { name: "mergecolumn", type: "float" },
       { name: "BSBnewLine", type: "bool" },
-      { name: "motifLink_old", type: "float" },
-      { name: "motifLink", type: "link", link: { table: "motif" } },
-    ],
-  },
-  {
-    name: "styling",
-    columns: [
-      { name: "studyId", type: "link", link: { table: "study" } },
-      { name: "colorFill", type: "string" },
-      { name: "borderColor", type: "string" },
-      { name: "textColor", type: "string" },
-      { name: "hebId", type: "int", notNull: true, defaultValue: "0" },
-      { name: "numIndent", type: "int", defaultValue: "0" },
-      { name: "indented", type: "bool", defaultValue: "false" },
-      { name: "stropheDiv", type: "bool" },
-      { name: "lineBreak", type: "bool" },
-      { name: "stanzaDiv", type: "bool" },
-    ],
-  },
-  {
-    name: "stropheStyling",
-    columns: [
-      { name: "studyId", type: "link", link: { table: "study" } },
-      { name: "colorFill", type: "text" },
-      { name: "borderColor", type: "text" },
-      { name: "stropheId", type: "int", notNull: true, defaultValue: "0" },
-      { name: "expanded", type: "bool", defaultValue: "true" },
-    ],
-  },
-  {
-    name: "stanzaStyling",
-    columns: [
-      { name: "studyId", type: "link", link: { table: "study" } },
-      { name: "expanded", type: "bool" },
-      { name: "stanzaId", type: "int", notNull: true, defaultValue: "0" },
-    ],
-  },
-  {
-    name: "heb_bible_genesis_and_psalms",
-    columns: [
-      { name: "hebId", type: "int" },
-      { name: "book", type: "text" },
-      { name: "chapter", type: "int" },
-      { name: "verse", type: "int" },
-      { name: "wlcWord", type: "text" },
-      { name: "hebUnicode", type: "text" },
-      { name: "strongNumber", type: "float" },
-      { name: "gloss", type: "text" },
-      { name: "morphology", type: "text" },
-      { name: "WLCsort", type: "float" },
-      { name: "poetryMarker", type: "bool" },
-      { name: "paragraphMarker", type: "bool" },
-      { name: "stropheBreak", type: "bool" },
-      { name: "verseBreak", type: "bool" },
-      { name: "BSBnewStanza", type: "bool" },
-      { name: "ETCBCgloss", type: "text" },
-      { name: "HebSort", type: "float" },
-      { name: "BSBSort", type: "float" },
-      { name: "Vs", type: "int" },
-      { name: "BSBVersion", type: "text" },
-      { name: "mergecolumn", type: "float" },
-      { name: "BSBnewLine", type: "bool" },
-      { name: "motifLink_old", type: "float" },
       { name: "motifLink", type: "link", link: { table: "motif" } },
     ],
   },
@@ -170,36 +101,18 @@ export type StepbibleTbeshRecord = StepbibleTbesh & XataRecord;
 export type HebBible = InferredTypes["heb_bible"];
 export type HebBibleRecord = HebBible & XataRecord;
 
-export type Styling = InferredTypes["styling"];
-export type StylingRecord = Styling & XataRecord;
-
-export type StropheStyling = InferredTypes["stropheStyling"];
-export type StropheStylingRecord = StropheStyling & XataRecord;
-
-export type StanzaStyling = InferredTypes["stanzaStyling"];
-export type StanzaStylingRecord = StanzaStyling & XataRecord;
-
-export type HebBibleGenesisAndPsalms =
-  InferredTypes["heb_bible_genesis_and_psalms"];
-export type HebBibleGenesisAndPsalmsRecord = HebBibleGenesisAndPsalms &
-  XataRecord;
-
 export type DatabaseSchema = {
   study: StudyRecord;
   motif: MotifRecord;
   lexicon: LexiconRecord;
   stepbible_tbesh: StepbibleTbeshRecord;
   heb_bible: HebBibleRecord;
-  styling: StylingRecord;
-  stropheStyling: StropheStylingRecord;
-  stanzaStyling: StanzaStylingRecord;
-  heb_bible_genesis_and_psalms: HebBibleGenesisAndPsalmsRecord;
 };
 
 const DatabaseClient = buildClient();
 
 const defaultOptions = {
-  databaseURL: "https://Sela-ab123i.us-east-1.xata.sh/db/main",
+  databaseURL: "https://Sela-ab123i.us-west-2.xata.sh/db/main-sql"
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {
