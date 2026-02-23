@@ -1,6 +1,7 @@
 import React from "react";
 
 import { HighlightGroup } from "../useHighlightManager";
+import { FormatContext } from '../../index';
 
 interface SyntaxSmartHighlightProps {
   highlightId: string;
@@ -19,8 +20,9 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
   buttonLabel = "Smart Highlight",
   activeButtonLabel = "Clear Highlight",
 }) => {
+  const { ctxInViewMode } = React.useContext(FormatContext);
   const isActive = activeHighlightId === highlightId;
-  const disabled = groups.length === 0;
+  const disabled = (groups.length === 0 || ctxInViewMode);
   const handleClick = () => {
     if (disabled) {
       return;
