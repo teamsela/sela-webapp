@@ -331,6 +331,14 @@ const StudyPane = ({
   
   }, [passageData.bibleData, studyMetadata]);
 
+  if (!passageData.study.metadata.words) {
+    let emptyStudyMetadata : StudyMetadata = { words: {} };
+    passageData.study.metadata = emptyStudyMetadata;
+    setStudyMetadata(emptyStudyMetadata);
+    setPointer(0);
+    updateMetadataInDb(passageData.study.id, emptyStudyMetadata);
+  }
+
   return (
 
     <>
