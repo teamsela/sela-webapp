@@ -19,6 +19,8 @@ const tables = [
       { name: "metadata", type: "json", defaultValue: "{}" },
       { name: "book", type: "text" },
       { name: "notes", type: "text" },
+      { name: "createdTime", type: "timestamp" },
+      { name: "updatedTime", type: "timestamp" },
     ],
   },
   {

@@ -32,8 +32,8 @@ export default function RecentTable({
   const sortDict: Record<string, any> = {
     name: "name",
     passage: "passage",
-    created_at: "xata.createdAt",
-    last_modified: "xata.updatedAt",
+    created_at: "createdTime",
+    last_modified: "updatedTime",
     shared_to_public: "public"
   };
   

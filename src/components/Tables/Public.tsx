@@ -27,12 +27,12 @@ export default function PublicTable({
   const sortDict: Record<string, any> = {
     name: "name",
     passage: "passage",
-    created_at: "xata.createdAt",
-    last_modified: "xata.updatedAt",
+    created_at: "createdTime",
+    last_modified: "updatedTime",
   };
   const [studiesResult, setStudiesResult] = useState<FetchStudiesResult>({ records: [], totalPages: 1});
 
-  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
+  const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "updatedTime" : "updatedTime";
 
   async function fetchStudies() {
     const [result] = await Promise.all([fetchPublicStudies(query, currentPage, sortKey, sortAsc)]);

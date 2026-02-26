@@ -11,8 +11,8 @@ export const study = pgTable('study', {
   metadata: jsonb('metadata').default({ words: [] }),
   notes: text('notes'),
   starred: boolean('starred').default(false),
-  updatedAt: text('xata_updatedat'),
-  createdAt: text('xata_createdat'),
+  updatedAt: text('updatedTime'),
+  createdAt: text('createdTime'),
 });
 
 export const hebBible = pgTable('heb_bible', {
