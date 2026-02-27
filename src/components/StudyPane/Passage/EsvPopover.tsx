@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useRef, useState, useContext, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { fetchESVTranslation } from "@/lib/actions";
 import { LanguageContext } from './PassageBlock';
@@ -23,6 +23,7 @@ const EsvPopover = ({
   const [esvData, setEsvData] = useState("Loading...");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [popoverAlign, setPopoverAlign] = useState<"left" | "right">("left");
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
@@ -60,15 +61,27 @@ const EsvPopover = ({
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!popoversOpen) return;
     const updatePosition = () => {
       if (!trigger.current) return;
       const rect = trigger.current.getBoundingClientRect();
+      const lineEl = trigger.current.closest('[data-strophe-line="true"]');
+      const lineRect = lineEl?.getBoundingClientRect();
+      const triggerCenter = rect.left + rect.width / 2;
       const margin = 4;
       const top = renderFromBottom ? rect.bottom + margin : rect.top - margin;
-      const left = isHebrew ? rect.right + margin : rect.left;
+      const baseAlign: "left" | "right" = isHebrew ? "right" : "left";
+      const lineMidpoint = lineRect ? lineRect.left + lineRect.width / 2 : null;
+      const isSecondHalf = lineMidpoint !== null
+        ? (isHebrew ? triggerCenter < lineMidpoint : triggerCenter > lineMidpoint)
+        : false;
+      const nextAlign: "left" | "right" = isSecondHalf
+        ? (baseAlign === "left" ? "right" : "left")
+        : baseAlign;
+      const left = nextAlign === "right" ? rect.right + margin : rect.left;
       setPopoverPosition({ top, left });
+      setPopoverAlign(nextAlign);
     };
     updatePosition();
     window.addEventListener("resize", updatePosition);
@@ -85,7 +98,7 @@ const EsvPopover = ({
       onFocus={() => setPopoversOpen(true)}
       onBlur={() => setPopoversOpen(false)}
       style={{ top: popoverPosition.top, left: popoverPosition.left }}
-      className={`fixed ${renderFromBottom ? '' : '-translate-y-full'} ${isHebrew ? '-translate-x-full max-w-[420px]' : 'max-w-[560px]'} text-left z-20 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+      className={`fixed ${renderFromBottom ? '' : '-translate-y-full'} ${popoverAlign === 'right' ? '-translate-x-full' : ''} ${isHebrew ? 'max-w-[420px]' : 'max-w-[560px]'} text-left z-20 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
         popoversOpen === true ? "block" : "hidden"
       }`}
     >
