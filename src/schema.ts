@@ -16,7 +16,7 @@ export const study = pgTable('study', {
 });
 
 export const hebBible = pgTable('heb_bible', {
-  id: text('id').primaryKey(),
+  id: text('xata_id').primaryKey(),
   hebId: integer('hebId'),
   book: text('book'),
   chapter: integer('chapter'),
@@ -30,20 +30,21 @@ export const hebBible = pgTable('heb_bible', {
   motifLinkId: text('motifLink'), // FK to motif_link
 });
 
-export const motifLink = pgTable('motif_link', {
-  id: text('id').primaryKey(),
+export const motifLink = pgTable('motif', {
+  id: text('xata_id').primaryKey(),
   categories: text('categories').array(),
   relatedStrongCodes: text('relatedStrongCodes').array(),
   lemmaLinkId: text('lemmaLink'),
 });
 
-export const lemmaLink = pgTable('lemma_link', {
-  id: text('id').primaryKey(),
+export const lemmaLink = pgTable('lexicon', {
+  id: text('xata_id').primaryKey(),
+  gloss: text('gloss'),
   lemma: text('lemma'),
 });
 
 export const stepbibleTbesh = pgTable('stepbible_tbesh', {
-  id: text('id').primaryKey(),
+  id: text('xata_id').primaryKey(),
   Hebrew: text('Hebrew'),
   Transliteration: text('Transliteration'),
   Gloss: text('Gloss'),

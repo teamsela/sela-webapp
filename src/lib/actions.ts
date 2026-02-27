@@ -1,7 +1,6 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { getXataClient, StepbibleTbeshRecord } from '@/xata';
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { db } from '../db';
@@ -399,89 +398,91 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
   return searchResult;
 }
 
-const buildChapterRangeFilter = (passageInfo: PassageInfo) => {
+const createPassageRangeCondition = (passageInfo: PassageInfo): SQL => {
+  const bookValue = passageInfo.book ?? "psalms";
+
   if (passageInfo.startChapter === passageInfo.endChapter) {
-    return {
-      $all: [
-        { chapter: passageInfo.startChapter },
-        { verse: { $ge: passageInfo.startVerse } },
-        { verse: { $le: passageInfo.endVerse } },
-      ],
-    };
+    return and(
+      eq(hebBible.book, bookValue),
+      eq(hebBible.chapter, passageInfo.startChapter),
+      gte(hebBible.verse, passageInfo.startVerse),
+      lte(hebBible.verse, passageInfo.endVerse)
+    ) as SQL;
   }
 
-  const middleChapterCondition =
-    passageInfo.endChapter - passageInfo.startChapter > 1
-      ? [
-          {
-            chapter: {
-              $gt: passageInfo.startChapter,
-              $lt: passageInfo.endChapter,
-            },
-          },
-        ]
-      : [];
+  const chapterConditions: SQL[] = [
+    and(
+      eq(hebBible.chapter, passageInfo.startChapter),
+      gte(hebBible.verse, passageInfo.startVerse)
+    ) as SQL,
+    and(
+      eq(hebBible.chapter, passageInfo.endChapter),
+      lte(hebBible.verse, passageInfo.endVerse)
+    ) as SQL,
+  ];
 
-  return {
-    $any: [
-      {
-        $all: [
-          { chapter: passageInfo.startChapter },
-          { verse: { $ge: passageInfo.startVerse } },
-        ],
-      },
-      {
-        $all: [
-          { chapter: passageInfo.endChapter },
-          { verse: { $le: passageInfo.endVerse } },
-        ],
-      },
-      ...middleChapterCondition,
-    ],
-  };
-};
+  if (passageInfo.endChapter - passageInfo.startChapter > 1) {
+    chapterConditions.push(
+      and(
+        gt(hebBible.chapter, passageInfo.startChapter),
+        lt(hebBible.chapter, passageInfo.endChapter)
+      ) as SQL
+    );
+  }
 
-const createPassageRangeFilter = (passageInfo: PassageInfo) => {
-  const bookValue = passageInfo.book ?? "psalms";
-  return {
-    $all: [{ book: bookValue }, buildChapterRangeFilter(passageInfo)],
-  };
+  return and(eq(hebBible.book, bookValue), or(...chapterConditions)) as SQL;
 };
 
 export async function fetchPassageData(studyId: string) {
-  const xataClient = getXataClient();
-
   try {
-    // fetch a study by id from xata
-    const study = await xataClient.db.study.filter({ id: studyId}).getFirst();
+    const currentStudy = await db
+      .select()
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
 
     let studyData : StudyData = {
       id: studyId,
-      name: study?.name || "",
-      owner: study?.owner || "",
-      book: study?.book || "",
-      passage: study?.passage || "",
-      public: study?.public || false,
-      model: study?.model || false,
-      metadata: study?.metadata || {},
-      notes: study?.notes || ""
+      name: currentStudy?.name || "",
+      owner: currentStudy?.owner || "",
+      book: currentStudy?.book || "",
+      passage: currentStudy?.passage || "",
+      public: currentStudy?.public || false,
+      model: currentStudy?.model || false,
+      metadata: (currentStudy?.metadata as StudyMetadata) || {},
+      notes: currentStudy?.notes || ""
     };
 
     let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
 
-    if (study)
+    if (currentStudy)
     {
-      const passageInfo = parsePassageInfo(study.passage, study.book||'psalms');
+      const passageInfo = parsePassageInfo(currentStudy.passage || '', currentStudy.book || 'psalms');
       console.log(passageInfo)
-      // fetch all words from xata by start/end chapter and verse
       if (passageInfo instanceof Error === false)
       {
-        const passageFilter = createPassageRangeFilter(passageInfo);
-        const passageContent = await xataClient.db.heb_bible
-          .filter(passageFilter)
-          .select(["*", "motifLink.categories", "motifLink.lemmaLink.lemma", "motifLink.relatedStrongCodes"])
-          .sort("hebId", "asc")
-          .getAll();
+        const passageCondition = createPassageRangeCondition(passageInfo);
+        const passageContent = await db
+          .select({
+            hebId: hebBible.hebId,
+            chapter: hebBible.chapter,
+            verse: hebBible.verse,
+            strongNumber: hebBible.strongNumber,
+            wlcWord: hebBible.wlcWord,
+            gloss: hebBible.gloss,
+            ETCBCgloss: hebBible.ETCBCgloss,
+            morphology: hebBible.morphology,
+            BSBnewLine: hebBible.BSBnewLine,
+            motifCategories: motifLink.categories,
+            relatedStrongCodes: motifLink.relatedStrongCodes,
+            motifLemma: lemmaLink.lemma,
+          })
+          .from(hebBible)
+          .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
+          .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
+          .where(passageCondition)
+          .orderBy(asc(hebBible.hebId));
 
         const uniqueStrongNumbers = new Set<number>();
         passageContent.forEach((word) => {
@@ -490,9 +491,7 @@ export async function fetchPassageData(studyId: string) {
           }
         });
 
-        type StepBibleColumn = (typeof STEP_BIBLE_SELECT_COLUMNS)[number];
-
-        type StepBibleWordInfo = Pick<StepbibleTbeshRecord, StepBibleColumn> & {
+        type StepBibleWordInfo = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]> & {
           preferredStrong?: string;
         };
 
@@ -592,7 +591,7 @@ export async function fetchPassageData(studyId: string) {
         };
 
         const createStepBibleWordInfo = (
-          record: Pick<StepbibleTbeshRecord, StepBibleColumn>,
+          record: Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>,
           normalizedCode: string,
           baseStrong?: number
         ): StepBibleWordInfo => {
@@ -632,17 +631,27 @@ export async function fetchPassageData(studyId: string) {
             return undefined;
           }
 
-          const filter =
-            matchType === "equals"
-              ? { [column]: normalizedCode }
-              : { [column]: { $startsWith: normalizedCode } };
-
-          const query = xataClient.db.stepbible_tbesh
-            .filter(filter)
-            .select([...STEP_BIBLE_SELECT_COLUMNS]);
+          const columnMap = {
+            eStrong: stepbibleTbesh.eStrong,
+            dStrong: stepbibleTbesh.dStrong,
+            uStrong: stepbibleTbesh.uStrong,
+          };
+          const targetColumn = columnMap[column];
 
           if (matchType === "startsWith") {
-            const records = await query.getMany();
+            const records = await db
+              .select({
+                Hebrew: stepbibleTbesh.Hebrew,
+                Transliteration: stepbibleTbesh.Transliteration,
+                Gloss: stepbibleTbesh.Gloss,
+                Meaning: stepbibleTbesh.Meaning,
+                Morph: stepbibleTbesh.Morph,
+                eStrong: stepbibleTbesh.eStrong,
+                dStrong: stepbibleTbesh.dStrong,
+                uStrong: stepbibleTbesh.uStrong,
+              })
+              .from(stepbibleTbesh)
+              .where(like(targetColumn, `${normalizedCode}%`));
 
             for (const record of records) {
               const columnValue = record[column]?.trim();
@@ -657,7 +666,21 @@ export async function fetchPassageData(studyId: string) {
             return undefined;
           }
 
-          const record = await query.getFirst();
+          const record = await db
+            .select({
+              Hebrew: stepbibleTbesh.Hebrew,
+              Transliteration: stepbibleTbesh.Transliteration,
+              Gloss: stepbibleTbesh.Gloss,
+              Meaning: stepbibleTbesh.Meaning,
+              Morph: stepbibleTbesh.Morph,
+              eStrong: stepbibleTbesh.eStrong,
+              dStrong: stepbibleTbesh.dStrong,
+              uStrong: stepbibleTbesh.uStrong,
+            })
+            .from(stepbibleTbesh)
+            .where(eq(targetColumn, normalizedCode))
+            .limit(1)
+            .then((rows) => rows[0]);
 
           if (!record) {
             return undefined;
@@ -749,13 +772,13 @@ export async function fetchPassageData(studyId: string) {
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
 
-          if (word.motifLink) {
-            const relatedStrongNums = word.motifLink?.relatedStrongCodes?.map(code => parseInt(code))
+          if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
+            const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))
                                         .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
             hebWord.motifData = {
-              lemma: word.motifLink.lemmaLink?.lemma || "",
+              lemma: word.motifLemma || "",
               relatedStrongNums: relatedStrongNums || [],
-              categories: word.motifLink?.categories || []
+              categories: word.motifCategories || []
             }
             //console.log(hebWord.motifData);
           }
