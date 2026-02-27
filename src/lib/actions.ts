@@ -87,7 +87,7 @@ export async function updateStudyNotes(id: string, content: string) {
   try {
     await db
       .update(study)
-      .set({ notes: content })
+      .set({ notes: content, updatedAt: new Date().toISOString() })
       .where(eq(study.id, id));
   } catch (error) {
     return { message: 'Database Error: Failed to update study notes.' };
@@ -125,7 +125,7 @@ export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMe
     {
       await db
         .update(study)
-        .set({ metadata: studyMetadata })
+        .set({ metadata: studyMetadata, updatedAt: new Date().toISOString() })
         .where(eq(study.id, studyId));
     }
   } catch (error) {
@@ -167,6 +167,8 @@ export async function createStudy(passage: string, book: string) {
           public: false,
           model: false,
           starred: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         })
         .returning({ id: study.id });
 
@@ -199,7 +201,9 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
           metadata: originalStudy.metadata,
           public: false,
           model: false,
-          starred: false,          
+          starred: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()          
         })
         .returning({ id: study.id });
 
