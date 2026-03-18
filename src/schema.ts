@@ -30,7 +30,7 @@ export const study = pgTable('study', {
 //   motifLinkId: text('motifLink'), // FK to motif_link
 // });
 
-export const hebBible = pgTable('heb_bible_test1', {
+export const hebBible = pgTable('heb_bible_test', {
   id: text('xata_id').primaryKey(),
   hebId: integer('hebId'),
   book: text('book'),
@@ -46,7 +46,7 @@ export const hebBible = pgTable('heb_bible_test1', {
 });
 
 // export const motifLink = pgTable('motif', {
-export const motifLink = pgTable('motif_test1', {
+export const motifLink = pgTable('motif_test', {
   id: text('xata_id').primaryKey(),
   categories: text('categories').array(),
   relatedStrongCodes: text('relatedStrongCodes').array(),
@@ -54,7 +54,7 @@ export const motifLink = pgTable('motif_test1', {
 });
 
 // export const lemmaLink = pgTable('lexicon', {
-export const lemmaLink = pgTable('lexicon_test1', {
+export const lemmaLink = pgTable('lexicon_test', {
   id: text('xata_id').primaryKey(),
   gloss: text('gloss'),
   lemma: text('lemma'),
