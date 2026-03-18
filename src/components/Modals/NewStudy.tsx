@@ -82,12 +82,44 @@ export default function NewStudyModal({ open, setOpen }: NewStudyModalProps) {
                     >
                         <option value={""}>--Book--</option>
                         <option value="genesis">Genesis</option>
+                        <option value="exodus">Exodus</option>
+                        <option value="leviticus">Leviticus</option>
+                        <option value="numbers">Numbers</option>
+                        <option value="deuteronomy">Deuteronomy</option>
+                        <option value="joshua">Joshua</option>
+                        <option value="judges">Judges</option>
+                        <option value="ruth">Ruth</option>
+                        <option value="1 samuel">1 Samuel</option>
+                        <option value="2 samuel">2 Samuel</option>
+                        <option value="1 kings">1 Kings</option>
+                        <option value="2 kings">2 Kings</option>
+                        <option value="1 chronicles">1 Chronicles</option>
+                        <option value="2 chronicles">2 Chronicles</option>
+                        <option value="ezra">Ezra</option>
+                        <option value="nehemiah">Nehemiah</option>
+                        <option value="esther">Esther</option>
+                        <option value="job">Job</option>
                         <option value="psalms">Psalms</option>
                         <option value="proverbs">Proverbs</option>
                         <option value="ecclesiastes">Ecclesiastes</option>
                         <option value="songs">Song of Solomon</option>
                         <option value="isaiah">Isaiah</option>
+                        <option value="jeremiah">Jeremiah</option>
+                        <option value="lamentations">Lamentations</option>
+                        <option value="ezekiel">Ezekiel</option>
+                        <option value="daniel">Daniel</option>
+                        <option value="hosea">Hosea</option>
+                        <option value="joel">Joel</option>
+                        <option value="amos">Amos</option>
+                        <option value="obadiah">Obadiah</option>
                         <option value="jonah">Jonah</option>
+                        <option value="micah">Micah</option>
+                        <option value="nahum">Nahum</option>
+                        <option value="habakkuk">Habakkuk</option>
+                        <option value="zephaniah">Zephaniah</option>
+                        <option value="haggai">Haggai</option>
+                        <option value="zechariah">Zechariah</option>
+                        <option value="malachi">Malachi</option>
                     </select>
                     </div>
 
