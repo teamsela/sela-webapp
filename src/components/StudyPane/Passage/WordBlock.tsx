@@ -38,7 +38,8 @@ export const WordBlock = ({
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
-    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
+    ctxCurrentSpokenWordIds
   } = useContext(FormatContext)
 
   const { ctxIsHebrew } = useContext(LanguageContext)
@@ -60,6 +61,7 @@ export const WordBlock = ({
 
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
+  const isCurrentSpokenWord = ctxCurrentSpokenWordIds.includes(wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -367,6 +369,13 @@ export const WordBlock = ({
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
             data-clicktype="clickable"
+            style={{
+              textDecoration: isCurrentSpokenWord ? 'underline' : 'none',
+              textDecorationThickness: isCurrentSpokenWord ? '3px' : undefined,
+              textUnderlineOffset: isCurrentSpokenWord ? '0.2em' : undefined,
+              textDecorationColor: isCurrentSpokenWord ? '#FFC300' : undefined,
+              transition: 'text-decoration-color 140ms ease-in-out',
+            }}
           >
             {ctxIsHebrew ? wordProps.wlcWord : (
               isEditingGloss ? (

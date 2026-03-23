@@ -109,7 +109,9 @@ export const FormatContext = createContext({
   ctxActiveNotesPane: null as "heb" | "eng" | null,
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
-  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxCurrentSpokenWordIds: [] as number[],
+  ctxSetCurrentSpokenWordIds: (_arg: number[]) => {}
 });
 
 const StudyPane = ({
@@ -177,6 +179,7 @@ const StudyPane = ({
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
   const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
+  const [currentSpokenWordIds, setCurrentSpokenWordIds] = useState<number[]>([]);
 
   const addToHistory = (
     updatedMetadata: StudyMetadata,
@@ -300,7 +303,9 @@ const StudyPane = ({
     ctxActiveNotesPane: activeNotesPane,
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
-    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxCurrentSpokenWordIds: currentSpokenWordIds,
+    ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds
   };
 
   useEffect(() => {
