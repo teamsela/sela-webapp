@@ -15,21 +15,6 @@ export const study = pgTable('study', {
   createdAt: text('createdTime'),
 });
 
-// export const hebBible = pgTable('heb_bible', {
-//   id: text('xata_id').primaryKey(),
-//   hebId: integer('hebId'),
-//   book: text('book'),
-//   chapter: integer('chapter'),
-//   verse: integer('verse'),
-//   strongNumber: doublePrecision('strongNumber'),
-//   wlcWord: text('wlcWord'),
-//   gloss: text('gloss'),
-//   ETCBCgloss: text('ETCBCgloss'),
-//   morphology: text('morphology'),
-//   BSBnewLine: boolean('BSBnewLine'),
-//   motifLinkId: text('motifLink'), // FK to motif_link
-// });
-
 export const hebBible = pgTable('heb_bible_test', {
   id: text('xata_id').primaryKey(),
   hebId: integer('hebId'),
@@ -45,7 +30,6 @@ export const hebBible = pgTable('heb_bible_test', {
   motifLinkId: text('motifLink'), // FK to motif_link
 });
 
-// export const motifLink = pgTable('motif', {
 export const motifLink = pgTable('motif_test', {
   id: text('xata_id').primaryKey(),
   categories: text('categories').array(),
@@ -53,7 +37,6 @@ export const motifLink = pgTable('motif_test', {
   lemmaLinkId: text('lemmaLink'),
 });
 
-// export const lemmaLink = pgTable('lexicon', {
 export const lemmaLink = pgTable('lexicon_test', {
   id: text('xata_id').primaryKey(),
   gloss: text('gloss'),
