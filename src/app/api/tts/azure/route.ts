@@ -3,12 +3,15 @@ import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 
 import {
   getAzureSpeechCredentials,
+  getAzureSpeechVoiceOptions,
+  isAzureSpeechVoiceName,
   isAzureSpeechConfigured,
 } from "@/lib/azureSpeech";
 
 type AzureTtsRequest = {
   speakingRate?: number;
   text?: string;
+  voiceName?: string;
 };
 
 type AzureWordBoundary = {
@@ -49,6 +52,7 @@ const isAbortLikeError = (error: unknown) =>
 const synthesizeAzureSpeech = async (
   text: string,
   speakingRate: number,
+  voiceName: string | undefined,
   signal: AbortSignal,
 ) => {
   const credentials = getAzureSpeechCredentials();
@@ -64,8 +68,12 @@ const synthesizeAzureSpeech = async (
     credentials.key,
     credentials.region,
   );
+  const resolvedVoiceName =
+    voiceName && isAzureSpeechVoiceName(voiceName)
+      ? voiceName
+      : credentials.voiceName;
   speechConfig.speechSynthesisLanguage = credentials.languageCode;
-  speechConfig.speechSynthesisVoiceName = credentials.voiceName;
+  speechConfig.speechSynthesisVoiceName = resolvedVoiceName;
   speechConfig.speechSynthesisOutputFormat =
     sdk.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
 
@@ -110,7 +118,7 @@ const synthesizeAzureSpeech = async (
 
     const ssml = [
       "<speak version='1.0' xmlns='https://www.w3.org/2001/10/synthesis' xml:lang='he-IL'>",
-      `  <voice name='${escapeXml(credentials.voiceName)}'>`,
+      `  <voice name='${escapeXml(resolvedVoiceName)}'>`,
       `    <prosody rate='${toSsmlRate(speakingRate)}'>${escapeXml(text)}</prosody>`,
       "  </voice>",
       "</speak>",
@@ -147,8 +155,12 @@ const synthesizeAzureSpeech = async (
 export const runtime = "nodejs";
 
 export async function GET() {
+  const credentials = getAzureSpeechCredentials();
+
   return NextResponse.json({
-    configured: isAzureSpeechConfigured(),
+    configured: Boolean(credentials),
+    selectedVoiceName: credentials?.voiceName ?? null,
+    voiceOptions: getAzureSpeechVoiceOptions(),
   });
 }
 
@@ -181,6 +193,7 @@ export async function POST(request: Request) {
     const result = await synthesizeAzureSpeech(
       text,
       normalizeSpeakingRate(payload.speakingRate),
+      payload.voiceName,
       request.signal,
     );
 
