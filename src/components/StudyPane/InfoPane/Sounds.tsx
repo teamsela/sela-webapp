@@ -41,7 +41,25 @@ type SpeechWord = {
   text: string;
 };
 
-type TtsEngine = "gemini" | "browser";
+type AzureWordBoundary = {
+  audioOffsetMs: number;
+  text: string;
+  textOffset: number;
+  wordLength: number;
+};
+
+type TtsEngine = "azure" | "browser";
+
+const TTS_ADONAI_TEXT = "אֲדֹנָי";
+
+const getTtsWordText = (word: { gloss?: string; wlcWord: string }) => {
+  const gloss = word.gloss?.trim().toLowerCase();
+  if (gloss && /\byahweh\b|\byaweh\b/.test(gloss)) {
+    return TTS_ADONAI_TEXT;
+  }
+
+  return word.wlcWord.trim();
+};
 
 const ReadAloudButtonIcon = ({ state }: { state: ReadAloudButtonState }) => {
   if (state === "playing") {
@@ -143,7 +161,7 @@ const Sounds = () => {
     useState<SpeedPopoverPosition | null>(null);
   const [isSpeechSynthesisAvailable, setIsSpeechSynthesisAvailable] =
     useState(false);
-  const [isGeminiTtsAvailable, setIsGeminiTtsAvailable] = useState(false);
+  const [isAzureTtsAvailable, setIsAzureTtsAvailable] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>(
     [],
   );
@@ -155,7 +173,7 @@ const Sounds = () => {
   const highlightFrameRef = useRef<number | null>(null);
   const speechChunksRef = useRef<SpeechChunk[]>([]);
   const speechWordsRef = useRef<SpeechWord[]>([]);
-  const geminiSpeechTextRef = useRef("");
+  const azureSpeechTextRef = useRef("");
   const currentWordIndexRef = useRef(0);
   const currentChunkIndexRef = useRef(0);
   const playbackSessionRef = useRef(0);
@@ -177,7 +195,7 @@ const Sounds = () => {
               const sortedWords = [...line.words].sort((a, b) => a.wordId - b.wordId);
               return {
                 wordIds: sortedWords.map((word) => word.wordId),
-                text: sortedWords.map((word) => word.wlcWord.trim()).filter(Boolean).join(" "),
+                text: sortedWords.map(getTtsWordText).filter(Boolean).join(" "),
               };
             }),
         )
@@ -193,13 +211,13 @@ const Sounds = () => {
         const existingChunk = wordsByLine.get(lineKey);
         if (existingChunk) {
           existingChunk.wordIds.push(word.wordId);
-          existingChunk.text = `${existingChunk.text} ${word.wlcWord.trim()}`.trim();
+          existingChunk.text = `${existingChunk.text} ${getTtsWordText(word)}`.trim();
           return;
         }
 
         wordsByLine.set(lineKey, {
           wordIds: [word.wordId],
-          text: word.wlcWord.trim(),
+          text: getTtsWordText(word),
         });
       });
 
@@ -218,7 +236,7 @@ const Sounds = () => {
                 .sort((a, b) => a.wordId - b.wordId)
                 .map((word) => ({
                   wordId: word.wordId,
-                  text: word.wlcWord.trim(),
+                  text: getTtsWordText(word),
                 })),
             ),
         )
@@ -229,17 +247,17 @@ const Sounds = () => {
       .sort((a, b) => a.wordId - b.wordId)
       .map((word) => ({
         wordId: word.wordId,
-        text: word.wlcWord.trim(),
+        text: getTtsWordText(word),
       }))
       .filter((word) => word.text);
   }, [ctxSelectedStrophes, ctxSelectedWords]);
 
-  const selectedGeminiSpeechText = useMemo(
+  const selectedAzureSpeechText = useMemo(
     () => selectedSpeechChunks.map((chunk) => chunk.text).join("\n"),
     [selectedSpeechChunks],
   );
 
-  const isReadAloudAvailable = isGeminiTtsAvailable || isSpeechSynthesisAvailable;
+  const isReadAloudAvailable = isAzureTtsAvailable || isSpeechSynthesisAvailable;
 
   const readAloudState: ReadAloudButtonState = isPlaying
     ? "playing"
@@ -272,14 +290,10 @@ const Sounds = () => {
     }
   }, []);
 
-  const getWordWeight = useCallback(
-    (text: string) => Math.max(1, text.replace(/\s+/g, "").length),
-    [],
-  );
-
-  const startEstimatedGeminiHighlight = useCallback((
+  const startAzureHighlight = useCallback((
     audio: HTMLAudioElement,
     words: SpeechWord[],
+    wordBoundaries: AzureWordBoundary[],
     playbackSession: number,
   ) => {
     if (!words.length) {
@@ -287,48 +301,33 @@ const Sounds = () => {
       return;
     }
 
-    const totalDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
-    if (totalDuration <= 0) {
-      ctxSetCurrentSpokenWordIds([words[0].wordId]);
-      return;
-    }
-
-    const totalWeight = words.reduce(
-      (sum, word) => sum + getWordWeight(word.text),
-      0,
-    );
-
-    if (totalWeight <= 0) {
-      ctxSetCurrentSpokenWordIds([words[0].wordId]);
-      return;
-    }
-
-    const wordStartTimes: number[] = [];
-    let elapsedWeight = 0;
-    words.forEach((word) => {
-      wordStartTimes.push((elapsedWeight / totalWeight) * totalDuration);
-      elapsedWeight += getWordWeight(word.text);
-    });
+    const timedWords = words.map((word, index) => ({
+      audioOffsetMs:
+        wordBoundaries[index]?.audioOffsetMs ??
+        ((audio.duration * 1000) / Math.max(words.length, 1)) * index,
+      wordId: word.wordId,
+    }));
 
     currentWordIndexRef.current = 0;
-    ctxSetCurrentSpokenWordIds([words[0].wordId]);
+    ctxSetCurrentSpokenWordIds([timedWords[0].wordId]);
 
     const tick = () => {
       if (playbackSessionRef.current !== playbackSession || audioRef.current !== audio) {
         return;
       }
 
+      const currentTimeMs = audio.currentTime * 1000;
       let nextWordIndex = currentWordIndexRef.current;
       while (
-        nextWordIndex + 1 < wordStartTimes.length &&
-        audio.currentTime >= wordStartTimes[nextWordIndex + 1]
+        nextWordIndex + 1 < timedWords.length &&
+        currentTimeMs >= timedWords[nextWordIndex + 1].audioOffsetMs
       ) {
         nextWordIndex += 1;
       }
 
       if (nextWordIndex !== currentWordIndexRef.current) {
         currentWordIndexRef.current = nextWordIndex;
-        ctxSetCurrentSpokenWordIds([words[nextWordIndex].wordId]);
+        ctxSetCurrentSpokenWordIds([timedWords[nextWordIndex].wordId]);
       }
 
       if (!audio.paused && !audio.ended) {
@@ -339,7 +338,7 @@ const Sounds = () => {
     if (typeof window !== "undefined") {
       highlightFrameRef.current = window.requestAnimationFrame(tick);
     }
-  }, [ctxSetCurrentSpokenWordIds, getWordWeight]);
+  }, [ctxSetCurrentSpokenWordIds]);
 
   const stopPlayback = useCallback(() => {
     playbackSessionRef.current += 1;
@@ -431,17 +430,17 @@ const Sounds = () => {
 
     speechChunksRef.current = chunks;
     speechWordsRef.current = words;
-    geminiSpeechTextRef.current = selectedGeminiSpeechText;
+    azureSpeechTextRef.current = selectedAzureSpeechText;
     currentChunkIndexRef.current = 0;
     currentWordIndexRef.current = 0;
     playbackSessionRef.current += 1;
     const playbackSession = playbackSessionRef.current;
     setIsPlaying(true);
-    playbackEngineRef.current = isGeminiTtsAvailable ? "gemini" : "browser";
+    playbackEngineRef.current = isAzureTtsAvailable ? "azure" : "browser";
 
-    if (isGeminiTtsAvailable) {
-      void speakChunkWithGemini(
-        selectedGeminiSpeechText,
+    if (isAzureTtsAvailable) {
+      void speakChunkWithAzure(
+        selectedAzureSpeechText,
         words,
         speechRate,
         playbackSession,
@@ -457,7 +456,7 @@ const Sounds = () => {
     speakChunk(0, chunks, speechRate, window.speechSynthesis, playbackSession);
   };
 
-  const speakChunkWithGemini = useCallback(async (
+  const speakChunkWithAzure = useCallback(async (
     text: string,
     words: SpeechWord[],
     rate: number,
@@ -483,7 +482,7 @@ const Sounds = () => {
     fetchAbortControllerRef.current = controller;
 
     try {
-      const response = await fetch("/api/tts/gemini", {
+      const response = await fetch("/api/tts/azure", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -496,7 +495,7 @@ const Sounds = () => {
       });
 
       if (!response.ok) {
-        let errorMessage = "Gemini TTS could not synthesize this selection.";
+        let errorMessage = "Azure Speech could not synthesize this selection.";
 
         try {
           const errorPayload = (await response.json()) as { error?: string };
@@ -510,12 +509,27 @@ const Sounds = () => {
         throw new Error(errorMessage);
       }
 
-      const blob = await response.blob();
+      const data = (await response.json()) as {
+        audioContent?: string;
+        contentType?: string;
+        wordBoundaries?: AzureWordBoundary[];
+      };
+
+      if (!data.audioContent) {
+        throw new Error("Azure Speech returned no audio content.");
+      }
+
       if (playbackSessionRef.current !== playbackSession) {
         return;
       }
 
       cleanupAudioPlayback();
+      const audioBytes = Uint8Array.from(atob(data.audioContent), (char) =>
+        char.charCodeAt(0),
+      );
+      const blob = new Blob([audioBytes], {
+        type: data.contentType || "audio/mpeg",
+      });
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
       audioUrlRef.current = audioUrl;
@@ -533,7 +547,7 @@ const Sounds = () => {
         }
 
         highlightStarted = true;
-        startEstimatedGeminiHighlight(audio, words, playbackSession);
+        startAzureHighlight(audio, words, data.wordBoundaries ?? [], playbackSession);
       };
 
       audio.onloadedmetadata = initializeHighlight;
@@ -544,10 +558,13 @@ const Sounds = () => {
           return;
         }
 
+        audio.onended = null;
+        audio.onerror = null;
         cleanupAudioPlayback();
         playbackEngineRef.current = null;
         ctxSetCurrentSpokenWordIds([]);
         currentWordIndexRef.current = 0;
+        setTtsError(null);
         setIsPlaying(false);
       };
 
@@ -556,11 +573,31 @@ const Sounds = () => {
           return;
         }
 
+        const finishedNaturally =
+          audio.ended ||
+          (Number.isFinite(audio.duration) &&
+            audio.duration > 0 &&
+            audio.currentTime >= audio.duration - 0.05);
+
+        if (finishedNaturally) {
+          audio.onended = null;
+          audio.onerror = null;
+          cleanupAudioPlayback();
+          playbackEngineRef.current = null;
+          ctxSetCurrentSpokenWordIds([]);
+          currentWordIndexRef.current = 0;
+          setTtsError(null);
+          setIsPlaying(false);
+          return;
+        }
+
+        audio.onended = null;
+        audio.onerror = null;
         cleanupAudioPlayback();
         playbackEngineRef.current = null;
         ctxSetCurrentSpokenWordIds([]);
         currentWordIndexRef.current = 0;
-        setTtsError("Gemini TTS playback failed.");
+        setTtsError("Azure Speech playback failed.");
         setIsPlaying(false);
       };
 
@@ -578,14 +615,14 @@ const Sounds = () => {
       setTtsError(
         error instanceof Error
           ? error.message
-          : "Gemini TTS playback failed unexpectedly.",
+          : "Azure Speech playback failed unexpectedly.",
       );
       setIsPlaying(false);
     }
   }, [
     cleanupAudioPlayback,
     ctxSetCurrentSpokenWordIds,
-    startEstimatedGeminiHighlight,
+    startAzureHighlight,
   ]);
 
   useEffect(() => {
@@ -608,12 +645,12 @@ const Sounds = () => {
     const playbackSession = playbackSessionRef.current;
     setTtsError(null);
 
-    if (playbackEngineRef.current === "gemini") {
+    if (playbackEngineRef.current === "azure") {
       cleanupAudioPlayback();
       currentChunkIndexRef.current = 0;
       currentWordIndexRef.current = 0;
-      void speakChunkWithGemini(
-        geminiSpeechTextRef.current,
+      void speakChunkWithAzure(
+        azureSpeechTextRef.current,
         speechWordsRef.current,
         speechRate,
         playbackSession,
@@ -637,32 +674,32 @@ const Sounds = () => {
     cleanupAudioPlayback,
     isPlaying,
     speakChunk,
-    speakChunkWithGemini,
+    speakChunkWithAzure,
     speechRate,
   ]);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadGeminiAvailability = async () => {
+    const loadAzureAvailability = async () => {
       try {
-        const response = await fetch("/api/tts/gemini", { cache: "no-store" });
+        const response = await fetch("/api/tts/azure", { cache: "no-store" });
         if (!response.ok) {
-          throw new Error("Gemini availability check failed.");
+          throw new Error("Azure availability check failed.");
         }
 
         const data = (await response.json()) as { configured?: boolean };
         if (isMounted) {
-          setIsGeminiTtsAvailable(Boolean(data.configured));
+          setIsAzureTtsAvailable(Boolean(data.configured));
         }
       } catch {
         if (isMounted) {
-          setIsGeminiTtsAvailable(false);
+          setIsAzureTtsAvailable(false);
         }
       }
     };
 
-    void loadGeminiAvailability();
+    void loadAzureAvailability();
 
     return () => {
       isMounted = false;
@@ -789,11 +826,11 @@ const Sounds = () => {
                       {ttsError
                         ? ttsError
                         : !isReadAloudAvailable
-                        ? "Read aloud is unavailable until Gemini TTS is configured or a browser voice is available."
+                        ? "Read aloud is unavailable until Azure Speech is configured or a browser voice is available."
                         : isPlaying
                           ? "Read aloud is currently playing. Click the button again to stop."
-                          : isGeminiTtsAvailable
-                            ? "Read aloud uses Google Gemini TTS for Hebrew playback."
+                          : isAzureTtsAvailable
+                            ? "Read aloud uses Azure Speech for Hebrew playback."
                           : hasReadAloudSelection
                             ? "Read aloud is available for the current selection."
                         : "Select a word, multiple words, or a strophe."}
