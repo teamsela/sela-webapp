@@ -1,6 +1,13 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { FormatContext } from "..";
@@ -28,6 +35,13 @@ type SpeechChunk = {
   wordIds: number[];
   text: string;
 };
+
+type SpeechWord = {
+  wordId: number;
+  text: string;
+};
+
+type TtsEngine = "gemini" | "browser";
 
 const ReadAloudButtonIcon = ({ state }: { state: ReadAloudButtonState }) => {
   if (state === "playing") {
@@ -129,15 +143,25 @@ const Sounds = () => {
     useState<SpeedPopoverPosition | null>(null);
   const [isSpeechSynthesisAvailable, setIsSpeechSynthesisAvailable] =
     useState(false);
+  const [isGeminiTtsAvailable, setIsGeminiTtsAvailable] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>(
     [],
   );
+  const [ttsError, setTtsError] = useState<string | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const fetchAbortControllerRef = useRef<AbortController | null>(null);
+  const highlightFrameRef = useRef<number | null>(null);
   const speechChunksRef = useRef<SpeechChunk[]>([]);
+  const speechWordsRef = useRef<SpeechWord[]>([]);
+  const geminiSpeechTextRef = useRef("");
+  const currentWordIndexRef = useRef(0);
   const currentChunkIndexRef = useRef(0);
   const playbackSessionRef = useRef(0);
   const speedSelectorRef = useRef<HTMLDivElement | null>(null);
   const speedTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const playbackEngineRef = useRef<TtsEngine | null>(null);
 
   const hasReadAloudSelection =
     ctxSelectedWords.length > 0 || ctxSelectedStrophes.length > 0;
@@ -182,9 +206,44 @@ const Sounds = () => {
     return Array.from(wordsByLine.values()).filter((chunk) => chunk.text);
   }, [ctxSelectedStrophes, ctxSelectedWords]);
 
+  const selectedSpeechWords = useMemo<SpeechWord[]>(() => {
+    if (ctxSelectedStrophes.length > 0) {
+      return [...ctxSelectedStrophes]
+        .sort((a, b) => a.stropheId - b.stropheId)
+        .flatMap((strophe) =>
+          [...strophe.lines]
+            .sort((a, b) => a.lineId - b.lineId)
+            .flatMap((line) =>
+              [...line.words]
+                .sort((a, b) => a.wordId - b.wordId)
+                .map((word) => ({
+                  wordId: word.wordId,
+                  text: word.wlcWord.trim(),
+                })),
+            ),
+        )
+        .filter((word) => word.text);
+    }
+
+    return [...ctxSelectedWords]
+      .sort((a, b) => a.wordId - b.wordId)
+      .map((word) => ({
+        wordId: word.wordId,
+        text: word.wlcWord.trim(),
+      }))
+      .filter((word) => word.text);
+  }, [ctxSelectedStrophes, ctxSelectedWords]);
+
+  const selectedGeminiSpeechText = useMemo(
+    () => selectedSpeechChunks.map((chunk) => chunk.text).join("\n"),
+    [selectedSpeechChunks],
+  );
+
+  const isReadAloudAvailable = isGeminiTtsAvailable || isSpeechSynthesisAvailable;
+
   const readAloudState: ReadAloudButtonState = isPlaying
     ? "playing"
-    : hasReadAloudSelection && isSpeechSynthesisAvailable
+    : hasReadAloudSelection && isReadAloudAvailable
       ? "ready"
       : "disabled";
 
@@ -192,18 +251,110 @@ const Sounds = () => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const stopPlayback = () => {
+  const cleanupAudioPlayback = useCallback(() => {
+    fetchAbortControllerRef.current?.abort();
+    fetchAbortControllerRef.current = null;
+
+    if (typeof window !== "undefined" && highlightFrameRef.current !== null) {
+      window.cancelAnimationFrame(highlightFrameRef.current);
+      highlightFrameRef.current = null;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+  }, []);
+
+  const getWordWeight = useCallback(
+    (text: string) => Math.max(1, text.replace(/\s+/g, "").length),
+    [],
+  );
+
+  const startEstimatedGeminiHighlight = useCallback((
+    audio: HTMLAudioElement,
+    words: SpeechWord[],
+    playbackSession: number,
+  ) => {
+    if (!words.length) {
+      ctxSetCurrentSpokenWordIds([]);
+      return;
+    }
+
+    const totalDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    if (totalDuration <= 0) {
+      ctxSetCurrentSpokenWordIds([words[0].wordId]);
+      return;
+    }
+
+    const totalWeight = words.reduce(
+      (sum, word) => sum + getWordWeight(word.text),
+      0,
+    );
+
+    if (totalWeight <= 0) {
+      ctxSetCurrentSpokenWordIds([words[0].wordId]);
+      return;
+    }
+
+    const wordStartTimes: number[] = [];
+    let elapsedWeight = 0;
+    words.forEach((word) => {
+      wordStartTimes.push((elapsedWeight / totalWeight) * totalDuration);
+      elapsedWeight += getWordWeight(word.text);
+    });
+
+    currentWordIndexRef.current = 0;
+    ctxSetCurrentSpokenWordIds([words[0].wordId]);
+
+    const tick = () => {
+      if (playbackSessionRef.current !== playbackSession || audioRef.current !== audio) {
+        return;
+      }
+
+      let nextWordIndex = currentWordIndexRef.current;
+      while (
+        nextWordIndex + 1 < wordStartTimes.length &&
+        audio.currentTime >= wordStartTimes[nextWordIndex + 1]
+      ) {
+        nextWordIndex += 1;
+      }
+
+      if (nextWordIndex !== currentWordIndexRef.current) {
+        currentWordIndexRef.current = nextWordIndex;
+        ctxSetCurrentSpokenWordIds([words[nextWordIndex].wordId]);
+      }
+
+      if (!audio.paused && !audio.ended) {
+        highlightFrameRef.current = window.requestAnimationFrame(tick);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      highlightFrameRef.current = window.requestAnimationFrame(tick);
+    }
+  }, [ctxSetCurrentSpokenWordIds, getWordWeight]);
+
+  const stopPlayback = useCallback(() => {
     playbackSessionRef.current += 1;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    cleanupAudioPlayback();
     utteranceRef.current = null;
+    playbackEngineRef.current = null;
     ctxSetCurrentSpokenWordIds([]);
     currentChunkIndexRef.current = 0;
     setIsPlaying(false);
-  };
+  }, [cleanupAudioPlayback, ctxSetCurrentSpokenWordIds]);
 
-  const speakChunk = (
+  const speakChunk = useCallback((
     chunkIndex: number,
     chunks: SpeechChunk[],
     rate: number,
@@ -254,7 +405,7 @@ const Sounds = () => {
 
     utteranceRef.current = utterance;
     speechSynthesis.speak(utterance);
-  };
+  }, [availableVoices, ctxSetCurrentSpokenWordIds]);
 
   const handleReadAloudClick = () => {
     if (isPlaying) {
@@ -263,39 +414,188 @@ const Sounds = () => {
     }
 
     if (
-      !isSpeechSynthesisAvailable ||
-      selectedSpeechChunks.length === 0 ||
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window)
+      !isReadAloudAvailable ||
+      selectedSpeechChunks.length === 0
     ) {
       return;
     }
 
-    const speechSynthesis = window.speechSynthesis;
-    speechSynthesis.cancel();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    cleanupAudioPlayback();
     ctxSetCurrentSpokenWordIds([]);
+    setTtsError(null);
     const chunks = selectedSpeechChunks;
+    const words = selectedSpeechWords;
 
     speechChunksRef.current = chunks;
+    speechWordsRef.current = words;
+    geminiSpeechTextRef.current = selectedGeminiSpeechText;
     currentChunkIndexRef.current = 0;
+    currentWordIndexRef.current = 0;
     playbackSessionRef.current += 1;
     const playbackSession = playbackSessionRef.current;
     setIsPlaying(true);
-    speakChunk(0, chunks, speechRate, speechSynthesis, playbackSession);
+    playbackEngineRef.current = isGeminiTtsAvailable ? "gemini" : "browser";
+
+    if (isGeminiTtsAvailable) {
+      void speakChunkWithGemini(
+        selectedGeminiSpeechText,
+        words,
+        speechRate,
+        playbackSession,
+      );
+      return;
+    }
+
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setIsPlaying(false);
+      return;
+    }
+
+    speakChunk(0, chunks, speechRate, window.speechSynthesis, playbackSession);
   };
+
+  const speakChunkWithGemini = useCallback(async (
+    text: string,
+    words: SpeechWord[],
+    rate: number,
+    playbackSession: number,
+  ) => {
+    if (playbackSessionRef.current !== playbackSession) {
+      return;
+    }
+
+    if (!text.trim() || !words.length) {
+      cleanupAudioPlayback();
+      playbackEngineRef.current = null;
+      ctxSetCurrentSpokenWordIds([]);
+      currentWordIndexRef.current = 0;
+      setIsPlaying(false);
+      return;
+    }
+
+    currentWordIndexRef.current = 0;
+    ctxSetCurrentSpokenWordIds([words[0].wordId]);
+
+    const controller = new AbortController();
+    fetchAbortControllerRef.current = controller;
+
+    try {
+      const response = await fetch("/api/tts/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          speakingRate: rate,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Gemini TTS could not synthesize this selection.";
+
+        try {
+          const errorPayload = (await response.json()) as { error?: string };
+          if (errorPayload.error) {
+            errorMessage = errorPayload.error;
+          }
+        } catch {
+          // Ignore parse failures and keep the fallback message.
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const blob = await response.blob();
+      if (playbackSessionRef.current !== playbackSession) {
+        return;
+      }
+
+      cleanupAudioPlayback();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audioUrlRef.current = audioUrl;
+      audioRef.current = audio;
+      fetchAbortControllerRef.current = null;
+
+      let highlightStarted = false;
+      const initializeHighlight = () => {
+        if (highlightStarted) {
+          return;
+        }
+
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
+          return;
+        }
+
+        highlightStarted = true;
+        startEstimatedGeminiHighlight(audio, words, playbackSession);
+      };
+
+      audio.onloadedmetadata = initializeHighlight;
+      audio.ondurationchange = initializeHighlight;
+
+      audio.onended = () => {
+        if (playbackSessionRef.current !== playbackSession) {
+          return;
+        }
+
+        cleanupAudioPlayback();
+        playbackEngineRef.current = null;
+        ctxSetCurrentSpokenWordIds([]);
+        currentWordIndexRef.current = 0;
+        setIsPlaying(false);
+      };
+
+      audio.onerror = () => {
+        if (playbackSessionRef.current !== playbackSession) {
+          return;
+        }
+
+        cleanupAudioPlayback();
+        playbackEngineRef.current = null;
+        ctxSetCurrentSpokenWordIds([]);
+        currentWordIndexRef.current = 0;
+        setTtsError("Gemini TTS playback failed.");
+        setIsPlaying(false);
+      };
+
+      await audio.play();
+      initializeHighlight();
+    } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      cleanupAudioPlayback();
+      playbackEngineRef.current = null;
+      ctxSetCurrentSpokenWordIds([]);
+      currentWordIndexRef.current = 0;
+      setTtsError(
+        error instanceof Error
+          ? error.message
+          : "Gemini TTS playback failed unexpectedly.",
+      );
+      setIsPlaying(false);
+    }
+  }, [
+    cleanupAudioPlayback,
+    ctxSetCurrentSpokenWordIds,
+    startEstimatedGeminiHighlight,
+  ]);
 
   useEffect(() => {
     if (!hasReadAloudSelection && isPlaying) {
       stopPlayback();
     }
-  }, [ctxSetCurrentSpokenWordIds, hasReadAloudSelection, isPlaying]);
+  }, [hasReadAloudSelection, isPlaying, stopPlayback]);
 
   useEffect(() => {
-    if (
-      !isPlaying ||
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window)
-    ) {
+    if (!isPlaying) {
       return;
     }
 
@@ -303,14 +603,71 @@ const Sounds = () => {
     if (!chunks.length) {
       return;
     }
-
-    const speechSynthesis = window.speechSynthesis;
     const restartIndex = currentChunkIndexRef.current;
     playbackSessionRef.current += 1;
     const playbackSession = playbackSessionRef.current;
-    speechSynthesis.cancel();
-    speakChunk(restartIndex, chunks, speechRate, speechSynthesis, playbackSession);
-  }, [ctxSetCurrentSpokenWordIds, speechRate]);
+    setTtsError(null);
+
+    if (playbackEngineRef.current === "gemini") {
+      cleanupAudioPlayback();
+      currentChunkIndexRef.current = 0;
+      currentWordIndexRef.current = 0;
+      void speakChunkWithGemini(
+        geminiSpeechTextRef.current,
+        speechWordsRef.current,
+        speechRate,
+        playbackSession,
+      );
+      return;
+    }
+
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    speakChunk(
+      restartIndex,
+      chunks,
+      speechRate,
+      window.speechSynthesis,
+      playbackSession,
+    );
+  }, [
+    cleanupAudioPlayback,
+    isPlaying,
+    speakChunk,
+    speakChunkWithGemini,
+    speechRate,
+  ]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadGeminiAvailability = async () => {
+      try {
+        const response = await fetch("/api/tts/gemini", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Gemini availability check failed.");
+        }
+
+        const data = (await response.json()) as { configured?: boolean };
+        if (isMounted) {
+          setIsGeminiTtsAvailable(Boolean(data.configured));
+        }
+      } catch {
+        if (isMounted) {
+          setIsGeminiTtsAvailable(false);
+        }
+      }
+    };
+
+    void loadGeminiAvailability();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -339,9 +696,10 @@ const Sounds = () => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
+      cleanupAudioPlayback();
       ctxSetCurrentSpokenWordIds([]);
     };
-  }, [ctxSetCurrentSpokenWordIds]);
+  }, [cleanupAudioPlayback, ctxSetCurrentSpokenWordIds]);
 
   useEffect(() => {
     if (!isSpeedSelectorOpen) {
@@ -428,12 +786,16 @@ const Sounds = () => {
                       </button>
                     </div>
                     <p className="max-w-sm text-sm leading-6 text-black dark:text-white">
-                      {!isSpeechSynthesisAvailable
-                        ? "Speech synthesis is not available in this browser."
+                      {ttsError
+                        ? ttsError
+                        : !isReadAloudAvailable
+                        ? "Read aloud is unavailable until Gemini TTS is configured or a browser voice is available."
                         : isPlaying
                           ? "Read aloud is currently playing. Click the button again to stop."
+                          : isGeminiTtsAvailable
+                            ? "Read aloud uses Google Gemini TTS for Hebrew playback."
                           : hasReadAloudSelection
-                        ? "Read aloud is available for the current selection."
+                            ? "Read aloud is available for the current selection."
                         : "Select a word, multiple words, or a strophe."}
                     </p>
                   </div>
