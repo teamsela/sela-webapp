@@ -48,6 +48,11 @@ type AzureWordBoundary = {
   wordLength: number;
 };
 
+type AzureVoiceOption = {
+  id: string;
+  label: string;
+};
+
 type TtsEngine = "azure" | "browser";
 
 const TTS_ADONAI_TEXT = "אֲדֹנָי";
@@ -165,6 +170,8 @@ const Sounds = () => {
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>(
     [],
   );
+  const [azureVoiceOptions, setAzureVoiceOptions] = useState<AzureVoiceOption[]>([]);
+  const [selectedAzureVoiceName, setSelectedAzureVoiceName] = useState("");
   const [ttsError, setTtsError] = useState<string | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -443,6 +450,7 @@ const Sounds = () => {
         selectedAzureSpeechText,
         words,
         speechRate,
+        selectedAzureVoiceName,
         playbackSession,
       );
       return;
@@ -460,6 +468,7 @@ const Sounds = () => {
     text: string,
     words: SpeechWord[],
     rate: number,
+    voiceName: string,
     playbackSession: number,
   ) => {
     if (playbackSessionRef.current !== playbackSession) {
@@ -490,6 +499,7 @@ const Sounds = () => {
         body: JSON.stringify({
           text,
           speakingRate: rate,
+          voiceName,
         }),
         signal: controller.signal,
       });
@@ -653,6 +663,7 @@ const Sounds = () => {
         azureSpeechTextRef.current,
         speechWordsRef.current,
         speechRate,
+        selectedAzureVoiceName,
         playbackSession,
       );
       return;
@@ -673,6 +684,7 @@ const Sounds = () => {
   }, [
     cleanupAudioPlayback,
     isPlaying,
+    selectedAzureVoiceName,
     speakChunk,
     speakChunkWithAzure,
     speechRate,
@@ -688,13 +700,21 @@ const Sounds = () => {
           throw new Error("Azure availability check failed.");
         }
 
-        const data = (await response.json()) as { configured?: boolean };
+        const data = (await response.json()) as {
+          configured?: boolean;
+          selectedVoiceName?: string | null;
+          voiceOptions?: AzureVoiceOption[];
+        };
         if (isMounted) {
           setIsAzureTtsAvailable(Boolean(data.configured));
+          setAzureVoiceOptions(data.voiceOptions ?? []);
+          setSelectedAzureVoiceName(data.selectedVoiceName ?? "");
         }
       } catch {
         if (isMounted) {
           setIsAzureTtsAvailable(false);
+          setAzureVoiceOptions([]);
+          setSelectedAzureVoiceName("");
         }
       }
     };
@@ -822,19 +842,40 @@ const Sounds = () => {
                         {speechRate.toFixed(1)}x
                       </button>
                     </div>
-                    <p className="max-w-sm text-sm leading-6 text-black dark:text-white">
-                      {ttsError
-                        ? ttsError
-                        : !isReadAloudAvailable
-                        ? "Read aloud is unavailable until Azure Speech is configured or a browser voice is available."
-                        : isPlaying
-                          ? "Read aloud is currently playing. Click the button again to stop."
-                          : isAzureTtsAvailable
-                            ? "Read aloud uses Azure Speech for Hebrew playback."
-                          : hasReadAloudSelection
-                            ? "Read aloud is available for the current selection."
-                        : "Select a word, multiple words, or a strophe."}
-                    </p>
+                    <div className="max-w-sm">
+                      <p className="text-sm leading-6 text-black dark:text-white">
+                        {ttsError
+                          ? ttsError
+                          : !isReadAloudAvailable
+                          ? "Read aloud is unavailable until Azure Speech is configured or a browser voice is available."
+                          : isPlaying
+                            ? "Read aloud is currently playing. Click the button again to stop."
+                            : isAzureTtsAvailable
+                              ? "Read aloud uses Azure Speech for Hebrew playback."
+                            : hasReadAloudSelection
+                              ? "Read aloud is available for the current selection."
+                            : "Select a word, multiple words, or a strophe."}
+                      </p>
+                      {isAzureTtsAvailable && azureVoiceOptions.length > 0 && (
+                        <label className="mt-3 flex flex-col gap-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                          Azure Voice
+                          <select
+                            value={selectedAzureVoiceName}
+                            onChange={(event) =>
+                              setSelectedAzureVoiceName(event.target.value)
+                            }
+                            className="rounded-md border border-stroke bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-black transition hover:border-primary focus:border-primary focus:outline-none dark:border-strokedark dark:bg-boxdark dark:text-white"
+                            aria-label="Select Azure voice"
+                          >
+                            {azureVoiceOptions.map((voiceOption) => (
+                              <option key={voiceOption.id} value={voiceOption.id}>
+                                {voiceOption.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
