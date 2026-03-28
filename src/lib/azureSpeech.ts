@@ -1,19 +1,6 @@
 const DEFAULT_LANGUAGE_CODE = "he-IL";
 const DEFAULT_VOICE_NAME = "he-IL-HilaNeural";
 
-export const AZURE_HEBREW_VOICE_OPTIONS = [
-  {
-    id: "he-IL-HilaNeural",
-    label: "Hila",
-  },
-  {
-    id: "he-IL-AvriNeural",
-    label: "Avri",
-  },
-] as const;
-
-export type AzureHebrewVoiceName = (typeof AZURE_HEBREW_VOICE_OPTIONS)[number]["id"];
-
 const stripWrappingQuotes = (value: string) => {
   if (
     (value.startsWith('"') && value.endsWith('"')) ||
@@ -54,13 +41,3 @@ export const getAzureSpeechCredentials = () => {
 };
 
 export const isAzureSpeechConfigured = () => Boolean(getAzureSpeechCredentials());
-
-export const getAzureSpeechVoiceOptions = () => AZURE_HEBREW_VOICE_OPTIONS;
-
-export const isAzureSpeechVoiceName = (
-  value: string | undefined,
-): value is AzureHebrewVoiceName =>
-  Boolean(
-    value &&
-      AZURE_HEBREW_VOICE_OPTIONS.some((voiceOption) => voiceOption.id === value),
-  );
