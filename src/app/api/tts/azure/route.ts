@@ -3,15 +3,12 @@ import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 
 import {
   getAzureSpeechCredentials,
-  getAzureSpeechVoiceOptions,
-  isAzureSpeechVoiceName,
   isAzureSpeechConfigured,
 } from "@/lib/azureSpeech";
 
 type AzureTtsRequest = {
   speakingRate?: number;
   text?: string;
-  voiceName?: string;
 };
 
 type AzureWordBoundary = {
@@ -52,7 +49,6 @@ const isAbortLikeError = (error: unknown) =>
 const synthesizeAzureSpeech = async (
   text: string,
   speakingRate: number,
-  voiceName: string | undefined,
   signal: AbortSignal,
 ) => {
   const credentials = getAzureSpeechCredentials();
@@ -68,10 +64,7 @@ const synthesizeAzureSpeech = async (
     credentials.key,
     credentials.region,
   );
-  const resolvedVoiceName =
-    voiceName && isAzureSpeechVoiceName(voiceName)
-      ? voiceName
-      : credentials.voiceName;
+  const resolvedVoiceName = credentials.voiceName;
   speechConfig.speechSynthesisLanguage = credentials.languageCode;
   speechConfig.speechSynthesisVoiceName = resolvedVoiceName;
   speechConfig.speechSynthesisOutputFormat =
@@ -159,8 +152,6 @@ export async function GET() {
 
   return NextResponse.json({
     configured: Boolean(credentials),
-    selectedVoiceName: credentials?.voiceName ?? null,
-    voiceOptions: getAzureSpeechVoiceOptions(),
   });
 }
 
@@ -193,7 +184,6 @@ export async function POST(request: Request) {
     const result = await synthesizeAzureSpeech(
       text,
       normalizeSpeakingRate(payload.speakingRate),
-      payload.voiceName,
       request.signal,
     );
 
