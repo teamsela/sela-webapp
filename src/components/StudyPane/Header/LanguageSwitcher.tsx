@@ -1,25 +1,48 @@
 import { useContext } from 'react';
 import { FormatContext } from '../index';
-import { LanguageMode } from "@/lib/types";
+import { LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { updateMetadataInDb } from '@/lib/actions';
 
 const LanguageSwitcher = () => {
-  const { ctxStudyId, ctxLanguageMode, ctxSetLanguageMode, ctxStudyMetadata } = useContext(FormatContext);
+  const {
+    ctxStudyId,
+    ctxLanguageMode,
+    ctxSetLanguageMode,
+    ctxStudyMetadata,
+    ctxNonEnglishDisplayMode,
+    ctxSetNonEnglishDisplayMode,
+    ctxInViewMode,
+  } = useContext(FormatContext);
 
   const handleSwitcherClick = (mode: LanguageMode) => {
     if (mode != ctxLanguageMode)
     {
       ctxStudyMetadata.lang = mode;
-      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+      if (!ctxInViewMode) {
+        updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+      }
       ctxSetLanguageMode(mode);
     }
   }
 
+  const handleDisplayModeChange = (mode: NonEnglishDisplayMode) => {
+    if (mode === ctxNonEnglishDisplayMode) {
+      return;
+    }
+
+    ctxStudyMetadata.nonEnglishDisplayMode = mode;
+    if (!ctxInViewMode) {
+      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    }
+    ctxSetNonEnglishDisplayMode(mode);
+  };
+
   const buttonBaseStyle = 'px-[24px] py-[6px]';
   const buttonSelectedStyle = 'bg-[#FFFFFF] font-bold'
+  const shouldShowDisplayDropdown = ctxLanguageMode !== LanguageMode.English;
 
   return (
-    <div>
+    <div className="flex items-center gap-3">
       <label
         htmlFor="toggleLang"
         className="flex cursor-pointer select-none items-center ml-2"
@@ -40,6 +63,21 @@ const LanguageSwitcher = () => {
 
         </div>
       </label>
+      {shouldShowDisplayDropdown && (
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <span>Display</span>
+          <select
+            value={ctxNonEnglishDisplayMode}
+            onChange={(event) =>
+              handleDisplayModeChange(Number(event.target.value) as NonEnglishDisplayMode)
+            }
+            className="rounded-md border border-[#D9D9D9] bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition focus:border-primary"
+          >
+            <option value={NonEnglishDisplayMode.Hebrew}>Hebrew OHB</option>
+            <option value={NonEnglishDisplayMode.Transliteration}>Transliteration</option>
+          </select>
+        </label>
+      )}
     </div>
   );
 };

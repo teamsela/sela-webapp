@@ -4,15 +4,23 @@ import { useState, useEffect } from "react";
 import { StanzaBlock } from './StanzaBlock';
 import { LanguageMode } from '@/lib/types';
 
+export type PassageDisplayMode = "gloss" | "hebrew" | "transliteration";
+
 export const LanguageContext = createContext({
-  ctxIsHebrew: false
+  ctxIsHebrew: false,
+  ctxDisplayMode: "gloss" as PassageDisplayMode,
 })
 
-export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
+export const PassageBlock = ({
+  displayMode,
+}: {
+  displayMode: PassageDisplayMode;
+}) => {
 
   const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
 
   const [isNarrow, setIsNarrow] = useState(false);
+  const isHebrew = displayMode === "hebrew";
 
   //check window size of passage
   useEffect(() => {
@@ -31,7 +39,8 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
   }, []);
 
   const languageContextValue = {
-    ctxIsHebrew: isHebrew
+    ctxIsHebrew: isHebrew,
+    ctxDisplayMode: displayMode,
   }
 
   const isParallel = ctxLanguageMode == LanguageMode.Parallel;
@@ -51,7 +60,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${isHebrew ? 'heb' : 'eng'}`} className={`${passageWidthClass} max-w-full flex relative px-2 py-4`}>
+    <div id={`selaPassage_${displayMode}`} className={`${passageWidthClass} max-w-full flex relative px-2 py-4`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {
