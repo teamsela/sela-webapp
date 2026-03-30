@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { SignInButton, useUser } from '@clerk/nextjs';
 
 import { createStudyFromGuestSession } from '@/lib/actions';
 
@@ -48,23 +48,23 @@ export default function GuestSessionBanner() {
 
   if (isSignedIn) {
     return (
-      <div className="fixed top-0 z-[60] w-full bg-primary px-4 py-2 text-center text-sm font-medium text-white">
+      <div className="fixed right-4 top-4 z-[60] rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-lg">
         {isSaving ? 'Saving your guest session…' : 'Signed in — preparing your study session…'}
       </div>
     );
   }
 
   return (
-    <div className="fixed top-0 z-[60] w-full bg-primary px-4 py-2 text-center text-sm font-medium text-white">
-      You are in guest mode.{' '}
-      <Link href="/sign-in?redirect_url=/try" className="underline">
-        Sign in
-      </Link>{' '}
-      or{' '}
-      <Link href="/sign-up?redirect_url=/try" className="underline">
-        create an account
-      </Link>{' '}
-      to save your progress.
+    <div className="fixed right-4 top-4 z-[60] flex items-center gap-3 rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-lg dark:bg-boxdark dark:text-white">
+      <span>Save your progress</span>
+      <SignInButton mode="modal" forceRedirectUrl="/try" signUpForceRedirectUrl="/try">
+        <button className="rounded-md bg-primary px-3 py-1.5 text-white hover:opacity-90">
+          Sign In
+        </button>
+      </SignInButton>
+      <Link href="/sign-up?redirect_url=/try" className="text-primary underline">
+        Create account
+      </Link>
     </div>
   );
 }
