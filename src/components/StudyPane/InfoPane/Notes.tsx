@@ -4,7 +4,7 @@ import { FormatContext } from "..";
 import { StropheNote, StudyNotes } from "@/lib/types";
 
 const Notes = () => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxIsGuestSession } = useContext(FormatContext);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -65,7 +65,7 @@ const Notes = () => {
 
   // A stable "save now" that supports keepalive and beacon
   const saveNow = useCallback(async (payload: string, { keepalive = false } = {}) => {
-    if (!ctxStudyId) return;
+    if (!ctxStudyId || ctxIsGuestSession) return;
 
     // Avoid redundant writes
     if (lastSavedPayloadRef.current === payload) return;
@@ -101,7 +101,7 @@ const Notes = () => {
         console.error("Save error:", err);
       }
     }
-  }, [ctxStudyId]);
+  }, [ctxStudyId, ctxIsGuestSession]);
 
   // Debounced autosave whenever `text` changes
   useEffect(() => {
