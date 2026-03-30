@@ -57,7 +57,7 @@ export default function GuestSessionBanner() {
   return (
     <div className="fixed right-4 top-4 z-[60] flex items-center gap-3 rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-lg dark:bg-boxdark dark:text-white">
       <span>Save your progress</span>
-      <SignInButton mode="modal" forceRedirectUrl="/try" signUpForceRedirectUrl="/try">
+      <SignInButton mode="modal" redirectUrl="/try" afterSignInUrl="/try" afterSignUpUrl="/try">
         <button className="rounded-md bg-primary px-3 py-1.5 text-white hover:opacity-90">
           Sign In
         </button>
