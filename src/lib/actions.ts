@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { currentUser, clerkClient } from '@clerk/nextjs';
 
 import { db } from '../db';
@@ -10,6 +11,7 @@ import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL } fro
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
+import { makeAnonymousOwner, getAnonymousOwnerSessionId, ANONYMOUS_SESSION_COOKIE } from './anonymous';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
 
 const SORT_COLUMNS = {
@@ -39,6 +41,37 @@ const formatStrongNumberForDisplay = (value: string) => {
 };
 
 
+
+
+async function canEditStudy(studyId: string) {
+  const [studyRow, user] = await Promise.all([
+    db
+      .select({ owner: study.owner })
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    currentUser(),
+  ]);
+
+  if (!studyRow) {
+    return false;
+  }
+
+  if (user?.id && studyRow.owner === user.id) {
+    return true;
+  }
+
+  const anonymousSessionId = cookies().get(ANONYMOUS_SESSION_COOKIE)?.value;
+  const ownerAnonymousSessionId = getAnonymousOwnerSessionId(studyRow.owner);
+
+  return Boolean(
+    !user &&
+      anonymousSessionId &&
+      ownerAnonymousSessionId &&
+      anonymousSessionId === ownerAnonymousSessionId,
+  );
+}
 export async function fetchStudyById(studyId: string) {
   try {
     const row = await db
@@ -120,6 +153,10 @@ export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMe
   "use server";
 
   try {
+    const canEdit = await canEditStudy(studyId);
+    if (!canEdit) {
+      return { message: 'Unauthorized' };
+    }
     const metadataJson = JSON.stringify(studyMetadata);
     if (metadataJson)
     {
@@ -146,6 +183,66 @@ export async function deleteStudy(studyId: string) {
   } catch (error) {
     return { message: 'Database Error: Failed to delete study.' };
   }
+}
+
+
+export async function ensureAnonymousPsalmStudy(sessionId: string) {
+  const anonymousOwner = makeAnonymousOwner(sessionId);
+
+  const existingStudy = await db
+    .select({ id: study.id })
+    .from(study)
+    .where(
+      and(
+        eq(study.owner, anonymousOwner),
+        eq(study.book, 'psalms'),
+        eq(study.passage, '1')
+      )
+    )
+    .orderBy(desc(study.updatedAt))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  if (existingStudy?.id) {
+    return existingStudy.id;
+  }
+
+  const [record] = await db
+    .insert(study)
+    .values({
+      id: "rec_" + nanoid(20),
+      name: "Psalm 1 Trial Study",
+      passage: '1',
+      book: 'psalms',
+      owner: anonymousOwner,
+      metadata: { words: {} },
+      public: false,
+      model: false,
+      starred: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+    .returning({ id: study.id });
+
+  return record.id;
+}
+
+export async function claimAnonymousStudy(studyId: string, anonymousSessionId: string) {
+  const user = await currentUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const anonymousOwner = makeAnonymousOwner(anonymousSessionId);
+
+  const [claimedStudy] = await db
+    .update(study)
+    .set({ owner: user.id, updatedAt: new Date().toISOString() })
+    .where(and(eq(study.id, studyId), eq(study.owner, anonymousOwner)))
+    .returning({ id: study.id });
+
+  return claimedStudy?.id ?? null;
 }
 
 export async function createStudy(passage: string, book: string) {

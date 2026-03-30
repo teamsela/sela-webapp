@@ -71,7 +71,7 @@ const Header = ({
               {/* <!-- Dark Mode Toggler --> */}
 
               {/* <!-- User Area --> */}
-              {<DropdownUser />}
+              {<DropdownUser studyId={study.id} owner={study.owner} />}
               {/* <!-- User Area --> */}
           </div>
         </div>

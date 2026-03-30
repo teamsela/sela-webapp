@@ -1,27 +1,30 @@
 import { fetchStudyById, updateStudyNotes } from "@/lib/actions";
+import { getAnonymousOwnerSessionId, ANONYMOUS_SESSION_COOKIE } from "@/lib/anonymous";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const { userId } = getAuth(req);
-  const content: {studyId:string, text: string} = await req.json();
-  if (!userId) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
-  try{
+  const content: { studyId: string; text: string } = await req.json();
+
+  try {
     const study = await fetchStudyById(content.studyId);
-    if (!study) return NextResponse.json({error: 'No study found'}, {status: 404});
-    if (study.owner !== userId) return NextResponse.json({error: 'Unauthorized'}, {status: 401});
-    if (study.owner == userId ) {
-      if (!study.notes) {
-        updateStudyNotes(study.id, content.text);
-        return NextResponse.json({ message: "Saved" }, { status: 200 });
-      }
-      const parsedNotes = JSON.parse(study.notes);
-      const parsedRequestNotes = JSON.parse(content.text);
-      console.log(parsedRequestNotes);
-      updateStudyNotes(study.id, JSON.stringify(parsedRequestNotes))
-      return NextResponse.json({ message: "Saved" }, { status: 200 });
-  }
+    if (!study) return NextResponse.json({ error: "No study found" }, { status: 404 });
+
+    const anonymousSessionId = req.cookies.get(ANONYMOUS_SESSION_COOKIE)?.value;
+    const ownerAnonymousSessionId = getAnonymousOwnerSessionId(study.owner);
+
+    const isAuthorized =
+      study.owner === userId ||
+      Boolean(ownerAnonymousSessionId && anonymousSessionId && ownerAnonymousSessionId === anonymousSessionId);
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    updateStudyNotes(study.id, content.text);
+    return NextResponse.json({ message: "Saved" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: "Database Error"}, { status: 404})
+    return NextResponse.json({ message: "Database Error" }, { status: 404 });
   }
-};
+}
