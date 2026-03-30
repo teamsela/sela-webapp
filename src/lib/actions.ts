@@ -542,7 +542,6 @@ export async function fetchPassageData(studyId: string) {
     if (currentStudy)
     {
       const passageInfo = parsePassageInfo(currentStudy.passage || '', currentStudy.book || 'psalms');
-      console.log(passageInfo)
       if (passageInfo instanceof Error === false)
       {
         const passageCondition = createPassageRangeCondition(passageInfo);
@@ -808,37 +807,35 @@ export async function fetchPassageData(studyId: string) {
           return undefined;
         };
 
-        await Promise.all(
-          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
-            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+        for (const strongNumber of Array.from(uniqueStrongNumbers)) {
+          const preferredRecord = await fetchStepBibleRecord(strongNumber);
 
-            if (preferredRecord) {
-              const {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              } = preferredRecord;
+          if (preferredRecord) {
+            const {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            } = preferredRecord;
 
-              stepBibleMap.set(strongNumber, {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              });
-            }
-          })
-        );
+            stepBibleMap.set(strongNumber, {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            });
+          }
+        }
 
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
