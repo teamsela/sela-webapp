@@ -71,7 +71,6 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
     zechariah: zechariahBook,
     malachi: malachiBook
   }[book];
-  const totalChapters = Object.keys(bookMap).length;
   const startChapter = parseInt(strStartChapter, 10);
   const startChapterVerseCount = bookMap[startChapter];
 
@@ -114,9 +113,9 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
       }
       endVerse = parseInt(strEndVerse, 10);
     } else {
-      // Decide if the trailing number is referencing a chapter or verse.
-      const treatAsChapter =
-        rawEndNumber > startChapterVerseCount || rawEndNumber <= totalChapters;
+      // With a start verse (e.g. "6:6-12"), prefer end-verse unless the
+      // trailing number cannot be a verse in the starting chapter.
+      const treatAsChapter = rawEndNumber > startChapterVerseCount;
       if (treatAsChapter) {
         endChapter = rawEndNumber;
         const endChapterVerseCount = bookMap[endChapter];
