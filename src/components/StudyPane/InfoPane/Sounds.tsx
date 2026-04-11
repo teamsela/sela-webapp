@@ -50,11 +50,11 @@ type AzureWordBoundary = {
 
 type TtsEngine = "azure" | "browser";
 
-const TTS_ADONAI_TEXT = "אֲדֹנָי";
+const TTS_ADONAI_TEXT ="אֲ֝דֹנָ֗י";
 
 const getTtsWordText = (word: { gloss?: string; wlcWord: string }) => {
   const gloss = word.gloss?.trim().toLowerCase();
-  if (gloss && /\byahweh\b|\byaweh\b/.test(gloss)) {
+  if (gloss === "yahweh") {
     return TTS_ADONAI_TEXT;
   }
 
@@ -688,9 +688,7 @@ const Sounds = () => {
           throw new Error("Azure availability check failed.");
         }
 
-        const data = (await response.json()) as {
-          configured?: boolean;
-        };
+        const data = (await response.json()) as { configured?: boolean };
         if (isMounted) {
           setIsAzureTtsAvailable(Boolean(data.configured));
         }
@@ -824,21 +822,19 @@ const Sounds = () => {
                         {speechRate.toFixed(1)}x
                       </button>
                     </div>
-                    <div className="max-w-sm">
-                      <p className="text-sm leading-6 text-black dark:text-white">
-                        {ttsError
-                          ? ttsError
-                          : !isReadAloudAvailable
-                          ? "Read aloud is unavailable until Azure Speech is configured or a browser voice is available."
-                          : isPlaying
-                            ? "Read aloud is currently playing. Click the button again to stop."
-                            : isAzureTtsAvailable
-                              ? "Read aloud uses Azure Speech for Hebrew playback."
-                            : hasReadAloudSelection
-                              ? "Read aloud is available for the current selection."
-                            : "Select a word, multiple words, or a strophe."}
-                      </p>
-                    </div>
+                    <p className="max-w-sm text-sm leading-6 text-black dark:text-white">
+                      {ttsError
+                        ? ttsError
+                        : !isReadAloudAvailable
+                        ? "Read aloud is unavailable until Azure Speech is configured or a browser voice is available."
+                        : isPlaying
+                          ? "Read aloud is currently playing. Click the button again to stop."
+                          : isAzureTtsAvailable
+                            ? "Read aloud uses Azure Speech for Hebrew playback."
+                          : hasReadAloudSelection
+                            ? "Read aloud is available for the current selection."
+                        : "Select a word, multiple words, or a strophe."}
+                    </p>
                   </div>
                 </div>
               </div>
