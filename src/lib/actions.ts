@@ -729,37 +729,49 @@ export async function fetchPassageData(studyId: string) {
           return undefined;
         };
 
-        await Promise.all(
-          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
-            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+        const uniqueStrongNumberList = Array.from(uniqueStrongNumbers);
+        const STRONG_LOOKUP_CONCURRENCY = 4;
 
-            if (preferredRecord) {
-              const {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              } = preferredRecord;
+        for (let i = 0; i < uniqueStrongNumberList.length; i += STRONG_LOOKUP_CONCURRENCY) {
+          const chunk = uniqueStrongNumberList.slice(i, i + STRONG_LOOKUP_CONCURRENCY);
 
-              stepBibleMap.set(strongNumber, {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              });
+          const records = await Promise.all(
+            chunk.map(async (strongNumber) => {
+              const preferredRecord = await fetchStepBibleRecord(strongNumber);
+              return { strongNumber, preferredRecord };
+            })
+          );
+
+          records.forEach(({ strongNumber, preferredRecord }) => {
+            if (!preferredRecord) {
+              return;
             }
-          })
-        );
+
+            const {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            } = preferredRecord;
+
+            stepBibleMap.set(strongNumber, {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            });
+          });
+        }
 
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));

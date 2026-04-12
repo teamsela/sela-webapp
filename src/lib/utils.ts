@@ -113,9 +113,11 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
       }
       endVerse = parseInt(strEndVerse, 10);
     } else {
-      // With a start verse (e.g. "6:6-12"), prefer end-verse unless the
-      // trailing number cannot be a verse in the starting chapter.
-      const treatAsChapter = rawEndNumber > startChapterVerseCount;
+      // With a start verse and no explicit end verse (e.g. "2:10-3"), infer
+      // chapter range when the trailing number cannot be a valid same-chapter
+      // end verse.
+      const treatAsChapter =
+        rawEndNumber > startChapterVerseCount || rawEndNumber < startVerse;
       if (treatAsChapter) {
         endChapter = rawEndNumber;
         const endChapterVerseCount = bookMap[endChapter];
