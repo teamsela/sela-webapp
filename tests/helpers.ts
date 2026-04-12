@@ -49,14 +49,14 @@ export const switchToHebrewMode = async (page: Page) => {
 /** Select a display mode from the popover dropdown. */
 export const selectDisplayMode = async (
   page: Page,
-  label: "English Gloss / Hebrew OHB" | "English Gloss / Hebrew Transliteration",
+  label: "English Gloss / Hebrew OHB" | "English / Transliteration" | "English Gloss / Hebrew Transliteration" | "Hebrew OHB" | "Transliteration",
 ) => {
   // Click the chevron on the active toggle button to open the dropdown
   const chevron = page.locator('label[for="toggleLang"] svg').first();
   await chevron.click();
   await page.waitForTimeout(PAUSE);
   // Click the option in the popover
-  await page.locator(`button:has-text("${label}")`).click();
+  await page.locator(`.shadow-lg button:has-text("${label}")`).click();
   await page.waitForTimeout(PAUSE);
 };
 
