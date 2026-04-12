@@ -93,6 +93,46 @@ export const LETTER_CHIPS: LetterChip[] = [
 export const SOUND_CHIP_MAP = new Map(SOUND_CHIPS.map((chip) => [chip.id, chip]));
 export const LETTER_CHIP_MAP = new Map(LETTER_CHIPS.map((chip) => [chip.id, chip]));
 
+/**
+ * Grouped letter chips for display. Final forms share a single chip
+ * with the base letter (e.g. כ ך), matching the PDF spec that shows
+ * 22 grouped chips rather than 27 individual ones.
+ *
+ * The `memberIds` array lists the individual LETTER_CHIP ids that belong
+ * to the group. Selecting a group selects/deselects all member ids.
+ */
+export type LetterChipGroup = {
+  id: string;
+  label: string;
+  memberIds: string[];
+  palette: InlinePalette;
+};
+
+export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
+  { id: "aleph", label: "א", memberIds: ["aleph"], palette: createPalette("#FFECB3") },
+  { id: "bet", label: "ב", memberIds: ["bet"], palette: createPalette("#C5CAE9") },
+  { id: "gimel", label: "ג", memberIds: ["gimel"], palette: createPalette("#B2DFDB") },
+  { id: "dalet", label: "ד", memberIds: ["dalet"], palette: createPalette("#FFCDD2") },
+  { id: "he", label: "ה", memberIds: ["he"], palette: createPalette("#FFF9C4") },
+  { id: "vav", label: "ו", memberIds: ["vav"], palette: createPalette("#B3E5FC") },
+  { id: "zayin", label: "ז", memberIds: ["zayin"], palette: createPalette("#C8E6C9") },
+  { id: "het", label: "ח", memberIds: ["het"], palette: createPalette("#F8BBD0") },
+  { id: "tet", label: "ט", memberIds: ["tet"], palette: createPalette("#E1BEE7") },
+  { id: "yod", label: "י", memberIds: ["yod"], palette: createPalette("#DCEDC8") },
+  { id: "kaf-group", label: "כ ך", memberIds: ["kaf", "final-kaf"], palette: createPalette("#D1C4E9") },
+  { id: "lamed", label: "ל", memberIds: ["lamed"], palette: createPalette("#BBDEFB") },
+  { id: "mem-group", label: "מ ם", memberIds: ["mem", "final-mem"], palette: createPalette("#F0F4C3") },
+  { id: "nun-group", label: "נ ן", memberIds: ["nun", "final-nun"], palette: createPalette("#FFE0B2") },
+  { id: "samekh", label: "ס", memberIds: ["samekh"], palette: createPalette("#FFEB3B") },
+  { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#CFD8DC") },
+  { id: "pe", label: "פ", memberIds: ["pe"], palette: createPalette("#FFD54F") },
+  { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#4FC3F7") },
+  { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#9575CD", "#FFFFFF") },
+  { id: "resh", label: "ר", memberIds: ["resh"], palette: createPalette("#90A4AE") },
+  { id: "shin-sin-group", label: "שׂ שׁ", memberIds: ["sin", "shin"], palette: createPalette("#FF9800") },
+  { id: "tav", label: "ת", memberIds: ["tav"], palette: createPalette("#64B5F6") },
+];
+
 const transliterationPatterns: TransliterationPattern[] = [
   { text: "kh", soundId: "kh-ch" },
   { text: "ch", soundId: "kh-ch" },

@@ -73,8 +73,9 @@ const LanguageSwitcher = () => {
             }
             className="rounded-md border border-[#D9D9D9] bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition focus:border-primary"
           >
-            <option value={NonEnglishDisplayMode.Hebrew}>Hebrew OHB</option>
-            <option value={NonEnglishDisplayMode.Transliteration}>Transliteration</option>
+            <option value={NonEnglishDisplayMode.Hebrew}>English Gloss / Hebrew OHB</option>
+            <option value={NonEnglishDisplayMode.Transliteration}>English / Transliteration</option>
+            <option value={NonEnglishDisplayMode.HebrewTransliteration}>English Gloss / Hebrew Transliteration</option>
           </select>
         </label>
       )}

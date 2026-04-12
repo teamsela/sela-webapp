@@ -1,69 +1,52 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import {
+  PAUSE,
+  waitForStudyLoad,
+  switchToParallelMode,
+  selectDisplayMode,
+  openSoundsTab,
+  openDistributionSection,
+  clickDistributionChip,
+  clickSmartHighlight,
+  getSmartHighlightButton,
+  inlineHighlights,
+  countInlineHighlights,
+  collectHighlightColors,
+  expectIndividualLetterHighlights,
+  screenshot,
+} from "./helpers";
 
 /**
- * Comprehensive E2E tests for the Sound feature.
+ * Comprehensive E2E tests for the Sound Display Transliteration feature.
  *
- * Run headed so a reviewer can watch the interactions:
- *   npx playwright test tests/sounds.spec.ts --headed
+ * Headed review:  npx playwright test tests/sounds.spec.ts --headed
+ * CI mode:        CI=true npx playwright test tests/sounds.spec.ts
  *
- * The tests use deliberate pauses (page.waitForTimeout) between steps so the
- * reviewer can visually follow along. Remove them for CI.
+ * Environment variables:
+ *   PLAYWRIGHT_BASE_URL  – app URL (default: http://127.0.0.1:3000)
+ *   TEST_STUDY_PATH      – study to test (default: a public Psalm 23 study)
+ *   TEST_PAUSE           – ms between steps (default: 600, 0 in CI)
+ *   TEST_EVIDENCE_DIR    – where to save screenshots
  */
 
-const publicStudyPath = "/study/d6ef7cl250emugaodqi0/view";
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                           */
-/* ------------------------------------------------------------------ */
-
-const PAUSE = 800; // ms between visual steps
-
-/** Wait for the study pane to fully render after navigation. */
-const waitForStudyLoad = async (page: Page) => {
-  await page.goto(publicStudyPath);
-  await page.waitForSelector('label[for="toggleLang"]', { timeout: 60_000 });
-};
-
-const inlineHighlights = (page: Page) =>
-  page.locator('#selaPassage [style*="background-color"]');
-
-const countInlineHighlights = (page: Page) => inlineHighlights(page).count();
-
-const clickDistributionChip = async (page: Page, chipLabel: string) => {
-  const buttons = page.locator("button");
-  const buttonCount = await buttons.count();
-
-  for (let index = 0; index < buttonCount; index += 1) {
-    const innerText = (await buttons.nth(index).innerText()).replace(/\s+/g, "");
-    if (innerText.startsWith(chipLabel)) {
-      await buttons.nth(index).click();
-      return;
-    }
-  }
-
-  throw new Error(`Unable to find chip starting with "${chipLabel}"`);
-};
-
-const switchToParallelMode = async (page: Page) => {
-  await page.locator('label[for="toggleLang"] span', { hasText: "Aא" }).first().click();
-  await expect(page.locator("select")).toBeVisible();
-};
-
-const selectDisplayMode = async (page: Page, label: "Hebrew OHB" | "Transliteration") => {
-  await page.locator("select").selectOption({ label });
-  await page.waitForTimeout(PAUSE);
-};
-
-const openSoundsTab = async (page: Page) => {
-  await page.getByRole("button", { name: "Sounds" }).click();
-  await page.waitForTimeout(PAUSE);
-};
-
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  1 · Transliteration Display                                       */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 test.describe("Transliteration Display", () => {
+  test("dropdown has all 3 options per PDF spec", async ({ page }) => {
+    test.slow();
+    await waitForStudyLoad(page);
+    await switchToParallelMode(page);
+
+    const options = page.locator("select option");
+    await expect(options).toHaveCount(3);
+    await expect(options.nth(0)).toHaveText("English Gloss / Hebrew OHB");
+    await expect(options.nth(1)).toHaveText("English / Transliteration");
+    await expect(options.nth(2)).toHaveText("English Gloss / Hebrew Transliteration");
+    await screenshot(page, "dropdown-3-options");
+  });
+
   test("dropdown appears only in non-English modes and switches display", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
@@ -75,11 +58,11 @@ test.describe("Transliteration Display", () => {
     await switchToParallelMode(page);
     await page.waitForTimeout(PAUSE);
 
-    // Default option is "Hebrew OHB"
+    // Default option is "English Gloss / Hebrew OHB"
     await expect(page.locator("select")).toHaveValue("0");
 
-    // Select "Transliteration" — passage should show transliteration text
-    await selectDisplayMode(page, "Transliteration");
+    // Select "English / Transliteration" — passage should show transliteration text
+    await selectDisplayMode(page, "English / Transliteration");
     await expect(page.locator("select")).toHaveValue("1");
 
     // Verify transliteration text is rendered (dot-separated syllables)
@@ -87,10 +70,15 @@ test.describe("Transliteration Display", () => {
     await expect(passage).toContainText(/\w+\.\w+/); // e.g. "le.da.vid"
     await page.waitForTimeout(PAUSE);
 
-    // Switch back to "Hebrew OHB" — passage shows Hebrew characters
-    await selectDisplayMode(page, "Hebrew OHB");
+    // Switch back to "English Gloss / Hebrew OHB" — passage shows Hebrew characters
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await expect(page.locator("select")).toHaveValue("0");
-    await page.waitForTimeout(PAUSE);
+
+    // Select "English Gloss / Hebrew Transliteration" — also shows transliteration
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
+    await expect(page.locator("select")).toHaveValue("2");
+    await expect(passage).toContainText(/\w+\.\w+/);
+    await screenshot(page, "transliteration-toggle");
   });
 
   test("Hebrew-only mode (א) also shows display dropdown", async ({ page }) => {
@@ -101,16 +89,16 @@ test.describe("Transliteration Display", () => {
     await page.waitForTimeout(PAUSE);
     await expect(page.locator("select")).toBeVisible();
 
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     const passage = page.locator("#selaPassage");
     await expect(passage).toContainText(/\w+\.\w+/);
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "hebrew-only-transliteration");
   });
 });
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  2 · Hebrew Sound Distribution                                     */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 test.describe("Hebrew Sound Distribution", () => {
   const ALL_SOUND_LABELS = [
@@ -122,46 +110,37 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
-    // Sound Distribution section should be open by default
     await expect(
       page.locator("span", { hasText: "Hebrew Sound Distribution" }).first(),
     ).toBeVisible();
-    await page.waitForTimeout(PAUSE);
 
-    // Verify all 19 sound chips are present with a count badge
     for (const label of ALL_SOUND_LABELS) {
       const chip = page.locator("button.wordBlock", { hasText: label }).first();
       await expect(chip).toBeVisible();
 
-      // Each chip should display a numeric count
       const countBadge = chip.locator("span.rounded-full");
       await expect(countBadge).toBeVisible();
       const countText = await countBadge.innerText();
       expect(Number(countText)).toBeGreaterThanOrEqual(0);
     }
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "sound-chips-all-19");
   });
 
   test("chip selection toggles visual state", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
-    // Select "sh" chip — should get gold outline
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
-
     const shChip = page.locator("button.wordBlock", { hasText: "sh" }).first();
     await expect(shChip).toHaveClass(/outline-\[#FFC300\]/);
 
-    // Click again — should deselect
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
     await expect(shChip).not.toHaveClass(/outline-\[#FFC300\]/);
   });
 
@@ -169,287 +148,188 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
     const btn = page.getByRole("button", { name: "Smart Highlight" }).first();
     await expect(btn).toBeDisabled();
-    await page.waitForTimeout(PAUSE);
 
-    // Select a chip — button should become enabled
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
     await expect(btn).toBeEnabled();
+    await screenshot(page, "smart-highlight-enabled");
   });
 
   test("Smart Highlight applies inline highlights to transliteration", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
-    // Select "sh" chip
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
-
-    // No highlights yet
     expect(await countInlineHighlights(page)).toBe(0);
 
-    // Click Smart Highlight
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    // Button text changes to "Clear Highlight"
+    await clickSmartHighlight(page);
     await expect(page.getByRole("button", { name: "Clear Highlight" }).first()).toBeVisible();
 
-    // Inline highlights should appear in passage
-    const highlightCount = await countInlineHighlights(page);
-    expect(highlightCount).toBeGreaterThan(0);
-    await page.waitForTimeout(PAUSE);
-
-    // Verify highlights are on individual letter spans, NOT whole word boxes
-    const firstHighlight = inlineHighlights(page).first();
-    const highlightText = await firstHighlight.innerText();
-    // Individual sound segments are short (1-2 chars like "sh", "s", etc.)
-    expect(highlightText.length).toBeLessThanOrEqual(3);
-    await page.waitForTimeout(PAUSE);
+    await expectIndividualLetterHighlights(page);
+    await screenshot(page, "sound-highlight-transliteration");
   });
 
   test("Clear Highlight removes all inline highlights", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
+    await clickSmartHighlight(page);
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
 
-    // Click "Clear Highlight"
-    await page.getByRole("button", { name: "Clear Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    // Highlights removed
+    await clickSmartHighlight(page); // "Clear Highlight"
     expect(await countInlineHighlights(page)).toBe(0);
-    // Button text reverts
     await expect(page.getByRole("button", { name: "Smart Highlight" }).first()).toBeVisible();
-    await page.waitForTimeout(PAUSE);
   });
 
-  test("multiple sound chips can be selected and highlighted together", async ({ page }) => {
+  test("multiple sound chips produce multiple highlight colors", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
-    // Select two chips
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
     await clickDistributionChip(page, "s");
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    const highlightCount = await countInlineHighlights(page);
-    expect(highlightCount).toBeGreaterThan(0);
-
-    // Verify there are highlights with different background colors (two sounds = two colors)
-    const highlights = inlineHighlights(page);
-    const styles = new Set<string>();
-    const count = await highlights.count();
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const style = await highlights.nth(i).getAttribute("style");
-      if (style) {
-        const match = style.match(/background-color:\s*([^;]+)/);
-        if (match) styles.add(match[1].trim());
-      }
-    }
-    expect(styles.size).toBeGreaterThanOrEqual(2);
-    await page.waitForTimeout(PAUSE);
+    const colors = await collectHighlightColors(page);
+    expect(colors.size).toBeGreaterThanOrEqual(2);
+    await screenshot(page, "sound-multiple-chips");
   });
 
   test("sound highlights also apply in Hebrew OHB view", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Hebrew OHB");
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    // Highlights should appear on Hebrew letters
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "sound-highlight-hebrew");
   });
 });
 
-/* ------------------------------------------------------------------ */
-/*  3 · Hebrew Letter Distribution                                    */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  3 · Hebrew Letters Distribution                                    */
+/* ================================================================== */
 
-test.describe("Hebrew Letter Distribution", () => {
+test.describe("Hebrew Letters Distribution", () => {
   const SAMPLE_LETTER_LABELS = ["א", "ב", "ג", "ד", "ה", "ו", "ל", "מ", "ר", "שׁ", "ת"];
 
   test("shows Hebrew letter chips with counts", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Hebrew OHB");
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await openSoundsTab(page);
 
-    // Open Letter Distribution section
-    await page.getByRole("button", { name: /Hebrew Letter Distribution/ }).click();
-    await page.waitForTimeout(PAUSE);
+    await openDistributionSection(page, "Hebrew Letters Distribution");
 
-    // Verify sample letter chips are visible with counts
     for (const label of SAMPLE_LETTER_LABELS) {
       const chip = page.locator("button.wordBlock", { hasText: label }).first();
       await expect(chip).toBeVisible();
     }
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "letter-chips");
   });
 
   test("letter highlighting works on Hebrew text", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Hebrew OHB");
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await openSoundsTab(page);
 
-    await page.getByRole("button", { name: /Hebrew Letter Distribution/ }).click();
-    await page.waitForTimeout(PAUSE);
-
-    // Select shin (שׁ)
+    await openDistributionSection(page, "Hebrew Letters Distribution");
     await clickDistributionChip(page, "שׁ");
-    await page.waitForTimeout(PAUSE);
 
     expect(await countInlineHighlights(page)).toBe(0);
-
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
     await expect(page.getByRole("button", { name: "Clear Highlight" }).first()).toBeVisible();
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "letter-highlight-hebrew");
   });
 
   test("letter chip selection toggles independently", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Hebrew OHB");
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await openSoundsTab(page);
 
-    await page.getByRole("button", { name: /Hebrew Letter Distribution/ }).click();
-    await page.waitForTimeout(PAUSE);
-
-    // Select two letters
+    await openDistributionSection(page, "Hebrew Letters Distribution");
     await clickDistributionChip(page, "ל");
-    await page.waitForTimeout(PAUSE);
     await clickDistributionChip(page, "מ");
-    await page.waitForTimeout(PAUSE);
-
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
 
-    // Deselect one — highlights update
     await clickDistributionChip(page, "ל");
-    await page.waitForTimeout(PAUSE);
-
-    // Still some highlights for "מ"
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
-    await page.waitForTimeout(PAUSE);
   });
 });
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  4 · Smart Highlight – Only Selected Chips (NEW LOGIC)             */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 test.describe("Smart Highlight – Selection Logic", () => {
   test("only selected chips are highlighted, not all", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
-    // Select only "d" chip
     await clickDistributionChip(page, "d");
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    // Only "d" sound should be highlighted — all highlights should share the same color
-    const highlights = inlineHighlights(page);
-    const count = await highlights.count();
-    expect(count).toBeGreaterThan(0);
-
-    const colors = new Set<string>();
-    for (let i = 0; i < count; i++) {
-      const style = await highlights.nth(i).getAttribute("style");
-      if (style) {
-        const match = style.match(/background-color:\s*([^;]+)/);
-        if (match) colors.add(match[1].trim());
-      }
-    }
-    // Single chip selected → single highlight color
+    const colors = await collectHighlightColors(page);
     expect(colors.size).toBe(1);
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "only-selected-chip");
   });
 
   test("sound and letter highlighting are mutually exclusive", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Hebrew OHB");
+    await selectDisplayMode(page, "English Gloss / Hebrew OHB");
     await openSoundsTab(page);
 
-    // Activate sound highlighting first
+    // Activate sound highlighting
     await clickDistributionChip(page, "sh");
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
 
-    // Switch to Letter Distribution and activate letter highlighting
-    await page.getByRole("button", { name: /Hebrew Letter Distribution/ }).click();
-    await page.waitForTimeout(PAUSE);
-
+    // Switch to letters and activate
+    await openDistributionSection(page, "Hebrew Letters Distribution");
     await clickDistributionChip(page, "ל");
-    await page.waitForTimeout(PAUSE);
+    await clickSmartHighlight(page);
 
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
-    // Letter highlighting is active — sound highlighting should be auto-cleared
-    await expect(page.getByRole("button", { name: "Clear Highlight" }).first()).toBeVisible();
-
-    // Switch back to Sound Distribution
-    await page.getByRole("button", { name: /Hebrew Sound Distribution/ }).click();
-    await page.waitForTimeout(PAUSE);
-
-    // Sound highlight button should NOT show "Clear Highlight"
+    // Go back to sounds — should show "Smart Highlight" (not "Clear")
+    await openDistributionSection(page, "Hebrew Sound Distribution");
     await expect(page.getByRole("button", { name: "Smart Highlight" }).first()).toBeVisible();
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "mutually-exclusive");
   });
 });
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  5 · Info Tooltip                                                  */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 test.describe("Info Tooltip", () => {
   test("tooltip with correct description is present", async ({ page }) => {
@@ -460,40 +340,53 @@ test.describe("Info Tooltip", () => {
 
     const tooltip = page.locator('span[title*="Different Hebrew letters"]');
     await expect(tooltip).toBeVisible();
-    await page.waitForTimeout(PAUSE);
 
     const titleAttr = await tooltip.getAttribute("title");
-    expect(titleAttr).toContain("sound patterns");
-    expect(titleAttr).toContain("transliteration");
+    // Verify the FULL tooltip text matches PDF spec verbatim
+    expect(titleAttr).toContain("helps you detect sound patterns and rhymes");
+    expect(titleAttr).toContain("based on how words are heard, not how they are written");
+    expect(titleAttr).toContain("not in the default English display");
+    await screenshot(page, "info-tooltip");
+  });
+
+  test("tooltip popup appears on hover", async ({ page }) => {
+    test.slow();
+    await waitForStudyLoad(page);
+    await switchToParallelMode(page);
+    await openSoundsTab(page);
+
+    const tooltipTrigger = page.locator('span[title*="Different Hebrew letters"]');
+    await tooltipTrigger.hover();
     await page.waitForTimeout(PAUSE);
+
+    // The styled popup should appear
+    const popup = page.locator(".shadow-lg", { hasText: "sound patterns and rhymes" });
+    await expect(popup).toBeVisible();
+    await screenshot(page, "info-tooltip-popup");
   });
 });
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  6 · No Persistence (browsing-only filter)                         */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 test.describe("No Persistence", () => {
   test("highlights reset after page reload", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "Transliteration");
+    await selectDisplayMode(page, "English / Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
-    await page.getByRole("button", { name: "Smart Highlight" }).first().click();
-    await page.waitForTimeout(PAUSE);
-
+    await clickSmartHighlight(page);
     expect(await countInlineHighlights(page)).toBeGreaterThan(0);
 
-    // Reload the page
     await page.reload();
     await page.waitForSelector('label[for="toggleLang"]', { timeout: 60_000 });
 
-    // After reload, no highlights should be present (state is not persisted)
     expect(await countInlineHighlights(page)).toBe(0);
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "no-persistence-after-reload");
   });
 
   test("footer disclaimer text is visible", async ({ page }) => {
@@ -505,6 +398,6 @@ test.describe("No Persistence", () => {
     await expect(
       page.locator("text=Individual-letter highlights stay in the browser"),
     ).toBeVisible();
-    await page.waitForTimeout(PAUSE);
+    await screenshot(page, "disclaimer-text");
   });
 });

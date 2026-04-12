@@ -27,7 +27,8 @@ export enum LanguageMode {
 
 export enum NonEnglishDisplayMode {
     Hebrew,
-    Transliteration
+    Transliteration,
+    HebrewTransliteration
 }
 
 export interface ColorPickerProps {

@@ -5,6 +5,7 @@ import AccordionToggleIcon from "./common/AccordionToggleIcon";
 import {
   countLetterOccurrences,
   countSoundOccurrences,
+  LETTER_CHIP_GROUPS,
   LETTER_CHIPS,
   SOUND_CHIPS,
 } from "@/lib/hebrewHighlights";
@@ -101,6 +102,8 @@ const Sounds = () => {
   } = useContext(FormatContext);
   const [openSection, setOpenSection] = useState<SoundsSectionId>("sound-distribution");
 
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? prev : sectionId));
   };
@@ -165,11 +168,12 @@ const Sounds = () => {
     );
   };
 
-  const toggleLetterChip = (chipId: string) => {
+  const toggleLetterChip = (memberIds: string[]) => {
+    const allSelected = memberIds.every((id) => ctxSelectedLetterChipIds.includes(id));
     ctxSetSelectedLetterChipIds(
-      ctxSelectedLetterChipIds.includes(chipId)
-        ? ctxSelectedLetterChipIds.filter((id) => id !== chipId)
-        : [...ctxSelectedLetterChipIds, chipId],
+      allSelected
+        ? ctxSelectedLetterChipIds.filter((id) => !memberIds.includes(id))
+        : [...ctxSelectedLetterChipIds.filter((id) => !memberIds.includes(id)), ...memberIds],
     );
   };
 
@@ -198,7 +202,7 @@ const Sounds = () => {
   };
 
   const soundTooltip =
-    "Different Hebrew letters can produce similar sounds. This tool highlights sound patterns by how words are heard, not just how they are written. Sound highlights only appear in transliteration and Hebrew display modes.";
+    "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written. The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -214,10 +218,18 @@ const Sounds = () => {
               Hebrew Sound Distribution
             </span>
             <span
-              className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500"
+              className="relative ml-1 inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500"
+              onClick={(e) => { e.stopPropagation(); setShowTooltip((v) => !v); }}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
               title={soundTooltip}
             >
               i
+              {showTooltip && (
+                <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
+                  {soundTooltip}
+                </div>
+              )}
             </span>
           </button>
 
@@ -257,26 +269,37 @@ const Sounds = () => {
           >
             <AccordionToggleIcon isOpen={openSection === "letter-distribution"} />
             <span className={openSection === "letter-distribution" ? "text-primary" : "text-black dark:text-white"}>
-              Hebrew Letter Distribution
+              Hebrew Letters Distribution
             </span>
           </button>
 
           {openSection === "letter-distribution" && (
             <div className="space-y-4 p-4">
               <div className="flex flex-wrap">
-                {LETTER_CHIPS.map((chip) => (
-                  <DistributionChip
-                    key={chip.id}
-                    label={chip.label}
-                    count={letterCounts.get(chip.id) || 0}
-                    fill={chip.palette.fill}
-                    border={chip.palette.border}
-                    text={chip.palette.text}
-                    isSelected={ctxSelectedLetterChipIds.includes(chip.id)}
-                    isHighlighted={ctxLetterHighlightEnabled && ctxSelectedLetterChipIds.includes(chip.id)}
-                    onClick={() => toggleLetterChip(chip.id)}
-                  />
-                ))}
+                {LETTER_CHIP_GROUPS.map((group) => {
+                  const groupCount = group.memberIds.reduce(
+                    (sum, id) => sum + (letterCounts.get(id) || 0),
+                    0,
+                  );
+                  const isSelected = group.memberIds.every((id) =>
+                    ctxSelectedLetterChipIds.includes(id),
+                  );
+                  const isHighlighted = ctxLetterHighlightEnabled && isSelected;
+
+                  return (
+                    <DistributionChip
+                      key={group.id}
+                      label={group.label}
+                      count={groupCount}
+                      fill={group.palette.fill}
+                      border={group.palette.border}
+                      text={group.palette.text}
+                      isSelected={isSelected}
+                      isHighlighted={isHighlighted}
+                      onClick={() => toggleLetterChip(group.memberIds)}
+                    />
+                  );
+                })}
               </div>
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton

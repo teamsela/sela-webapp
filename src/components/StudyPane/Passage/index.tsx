@@ -27,7 +27,8 @@ const Passage = ({
   } = useContext(FormatContext);
 
   const nonEnglishDisplayMode =
-    ctxNonEnglishDisplayMode === NonEnglishDisplayMode.Transliteration
+    ctxNonEnglishDisplayMode === NonEnglishDisplayMode.Transliteration ||
+    ctxNonEnglishDisplayMode === NonEnglishDisplayMode.HebrewTransliteration
       ? "transliteration"
       : "hebrew";
 
