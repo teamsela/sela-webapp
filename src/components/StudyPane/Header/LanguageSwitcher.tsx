@@ -1,7 +1,12 @@
-import { useContext } from 'react';
+import { useContext, useState, useRef, useEffect } from 'react';
 import { FormatContext } from '../index';
 import { LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { updateMetadataInDb } from '@/lib/actions';
+
+const displayModeOptions = [
+  { value: NonEnglishDisplayMode.Hebrew, label: "English Gloss / Hebrew OHB" },
+  { value: NonEnglishDisplayMode.HebrewTransliteration, label: "English Gloss / Hebrew Transliteration" },
+];
 
 const LanguageSwitcher = () => {
   const {
@@ -14,70 +19,108 @@ const LanguageSwitcher = () => {
     ctxInViewMode,
   } = useContext(FormatContext);
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const handleSwitcherClick = (mode: LanguageMode) => {
-    if (mode != ctxLanguageMode)
-    {
+    if (mode !== ctxLanguageMode) {
       ctxStudyMetadata.lang = mode;
       if (!ctxInViewMode) {
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
       ctxSetLanguageMode(mode);
+      setDropdownOpen(false);
     }
-  }
-
-  const handleDisplayModeChange = (mode: NonEnglishDisplayMode) => {
-    if (mode === ctxNonEnglishDisplayMode) {
-      return;
-    }
-
-    ctxStudyMetadata.nonEnglishDisplayMode = mode;
-    if (!ctxInViewMode) {
-      updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
-    }
-    ctxSetNonEnglishDisplayMode(mode);
   };
 
-  const buttonBaseStyle = 'px-[24px] py-[6px]';
-  const buttonSelectedStyle = 'bg-[#FFFFFF] font-bold'
-  const shouldShowDisplayDropdown = ctxLanguageMode !== LanguageMode.English;
+  const handleDisplayModeChange = (mode: NonEnglishDisplayMode) => {
+    if (mode !== ctxNonEnglishDisplayMode) {
+      ctxStudyMetadata.nonEnglishDisplayMode = mode;
+      if (!ctxInViewMode) {
+        updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+      }
+      ctxSetNonEnglishDisplayMode(mode);
+    }
+    setDropdownOpen(false);
+  };
+
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDropdownOpen((prev) => !prev);
+  };
+
+  const buttonBaseStyle = "flex items-center gap-[2px] px-[16px] py-[6px] cursor-pointer";
+  const buttonSelectedStyle = "bg-[#FFFFFF] font-bold";
+  const chevron = (
+    <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor" className="ml-[2px] opacity-60">
+      <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
+  const showDropdown = ctxLanguageMode !== LanguageMode.English;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="relative" ref={dropdownRef}>
       <label
         htmlFor="toggleLang"
         className="flex cursor-pointer select-none items-center ml-2"
       >
-        <div className="relative">
-
-          <div className='flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-full place-content-around items-center'>
-            <span onClick={() => { handleSwitcherClick(LanguageMode.English) }} className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.English && buttonSelectedStyle}`}>
-              A
-            </span>
-            <span onClick={() => { handleSwitcherClick(LanguageMode.Parallel) }} className={`${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Parallel && buttonSelectedStyle}`}>
-              Aא
-            </span>
-            <span onClick={() => { handleSwitcherClick(LanguageMode.Hebrew) }} className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode == LanguageMode.Hebrew && buttonSelectedStyle}`}>
-              א
-            </span>
-          </div>
-
+        <div className="flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] place-content-around items-center">
+          <span
+            onClick={() => handleSwitcherClick(LanguageMode.English)}
+            className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode === LanguageMode.English ? buttonSelectedStyle : ""}`}
+          >
+            A
+          </span>
+          <span
+            onClick={() => handleSwitcherClick(LanguageMode.Parallel)}
+            className={`${buttonBaseStyle} ${ctxLanguageMode === LanguageMode.Parallel ? buttonSelectedStyle : ""}`}
+          >
+            Aא
+            {ctxLanguageMode === LanguageMode.Parallel && (
+              <span onClick={toggleDropdown} className="ml-[2px]">{chevron}</span>
+            )}
+          </span>
+          <span
+            onClick={() => handleSwitcherClick(LanguageMode.Hebrew)}
+            className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${buttonBaseStyle} ${ctxLanguageMode === LanguageMode.Hebrew ? buttonSelectedStyle : ""}`}
+          >
+            א
+            {ctxLanguageMode === LanguageMode.Hebrew && (
+              <span onClick={toggleDropdown} className="ml-[2px]">{chevron}</span>
+            )}
+          </span>
         </div>
       </label>
-      {shouldShowDisplayDropdown && (
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <span>Display</span>
-          <select
-            value={ctxNonEnglishDisplayMode}
-            onChange={(event) =>
-              handleDisplayModeChange(Number(event.target.value) as NonEnglishDisplayMode)
-            }
-            className="rounded-md border border-[#D9D9D9] bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition focus:border-primary"
-          >
-            <option value={NonEnglishDisplayMode.Hebrew}>English Gloss / Hebrew OHB</option>
-            <option value={NonEnglishDisplayMode.Transliteration}>English / Transliteration</option>
-            <option value={NonEnglishDisplayMode.HebrewTransliteration}>English Gloss / Hebrew Transliteration</option>
-          </select>
-        </label>
+
+      {showDropdown && dropdownOpen && (
+        <div className="absolute right-0 top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg">
+          {displayModeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleDisplayModeChange(opt.value)}
+              className={`block w-full px-4 py-2 text-left text-sm hover:bg-[#F2F2F2] ${
+                ctxNonEnglishDisplayMode === opt.value
+                  ? "font-semibold text-primary"
+                  : "text-slate-700"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

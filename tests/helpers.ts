@@ -37,7 +37,7 @@ export const waitForStudyLoad = async (page: Page) => {
 /** Switch the language toggle to Parallel mode (Aא). */
 export const switchToParallelMode = async (page: Page) => {
   await page.locator('label[for="toggleLang"] span', { hasText: "Aא" }).first().click();
-  await expect(page.locator("select")).toBeVisible();
+  await page.waitForTimeout(PAUSE);
 };
 
 /** Switch the language toggle to Hebrew-only mode (א). */
@@ -46,12 +46,17 @@ export const switchToHebrewMode = async (page: Page) => {
   await page.waitForTimeout(PAUSE);
 };
 
-/** Select a display mode from the dropdown. */
+/** Select a display mode from the popover dropdown. */
 export const selectDisplayMode = async (
   page: Page,
-  label: "English Gloss / Hebrew OHB" | "English / Transliteration" | "English Gloss / Hebrew Transliteration",
+  label: "English Gloss / Hebrew OHB" | "English Gloss / Hebrew Transliteration",
 ) => {
-  await page.locator("select").selectOption({ label });
+  // Click the chevron on the active toggle button to open the dropdown
+  const chevron = page.locator('label[for="toggleLang"] svg').first();
+  await chevron.click();
+  await page.waitForTimeout(PAUSE);
+  // Click the option in the popover
+  await page.locator(`button:has-text("${label}")`).click();
   await page.waitForTimeout(PAUSE);
 };
 

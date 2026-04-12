@@ -34,62 +34,54 @@ import {
 /* ================================================================== */
 
 test.describe("Transliteration Display", () => {
-  test("dropdown has all 3 options per PDF spec", async ({ page }) => {
+  test("dropdown popover has 2 options matching PDF spec", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
 
-    const options = page.locator("select option");
-    await expect(options).toHaveCount(3);
-    await expect(options.nth(0)).toHaveText("English Gloss / Hebrew OHB");
-    await expect(options.nth(1)).toHaveText("English / Transliteration");
-    await expect(options.nth(2)).toHaveText("English Gloss / Hebrew Transliteration");
-    await screenshot(page, "dropdown-3-options");
-  });
-
-  test("dropdown appears only in non-English modes and switches display", async ({ page }) => {
-    test.slow();
-    await waitForStudyLoad(page);
-
-    // English mode — no display dropdown
-    await expect(page.locator("select")).not.toBeVisible();
-
-    // Switch to Parallel (Aא) — dropdown should appear
-    await switchToParallelMode(page);
+    // Click the chevron to open dropdown
+    const chevron = page.locator('label[for="toggleLang"] svg').first();
+    await chevron.click();
     await page.waitForTimeout(PAUSE);
 
-    // Default option is "English Gloss / Hebrew OHB"
-    await expect(page.locator("select")).toHaveValue("0");
+    // Popover should show 2 options
+    const options = page.locator('.shadow-lg button');
+    await expect(options).toHaveCount(2);
+    await expect(options.nth(0)).toContainText("English Gloss / Hebrew OHB");
+    await expect(options.nth(1)).toContainText("English Gloss / Hebrew Transliteration");
+    await screenshot(page, "dropdown-options");
+  });
 
-    // Select "English / Transliteration" — passage should show transliteration text
-    await selectDisplayMode(page, "English / Transliteration");
-    await expect(page.locator("select")).toHaveValue("1");
+  test("dropdown switches between Hebrew OHB and Transliteration", async ({ page }) => {
+    test.slow();
+    await waitForStudyLoad(page);
+    await switchToParallelMode(page);
+
+    // Select transliteration
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
 
     // Verify transliteration text is rendered (dot-separated syllables)
     const passage = page.locator("#selaPassage");
     await expect(passage).toContainText(/\w+\.\w+/); // e.g. "le.da.vid"
     await page.waitForTimeout(PAUSE);
 
-    // Switch back to "English Gloss / Hebrew OHB" — passage shows Hebrew characters
+    // Switch back to Hebrew OHB
     await selectDisplayMode(page, "English Gloss / Hebrew OHB");
-    await expect(page.locator("select")).toHaveValue("0");
-
-    // Select "English Gloss / Hebrew Transliteration" — also shows transliteration
-    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
-    await expect(page.locator("select")).toHaveValue("2");
-    await expect(passage).toContainText(/\w+\.\w+/);
     await screenshot(page, "transliteration-toggle");
   });
 
-  test("Hebrew-only mode (א) also shows display dropdown", async ({ page }) => {
+  test("Hebrew-only mode (א) also shows dropdown chevron", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
 
     await page.locator('label[for="toggleLang"] span').filter({ hasText: /^א$/ }).click();
     await page.waitForTimeout(PAUSE);
-    await expect(page.locator("select")).toBeVisible();
 
-    await selectDisplayMode(page, "English / Transliteration");
+    // Chevron should appear on the א button
+    const chevron = page.locator('label[for="toggleLang"] svg').first();
+    await expect(chevron).toBeVisible();
+
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     const passage = page.locator("#selaPassage");
     await expect(passage).toContainText(/\w+\.\w+/);
     await screenshot(page, "hebrew-only-transliteration");
@@ -110,7 +102,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await expect(
@@ -133,7 +125,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
@@ -148,7 +140,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     const btn = page.getByRole("button", { name: "Smart Highlight" }).first();
@@ -163,7 +155,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
@@ -180,7 +172,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
@@ -196,7 +188,7 @@ test.describe("Hebrew Sound Distribution", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
@@ -292,7 +284,7 @@ test.describe("Smart Highlight – Selection Logic", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "d");
@@ -375,7 +367,7 @@ test.describe("No Persistence", () => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
-    await selectDisplayMode(page, "English / Transliteration");
+    await selectDisplayMode(page, "English Gloss / Hebrew Transliteration");
     await openSoundsTab(page);
 
     await clickDistributionChip(page, "sh");
