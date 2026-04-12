@@ -729,37 +729,49 @@ export async function fetchPassageData(studyId: string) {
           return undefined;
         };
 
-        await Promise.all(
-          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
-            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+        const uniqueStrongNumberList = Array.from(uniqueStrongNumbers);
+        const STRONG_LOOKUP_CONCURRENCY = 4;
 
-            if (preferredRecord) {
-              const {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              } = preferredRecord;
+        for (let i = 0; i < uniqueStrongNumberList.length; i += STRONG_LOOKUP_CONCURRENCY) {
+          const chunk = uniqueStrongNumberList.slice(i, i + STRONG_LOOKUP_CONCURRENCY);
 
-              stepBibleMap.set(strongNumber, {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              });
+          const records = await Promise.all(
+            chunk.map(async (strongNumber) => {
+              const preferredRecord = await fetchStepBibleRecord(strongNumber);
+              return { strongNumber, preferredRecord };
+            })
+          );
+
+          records.forEach(({ strongNumber, preferredRecord }) => {
+            if (!preferredRecord) {
+              return;
             }
-          })
-        );
+
+            const {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            } = preferredRecord;
+
+            stepBibleMap.set(strongNumber, {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            });
+          });
+        }
 
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
@@ -915,10 +927,45 @@ export async function fetchESVTranslation(book: string, chapter: number, verse: 
   const ESV_API_KEY = process.env.ESV_API_KEY;
   const normalizedBook = (book || 'psalms').trim().toLowerCase();
   const esvBookNameMap: Record<string, string> = {
-    psalms: 'Psalm',
     genesis: 'Genesis',
+    exodus: 'Exodus',
+    leviticus: 'Leviticus',
+    numbers: 'Numbers',
+    deuteronomy: 'Deuteronomy',
+    joshua: 'Joshua',
+    judges: 'Judges',
+    ruth: 'Ruth',
+    firstSamuel: '1 Samuel',
+    secondSamuel: '2 Samuel',
+    firstKings: '1 Kings',
+    secondKings: '2 Kings',
+    firstChronicles: '1 Chronicles',
+    secondChronicles: '2 Chronicles',
+    ezra: 'Ezra',
+    nehemiah: 'Nehemiah',
+    esther: 'Esther',
+    job: 'Job',
+    psalms: 'Psalm',
+    proverbs: 'Proverbs',
+    ecclesiastes: 'Ecclesiastes',
+    songs: 'Song of Solomon',
     isaiah: 'Isaiah',
+    jeremiah: 'Jeremiah',
+    lamentations: 'Lamentations',
+    ezekiel: 'Ezekiel',
+    daniel: 'Daniel',
+    hosea: 'Hosea',
+    joel: 'Joel',
+    amos: 'Amos',
+    obadiah: 'Obadiah',
     jonah: 'Jonah',
+    micah: 'Micah',
+    nahum: 'Nahum',
+    habakkuk: 'Habakkuk',
+    zephaniah: 'Zephaniah',
+    haggai: 'Haggai',
+    zechariah: 'Zechariah',
+    malachi: 'Malachi'
   };
   const formatBookName = (value: string) =>
     value
