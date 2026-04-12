@@ -138,7 +138,6 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
     endChapter,
     endVerse,
   };
-  console.log(result);
 
   const endChapterVerseCount = bookMap[result.endChapter];
 
