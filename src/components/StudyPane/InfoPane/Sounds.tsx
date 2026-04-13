@@ -206,8 +206,10 @@ const Sounds = () => {
     }
   };
 
-  const soundTooltip =
-    "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written. The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
+  const soundTooltipP1 =
+    "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written.";
+  const soundTooltipP2 =
+    "The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -227,12 +229,13 @@ const Sounds = () => {
               onClick={(e) => { e.stopPropagation(); setShowTooltip((v) => !v); }}
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
-              title={soundTooltip}
+              title={`${soundTooltipP1}\n\n${soundTooltipP2}`}
             >
               i
               {showTooltip && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
-                  {soundTooltip}
+                <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
+                  <p>{soundTooltipP1}</p>
+                  <p className="mt-3">{soundTooltipP2}</p>
                 </div>
               )}
             </span>
