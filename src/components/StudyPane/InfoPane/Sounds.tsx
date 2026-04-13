@@ -45,18 +45,18 @@ const DistributionChip = ({
   const chipText = isHighlighted ? (text ?? "#525252") : "#525252";
 
   return (
-    <div className="my-1 flex">
+    <div className="flex justify-center">
       <button
         type="button"
         onClick={onClick}
-        className={`wordBlock mx-1 flex rounded border ${statusClassName}`}
+        className={`wordBlock flex w-full rounded border ${statusClassName}`}
         style={{
           background: chipFill,
           border: `2px solid ${chipBorder}`,
           color: chipText,
         }}
       >
-        <span className="flex select-none items-center justify-center gap-2 px-3 py-1 text-center text-base leading-none hover:opacity-80">
+        <span className="flex w-full select-none items-center justify-center gap-2 px-2 py-1.5 text-center text-base leading-none hover:opacity-80">
           <span>{label}</span>
           <span className="flex h-6.5 min-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] px-1 text-sm text-black">
             {count}
@@ -240,7 +240,7 @@ const Sounds = () => {
 
           {openSection === "sound-distribution" && (
             <div className="space-y-4 p-4">
-              <div className="flex flex-wrap">
+              <div className="grid grid-cols-4 gap-1">
                 {SOUND_CHIPS.map((chip) => (
                   <DistributionChip
                     key={chip.id}
@@ -280,7 +280,7 @@ const Sounds = () => {
 
           {openSection === "letter-distribution" && (
             <div className="space-y-4 p-4">
-              <div className="flex flex-wrap">
+              <div className="grid grid-cols-4 gap-1">
                 {LETTER_CHIP_GROUPS.map((group) => {
                   const groupCount = group.memberIds.reduce(
                     (sum, id) => sum + (letterCounts.get(id) || 0),
