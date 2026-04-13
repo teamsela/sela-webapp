@@ -121,11 +121,7 @@ const LanguageSwitcher = () => {
               key={opt.label}
               type="button"
               onClick={() => handleOptionClick(opt)}
-              className={`block w-full px-4 py-2 text-left text-sm hover:bg-[#F2F2F2] ${
-                opt.value !== undefined && ctxNonEnglishDisplayMode === opt.value
-                  ? "font-semibold text-primary"
-                  : "text-slate-700"
-              }`}
+              className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-[#F2F2F2]"
             >
               {opt.label}
             </button>
