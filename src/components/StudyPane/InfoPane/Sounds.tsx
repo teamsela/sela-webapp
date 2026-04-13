@@ -39,6 +39,11 @@ const DistributionChip = ({
       ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-sm"
       : "outline-offset-[-4px]";
 
+  // Colors only show when highlighted — default is white/gray (matching PDF page 7)
+  const chipFill = isHighlighted ? (fill ?? "#FFFFFF") : "#FFFFFF";
+  const chipBorder = isHighlighted ? (border ?? "#D9D9D9") : "#D9D9D9";
+  const chipText = isHighlighted ? (text ?? "#525252") : "#525252";
+
   return (
     <div className="my-1 flex">
       <button
@@ -46,9 +51,9 @@ const DistributionChip = ({
         onClick={onClick}
         className={`wordBlock mx-1 flex rounded border ${statusClassName}`}
         style={{
-          background: fill ?? "#FFFFFF",
-          border: `2px solid ${border ?? "#D9D9D9"}`,
-          color: text ?? "#525252",
+          background: chipFill,
+          border: `2px solid ${chipBorder}`,
+          color: chipText,
         }}
       >
         <span className="flex select-none items-center justify-center gap-2 px-3 py-1 text-center text-base leading-none hover:opacity-80">
