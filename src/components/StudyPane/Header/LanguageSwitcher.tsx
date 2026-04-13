@@ -95,21 +95,21 @@ const LanguageSwitcher = () => {
             className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.English ? active : ""}`}
           >
             A
-            {ctxLanguageMode === LanguageMode.English && <span onClick={toggleDropdown}><Chevron /></span>}
+            <span onClick={toggleDropdown}><Chevron /></span>
           </span>
           <span
             onClick={() => handleSwitcherClick(LanguageMode.Parallel)}
             className={`${base} ${ctxLanguageMode === LanguageMode.Parallel ? active : ""}`}
           >
             Aא
-            {ctxLanguageMode === LanguageMode.Parallel && <span onClick={toggleDropdown}><Chevron /></span>}
+            <span onClick={toggleDropdown}><Chevron /></span>
           </span>
           <span
             onClick={() => handleSwitcherClick(LanguageMode.Hebrew)}
             className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.Hebrew ? active : ""}`}
           >
             א
-            {ctxLanguageMode === LanguageMode.Hebrew && <span onClick={toggleDropdown}><Chevron /></span>}
+            <span onClick={toggleDropdown}><Chevron /></span>
           </span>
         </div>
       </label>

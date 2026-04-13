@@ -2,9 +2,9 @@ import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import path from "path";
 import fs from "fs";
-const baseUrl = "https://sela-webapp-itxikw7rl-sela-webapp.vercel.app";
+const baseUrl = "https://sela-webapp-i8z5odh4i-sela-webapp.vercel.app";
 const studyId = "cs8p4poa9c1akf2sireg";
-const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg2NjQxOTAsImlpZCI6Imluc18yYkQ1TGpzZEc1dWNnWDJDbHFpNlIzZ2VQdWgiLCJzaWQiOiJzaXRfM0NJVGZ2ak9OQWpzNkNJcmpJQXJrSWlaUjBNIiwic3QiOiJzaWduX2luX3Rva2VuIn0.YAVOqVQPjTlObhzBtYmPxgvm6Vv4Zc-jwEMUjG_cJvg3DKWN0MeFP752WNqLpJrj0wmW6ZIsMwRziPUDwyEHA6iVW0wLM7qxcucbVW_xCmZNejGQFv_F5-mflTOLTBQH_YUsfaHiUkVfS8411uPHn66eejqkvCTzUJDyXt2VIeBnZ1J30acrp6WeimDF4ijxbBj5D7dnfbKy0itUY8JQ9a_M3ru5S1xbSd4G38iCFEOiSd-ZtS32eunbz-oTleYZ2whzRG6gfeVzWrVbtDRMv1JjNe5J8AvVzVFLkGKj2H7azUk1ZNnO5q0QAUvGO56Sp1lEV4ojv4cWRuAIVSP9vQ";
+const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3MDQ2ODcsImlpZCI6Imluc18yYkQ1TGpzZEc1dWNnWDJDbHFpNlIzZ2VQdWgiLCJzaWQiOiJzaXRfM0NKbmwzamU3aUpsVXFScmNPeGx6S3k4aTdwIiwic3QiOiJzaWduX2luX3Rva2VuIn0.SVNoCWKlpmPCZvrmXEo7JgyygRNnVaZQrhs9FB1_DZNmTlF5Q6HHY6qx9-PQ4153FRgX0ww5lWwa8dG-3Usgjz25bnzWD9zZ7ltuZdyixlvqZHw4WpPKeyB2bNdHEmow_8o9L61kEYLqwmEqOW8S-zDV7yT3-TAQ9Gc7raHfNIHqH5IHl2ohRypCt76iGHcC8CXSFdY5pSUkXZLKHjKp_N-yqOMUVk3yhee5EasW1JqQdguVTZu2CwvcUe-7yAsd5kRyZdLDLzkfeyQx1Jxi9siyRo4V6Zx8Mg3YF8myy7Sbw-FS1UiXiYC8zF8J2alIBfwN38ES-MTGGTsnEhLYKA";
 const dir = path.resolve("C:/Users/brian/Repos/Github Copilot CLI Prompt Docs/sela-webapp/Sound Display Transliteration/live");
 const snap = async (p: Page, n: string) => { fs.mkdirSync(dir,{recursive:true}); await p.screenshot({path:path.join(dir,n+".png"),fullPage:false}); console.log("📸 "+n); };
 const chip = async (p: Page, l: string) => { const b=p.locator("button.wordBlock"); for(let i=0;i<await b.count();i++){if((await b.nth(i).innerText()).replace(/\s+/g,"").startsWith(l)){await b.nth(i).click();await p.waitForTimeout(600);return;}} };
@@ -12,10 +12,9 @@ const openDD = async (p: Page) => { const c=p.locator('label[for="toggleLang"] s
 const pickMode = async (p: Page, l: string) => { await openDD(p); await p.locator('.shadow-lg button:has-text("'+l+'")').last().click(); await p.waitForTimeout(1200); };
 const zoom = async (p: Page, pct: string) => { const t=p.locator('#scaleInput').locator('..'); await t.click(); await p.waitForTimeout(500); const o=p.locator('li:has-text("'+pct+'")'); if(await o.isVisible().catch(()=>false)){await o.click();await p.waitForTimeout(1500);} };
 
-// Use WIDER viewport so 200% zoom fits with sidebar
 test.use({ viewport: { width: 1920, height: 1080 } });
 
-test("match PDF at 200%", async ({ page }) => {
+test("final capture", async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto(baseUrl + "/sign-in?__clerk_ticket=" + token);
   await page.waitForTimeout(8000);
@@ -28,11 +27,11 @@ test("match PDF at 200%", async ({ page }) => {
     console.log("retry " + (i+1)); await page.waitForTimeout(3000);
   }
 
-  // Aא parallel mode for everything
+  // ================================================================
+  // PAGES 4-5: Aא parallel + transliteration at 200% zoom (dropdown views)
+  // ================================================================
   await page.locator('label[for="toggleLang"] span', { hasText: "Aא" }).first().click();
   await page.waitForTimeout(800);
-
-  // PAGE 4: 200% + transliteration + dropdown open
   await zoom(page, "200%");
   await pickMode(page, "Hebrew Transliteration");
   await openDD(page);
@@ -40,21 +39,25 @@ test("match PDF at 200%", async ({ page }) => {
   await page.mouse.click(100, 400); await page.waitForTimeout(300);
   await snap(page, "02-page5-transliteration");
 
-  // PAGES 7-13: Open Sounds panel — stay at 200%
+  // ================================================================
+  // PAGES 7-13: Aא parallel + transliteration at 100% zoom (sidebar views)
+  // 100% so passage + English + sidebar all fit
+  // ================================================================
+  await zoom(page, "100%");
   const sb = page.getByRole("button", { name: "Sounds" });
   await sb.click({ force: true }); await page.waitForTimeout(1500);
   await snap(page, "03-page7-sounds-panel");
 
-  // PAGE 11: s/sh/ts selected, Smart Highlight NOT yet clicked (button blue)
+  // PAGE 11: Select s/sh/ts, capture BEFORE clicking Smart Highlight
   await chip(page, "s"); await chip(page, "sh"); await chip(page, "ts");
   await snap(page, "04-page11-chips-selected");
 
-  // Click Smart Highlight — highlights appear
+  // Click Smart Highlight — highlights appear in passage
   const hlBtn = page.getByRole("button", { name: "Smart Highlight" }).first();
   if (await hlBtn.isVisible().catch(() => false)) { await hlBtn.click({ force: true }); await page.waitForTimeout(1500); }
   await snap(page, "05-page11-highlight-on");
 
-  // PAGE 12: Switch to Hebrew OHB (still parallel)
+  // PAGE 12: Switch to Hebrew OHB — Hebrew letters get highlighted
   await pickMode(page, "Hebrew OHB");
   await page.waitForTimeout(1000);
   await snap(page, "06-page12-hebrew-highlight");
@@ -69,7 +72,9 @@ test("match PDF at 200%", async ({ page }) => {
   const tip = page.locator("span[title]").filter({ hasText: "i" }).first();
   if (await tip.isVisible().catch(() => false)) { await tip.hover(); await page.waitForTimeout(1000); await snap(page, "07-page13-tooltip"); await page.mouse.move(0, 0); await page.waitForTimeout(300); }
 
-  // PAGES 16-17: Letter Distribution (Hebrew OHB)
+  // ================================================================
+  // PAGES 16-17: Letter Distribution at 100% with Hebrew OHB
+  // ================================================================
   await pickMode(page, "Hebrew OHB");
   const lb = page.getByRole("button", { name: /Hebrew Letter/i });
   if (await lb.isVisible().catch(() => false)) {
@@ -83,5 +88,3 @@ test("match PDF at 200%", async ({ page }) => {
 
   console.log("🎉 " + fs.readdirSync(dir).filter(f => f.endsWith(".png")).length);
 });
-
-
