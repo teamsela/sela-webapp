@@ -34,7 +34,7 @@ import {
 /* ================================================================== */
 
 test.describe("Transliteration Display", () => {
-  test("dropdown popover has 3 options in Parallel mode matching PDF page 4", async ({ page }) => {
+  test("dropdown popover has 2 options in Parallel mode matching PDF page 4", async ({ page }) => {
     test.slow();
     await waitForStudyLoad(page);
     await switchToParallelMode(page);
@@ -44,12 +44,11 @@ test.describe("Transliteration Display", () => {
     await chevron.click();
     await page.waitForTimeout(PAUSE);
 
-    // Popover should show 3 options (PDF page 4)
+    // Popover should show 2 options (PDF page 4)
     const options = page.locator('.shadow-lg button');
-    await expect(options).toHaveCount(3);
+    await expect(options).toHaveCount(2);
     await expect(options.nth(0)).toContainText("English Gloss / Hebrew OHB");
-    await expect(options.nth(1)).toContainText("English / Transliteration");
-    await expect(options.nth(2)).toContainText("English Gloss / Hebrew Transliteration");
+    await expect(options.nth(1)).toContainText("English Gloss / Hebrew Transliteration");
     await screenshot(page, "dropdown-options");
   });
 

@@ -12,7 +12,6 @@ const getDropdownOptions = (mode: LanguageMode): DropdownOption[] => {
     case LanguageMode.Parallel:
       return [
         { value: NonEnglishDisplayMode.Hebrew, label: "English Gloss / Hebrew OHB" },
-        { value: NonEnglishDisplayMode.Transliteration, label: "English / Transliteration" },
         { value: NonEnglishDisplayMode.HebrewTransliteration, label: "English Gloss / Hebrew Transliteration" },
       ];
     case LanguageMode.Hebrew:
