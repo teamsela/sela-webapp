@@ -31,12 +31,11 @@ export type InlineTextSegment = {
   highlightId?: string;
 };
 
-const createPalette = (fill: string, text = DEFAULT_TEXT_COLOR): InlinePalette =>
-  clampPaletteToUserColors({
-    fill,
-    border: DEFAULT_BORDER_COLOR,
-    text,
-  });
+const createPalette = (fill: string, text = DEFAULT_TEXT_COLOR): InlinePalette => ({
+  fill,
+  border: DEFAULT_BORDER_COLOR,
+  text,
+});
 
 export const SOUND_CHIPS: SoundChip[] = [
   { id: "s", label: "s", palette: createPalette("#F8F070") },          // yellow-green
