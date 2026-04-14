@@ -2,9 +2,9 @@ import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import path from "path";
 import fs from "fs";
-const baseUrl = "https://sela-webapp-i8z5odh4i-sela-webapp.vercel.app";
+const baseUrl = "https://sela-webapp-k605dhx9s-sela-webapp.vercel.app";
 const studyId = "cs8p4poa9c1akf2sireg";
-const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3MDQ2ODcsImlpZCI6Imluc18yYkQ1TGpzZEc1dWNnWDJDbHFpNlIzZ2VQdWgiLCJzaWQiOiJzaXRfM0NKbmwzamU3aUpsVXFScmNPeGx6S3k4aTdwIiwic3QiOiJzaWduX2luX3Rva2VuIn0.SVNoCWKlpmPCZvrmXEo7JgyygRNnVaZQrhs9FB1_DZNmTlF5Q6HHY6qx9-PQ4153FRgX0ww5lWwa8dG-3Usgjz25bnzWD9zZ7ltuZdyixlvqZHw4WpPKeyB2bNdHEmow_8o9L61kEYLqwmEqOW8S-zDV7yT3-TAQ9Gc7raHfNIHqH5IHl2ohRypCt76iGHcC8CXSFdY5pSUkXZLKHjKp_N-yqOMUVk3yhee5EasW1JqQdguVTZu2CwvcUe-7yAsd5kRyZdLDLzkfeyQx1Jxi9siyRo4V6Zx8Mg3YF8myy7Sbw-FS1UiXiYC8zF8J2alIBfwN38ES-MTGGTsnEhLYKA";
+const token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3MTA5NzUsImlpZCI6Imluc18yYkQ1TGpzZEc1dWNnWDJDbHFpNlIzZ2VQdWgiLCJzaWQiOiJzaXRfM0NLMFZIaGlCUXp3YzYxcXNHZklOZ0JMTExjIiwic3QiOiJzaWduX2luX3Rva2VuIn0.BT3a1E-tetAMkgz5pCZjh23zW6_PXXZ_Je1CLVJ2Ydon5ZMpRfPb-5348q-fozF7xCfFWMh8ox3wkAnUPtF9ocwU-EhDo_OUzrvG9et5tPTHFvSSvlMXsSywWKn6kcWZLv6kcgrx3GJuZb1YzbHwtxU7u6AniVAzkUAqnY7LAkSqK_KnYaGFh-Ob2LrJJguSRnqYiDcKom2EepOyvqVzsXlK6xXl7OaTmk967J_4Q-CvRDYWWizppxGwMUn2tbBEjCwvAMB4bzIOcCpY5ZVVs5RS0UtCvtUYhOGwTcfBh1p-qqC5l3aEQ2DIuRbU9knyITUvfruqnNg9GbnElJ0jdQ";
 const dir = path.resolve("C:/Users/brian/Repos/Github Copilot CLI Prompt Docs/sela-webapp/Sound Display Transliteration/live");
 const snap = async (p: Page, n: string) => { fs.mkdirSync(dir,{recursive:true}); await p.screenshot({path:path.join(dir,n+".png"),fullPage:false}); console.log("📸 "+n); };
 const chip = async (p: Page, l: string) => { const b=p.locator("button.wordBlock"); for(let i=0;i<await b.count();i++){if((await b.nth(i).innerText()).replace(/\s+/g,"").startsWith(l)){await b.nth(i).click();await p.waitForTimeout(600);return;}} };
@@ -88,3 +88,5 @@ test("final capture", async ({ page }) => {
 
   console.log("🎉 " + fs.readdirSync(dir).filter(f => f.endsWith(".png")).length);
 });
+
+
