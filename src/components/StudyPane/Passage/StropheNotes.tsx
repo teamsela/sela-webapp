@@ -33,7 +33,8 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     ctxNoteMerge,
     ctxSetNoteMerge,
     ctxActiveNotesPane,
-    ctxSetActiveNotesPane
+    ctxSetActiveNotesPane,
+    ctxIsGuestSession
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);
@@ -102,7 +103,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
 
 const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
-  if (!ctxStudyId) return;
+  if (!ctxStudyId || ctxIsGuestSession) return;
   if (lastSavedPayloadRef.current === payload) return;
 
   try {
@@ -126,7 +127,7 @@ async (payload: string, { keepalive = false } = {}) => {
       console.error("Save error:", err);
     }
   }
-  },[ctxStudyId]);
+  },[ctxStudyId, ctxIsGuestSession]);
 
   const buildPayload = useCallback(() => {
   let parsed: StudyNotes = { main: "", strophes: [] };

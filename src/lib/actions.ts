@@ -120,6 +120,22 @@ export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMe
   "use server";
 
   try {
+    const user = await currentUser();
+    if (!user) {
+      return { message: "Not authenticated." };
+    }
+
+    const existing = await db
+      .select({ owner: study.owner })
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+
+    if (!existing || existing.owner !== user.id) {
+      return { message: "Unauthorized." };
+    }
+
     const metadataJson = JSON.stringify(studyMetadata);
     if (metadataJson)
     {
@@ -180,6 +196,69 @@ export async function createStudy(passage: string, book: string) {
     if (newId)
       redirect('/study/' + newId.replace(/^rec_/, '') + '/edit');
   }
+}
+
+const GUEST_PSALM_STUDY_ID = "rec_guest_psalm1_template";
+
+export async function fetchGuestPsalmStudy() {
+  const existing = await db
+    .select()
+    .from(study)
+    .where(eq(study.id, GUEST_PSALM_STUDY_ID))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  if (!existing) {
+    await db.insert(study).values({
+      id: GUEST_PSALM_STUDY_ID,
+      name: "Psalm 1 (Guest Session)",
+      owner: "",
+      book: "psalms",
+      passage: "1",
+      metadata: { words: {} },
+      notes: "",
+      public: true,
+      model: true,
+      starred: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  return fetchPassageData(GUEST_PSALM_STUDY_ID);
+}
+
+export async function createStudyFromGuestSession(payload: {
+  metadata: StudyMetadata;
+  notes: string;
+  passage?: string;
+  book?: string;
+  name?: string;
+}) {
+  const user = await currentUser();
+  if (!user) {
+    return { error: "Unauthorized" };
+  }
+
+  const [record] = await db
+    .insert(study)
+    .values({
+      id: "rec_" + nanoid(20),
+      name: payload.name || "Psalm 1 Study",
+      passage: payload.passage || "1",
+      book: payload.book || "psalms",
+      owner: user.id,
+      metadata: payload.metadata || { words: {} },
+      notes: payload.notes || "",
+      public: false,
+      model: false,
+      starred: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+    .returning({ id: study.id });
+
+  return { id: record?.id };
 }
 
 export async function cloneStudy(originalStudy: StudyData, newName: string) {
@@ -463,7 +542,6 @@ export async function fetchPassageData(studyId: string) {
     if (currentStudy)
     {
       const passageInfo = parsePassageInfo(currentStudy.passage || '', currentStudy.book || 'psalms');
-      console.log(passageInfo)
       if (passageInfo instanceof Error === false)
       {
         const passageCondition = createPassageRangeCondition(passageInfo);
@@ -729,37 +807,35 @@ export async function fetchPassageData(studyId: string) {
           return undefined;
         };
 
-        await Promise.all(
-          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
-            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+        for (const strongNumber of Array.from(uniqueStrongNumbers)) {
+          const preferredRecord = await fetchStepBibleRecord(strongNumber);
 
-            if (preferredRecord) {
-              const {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              } = preferredRecord;
+          if (preferredRecord) {
+            const {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            } = preferredRecord;
 
-              stepBibleMap.set(strongNumber, {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              });
-            }
-          })
-        );
+            stepBibleMap.set(strongNumber, {
+              Hebrew,
+              Transliteration,
+              Gloss,
+              Meaning,
+              Morph,
+              eStrong,
+              dStrong,
+              uStrong,
+              preferredStrong,
+            });
+          }
+        }
 
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));

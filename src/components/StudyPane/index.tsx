@@ -109,15 +109,18 @@ export const FormatContext = createContext({
   ctxActiveNotesPane: null as "heb" | "eng" | null,
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
-  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxIsGuestSession: false
 });
 
 const StudyPane = ({
-  passageData, inViewMode
+  passageData, inViewMode, guestSessionKey
 }: {
   passageData: PassageStaticData, // heb word data
   inViewMode: boolean;
+  guestSessionKey?: string;
 }) => {
+  const isGuestSession = Boolean(guestSessionKey);
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
@@ -300,8 +303,32 @@ const StudyPane = ({
     ctxActiveNotesPane: activeNotesPane,
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
-    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxIsGuestSession: isGuestSession
   };
+
+  useEffect(() => {
+    if (!guestSessionKey || typeof window === "undefined") return;
+
+    const cached = window.sessionStorage.getItem(guestSessionKey);
+    if (!cached) return;
+
+    const parsed = JSON.parse(cached);
+    if (parsed.metadata) setStudyMetadata(parsed.metadata);
+    if (typeof parsed.notes === "string") setStudyNotes(parsed.notes);
+  }, [guestSessionKey]);
+
+  useEffect(() => {
+    if (!guestSessionKey || typeof window === "undefined") return;
+
+    window.sessionStorage.setItem(
+      guestSessionKey,
+      JSON.stringify({
+        metadata: studyMetadata,
+        notes: studyNotes,
+      }),
+    );
+  }, [guestSessionKey, studyMetadata, studyNotes]);
 
   useEffect(() => {
 
@@ -323,7 +350,9 @@ const StudyPane = ({
       }
       // Update the metadata with the new format
       studyMetadata.boxStyle = boxConfig;
-      updateMetadataInDb(passageData.study.id, studyMetadata);
+      if (!isGuestSession) {
+        updateMetadataInDb(passageData.study.id, studyMetadata);
+      }
     }
     
     setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
@@ -336,7 +365,9 @@ const StudyPane = ({
     passageData.study.metadata = emptyStudyMetadata;
     setStudyMetadata(emptyStudyMetadata);
     setPointer(0);
-    updateMetadataInDb(passageData.study.id, emptyStudyMetadata);
+    if (!isGuestSession) {
+      updateMetadataInDb(passageData.study.id, emptyStudyMetadata);
+    }
   }
 
   return (
@@ -357,7 +388,7 @@ const StudyPane = ({
         />
 
         {/* Main Content */}
-        <div className="flex flex-1 overflow-hidden pt-32 pb-14 max-[645px]:!pb-0">
+        <div className={`flex flex-1 overflow-hidden pb-14 max-[645px]:!pb-0 ${isGuestSession ? "pt-40" : "pt-32"}`}>
           <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>

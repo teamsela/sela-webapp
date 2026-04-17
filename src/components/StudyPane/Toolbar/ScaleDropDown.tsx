@@ -20,15 +20,19 @@ const ScaleDropDown = ({setScaleValue}: {
   const PRESET_SCALE_LEVELS:[number,string][] = [[0.25, '25%'], [0.5, '50%'], [0.75, '75%'],
         [0.9, '90%'], [1, '100%'], [1.25, '125%'], [1.5, '150%'], [2, '200%']];
 
-  const passageDiv = document.getElementById('selaPassage');
-  if (passageDiv) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const passageDiv = document.getElementById('selaPassage');
+    if (!passageDiv) return;
+
     if (ctxScaleValue >= 1) { // override the width of the passage to avoid
       passageDiv.style.width = `${Math.round(1/ctxScaleValue*100)}%`;  
     }
     passageDiv.style.height = `${passageDiv.offsetHeight * ctxScaleValue}`;
     passageDiv.style.transform = `scale(${ctxScaleValue})`;
     passageDiv.style.transformOrigin = ctxLanguageMode == LanguageMode.Hebrew ? "100% 0": "0 0";
-  }
+  }, [ctxScaleValue, ctxLanguageMode]);
 
   // close dropdown on click outside
   useEffect(() => {
