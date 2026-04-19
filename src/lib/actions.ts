@@ -10,7 +10,7 @@ import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL } fro
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
-import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, PLAYGROUND_STUDY_ID } from './data';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -68,6 +68,7 @@ export async function fetchStudyById(studyId: string) {
 }
 
 export async function updateStudyName(id: string, studyName: string) {
+  if (id === PLAYGROUND_STUDY_ID) return;
   try {
     const result = await db
       .update(study)
@@ -84,6 +85,7 @@ export async function updateStudyName(id: string, studyName: string) {
 }
 
 export async function updateStudyNotes(id: string, content: string) {
+  if (id === PLAYGROUND_STUDY_ID) return;
   try {
     await db
       .update(study)
@@ -119,6 +121,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
 
+  if (studyId === PLAYGROUND_STUDY_ID) return;
   try {
     const metadataJson = JSON.stringify(studyMetadata);
     if (metadataJson)
@@ -439,12 +442,24 @@ const createPassageRangeCondition = (passageInfo: PassageInfo): SQL => {
 
 export async function fetchPassageData(studyId: string) {
   try {
-    const currentStudy = await db
-      .select()
-      .from(study)
-      .where(eq(study.id, studyId))
-      .limit(1)
-      .then((rows) => rows[0] ?? null);
+    const currentStudy = studyId === PLAYGROUND_STUDY_ID
+      ? {
+          id: PLAYGROUND_STUDY_ID,
+          name: "Playground - Psalm 1",
+          owner: "",
+          book: "psalms",
+          passage: "1",
+          public: true,
+          model: false,
+          metadata: { words: {} } as StudyMetadata,
+          notes: "",
+        }
+      : await db
+          .select()
+          .from(study)
+          .where(eq(study.id, studyId))
+          .limit(1)
+          .then((rows) => rows[0] ?? null);
 
     let studyData : StudyData = {
       id: studyId,
