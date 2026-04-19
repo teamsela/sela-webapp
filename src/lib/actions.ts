@@ -859,12 +859,15 @@ export async function fetchPassageData(studyId: string) {
           })();
 
           const hebrewWord = (() => {
-            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
-            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
-              return stepBibleHebrew;
-            }
+            // Use WLC passage text as primary source (actual Hebrew text with vowel points).
+            // StepBible Hebrew is the dictionary citation form (without prefixes/suffixes)
+            // and should only be used as a fallback.
             const wlcHebrew = hebWord.wlcWord?.trim();
-            return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
+            if (wlcHebrew && wlcHebrew.length > 0) {
+              return wlcHebrew;
+            }
+            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
+            return stepBibleHebrew && stepBibleHebrew.length > 0 ? stepBibleHebrew : "";
           })();
 
           const gloss = (() => {
@@ -890,6 +893,9 @@ export async function fetchPassageData(studyId: string) {
 
           hebWord.wordInformation = {
             hebrew: hebrewWord,
+            // TODO: Transliteration currently comes from stepbible_tbesh (lexical/dictionary form).
+            // The PDF spec requires OHB transliteration (with prefixes, e.g. "le.da.vid" not "da.vid").
+            // This needs a new heb_bible column with OHB transliteration data to match the spec exactly.
             transliteration: wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
