@@ -113,10 +113,11 @@ export const FormatContext = createContext({
 });
 
 const StudyPane = ({
-  passageData, inViewMode
+  passageData, inViewMode, isPlayground = false
 }: {
   passageData: PassageStaticData, // heb word data
   inViewMode: boolean;
+  isPlayground?: boolean;
 }) => {
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
@@ -354,6 +355,7 @@ const StudyPane = ({
           setSelectedColor={setSelectedColor}
           setBoxStyle={setBoxDisplayConfig}
           setCloneStudyOpen={setCloneStudyOpen}
+          isPlayground={isPlayground}
         />
 
         {/* Main Content */}
