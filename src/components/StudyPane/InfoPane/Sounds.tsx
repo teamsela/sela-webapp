@@ -155,7 +155,7 @@ const Sounds = () => {
     SoundsSection.readAloud,
   );
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speechRate, setSpeechRate] = useState(1);
+  const [speechRate, setSpeechRate] = useState(0.7);
   const [isSpeedSelectorOpen, setIsSpeedSelectorOpen] = useState(false);
   const [speedPopoverPosition, setSpeedPopoverPosition] =
     useState<SpeedPopoverPosition | null>(null);

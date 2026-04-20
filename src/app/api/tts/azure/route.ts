@@ -28,7 +28,7 @@ const escapeXml = (value: string) =>
 
 const normalizeSpeakingRate = (value: number | undefined) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return 1;
+    return 0.7;
   }
 
   return Math.min(1.5, Math.max(0.5, value));
