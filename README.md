@@ -23,4 +23,4 @@ Follow the steps below to add your change:
 5. create a PR to merge your working branch into main in GitHub
 6. resolve comments from other team members and merge conflicts (if any)
 7. after your PR passes the check and is approved, it is ready to merge. Usually the admin will merge it for you. 
-8. 
+
