@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useMemo } from 'react';
 
 import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
@@ -26,6 +26,21 @@ const Passage = ({
   } = useContext(FormatContext);
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
+
+  // Build a map from wordId to stanza index for title merging
+  const getWordToStanzaMap = useMemo(() => {
+    const map = new Map<number, number>();
+    ctxPassageProps.stanzaProps.forEach((stanza, stanzaIdx) => {
+      stanza.strophes.forEach((strophe) => {
+        strophe.lines.forEach((line) => {
+          line.words.forEach((word) => {
+            map.set(word.wordId, stanzaIdx);
+          });
+        });
+      });
+    });
+    return map;
+  }, [ctxPassageProps]);
 
   useEffect(() => {
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
@@ -321,6 +336,26 @@ const Passage = ({
         const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
         const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
 
+        // Merge title from previous stanza
+        const prevStanzaIdx = getWordToStanzaMap.get(firstWordId);
+        if (prevStanzaIdx !== undefined && prevStanzaIdx > 0) {
+          const prevStanzaIdxMinus1 = prevStanzaIdx - 1;
+          const prevStanza = ctxPassageProps.stanzaProps[prevStanzaIdxMinus1];
+          if (prevStanza?.metadata?.title) {
+            const currentStanza = ctxPassageProps.stanzaProps[prevStanzaIdx];
+            const currentTitle = currentStanza?.metadata?.title ?? "";
+            const mergedTitle = prevStanza.metadata.title + (currentTitle ? " | " + currentTitle : "");
+            // Set the merged title on the surviving stanza's first word
+            const survivingFirstWordId = sortedStrophes[0].lines[0].words[0].wordId;
+            if (newMetadata.words[survivingFirstWordId]) {
+              newMetadata.words[survivingFirstWordId].stanzaMd = {
+                ...newMetadata.words[survivingFirstWordId].stanzaMd,
+                title: mergedTitle
+              };
+            }
+          }
+        }
+
         const lastStanzaDiv = bibleData.findLastIndex(word =>
           word.wordId <= firstWordId && newMetadata.words[word.wordId]?.stanzaDiv
         );
@@ -349,6 +384,25 @@ const Passage = ({
         const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
         const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
         const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
+
+        // Merge title from next stanza
+        const nextStanzaIdx = getWordToStanzaMap.get(lastWordId);
+        if (nextStanzaIdx !== undefined && nextStanzaIdx < ctxPassageProps.stanzaProps.length - 1) {
+          const nextStanzaIdxPlus1 = nextStanzaIdx + 1;
+          const nextStanza = ctxPassageProps.stanzaProps[nextStanzaIdxPlus1];
+          if (nextStanza?.metadata?.title) {
+            const currentStanza = ctxPassageProps.stanzaProps[nextStanzaIdx];
+            const currentTitle = currentStanza?.metadata?.title ?? "";
+            const mergedTitle = currentTitle + (currentTitle ? " | " + nextStanza.metadata.title : nextStanza.metadata.title);
+            // Set the merged title on the surviving stanza's first word
+            if (newMetadata.words[firstWordId]) {
+              newMetadata.words[firstWordId].stanzaMd = {
+                ...newMetadata.words[firstWordId].stanzaMd,
+                title: mergedTitle
+              };
+            }
+          }
+        }
 
         newMetadata.words[firstWordId] = {
           ...(newMetadata.words[firstWordId] || {}),
