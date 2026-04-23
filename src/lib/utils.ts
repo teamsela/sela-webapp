@@ -1,9 +1,15 @@
 import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata, WordMetadata } from "./data";
-import { psalmBook, genesisBook, isaiahBook, jonahBook } from "./chapterCounts";
+import { psalmBook, genesisBook, isaiahBook, jonahBook, proverbsBook, ecclesiastesBook, songsBook, exodusBook, leviticusBook, numbersBook, deuteronomyBook, joshuaBook, judgesBook, ruthBook, firstSamuelBook, secondSamuelBook, firstKingsBook, secondKingsBook, firstChroniclesBook, secondChroniclesBook, ezraBook, nehemiahBook, estherBook, jobBook, jeremiahBook, lamentationsBook, ezekielBook, danielBook, hoseaBook, joelBook, amosBook, obadiahBook, micahBook, nahumBook, habakkukBook, zephaniahBook, haggaiBook, zechariahBook, malachiBook } from "./chapterCounts";
 import { ColorActionType, StropheNote } from "./types";
 import { z } from 'zod';
 
-const otBookSchema = z.enum(['genesis', 'psalms', 'isaiah', 'jonah'])
+const otBookSchema = z.enum(['genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy', 
+  'joshua', 'judges', 'ruth', '1 samuel', '2 samuel', 
+  '1 kings', '2 kings', '1 chronicles', '2 chronicles', 
+  'ezra', 'nehemiah', 'esther', 'job', 'psalms', 'proverbs', 
+  'ecclesiastes', 'songs', 'isaiah', 'jeremiah', 'lamentations', 
+  'ezekiel', 'daniel', 'hosea', 'joel', 'amos', 'obadiah', 'jonah', 
+  'micah', 'nahum', 'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'])
 
 export type PassageInfo = {
     book: string|null|undefined,
@@ -26,9 +32,44 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
   const [, strStartChapter, , strStartVerse, , strEndChapter, , strEndVerse] = match;
   const bookMap = {
     genesis: genesisBook,
+    exodus: exodusBook,
+    leviticus: leviticusBook,
+    numbers: numbersBook,
+    deuteronomy: deuteronomyBook,
+    joshua: joshuaBook,
+    judges: judgesBook,
+    ruth: ruthBook,
+    '1 samuel': firstSamuelBook,
+    '2 samuel': secondSamuelBook,
+    '1 kings': firstKingsBook,
+    '2 kings': secondKingsBook,
+    '1 chronicles': firstChroniclesBook,
+    '2 chronicles': secondChroniclesBook,
+    ezra: ezraBook,
+    nehemiah: nehemiahBook,
+    esther: estherBook,
+    job: jobBook,
     psalms: psalmBook,
+    proverbs: proverbsBook,
+    ecclesiastes: ecclesiastesBook,
+    songs: songsBook,
     isaiah: isaiahBook,
+    jeremiah: jeremiahBook,
+    lamentations: lamentationsBook,
+    ezekiel: ezekielBook,
+    daniel: danielBook,
+    hosea: hoseaBook,
+    joel: joelBook,
+    amos: amosBook,
+    obadiah: obadiahBook,
     jonah: jonahBook,
+    micah: micahBook,
+    nahum: nahumBook,
+    habakkuk: habakkukBook,
+    zephaniah: zephaniahBook,
+    haggai: haggaiBook,
+    zechariah: zechariahBook,
+    malachi: malachiBook
   }[book];
   const totalChapters = Object.keys(bookMap).length;
   const startChapter = parseInt(strStartChapter, 10);
