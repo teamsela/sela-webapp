@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -893,9 +894,7 @@ export async function fetchPassageData(studyId: string) {
 
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            // TODO: Use transliterateHebrew(hebrewWord) for OHB transliteration with prefixes.
-            // Currently using stepbible_tbesh dictionary form as a stable fallback.
-            transliteration: wordInfo?.Transliteration?.trim() || "",
+            transliteration: transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
