@@ -431,7 +431,7 @@ export const WordBlock = ({
           lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
         }}>
         <span
-          className="flex"
+          className={`flex ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''}`}
           onClick={handleClick}
         >
           {wordProps.showVerseNum ?
@@ -446,7 +446,7 @@ export const WordBlock = ({
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''} relative`}
             data-clicktype="clickable"
           >
             {ctxDisplayMode === "gloss" ? (
