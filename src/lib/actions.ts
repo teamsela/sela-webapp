@@ -11,7 +11,7 @@ import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
-import { transliterateHebrew } from './hebrewHighlights';
+import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
   name: study.name,
