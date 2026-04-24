@@ -21,6 +21,7 @@ export const PassageBlock = ({
 
   const [isNarrow, setIsNarrow] = useState(false);
   const isHebrew = displayMode === "hebrew";
+  const isNonEnglish = displayMode === "hebrew" || displayMode === "transliteration";
 
   //check window size of passage
   useEffect(() => {
@@ -39,7 +40,7 @@ export const PassageBlock = ({
   }, []);
 
   const languageContextValue = {
-    ctxIsHebrew: isHebrew,
+    ctxIsHebrew: isNonEnglish,
     ctxDisplayMode: displayMode,
   }
 
@@ -54,7 +55,7 @@ export const PassageBlock = ({
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`
     : 'flex-row max-w-[600px]';
-  const passageWidthClass = isHebrew
+  const passageWidthClass = isNonEnglish
     ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
     : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : 'w-[100%]';
 
