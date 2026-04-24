@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { transliterateHebrew } from './hebrewHighlights';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -893,10 +894,9 @@ export async function fetchPassageData(studyId: string) {
 
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            // TODO: Transliteration currently comes from stepbible_tbesh (lexical/dictionary form).
-            // The PDF spec requires OHB transliteration (with prefixes, e.g. "le.da.vid" not "da.vid").
-            // This needs a new heb_bible column with OHB transliteration data to match the spec exactly.
-            transliteration: wordInfo?.Transliteration?.trim() || "",
+            // Use OHB transliteration derived from the WLC passage text (includes prefixes).
+            // Falls back to stepbible_tbesh dictionary transliteration if WLC conversion fails.
+            transliteration: transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,

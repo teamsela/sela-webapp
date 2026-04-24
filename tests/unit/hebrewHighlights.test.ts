@@ -13,6 +13,7 @@ import {
   wordContainsLetter,
   buildHighlightedTransliterationSegments,
   buildHighlightedHebrewSegments,
+  transliterateHebrew,
 } from "@/lib/hebrewHighlights";
 import type { WordProps } from "@/lib/data";
 
@@ -632,5 +633,57 @@ describe("LETTER_CHIP_GROUPS", () => {
       expect(group.palette.border).toBeDefined();
       expect(group.palette.text).toBeDefined();
     }
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  transliterateHebrew                                               */
+/* ------------------------------------------------------------------ */
+
+describe("transliterateHebrew", () => {
+  it("transliterates מִזְמוֹר (mizmor) — Psalm", () => {
+    const result = transliterateHebrew("מִזְמוֹר");
+    // Core sounds present: m-i, z, m-o-r
+    expect(result).toMatch(/mi/);
+    expect(result).toMatch(/z/);
+    expect(result).toMatch(/mor/);
+  });
+
+  it("transliterates לְדָוִד (ledavid) — includes prefix le", () => {
+    const result = transliterateHebrew("לְדָוִד");
+    expect(result).toMatch(/^le/);
+    expect(result).toContain("da");
+    expect(result).toContain("vid");
+  });
+
+  it("transliterates יְהוָה (YHVH)", () => {
+    const result = transliterateHebrew("יְהוָה");
+    expect(result).toMatch(/^ye/);
+    expect(result).toContain("h");
+  });
+
+  it("transliterates רֹעִי (roi) — my shepherd", () => {
+    const result = transliterateHebrew("רֹעִי");
+    expect(result).toContain("ro");
+    expect(result).toContain("i");
+  });
+
+  it("returns empty string for empty input", () => {
+    expect(transliterateHebrew("")).toBe("");
+  });
+
+  it("handles שׁ (shin) vs שׂ (sin) distinction", () => {
+    const shin = transliterateHebrew("שֶׁ"); // shin with segol
+    const sin = transliterateHebrew("שֶׂ");  // sin with segol
+    expect(shin).toContain("sh");
+    expect(sin).not.toContain("sh");
+    expect(sin).toContain("s");
+  });
+
+  it("handles bet/vet dagesh distinction", () => {
+    const bet = transliterateHebrew("בֵּ"); // bet with dagesh
+    const vet = transliterateHebrew("בֵ");  // vet without dagesh
+    expect(bet).toContain("b");
+    expect(vet).toContain("v");
   });
 });
