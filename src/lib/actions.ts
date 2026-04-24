@@ -892,11 +892,21 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
+          // Build OHB transliteration from WLC Hebrew text (includes prefixes like "le.da.vid").
+          // Falls back to stepbible_tbesh dictionary form if WLC conversion fails.
+          let translitValue = "";
+          try {
+            translitValue = transliterateHebrew(hebrewWord);
+          } catch {
+            // transliteration failed — use dictionary fallback
+          }
+          if (!translitValue) {
+            translitValue = wordInfo?.Transliteration?.trim() || "";
+          }
+
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            // Use OHB transliteration derived from the WLC passage text (includes prefixes).
-            // Falls back to stepbible_tbesh dictionary transliteration if WLC conversion fails.
-            transliteration: transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "",
+            transliteration: translitValue,
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
