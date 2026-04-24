@@ -11,7 +11,6 @@ import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
-import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -892,21 +891,11 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
-          // Build OHB transliteration from WLC Hebrew text (includes prefixes like "le.da.vid").
-          // Falls back to stepbible_tbesh dictionary form if WLC conversion fails.
-          let translitValue = "";
-          try {
-            translitValue = transliterateHebrew(hebrewWord);
-          } catch {
-            // transliteration failed — use dictionary fallback
-          }
-          if (!translitValue) {
-            translitValue = wordInfo?.Transliteration?.trim() || "";
-          }
-
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            transliteration: translitValue,
+            // TODO: Use transliterateHebrew(hebrewWord) for OHB transliteration with prefixes.
+            // Currently using stepbible_tbesh dictionary form as a stable fallback.
+            transliteration: wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
