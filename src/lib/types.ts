@@ -25,6 +25,12 @@ export enum LanguageMode {
     Hebrew
 }
 
+export enum NonEnglishDisplayMode {
+    Hebrew,
+    Transliteration,
+    HebrewTransliteration
+}
+
 export interface ColorPickerProps {
     colorAction: ColorActionType,
     setSelectedColor: (arg: string) => void;
