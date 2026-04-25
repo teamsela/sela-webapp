@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
-import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode } from "@/lib/types";
 import { mergeData, wordsHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
@@ -102,16 +102,6 @@ export const FormatContext = createContext({
   ctxAddToHistory: (metadata: StudyMetadata, options?: HistorySnapshotOptions) => {},
   ctxLanguageMode: {} as LanguageMode,
   ctxSetLanguageMode: (arg: LanguageMode) => {},
-  ctxNonEnglishDisplayMode: NonEnglishDisplayMode.Hebrew,
-  ctxSetNonEnglishDisplayMode: (arg: NonEnglishDisplayMode) => {},
-  ctxSelectedSoundChipIds: [] as string[],
-  ctxSetSelectedSoundChipIds: (arg: string[]) => {},
-  ctxSoundHighlightEnabled: false,
-  ctxSetSoundHighlightEnabled: (arg: boolean) => {},
-  ctxSelectedLetterChipIds: [] as string[],
-  ctxSetSelectedLetterChipIds: (arg: string[]) => {},
-  ctxLetterHighlightEnabled: false,
-  ctxSetLetterHighlightEnabled: (arg: boolean) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
   ctxSetNoteBox: (arg: undefined|DOMRect) => {},
   ctxNoteMerge: true,
@@ -181,14 +171,7 @@ const StudyPane = ({
 
   // set default language to English
   const [languageMode, setLanguageMode] = useState<LanguageMode>(LanguageMode.English);
-  const [nonEnglishDisplayMode, setNonEnglishDisplayMode] = useState<NonEnglishDisplayMode>(
-    NonEnglishDisplayMode.Hebrew,
-  );
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
-  const [selectedSoundChipIds, setSelectedSoundChipIds] = useState<string[]>([]);
-  const [soundHighlightEnabled, setSoundHighlightEnabled] = useState(false);
-  const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
-  const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
@@ -310,16 +293,6 @@ const StudyPane = ({
     ctxAddToHistory: addToHistory,
     ctxLanguageMode: languageMode,
     ctxSetLanguageMode: setLanguageMode,
-    ctxNonEnglishDisplayMode: nonEnglishDisplayMode,
-    ctxSetNonEnglishDisplayMode: setNonEnglishDisplayMode,
-    ctxSelectedSoundChipIds: selectedSoundChipIds,
-    ctxSetSelectedSoundChipIds: setSelectedSoundChipIds,
-    ctxSoundHighlightEnabled: soundHighlightEnabled,
-    ctxSetSoundHighlightEnabled: setSoundHighlightEnabled,
-    ctxSelectedLetterChipIds: selectedLetterChipIds,
-    ctxSetSelectedLetterChipIds: setSelectedLetterChipIds,
-    ctxLetterHighlightEnabled: letterHighlightEnabled,
-    ctxSetLetterHighlightEnabled: setLetterHighlightEnabled,
     ctxNoteBox: noteBox,
     ctxSetNoteBox: setNoteBox,
     ctxNoteMerge: noteMerge,
@@ -355,9 +328,6 @@ const StudyPane = ({
     
     setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
     setLanguageMode(studyMetadata.lang || LanguageMode.English);
-    setNonEnglishDisplayMode(
-      studyMetadata.nonEnglishDisplayMode ?? NonEnglishDisplayMode.Hebrew,
-    );
   
   }, [passageData.bibleData, studyMetadata]);
 
@@ -388,7 +358,7 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14 max-[645px]:!pb-0">
-          <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>
+          <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {

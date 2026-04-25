@@ -6,11 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test:e2e": "playwright test",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test": "vitest run && playwright test"
+    "lint": "next lint"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.5",
@@ -18,7 +14,6 @@
     "@vercel/analytics": "^1.5.0",
     "@xata.io/client": "^0.29.5",
     "clsx": "^2.1.0",
-    "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "mitt": "^3.0.1",
     "next": "^14.2.6",
@@ -31,7 +26,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
     "@types/node": "^20",
     "@types/pg": "^8.16.0",
     "@types/react": "^18",
@@ -43,7 +37,6 @@
     "postcss": "^8.4.34",
     "react-color": "github:teamsela/react-color#master",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "typescript": "^5"
   }
 }

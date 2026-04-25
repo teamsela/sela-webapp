@@ -8,8 +8,6 @@
 
 # testing
 /coverage
-/playwright-report
-/test-results
 
 # next.js
 /.next/
@@ -54,6 +52,3 @@ next-env.d.ts
 
 pnpm-lock.yaml
 yarn.lock
-
-# local feature docs
-/local/

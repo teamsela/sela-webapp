@@ -4,7 +4,7 @@ import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
-import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
+import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
@@ -22,15 +22,8 @@ const Passage = ({
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn,
-    ctxNonEnglishDisplayMode,
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn
   } = useContext(FormatContext);
-
-  const nonEnglishDisplayMode =
-    ctxNonEnglishDisplayMode === NonEnglishDisplayMode.Transliteration ||
-    ctxNonEnglishDisplayMode === NonEnglishDisplayMode.HebrewTransliteration
-      ? "transliteration"
-      : "hebrew";
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
@@ -481,18 +474,18 @@ const Passage = ({
       >
         { ctxLanguageMode == LanguageMode.English && 
           <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-            <PassageBlock displayMode="gloss"/> 
+            <PassageBlock isHebrew={false}/> 
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
           <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
-            <PassageBlock displayMode={nonEnglishDisplayMode}/>
-            <PassageBlock displayMode="gloss"/>
+            <PassageBlock isHebrew={true}/>
+            <PassageBlock isHebrew={false}/>
           </div>
         }
         { ctxLanguageMode == LanguageMode.Hebrew && 
           <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-          <PassageBlock displayMode={nonEnglishDisplayMode}/> 
+          <PassageBlock isHebrew={true}/> 
           </div>
         }
       </div>

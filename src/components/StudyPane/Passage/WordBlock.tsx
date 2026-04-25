@@ -7,12 +7,6 @@ import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
 import { updateMetadataInDb } from '@/lib/actions';
-import {
-  buildHighlightedHebrewSegments,
-  buildHighlightedTransliterationSegments,
-  LETTER_CHIP_MAP,
-  SOUND_CHIP_MAP,
-} from '@/lib/hebrewHighlights';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
@@ -44,28 +38,18 @@ export const WordBlock = ({
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
-    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
-    ctxSelectedSoundChipIds, ctxSoundHighlightEnabled,
-    ctxSelectedLetterChipIds, ctxLetterHighlightEnabled,
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook
   } = useContext(FormatContext)
 
-  const { ctxIsHebrew, ctxDisplayMode } = useContext(LanguageContext)
+  const { ctxIsHebrew } = useContext(LanguageContext)
 
   const [isEditingGloss, setIsEditingGloss] = useState(false);
   const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
   const glossInputRef = useRef<HTMLTextAreaElement | null>(null);
   const [glossEditWidth, setGlossEditWidth] = useState<number | null>(null);
   const skipBlurCommitRef = useRef(false);
-  const canEditEnglish = ctxDisplayMode === "gloss" && !ctxInViewMode;
+  const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
   const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
-  const transliterationValue = wordProps.wordInformation?.transliteration?.trim() || "";
-  const hebrewValue = wordProps.wordInformation?.hebrew?.trim() || wordProps.wlcWord || "";
-  const displayValue =
-    ctxDisplayMode === "hebrew"
-      ? hebrewValue
-      : ctxDisplayMode === "transliteration"
-        ? transliterationValue
-        : currentGlossValue;
 
   const mapColor = ctxWordsColorMap.get(wordProps.wordId);
   const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color ?? wordProps.metadata?.color;
@@ -286,11 +270,11 @@ export const WordBlock = ({
       const context = canvas.getContext('2d');
       if (context) {
         context.font = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontInPx + " Satoshi";
-        let currentLineCount = wrapText(displayValue.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx /*(index === 0) ? 90 : 96*/);
+        let currentLineCount = wrapText(wordProps.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx /*(index === 0) ? 90 : 96*/);
         let currentZoomLevel = DEFAULT_ZOOM_LEVEL - 1;
         while (currentLineCount > 2 && currentZoomLevel >= 0) {
           context.font = zoomLevelMap[currentZoomLevel].fontInPx + " Satoshi";
-          currentLineCount = wrapText(displayValue.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx);
+          currentLineCount = wrapText(wordProps.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx);
           fontSize = zoomLevelMap[currentZoomLevel].fontSize;
           currentZoomLevel--;
         }
@@ -334,78 +318,13 @@ export const WordBlock = ({
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
               <span className={`whitespace-nowrap break-keep flex select-none px-2 ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center leading-none ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
         ))}
       </div>
     );
-  };
-
-  const selectedSoundIds = ctxSoundHighlightEnabled
-    ? new Set(ctxSelectedSoundChipIds)
-    : new Set<string>();
-  const selectedLetterIds = ctxLetterHighlightEnabled
-    ? new Set(ctxSelectedLetterChipIds)
-    : new Set<string>();
-
-  const renderInlineHighlightSegments = () => {
-    if (ctxDisplayMode === "transliteration") {
-      const segments = buildHighlightedTransliterationSegments(
-        transliterationValue,
-        selectedSoundIds,
-      );
-
-      return segments.map((segment, index) => {
-        const palette = segment.highlightId
-          ? SOUND_CHIP_MAP.get(segment.highlightId)?.palette
-          : undefined;
-
-        return (
-          <span
-            key={`${wordProps.wordId}-translit-${index}`}
-            style={palette ? {
-              backgroundColor: palette.fill,
-              color: palette.text,
-              boxShadow: `inset 0 0 0 1px ${palette.border ?? DEFAULT_BORDER_COLOR}`,
-              borderRadius: 4,
-              paddingInline: "1px",
-            } : undefined}
-          >
-            {segment.text}
-          </span>
-        );
-      });
-    }
-
-    const segments = buildHighlightedHebrewSegments(
-      hebrewValue,
-      selectedSoundIds,
-      selectedLetterIds,
-    );
-
-    return segments.map((segment, index) => {
-      const palette = segment.highlightId
-        ? SOUND_CHIP_MAP.get(segment.highlightId)?.palette ??
-          LETTER_CHIP_MAP.get(segment.highlightId)?.palette
-        : undefined;
-
-      return (
-        <span
-          key={`${wordProps.wordId}-hebrew-${index}`}
-          style={palette ? {
-            backgroundColor: palette.fill,
-            color: palette.text,
-            boxShadow: `inset 0 0 0 1px ${palette.border ?? DEFAULT_BORDER_COLOR}`,
-            borderRadius: 4,
-            paddingInline: "1px",
-          } : undefined}
-        >
-          {segment.text}
-        </span>
-      );
-    });
   };
 
   return (
@@ -431,7 +350,7 @@ export const WordBlock = ({
           lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
         }}>
         <span
-          className={`flex ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''}`}
+          className="flex"
           onClick={handleClick}
         >
           {wordProps.showVerseNum ?
@@ -446,10 +365,10 @@ export const WordBlock = ({
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''} relative`}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
             data-clicktype="clickable"
           >
-            {ctxDisplayMode === "gloss" ? (
+            {ctxIsHebrew ? wordProps.wlcWord : (
               isEditingGloss ? (
                 <>
                   <textarea
@@ -472,7 +391,7 @@ export const WordBlock = ({
                   />
                 </>
               ) : currentGlossValue
-            ) : renderInlineHighlightSegments()}
+            )}
           </span>
         </span>
       </div>
