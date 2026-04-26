@@ -1,4 +1,4 @@
-import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
+import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
 
 export type ColorSource = "syntax" | "motif";
 
@@ -47,6 +47,7 @@ export type StudyMetadata = {
     scaleValue?: number;
     boxStyle?: BoxDisplayConfig;
     lang?: LanguageMode;
+    nonEnglishDisplayMode?: NonEnglishDisplayMode;
 }
 
 export interface StudyProps {
