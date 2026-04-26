@@ -61,33 +61,34 @@ export const SOUND_CHIPS: SoundChip[] = [
 ];
 
 export const LETTER_CHIPS: LetterChip[] = [
-  { id: "aleph", label: "א", palette: createPalette("#FFECB3") },
-  { id: "bet", label: "ב", palette: createPalette("#C5CAE9") },
-  { id: "gimel", label: "ג", palette: createPalette("#B2DFDB") },
-  { id: "dalet", label: "ד", palette: createPalette("#FFCDD2") },
-  { id: "he", label: "ה", palette: createPalette("#FFF9C4") },
-  { id: "vav", label: "ו", palette: createPalette("#B3E5FC") },
-  { id: "zayin", label: "ז", palette: createPalette("#C8E6C9") },
-  { id: "het", label: "ח", palette: createPalette("#F8BBD0") },
-  { id: "tet", label: "ט", palette: createPalette("#E1BEE7") },
-  { id: "yod", label: "י", palette: createPalette("#DCEDC8") },
-  { id: "kaf", label: "כ", palette: createPalette("#D1C4E9") },
-  { id: "final-kaf", label: "ך", palette: createPalette("#EDE7F6") },
-  { id: "lamed", label: "ל", palette: createPalette("#BBDEFB") },
-  { id: "mem", label: "מ", palette: createPalette("#F0F4C3") },
-  { id: "final-mem", label: "ם", palette: createPalette("#F7FAE6") },
-  { id: "nun", label: "נ", palette: createPalette("#FFE0B2") },
-  { id: "final-nun", label: "ן", palette: createPalette("#FFF3E0") },
-  { id: "samekh", label: "ס", palette: createPalette("#FFEB3B") },
-  { id: "ayin", label: "ע", palette: createPalette("#CFD8DC") },
-  { id: "pe", label: "פ", palette: createPalette("#FFD54F") },
-  { id: "tsadi", label: "צ", palette: createPalette("#4FC3F7") },
-  { id: "final-tsadi", label: "ץ", palette: createPalette("#B3E5FC") },
-  { id: "qof", label: "ק", palette: createPalette("#9575CD", "#FFFFFF") },
-  { id: "resh", label: "ר", palette: createPalette("#90A4AE") },
-  { id: "sin", label: "שׂ", palette: createPalette("#FFF176") },
-  { id: "shin", label: "שׁ", palette: createPalette("#FF9800") },
-  { id: "tav", label: "ת", palette: createPalette("#64B5F6") },
+  // Same palette as Sound Distribution (page_08.png): yellows → oranges → purples → greens → reds → browns → grays → blues
+  { id: "aleph", label: "א", palette: createPalette("#FFF176") },         // yellow
+  { id: "bet", label: "ב", palette: createPalette("#FFD54F") },           // gold
+  { id: "gimel", label: "ג", palette: createPalette("#FFB74D") },         // orange
+  { id: "dalet", label: "ד", palette: createPalette("#FF9800") },         // dark orange
+  { id: "he", label: "ה", palette: createPalette("#CE93D8") },            // lavender
+  { id: "vav", label: "ו", palette: createPalette("#9C27B0", "#FFFFFF") },// purple
+  { id: "zayin", label: "ז", palette: createPalette("#AB47BC") },         // purple
+  { id: "het", label: "ח", palette: createPalette("#E1BEE7") },           // light purple
+  { id: "tet", label: "ט", palette: createPalette("#81C784") },           // light green
+  { id: "yod", label: "י", palette: createPalette("#388E3C", "#FFFFFF") },// dark green
+  { id: "kaf", label: "כ", palette: createPalette("#EF9A9A") },           // light red
+  { id: "final-kaf", label: "ך", palette: createPalette("#EF9A9A") },     // light red (same as kaf)
+  { id: "lamed", label: "ל", palette: createPalette("#F44336", "#FFFFFF") },// red
+  { id: "mem", label: "מ", palette: createPalette("#795548", "#FFFFFF") }, // brown
+  { id: "final-mem", label: "ם", palette: createPalette("#795548", "#FFFFFF") }, // brown (same as mem)
+  { id: "nun", label: "נ", palette: createPalette("#D7CCC8") },           // grey-brown
+  { id: "final-nun", label: "ן", palette: createPalette("#D7CCC8") },     // grey-brown (same as nun)
+  { id: "samekh", label: "ס", palette: createPalette("#616161", "#FFFFFF") },// dark gray
+  { id: "ayin", label: "ע", palette: createPalette("#E0E0E0") },          // light gray
+  { id: "pe", label: "פ", palette: createPalette("#2196F3", "#FFFFFF") },  // blue
+  { id: "tsadi", label: "צ", palette: createPalette("#64B5F6") },         // lighter blue
+  { id: "final-tsadi", label: "ץ", palette: createPalette("#64B5F6") },   // lighter blue (same as tsadi)
+  { id: "qof", label: "ק", palette: createPalette("#B3E5FC") },           // very light blue
+  { id: "resh", label: "ר", palette: createPalette("#F48FB1") },           // pink
+  { id: "sin", label: "שׂ", palette: createPalette("#4DB6AC") },          // teal
+  { id: "shin", label: "שׁ", palette: createPalette("#4DB6AC") },         // teal (same as sin)
+  { id: "tav", label: "ת", palette: createPalette("#A1887F") },           // warm brown
 ];
 
 export const SOUND_CHIP_MAP = new Map(SOUND_CHIPS.map((chip) => [chip.id, chip]));
@@ -109,28 +110,28 @@ export type LetterChipGroup = {
 };
 
 export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
-  { id: "aleph", label: "א", memberIds: ["aleph"], palette: createPalette("#FFECB3") },
-  { id: "bet", label: "ב", memberIds: ["bet"], palette: createPalette("#C5CAE9") },
-  { id: "gimel", label: "ג", memberIds: ["gimel"], palette: createPalette("#B2DFDB") },
-  { id: "dalet", label: "ד", memberIds: ["dalet"], palette: createPalette("#FFCDD2") },
-  { id: "he", label: "ה", memberIds: ["he"], palette: createPalette("#FFF9C4") },
-  { id: "vav", label: "ו", memberIds: ["vav"], palette: createPalette("#B3E5FC") },
-  { id: "zayin", label: "ז", memberIds: ["zayin"], palette: createPalette("#C8E6C9") },
-  { id: "het", label: "ח", memberIds: ["het"], palette: createPalette("#F8BBD0") },
-  { id: "tet", label: "ט", memberIds: ["tet"], palette: createPalette("#E1BEE7") },
-  { id: "yod", label: "י", memberIds: ["yod"], palette: createPalette("#DCEDC8") },
-  { id: "kaf-group", label: "כ ך", memberIds: ["kaf", "final-kaf"], palette: createPalette("#D1C4E9") },
-  { id: "lamed", label: "ל", memberIds: ["lamed"], palette: createPalette("#BBDEFB") },
-  { id: "mem-group", label: "מ ם", memberIds: ["mem", "final-mem"], palette: createPalette("#F0F4C3") },
-  { id: "nun-group", label: "נ ן", memberIds: ["nun", "final-nun"], palette: createPalette("#FFE0B2") },
-  { id: "samekh", label: "ס", memberIds: ["samekh"], palette: createPalette("#FFEB3B") },
-  { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#CFD8DC") },
-  { id: "pe", label: "פ", memberIds: ["pe"], palette: createPalette("#FFD54F") },
-  { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#4FC3F7") },
-  { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#9575CD", "#FFFFFF") },
-  { id: "resh", label: "ר", memberIds: ["resh"], palette: createPalette("#90A4AE") },
-  { id: "shin-sin-group", label: "שׂ שׁ", memberIds: ["sin", "shin"], palette: createPalette("#FF9800") },
-  { id: "tav", label: "ת", memberIds: ["tav"], palette: createPalette("#64B5F6") },
+  { id: "aleph", label: "א", memberIds: ["aleph"], palette: createPalette("#FFF176") },
+  { id: "bet", label: "ב", memberIds: ["bet"], palette: createPalette("#FFD54F") },
+  { id: "gimel", label: "ג", memberIds: ["gimel"], palette: createPalette("#FFB74D") },
+  { id: "dalet", label: "ד", memberIds: ["dalet"], palette: createPalette("#FF9800") },
+  { id: "he", label: "ה", memberIds: ["he"], palette: createPalette("#CE93D8") },
+  { id: "vav", label: "ו", memberIds: ["vav"], palette: createPalette("#9C27B0", "#FFFFFF") },
+  { id: "zayin", label: "ז", memberIds: ["zayin"], palette: createPalette("#AB47BC") },
+  { id: "het", label: "ח", memberIds: ["het"], palette: createPalette("#E1BEE7") },
+  { id: "tet", label: "ט", memberIds: ["tet"], palette: createPalette("#81C784") },
+  { id: "yod", label: "י", memberIds: ["yod"], palette: createPalette("#388E3C", "#FFFFFF") },
+  { id: "kaf-group", label: "כ ך", memberIds: ["kaf", "final-kaf"], palette: createPalette("#EF9A9A") },
+  { id: "lamed", label: "ל", memberIds: ["lamed"], palette: createPalette("#F44336", "#FFFFFF") },
+  { id: "mem-group", label: "מ ם", memberIds: ["mem", "final-mem"], palette: createPalette("#795548", "#FFFFFF") },
+  { id: "nun-group", label: "נ ן", memberIds: ["nun", "final-nun"], palette: createPalette("#D7CCC8") },
+  { id: "samekh", label: "ס", memberIds: ["samekh"], palette: createPalette("#616161", "#FFFFFF") },
+  { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#E0E0E0") },
+  { id: "pe", label: "פ", memberIds: ["pe"], palette: createPalette("#2196F3", "#FFFFFF") },
+  { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#64B5F6") },
+  { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#B3E5FC") },
+  { id: "resh", label: "ר", memberIds: ["resh"], palette: createPalette("#F48FB1") },
+  { id: "shin-sin-group", label: "שׂ שׁ", memberIds: ["sin", "shin"], palette: createPalette("#4DB6AC") },
+  { id: "tav", label: "ת", memberIds: ["tav"], palette: createPalette("#A1887F") },
 ];
 
 const transliterationPatterns: TransliterationPattern[] = [
