@@ -52,7 +52,7 @@ export const SOUND_CHIPS: SoundChip[] = [
   { id: "n", label: "n", palette: createPalette("#EF9A9A") },          // light red/pink
   { id: "m", label: "m", palette: createPalette("#F44336", "#FFFFFF") }, // red
   { id: "b", label: "b", palette: createPalette("#795548", "#FFFFFF") }, // brown
-  { id: "v", label: "v", palette: createPalette("#9E9E9E") },          // gray
+  { id: "v", label: "v", palette: createPalette("#D7CCC8") },          // light grey-brown
   { id: "p", label: "p", palette: createPalette("#616161", "#FFFFFF") }, // dark gray
   { id: "f", label: "f", palette: createPalette("#E0E0E0") },          // light gray
   { id: "l", label: "l", palette: createPalette("#2196F3", "#FFFFFF") }, // blue
