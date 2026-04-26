@@ -105,12 +105,12 @@ const Sounds = () => {
     ctxLetterHighlightEnabled,
     ctxSetLetterHighlightEnabled,
   } = useContext(FormatContext);
-  const [openSection, setOpenSection] = useState<SoundsSectionId>("sound-distribution");
+  const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
   const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
-    setOpenSection((prev) => (prev === sectionId ? prev : sectionId));
+    setOpenSection((prev) => (prev === sectionId ? null : sectionId));
   };
 
   const allWords = useMemo(() => {
