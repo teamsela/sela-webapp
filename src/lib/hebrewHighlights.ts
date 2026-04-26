@@ -39,25 +39,25 @@ const createPalette = (fill: string, text = DEFAULT_TEXT_COLOR): InlinePalette =
 });
 
 export const SOUND_CHIPS: SoundChip[] = [
-  { id: "s", label: "s", palette: createPalette("#F8F070") },          // yellow-green
-  { id: "sh", label: "sh", palette: createPalette("#F8D048") },        // gold
-  { id: "ts", label: "ts", palette: createPalette("#F8B048") },        // orange
-  { id: "z", label: "z", palette: createPalette("#F89800") },          // dark orange
-  { id: "kh-ch", label: "kh/ch", palette: createPalette("#D0C0E8") },  // light purple
-  { id: "k-q", label: "k/q", palette: createPalette("#9070C8") },      // deep purple
-  { id: "g", label: "g", palette: createPalette("#B868C8") },          // purple
-  { id: "h", label: "h", palette: createPalette("#E0B8E0") },          // pink-purple
-  { id: "d", label: "d", palette: createPalette("#80C080") },          // green
-  { id: "t", label: "t", palette: createPalette("#48A850") },          // dark green
-  { id: "n", label: "n", palette: createPalette("#E07070") },          // red
-  { id: "m", label: "m", palette: createPalette("#F04030", "#FFFFFF") }, // bright red
-  { id: "b", label: "b", palette: createPalette("#A08878") },          // brown
-  { id: "v", label: "v", palette: createPalette("#D7CCC8") },          // warm gray
-  { id: "p", label: "p", palette: createPalette("#90A0A8") },          // cool gray
-  { id: "f", label: "f", palette: createPalette("#CFD8DC") },          // light gray-blue
-  { id: "l", label: "l", palette: createPalette("#2090F0", "#FFFFFF") }, // blue
-  { id: "r", label: "r", palette: createPalette("#60B0F0") },          // light blue
-  { id: "y", label: "y", palette: createPalette("#B8D8F8") },          // very light blue
+  { id: "s", label: "s", palette: createPalette("#FFF176") },          // yellow
+  { id: "sh", label: "sh", palette: createPalette("#FFD54F") },        // gold/amber
+  { id: "ts", label: "ts", palette: createPalette("#AED581") },        // light green/lime
+  { id: "z", label: "z", palette: createPalette("#FFA726") },          // orange
+  { id: "kh-ch", label: "kh/ch", palette: createPalette("#CE93D8") },  // lavender
+  { id: "k-q", label: "k/q", palette: createPalette("#9C27B0", "#FFFFFF") }, // purple
+  { id: "g", label: "g", palette: createPalette("#66BB6A") },          // green
+  { id: "h", label: "h", palette: createPalette("#BA68C8") },          // violet
+  { id: "d", label: "d", palette: createPalette("#A1887F") },          // brown
+  { id: "t", label: "t", palette: createPalette("#EF9A9A") },          // pink/salmon
+  { id: "n", label: "n", palette: createPalette("#81C784") },          // light green
+  { id: "m", label: "m", palette: createPalette("#F44336", "#FFFFFF") }, // red
+  { id: "b", label: "b", palette: createPalette("#795548", "#FFFFFF") }, // dark brown
+  { id: "v", label: "v", palette: createPalette("#BDBDBD") },          // gray
+  { id: "p", label: "p", palette: createPalette("#C8E6C9") },          // sage green
+  { id: "f", label: "f", palette: createPalette("#E0E0E0") },          // light gray
+  { id: "l", label: "l", palette: createPalette("#2196F3", "#FFFFFF") }, // blue
+  { id: "r", label: "r", palette: createPalette("#4DB6AC") },          // teal
+  { id: "y", label: "y", palette: createPalette("#B3E5FC") },          // light blue
 ];
 
 export const LETTER_CHIPS: LetterChip[] = [
