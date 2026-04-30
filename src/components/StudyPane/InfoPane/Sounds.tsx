@@ -50,15 +50,31 @@ type AzureWordBoundary = {
 
 type TtsEngine = "azure" | "browser";
 
-const TTS_ADONAI_TEXT ="אֲ֝דֹנָ֗י";
+const TTS_ADONAI_TEXT = "אֲ֝דֹנָ֗י";
+const DIVINE_NAME_GLOSS_EDGE_REGEX =
+  /^[\s"'()[\]{},.;:!?\u2018\u2019\u201C\u201D]+|[\s"'()[\]{},.;:!?\u2018\u2019\u201C\u201D]+$/g;
+const DIVINE_NAME_GLOSS_REGEX = /^(?:yahweh|yhwh)(?:['\u2019]s)?$/i;
+const LATIN_DIVINE_NAME_TEXT_REGEX = /\b(?:yahweh|yhwh)(?:['\u2019]s)?\b/gi;
+const HEBREW_DIVINE_NAME_TEXT_REGEX =
+  /\u05D9[\u0591-\u05C7]*\u05D4[\u0591-\u05C7]*\u05D5[\u0591-\u05C7]*\u05D4[\u0591-\u05C7]*/g;
+
+const isDivineNameGloss = (gloss: string | undefined) => {
+  const normalizedGloss = gloss?.trim().replace(DIVINE_NAME_GLOSS_EDGE_REGEX, "");
+  return Boolean(normalizedGloss && DIVINE_NAME_GLOSS_REGEX.test(normalizedGloss));
+};
+
+const normalizeDivineNameForTts = (text: string) =>
+  text
+    .normalize("NFKC")
+    .replace(HEBREW_DIVINE_NAME_TEXT_REGEX, TTS_ADONAI_TEXT)
+    .replace(LATIN_DIVINE_NAME_TEXT_REGEX, TTS_ADONAI_TEXT);
 
 const getTtsWordText = (word: { gloss?: string; wlcWord: string }) => {
-  const gloss = word.gloss?.trim().toLowerCase();
-  if (gloss === "yahweh") {
+  if (isDivineNameGloss(word.gloss)) {
     return TTS_ADONAI_TEXT;
   }
 
-  return word.wlcWord.trim();
+  return normalizeDivineNameForTts(word.wlcWord.trim());
 };
 
 const ReadAloudButtonIcon = ({ state }: { state: ReadAloudButtonState }) => {
