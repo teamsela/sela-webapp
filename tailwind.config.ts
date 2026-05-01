@@ -11,6 +11,7 @@ const config: Config = {
   theme: {
     fontFamily: {
       satoshi: ["Satoshi", "sans-serif"],
+      quicksand: ["var(--font-quicksand)", "Quicksand", "sans-serif"],
     },
     colors: {
       current: "currentColor",

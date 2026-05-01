@@ -1,33 +1,11 @@
 'use client';
 
 import { SignIn } from '@clerk/nextjs';
-import React, {useState, useEffect} from "react";
-import Image from 'next/image'
 
 export default function SignInPage() {
-  const [isMobile, setIsMobile] = useState(false)
-   
-  //choose the screen size 
-  const handleResize = () => {
-    if (window.innerWidth < 640) {
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-    }
-  }
-
-    // create an event listener
-    useEffect(() => {
-      window.addEventListener("resize", handleResize)
-    })
-    return (
-      <main>
-        <div className={`min-h-screen justify-center items-center ${isMobile? "flex-row" : "flex"} `}>
-          <Image src="/images/digging-for-gems.png" width={0} height={0} sizes="100vw" alt="Bible Poetry Logo" style={{marginRight: 100}} className={`w-2/5 ${isMobile ? "ml-30 my-10" : ""}`} />
-          <div className="flex w-full flex-1 justify-center gap-2 px-8 sm:max-w-md">
-            <SignIn />
-          </div>
-        </div>
-      </main>
-    );
+  return (
+    <main className="min-h-screen flex items-center justify-center px-6 py-12">
+      <SignIn />
+    </main>
+  );
 }

@@ -1,5 +1,7 @@
 import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
 
+export const PLAYGROUND_STUDY_ID = "playground";
+
 export type ColorSource = "syntax" | "motif";
 
 export type ColorData = {
