@@ -76,7 +76,7 @@ const Header = ({
               {isPlayground ? (
                 <Link
                   href="/sign-up"
-                  className="whitespace-nowrap rounded-lg bg-primary py-2 px-4 text-center text-sm text-white hover:bg-opacity-90 lg:px-6"
+                  className="whitespace-nowrap rounded-lg bg-[#FFBF00] py-2 px-4 text-center text-sm text-white hover:bg-opacity-90 lg:px-6"
                 >
                   Sign Up
                 </Link>
