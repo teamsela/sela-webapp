@@ -9,20 +9,21 @@ export const metadata: Metadata = {
   // other metadata
 };
 
-const HomePage = ({
+const HomePage = async ({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     query?: string;
     page?: string;
     sortBy?: string;
     sortAsc?: string;
-  };
+  }>;
 }) => {
-  const query = searchParams?.query || '';
-  const currentPage = Number(searchParams?.page) || 1;
-  const sortBy = searchParams?.sortBy || '';
-  const sortAsc = Boolean(searchParams?.sortAsc);
+  const params = await searchParams;
+  const query = params?.query || '';
+  const currentPage = Number(params?.page) || 1;
+  const sortBy = params?.sortBy || '';
+  const sortAsc = Boolean(params?.sortAsc);
     
   return (
     <>

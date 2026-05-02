@@ -141,7 +141,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
       <div>
         {/* <!-- Clerk User Box --> */}
         <div className="mt-auto mx-auto w-full max-w-60 rounded-sm border border-strokedark bg-boxdark px-4 py-4 shadow-default bg-opacity-60 hover:bg-opacity-100 mb-8">
-          <UserButton afterSignOutUrl="/" 
+          <UserButton
             appearance={{
               elements: {
                 rootBox: "relative flex w-full",

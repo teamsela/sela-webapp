@@ -35,7 +35,7 @@ const DropdownUser = () => {
 
   return (
     <div className="relative">
-        <UserButton afterSignOutUrl="/" />
+        <UserButton />
     </div>
   );
 };
