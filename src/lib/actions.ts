@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { currentUser, clerkClient } from '@clerk/nextjs';
+import { currentUser, clerkClient } from '@clerk/nextjs/server';
 
 import { db } from '../db';
 import { hebBible, lemmaLink, motifLink, stepbibleTbesh, study } from '../schema';
@@ -258,7 +258,10 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
   });
 
   // fetch owner info from Clerk
-  const users = await clerkClient.users.getUserList({ userId: Array.from(uniqueIds) });
+  const ownerIds = Array.from(uniqueIds);
+  const users = ownerIds.length > 0
+    ? (await (await clerkClient()).users.getUserList({ userId: ownerIds })).data
+    : [];
 
   const userMap = new Map(users.map((u) => [u.id, u]));
 
