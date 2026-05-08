@@ -33,7 +33,7 @@ def repo_info() -> str:
     ]
     lines = [f"Repo root: {REPO_ROOT}", ""]
     for rel in key_files:
-        exists = "✓" if (REPO_ROOT / rel).exists() else "✗"
+        exists = "[ok]" if (REPO_ROOT / rel).exists() else "[missing]"
         lines.append(f"  {exists}  {rel}")
     return "\n".join(lines)
 
@@ -47,13 +47,13 @@ def read_source_file(path: str) -> str:
     """
     target = (REPO_ROOT / path).resolve()
     if not str(target).startswith(str(REPO_ROOT)):
-        return "⚠️ Path must be within the repo root."
+        return "ERROR: Path must be within the repo root."
     if not target.exists():
-        return f"⚠️ File not found: {path}"
+        return f"ERROR: File not found: {path}"
     try:
         return target.read_text(encoding="utf-8")
     except Exception as e:
-        return f"⚠️ Could not read file: {e}"
+        return f"ERROR: Could not read file: {e}"
 
 
 @mcp.tool()
@@ -80,8 +80,8 @@ def run_type_check() -> str:
         timeout=120,
     )
     if result.returncode == 0:
-        return "✅ TypeScript: no type errors."
-    return f"❌ TypeScript errors:\n{result.stdout}\n{result.stderr}".strip()
+        return "TypeScript: no type errors."
+    return f"TypeScript errors:\n{result.stdout}\n{result.stderr}".strip()
 
 
 @mcp.tool()
@@ -96,8 +96,8 @@ def run_lint() -> str:
         shell=True,
     )
     if result.returncode == 0:
-        return "✅ Lint: no issues."
-    return f"❌ Lint errors:\n{result.stdout}\n{result.stderr}".strip()
+        return "Lint: no issues."
+    return f"Lint errors:\n{result.stdout}\n{result.stderr}".strip()
 
 
 if __name__ == "__main__":
