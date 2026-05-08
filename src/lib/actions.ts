@@ -907,7 +907,12 @@ export async function fetchPassageData(studyId: string) {
               : ohbText;
           }
           if (!transliteration) {
-            transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
+            // Special case: Tetragrammaton (יהוה, H3068) is always read as "Adonai"
+            if (Math.trunc(word.strongNumber || 0) === 3068) {
+              transliteration = "a.do.nai";
+            } else {
+              transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
+            }
           }
 
           hebWord.wordInformation = {
