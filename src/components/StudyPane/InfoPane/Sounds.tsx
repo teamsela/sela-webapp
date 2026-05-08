@@ -229,7 +229,6 @@ const Sounds = () => {
               onClick={(e) => { e.stopPropagation(); setShowTooltip((v) => !v); }}
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
-              title={`${soundTooltipP1}\n\n${soundTooltipP2}`}
             >
               i
               {showTooltip && (
