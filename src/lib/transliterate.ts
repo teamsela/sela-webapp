@@ -58,9 +58,10 @@ export const transliterateHebrew = (wlcWord: string): string => {
 
   const SIMPLE_MAP: Record<string, string> = {
     "א": "", "ג": "g", "ד": "d", "ה": "h", "ו": "v", "ז": "z",
-    "ח": "ch", "ט": "t", "י": "y", "ל": "l", "מ": "m", "ם": "m",
+    // ח handled below (position-based: "kh" opening syllable, "ch" closing)
+    "ט": "t", "י": "y", "ל": "l", "מ": "m", "ם": "m",
     "נ": "n", "ן": "n", "ס": "s", "ע": "", "צ": "ts", "ץ": "ts",
-    "ק": "q", "ר": "r", "ת": "t",
+    "ק": "k", "ר": "r", "ת": "t",
   };
 
   const syllables: string[] = [];
@@ -78,7 +79,10 @@ export const transliterateHebrew = (wlcWord: string): string => {
     } else if (cl.base === "כ" || cl.base === "ך") {
       consonant = cl.hasDagesh ? "k" : "kh";
     } else if (cl.base === "פ" || cl.base === "ף") {
-      consonant = cl.hasDagesh ? "p" : "f";
+      consonant = cl.hasDagesh ? "p" : "ph";
+    } else if (cl.base === "ח") {
+      // Position-based: "ch" when closing a syllable (silent shva), "kh" when opening one
+      consonant = cl.isShva ? "ch" : "kh";
     } else {
       consonant = SIMPLE_MAP[cl.base] ?? "";
     }

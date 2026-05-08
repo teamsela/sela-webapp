@@ -151,6 +151,7 @@ const transliterationPatterns: TransliterationPattern[] = [
   { text: "m", soundId: "m" },
   { text: "b", soundId: "b" },
   { text: "v", soundId: "v" },
+  { text: "ph", soundId: "f" },  // פ without dagesh
   { text: "p", soundId: "p" },
   { text: "f", soundId: "f" },
   { text: "l", soundId: "l" },
