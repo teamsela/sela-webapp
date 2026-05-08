@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "sela-webapp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["mcp/server.py"],
+      "env": {
+        "SELA_TEST_DIR": "${env:SELA_TEST_DIR}",
+        "SELA_BASE_URL": "${env:SELA_BASE_URL}"
+      }
+    }
+  }
+}

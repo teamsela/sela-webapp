@@ -47,7 +47,8 @@ docs/requirements-notes.md
 next-env.d.ts
 
 # vscode
-/.vscode
+/.vscode/*
+!/.vscode/mcp.json
 
 # migration api routes
 /src/app/api/admin/migrate/route.ts
@@ -57,3 +58,4 @@ yarn.lock
 
 # local feature docs
 /local/
+.env*.local
