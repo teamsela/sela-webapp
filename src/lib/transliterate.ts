@@ -3,7 +3,7 @@
  * Server-safe module — no client-side dependencies.
  *
  * Converts Hebrew words with nikkud (vowel points) to Latin transliteration
- * including prefixes. e.g. "לְדָוִד" → "le.da.vid", "מִזְמוֹר" → "mi.ze.mor"
+ * including prefixes. e.g. "לְדָוִד" → "le.da.vid", "מִזְמוֹר" → "miz.mor"
  */
 
 type Cluster = {
@@ -12,6 +12,7 @@ type Cluster = {
   hasShinDot: boolean;
   hasSinDot: boolean;
   vowel: string;
+  isShva: boolean; // true when U+05B0 simple shva (not chataf vowels)
 };
 
 export const transliterateHebrew = (wlcWord: string): string => {
@@ -26,7 +27,7 @@ export const transliterateHebrew = (wlcWord: string): string => {
     // Hebrew letters: U+05D0–U+05EA
     if (cp >= 0x05D0 && cp <= 0x05EA) {
       if (current) clusters.push(current);
-      current = { base: char, hasDagesh: false, hasShinDot: false, hasSinDot: false, vowel: "" };
+      current = { base: char, hasDagesh: false, hasShinDot: false, hasSinDot: false, vowel: "", isShva: false };
       continue;
     }
 
@@ -38,10 +39,10 @@ export const transliterateHebrew = (wlcWord: string): string => {
 
     // Vowel points
     switch (cp) {
-      case 0x05B0: current.vowel = "e"; break;   // shva
-      case 0x05B1: current.vowel = "e"; break;   // chataf segol
-      case 0x05B2: current.vowel = "a"; break;   // chataf patach
-      case 0x05B3: current.vowel = "o"; break;   // chataf qamats
+      case 0x05B0: current.vowel = "e"; current.isShva = true; break;   // shva
+      case 0x05B1: current.vowel = "e"; break;   // chataf segol (always vocal)
+      case 0x05B2: current.vowel = "a"; break;   // chataf patach (always vocal)
+      case 0x05B3: current.vowel = "o"; break;   // chataf qamats (always vocal)
       case 0x05B4: current.vowel = "i"; break;   // chiriq
       case 0x05B5: current.vowel = "e"; break;   // tsere
       case 0x05B6: current.vowel = "e"; break;   // segol
@@ -99,6 +100,30 @@ export const transliterateHebrew = (wlcWord: string): string => {
       continue;
     }
 
+    // Interior yod mater lectionis (chiriq male): yod with no vowel directly after
+    // a chiriq vowel confirms the "i" — don't add an extra "y" consonant.
+    if (cl.base === "י" && !cl.vowel && i > 0 && i < clusters.length - 1 &&
+        clusters[i - 1].vowel === "i" && !clusters[i - 1].isShva) {
+      continue;
+    }
+
+    // Silent shva (shva nach): a simple shva that's not word-initial and follows
+    // a fully-vowelled cluster closes that preceding syllable rather than opening a new one.
+    // e.g. מִזְמוֹר → miz.mor, אֶחְסָר → ech.sar, יַרְבִּיצֵנִי → yar.bi.tse.ni
+    if (cl.isShva && i > 0) {
+      const prev = clusters[i - 1];
+      if (prev.vowel && !prev.isShva) {
+        // Append this consonant to the last completed syllable (closes it)
+        if (syllables.length > 0) {
+          syllables[syllables.length - 1] += consonant;
+        } else {
+          syllable += consonant;
+        }
+        // Do NOT push a new syllable — the shva is silent
+        continue;
+      }
+    }
+
     syllable += consonant;
 
     if (cl.vowel) {
@@ -118,3 +143,4 @@ export const transliterateHebrew = (wlcWord: string): string => {
 
   return syllables.join(".").toLowerCase() || wlcWord;
 };
+
