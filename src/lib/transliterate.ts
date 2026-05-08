@@ -88,6 +88,17 @@ export const transliterateHebrew = (wlcWord: string): string => {
       if (cl.hasDagesh && !cl.vowel) { syllable += "u"; syllables.push(syllable); syllable = ""; continue; }
     }
 
+    // Final yod without a vowel = mater lectionis ("i").
+    // Only append "i" if the preceding syllable doesn't already end in "i"
+    // (chiriq male = chiriq + yod confirming the vowel — don't double up).
+    if (cl.base === "י" && !cl.vowel && i === clusters.length - 1 && syllables.length > 0) {
+      if (!syllables[syllables.length - 1].endsWith("i")) {
+        syllables[syllables.length - 1] += "i";
+      }
+      syllable = "";
+      continue;
+    }
+
     syllable += consonant;
 
     if (cl.vowel) {

@@ -893,15 +893,26 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
-          // Use OHB Hebrew (hebUnicode) for transliteration — it stores the qere reading
-          // (e.g. אֲדֹנָי for יהוה so we get "a.do.nai" not "ye.hvah").
-          // Fall back to the WLC word, then the STEPBible lexical transliteration.
+          // Use OHB data (hebUnicode) for transliteration — it stores the qere reading.
+          // Two forms are possible:
+          //   • Pre-computed transliteration (Latin chars, e.g. "a.do.nai") → use directly
+          //   • OHB Hebrew text (e.g. אֲדֹנָי for יהוה) → run transliterateHebrew on it
+          // Falls back to WLC word, then STEPBible lexical transliteration.
           const ohbText = word.hebUnicode?.trim();
-          const transliterationSource = (ohbText && ohbText.length > 0) ? ohbText : hebrewWord;
+          let transliteration = "";
+          if (ohbText && ohbText.length > 0) {
+            const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
+            transliteration = isHebrew
+              ? transliterateHebrew(ohbText)
+              : ohbText;
+          }
+          if (!transliteration) {
+            transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
+          }
 
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            transliteration: transliterateHebrew(transliterationSource) || wordInfo?.Transliteration?.trim() || "",
+            transliteration,
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
