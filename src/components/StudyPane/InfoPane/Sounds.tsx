@@ -57,7 +57,7 @@ const DistributionChip = ({
         }}
       >
         <span className="flex w-full select-none items-center justify-center gap-2 px-2 py-1.5 text-center text-base leading-none hover:opacity-80">
-          <span>{label}</span>
+          <span className="font-bold text-black">{label}</span>
           <span className="flex h-6.5 min-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] px-1 text-sm text-black">
             {count}
           </span>
