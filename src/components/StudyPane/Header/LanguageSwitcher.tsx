@@ -73,11 +73,11 @@ const LanguageSwitcher = () => {
     setDropdownOpen(false);
   };
 
-  // Clicking the whole button: switch mode (if needed) + open dropdown when there are sub-options
+  // Clicking the whole button: switch mode (if needed) + open dropdown
   const handleButtonClick = (mode: LanguageMode) => {
     handleSwitcherClick(mode);
     const opts = getDropdownOptions(mode);
-    if (opts.length > 1) {
+    if (opts.length > 0) {
       setDropdownOpen((prev) => !prev);
     } else {
       setDropdownOpen(false);
@@ -120,14 +120,16 @@ const LanguageSwitcher = () => {
       </label>
 
       {dropdownOpen && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg">
+        <div className={`absolute top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg ${ctxLanguageMode === LanguageMode.English ? "left-0" : "right-0"}`}>
           {options.map((opt) => (
             <button
               key={opt.label}
               type="button"
               onClick={() => handleOptionClick(opt)}
-              className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-[#F2F2F2] ${
-                opt.value === ctxNonEnglishDisplayMode ? "font-semibold text-slate-900" : "text-slate-700"
+              className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
+                (opt.value === ctxNonEnglishDisplayMode) || (ctxLanguageMode === LanguageMode.English)
+                  ? "bg-[#F2F2F2] font-semibold text-slate-900"
+                  : "text-slate-700 hover:bg-[#F2F2F2]"
               }`}
             >
               {opt.label}
