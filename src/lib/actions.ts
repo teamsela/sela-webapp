@@ -779,6 +779,16 @@ export async function fetchPassageData(studyId: string) {
           })
         );
 
+        // The wlcWord column may store Hebrew text as HTML numeric entities
+        // (e.g. "&#1497;&#1463;" instead of "יַ") depending on the database branch.
+        // Decode them to actual Unicode so React renders Hebrew glyphs, not entity strings.
+        const decodeHtmlEntities = (str: string | null | undefined): string => {
+          if (!str) return "";
+          return str.replace(/&#(\d+);/g, (_, code: string) =>
+            String.fromCodePoint(parseInt(code, 10))
+          );
+        };
+
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
         passageContent.forEach(word => {
@@ -787,7 +797,7 @@ export async function fetchPassageData(studyId: string) {
           hebWord.chapter = word.chapter || 0;
           hebWord.verse = word.verse || 0;
           hebWord.strongNumber = word.strongNumber || 0;
-          hebWord.wlcWord = word.wlcWord || "";
+          hebWord.wlcWord = decodeHtmlEntities(word.wlcWord);
           hebWord.gloss = word.gloss?.trim() || "";
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.morphology = word.morphology?.trim() || "";
@@ -914,7 +924,7 @@ export async function fetchPassageData(studyId: string) {
           //   • Pre-computed transliteration (Latin chars, e.g. "a.do.nai") → use directly
           //   • OHB Hebrew text (e.g. אֲדֹנָי for יהוה) → run transliterateHebrew on it
           // Falls back to WLC word, then STEPBible lexical transliteration.
-          const ohbText = word.hebUnicode?.trim();
+          const ohbText = decodeHtmlEntities(word.hebUnicode);
           let transliteration = "";
           if (ohbText && ohbText.length > 0) {
             const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
