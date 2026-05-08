@@ -468,27 +468,43 @@ export async function fetchPassageData(studyId: string) {
       if (passageInfo instanceof Error === false)
       {
         const passageCondition = createPassageRangeCondition(passageInfo);
-        const passageContent = await db
-          .select({
-            hebId: hebBible.hebId,
-            chapter: hebBible.chapter,
-            verse: hebBible.verse,
-            strongNumber: hebBible.strongNumber,
-            wlcWord: hebBible.wlcWord,
-            hebUnicode: hebBible.hebUnicode,
-            gloss: hebBible.gloss,
-            ETCBCgloss: hebBible.ETCBCgloss,
-            morphology: hebBible.morphology,
-            BSBnewLine: hebBible.BSBnewLine,
-            motifCategories: motifLink.categories,
-            relatedStrongCodes: motifLink.relatedStrongCodes,
-            motifLemma: lemmaLink.lemma,
-          })
-          .from(hebBible)
-          .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
-          .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
-          .where(passageCondition)
-          .orderBy(asc(hebBible.hebId));
+
+        // Build a query with the OHB hebUnicode column if it exists, else fall back without it.
+        const buildPassageQuery = (includeHebUnicode: boolean) =>
+          db
+            .select({
+              hebId: hebBible.hebId,
+              chapter: hebBible.chapter,
+              verse: hebBible.verse,
+              strongNumber: hebBible.strongNumber,
+              wlcWord: hebBible.wlcWord,
+              ...(includeHebUnicode ? { hebUnicode: hebBible.hebUnicode } : {}),
+              gloss: hebBible.gloss,
+              ETCBCgloss: hebBible.ETCBCgloss,
+              morphology: hebBible.morphology,
+              BSBnewLine: hebBible.BSBnewLine,
+              motifCategories: motifLink.categories,
+              relatedStrongCodes: motifLink.relatedStrongCodes,
+              motifLemma: lemmaLink.lemma,
+            })
+            .from(hebBible)
+            .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
+            .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
+            .where(passageCondition)
+            .orderBy(asc(hebBible.hebId));
+
+        let passageContent: Awaited<ReturnType<typeof buildPassageQuery>>;
+        try {
+          passageContent = await buildPassageQuery(true);
+        } catch (queryErr: unknown) {
+          const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
+          if (msg.includes("hebUnicode") || msg.includes("column")) {
+            // hebUnicode column doesn't exist yet — fall back without it
+            passageContent = await buildPassageQuery(false) as typeof passageContent;
+          } else {
+            throw queryErr;
+          }
+        }
 
         const uniqueStrongNumbers = new Set<number>();
         passageContent.forEach((word) => {
