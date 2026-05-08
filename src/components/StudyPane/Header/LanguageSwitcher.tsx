@@ -59,7 +59,6 @@ const LanguageSwitcher = () => {
         updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
       }
       ctxSetLanguageMode(mode);
-      setDropdownOpen(false);
     }
   };
 
@@ -74,12 +73,18 @@ const LanguageSwitcher = () => {
     setDropdownOpen(false);
   };
 
-  const toggleDropdown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setDropdownOpen((prev) => !prev);
+  // Clicking the whole button: switch mode (if needed) + open dropdown when there are sub-options
+  const handleButtonClick = (mode: LanguageMode) => {
+    handleSwitcherClick(mode);
+    const opts = getDropdownOptions(mode);
+    if (opts.length > 1) {
+      setDropdownOpen((prev) => !prev);
+    } else {
+      setDropdownOpen(false);
+    }
   };
 
-  const base = "flex items-center gap-[2px] px-[16px] py-[6px] cursor-pointer";
+  const base = "flex items-center gap-[2px] px-[16px] py-[6px] cursor-pointer select-none transition-colors hover:bg-[#E6E6E6]";
   const active = "bg-[#FFFFFF] font-bold";
   const options = getDropdownOptions(ctxLanguageMode);
 
@@ -91,25 +96,25 @@ const LanguageSwitcher = () => {
       >
         <div className="flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] place-content-around items-center">
           <span
-            onClick={() => handleSwitcherClick(LanguageMode.English)}
+            onClick={() => handleButtonClick(LanguageMode.English)}
             className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.English ? active : ""}`}
           >
             A
-            <span onClick={toggleDropdown}><Chevron /></span>
+            <Chevron />
           </span>
           <span
-            onClick={() => handleSwitcherClick(LanguageMode.Parallel)}
+            onClick={() => handleButtonClick(LanguageMode.Parallel)}
             className={`${base} ${ctxLanguageMode === LanguageMode.Parallel ? active : ""}`}
           >
             Aא
-            <span onClick={toggleDropdown}><Chevron /></span>
+            <Chevron />
           </span>
           <span
-            onClick={() => handleSwitcherClick(LanguageMode.Hebrew)}
+            onClick={() => handleButtonClick(LanguageMode.Hebrew)}
             className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.Hebrew ? active : ""}`}
           >
             א
-            <span onClick={toggleDropdown}><Chevron /></span>
+            <Chevron />
           </span>
         </div>
       </label>
@@ -121,7 +126,9 @@ const LanguageSwitcher = () => {
               key={opt.label}
               type="button"
               onClick={() => handleOptionClick(opt)}
-              className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-[#F2F2F2]"
+              className={`block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-[#F2F2F2] ${
+                opt.value === ctxNonEnglishDisplayMode ? "font-semibold text-slate-900" : "text-slate-700"
+              }`}
             >
               {opt.label}
             </button>
