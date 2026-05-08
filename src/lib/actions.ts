@@ -475,6 +475,7 @@ export async function fetchPassageData(studyId: string) {
             verse: hebBible.verse,
             strongNumber: hebBible.strongNumber,
             wlcWord: hebBible.wlcWord,
+            hebUnicode: hebBible.hebUnicode,
             gloss: hebBible.gloss,
             ETCBCgloss: hebBible.ETCBCgloss,
             morphology: hebBible.morphology,
@@ -892,9 +893,15 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
+          // Use OHB Hebrew (hebUnicode) for transliteration — it stores the qere reading
+          // (e.g. אֲדֹנָי for יהוה so we get "a.do.nai" not "ye.hvah").
+          // Fall back to the WLC word, then the STEPBible lexical transliteration.
+          const ohbText = word.hebUnicode?.trim();
+          const transliterationSource = (ohbText && ohbText.length > 0) ? ohbText : hebrewWord;
+
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            transliteration: transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "",
+            transliteration: transliterateHebrew(transliterationSource) || wordInfo?.Transliteration?.trim() || "",
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
