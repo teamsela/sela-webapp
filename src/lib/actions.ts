@@ -920,23 +920,20 @@ export async function fetchPassageData(studyId: string) {
             : "";
 
           // Use OHB data (hebUnicode) for transliteration — it stores the qere reading.
-          // Two forms are possible:
-          //   • Pre-computed transliteration (Latin chars, e.g. "a.do.nai") → use directly
-          //   • OHB Hebrew text (e.g. אֲדֹנָי for יהוה) → run transliterateHebrew on it
-          // Falls back to WLC word, then STEPBible lexical transliteration.
-          const ohbText = decodeHtmlEntities(word.hebUnicode);
+          // H3068 (Tetragrammaton יהוה) is always read as "Adonai" per qere perpetuum tradition.
+          // For all other words, check hebUnicode first, then fall back to WLC word transliteration.
           let transliteration = "";
-          if (ohbText && ohbText.length > 0) {
-            const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
-            transliteration = isHebrew
-              ? transliterateHebrew(ohbText)
-              : ohbText;
-          }
-          if (!transliteration) {
-            // Special case: Tetragrammaton (יהוה, H3068) is always read as "Adonai"
-            if (Math.trunc(word.strongNumber || 0) === 3068) {
-              transliteration = "a.do.nai";
-            } else {
+          if (Math.trunc(word.strongNumber || 0) === 3068) {
+            transliteration = "a.do.nai";
+          } else {
+            const ohbText = decodeHtmlEntities(word.hebUnicode);
+            if (ohbText && ohbText.length > 0) {
+              const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
+              transliteration = isHebrew
+                ? transliterateHebrew(ohbText)
+                : ohbText;
+            }
+            if (!transliteration) {
               transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
             }
           }
