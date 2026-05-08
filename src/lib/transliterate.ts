@@ -94,9 +94,16 @@ export const transliterateHebrew = (wlcWord: string): string => {
     }
 
     // Final yod without a vowel = mater lectionis ("i").
+    // Also handles yod at second-to-last position when the last letter is a final silent
+    // aleph/ayin with no vowel (e.g. בְּגֵיא → "be.gei" not "be.gey").
     // Only append "i" if the preceding syllable doesn't already end in "i"
     // (chiriq male = chiriq + yod confirming the vowel — don't double up).
-    if (cl.base === "י" && !cl.vowel && i === clusters.length - 1 && syllables.length > 0) {
+    const isLastCluster = i === clusters.length - 1;
+    const isYodBeforeSilentFinal =
+      i === clusters.length - 2 &&
+      ["א", "ע"].includes(clusters[i + 1].base) &&
+      !clusters[i + 1].vowel;
+    if (cl.base === "י" && !cl.vowel && (isLastCluster || isYodBeforeSilentFinal) && syllables.length > 0) {
       if (!syllables[syllables.length - 1].endsWith("i")) {
         syllables[syllables.length - 1] += "i";
       }
