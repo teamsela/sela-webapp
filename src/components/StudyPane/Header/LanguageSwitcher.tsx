@@ -129,7 +129,7 @@ const LanguageSwitcher = () => {
               className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
                 (opt.value === ctxNonEnglishDisplayMode) || (ctxLanguageMode === LanguageMode.English)
                   ? "bg-[#F2F2F2] font-semibold text-slate-900"
-                  : "text-slate-700 hover:bg-[#F2F2F2]"
+                  : "text-slate-900 hover:bg-[#F2F2F2]"
               }`}
             >
               {opt.label}

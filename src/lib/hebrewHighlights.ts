@@ -130,7 +130,7 @@ export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
   { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#FFB74D") },              // ts sound
   { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#BA68C8") },                                         // k/q sound
   { id: "resh", label: "ר", memberIds: ["resh"], palette: createPalette("#64B5F6") },                                       // r sound
-  { id: "shin-sin-group", label: "שׂ שׁ", memberIds: ["sin", "shin"], palette: createPalette("#FFD54F") },                  // sh sound (shin primary)
+  { id: "shin-sin-group", label: "שׁ שׂ", memberIds: ["sin", "shin"], palette: createPalette("#FFD54F") },                  // sh/s sound (shin primary)
   { id: "tav", label: "ת", memberIds: ["tav"], palette: createPalette("#388E3C", "#FFFFFF") },                              // t sound
 ];
 
