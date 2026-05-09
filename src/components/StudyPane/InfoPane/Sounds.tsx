@@ -108,6 +108,8 @@ const Sounds = () => {
     ctxSetSelectedLetterChipIds,
     ctxLetterHighlightEnabled,
     ctxSetLetterHighlightEnabled,
+    ctxSetSelectedWords,
+    ctxSetNumSelectedWords,
   } = useContext(FormatContext);
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
@@ -130,16 +132,18 @@ const Sounds = () => {
   const soundSectionRef = useRef<HTMLDivElement>(null);
 
   // Deselect all sound chips when the user clicks outside the sound section.
+  // Uses "click" (not "mousedown") to avoid racing with useDragToSelect's mousedown→mouseup
+  // word-deselect mechanism in the passage.
   useEffect(() => {
     if (ctxSelectedSoundChipIds.length === 0) return;
-    const handleMouseDown = (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (showTooltip) return;
       if (soundSectionRef.current && !soundSectionRef.current.contains(e.target as Node)) {
         ctxSetSelectedSoundChipIds([]);
       }
     };
-    document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
   }, [ctxSelectedSoundChipIds, ctxSetSelectedSoundChipIds, showTooltip]);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
@@ -210,6 +214,8 @@ const Sounds = () => {
   };
 
   const toggleSoundHighlight = () => {
+    ctxSetSelectedWords([]);
+    ctxSetNumSelectedWords(0);
     if (ctxSelectedSoundChipIds.length > 0) {
       // Apply selected chips as the highlighted set, then deselect.
       ctxSetHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
