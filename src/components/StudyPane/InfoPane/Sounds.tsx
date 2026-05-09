@@ -11,6 +11,7 @@ import {
   LETTER_CHIPS,
   SOUND_CHIPS,
 } from "@/lib/hebrewHighlights";
+import { useHighlightManager, HighlightGroup } from "./useHighlightManager";
 
 type SoundsSectionId = "sound-distribution" | "letter-distribution";
 
@@ -100,15 +101,14 @@ const Sounds = () => {
     ctxPassageProps,
     ctxSelectedSoundChipIds,
     ctxSetSelectedSoundChipIds,
-    ctxHighlightedSoundChipIds,
-    ctxSetHighlightedSoundChipIds,
-    ctxSoundHighlightEnabled,
-    ctxSetSoundHighlightEnabled,
     ctxSelectedLetterChipIds,
     ctxSetSelectedLetterChipIds,
     ctxLetterHighlightEnabled,
     ctxSetLetterHighlightEnabled,
   } = useContext(FormatContext);
+  const { activeHighlightId, toggleHighlight } = useHighlightManager("sound");
+  const soundHighlightEnabled = activeHighlightId !== null;
+  const [highlightedSoundChipIds, setHighlightedSoundChipIds] = useState<string[]>([]);
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
   const [showTooltip, setShowTooltip] = useState(false);
@@ -141,6 +141,13 @@ const Sounds = () => {
     document.addEventListener("mousedown", handleMouseDown);
     return () => document.removeEventListener("mousedown", handleMouseDown);
   }, [ctxSelectedSoundChipIds, ctxSetSelectedSoundChipIds, showTooltip]);
+
+  // Sync panel chip colors if highlight is cleared externally (undo, toolbar clear, etc.)
+  useEffect(() => {
+    if (!activeHighlightId) {
+      setHighlightedSoundChipIds([]);
+    }
+  }, [activeHighlightId]);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
@@ -211,15 +218,29 @@ const Sounds = () => {
 
   const toggleSoundHighlight = () => {
     if (ctxSelectedSoundChipIds.length > 0) {
-      // Apply selected chips as the highlighted set, then deselect.
-      ctxSetHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
-      ctxSetSoundHighlightEnabled(true);
+      // Build highlight groups from selected chips — each chip colors its matching words.
+      const groups: HighlightGroup[] = [];
+      for (const chipId of ctxSelectedSoundChipIds) {
+        const chip = SOUND_CHIPS.find((c) => c.id === chipId);
+        if (!chip) continue;
+        const words = allWords.filter((word) => countSoundOccurrences(word, chipId) > 0);
+        if (words.length > 0) {
+          groups.push({
+            label: chipId,
+            words,
+            palette: { fill: chip.palette.fill, border: chip.palette.border, text: chip.palette.text },
+          });
+        }
+      }
+
+      setHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
       ctxSetSelectedSoundChipIds([]);
       ctxSetLetterHighlightEnabled(false);
-    } else if (ctxSoundHighlightEnabled) {
-      // Clear Highlight — no chips selected, just turn off.
-      ctxSetHighlightedSoundChipIds([]);
-      ctxSetSoundHighlightEnabled(false);
+      toggleHighlight("sound-distribution", groups);
+    } else if (soundHighlightEnabled) {
+      // Clear Highlight.
+      setHighlightedSoundChipIds([]);
+      toggleHighlight("sound-distribution", []);
     }
   };
 
@@ -230,15 +251,16 @@ const Sounds = () => {
 
     const next = !ctxLetterHighlightEnabled;
     ctxSetLetterHighlightEnabled(next);
-    if (next) {
-      ctxSetSoundHighlightEnabled(false);
+    if (next && soundHighlightEnabled) {
+      setHighlightedSoundChipIds([]);
+      toggleHighlight("sound-distribution", []);
     }
   };
 
   const soundTooltipP1 =
     "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written.";
   const soundTooltipP2 =
-    "The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
+    "When you apply Smart Highlight, words containing the selected sounds are color-coded across the entire passage, visible in all display modes.";
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -307,15 +329,15 @@ const Sounds = () => {
                     border={chip.palette.border}
                     text={chip.palette.text}
                     isSelected={ctxSelectedSoundChipIds.includes(chip.id)}
-                    isHighlighted={ctxSoundHighlightEnabled && ctxHighlightedSoundChipIds.includes(chip.id)}
+                    isHighlighted={soundHighlightEnabled && highlightedSoundChipIds.includes(chip.id)}
                     onClick={() => toggleSoundChip(chip.id)}
                   />
                 ))}
               </div>
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton
-                  active={ctxSoundHighlightEnabled && ctxSelectedSoundChipIds.length === 0}
-                  disabled={ctxSelectedSoundChipIds.length === 0 && !ctxSoundHighlightEnabled}
+                  active={soundHighlightEnabled && ctxSelectedSoundChipIds.length === 0}
+                  disabled={ctxSelectedSoundChipIds.length === 0 && !soundHighlightEnabled}
                   onClick={toggleSoundHighlight}
                 />
               </div>

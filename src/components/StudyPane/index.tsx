@@ -91,7 +91,7 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxActiveHighlightIds: { syntax: null, motif: null, sound: null } as Record<ColorSource, string | null>,
   ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
@@ -106,10 +106,6 @@ export const FormatContext = createContext({
   ctxSetNonEnglishDisplayMode: (arg: NonEnglishDisplayMode) => {},
   ctxSelectedSoundChipIds: [] as string[],
   ctxSetSelectedSoundChipIds: (arg: string[]) => {},
-  ctxHighlightedSoundChipIds: [] as string[],
-  ctxSetHighlightedSoundChipIds: (arg: string[]) => {},
-  ctxSoundHighlightEnabled: false,
-  ctxSetSoundHighlightEnabled: (arg: boolean) => {},
   ctxSelectedLetterChipIds: [] as string[],
   ctxSetSelectedLetterChipIds: (arg: string[]) => {},
   ctxLetterHighlightEnabled: false,
@@ -159,6 +155,7 @@ const StudyPane = ({
   const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
     syntax: null,
     motif: null,
+    sound: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
@@ -188,8 +185,6 @@ const StudyPane = ({
   );
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
   const [selectedSoundChipIds, setSelectedSoundChipIds] = useState<string[]>([]);
-  const [highlightedSoundChipIds, setHighlightedSoundChipIds] = useState<string[]>([]);
-  const [soundHighlightEnabled, setSoundHighlightEnabled] = useState(false);
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
 
@@ -317,10 +312,6 @@ const StudyPane = ({
     ctxSetNonEnglishDisplayMode: setNonEnglishDisplayMode,
     ctxSelectedSoundChipIds: selectedSoundChipIds,
     ctxSetSelectedSoundChipIds: setSelectedSoundChipIds,
-    ctxHighlightedSoundChipIds: highlightedSoundChipIds,
-    ctxSetHighlightedSoundChipIds: setHighlightedSoundChipIds,
-    ctxSoundHighlightEnabled: soundHighlightEnabled,
-    ctxSetSoundHighlightEnabled: setSoundHighlightEnabled,
     ctxSelectedLetterChipIds: selectedLetterChipIds,
     ctxSetSelectedLetterChipIds: setSelectedLetterChipIds,
     ctxLetterHighlightEnabled: letterHighlightEnabled,
