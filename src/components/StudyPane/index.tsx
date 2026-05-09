@@ -112,6 +112,8 @@ export const FormatContext = createContext({
   ctxSetSoundHighlightEnabled: (arg: boolean) => {},
   ctxSelectedLetterChipIds: [] as string[],
   ctxSetSelectedLetterChipIds: (arg: string[]) => {},
+  ctxHighlightedLetterChipIds: [] as string[],
+  ctxSetHighlightedLetterChipIds: (arg: string[]) => {},
   ctxLetterHighlightEnabled: false,
   ctxSetLetterHighlightEnabled: (arg: boolean) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
@@ -191,6 +193,7 @@ const StudyPane = ({
   const [highlightedSoundChipIds, setHighlightedSoundChipIds] = useState<string[]>([]);
   const [soundHighlightEnabled, setSoundHighlightEnabled] = useState(false);
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
+  const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
@@ -323,6 +326,8 @@ const StudyPane = ({
     ctxSetSoundHighlightEnabled: setSoundHighlightEnabled,
     ctxSelectedLetterChipIds: selectedLetterChipIds,
     ctxSetSelectedLetterChipIds: setSelectedLetterChipIds,
+    ctxHighlightedLetterChipIds: highlightedLetterChipIds,
+    ctxSetHighlightedLetterChipIds: setHighlightedLetterChipIds,
     ctxLetterHighlightEnabled: letterHighlightEnabled,
     ctxSetLetterHighlightEnabled: setLetterHighlightEnabled,
     ctxNoteBox: noteBox,

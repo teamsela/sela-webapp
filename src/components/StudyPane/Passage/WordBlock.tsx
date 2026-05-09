@@ -46,7 +46,7 @@ export const WordBlock = ({
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
     ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
-    ctxSelectedLetterChipIds, ctxLetterHighlightEnabled,
+    ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
 
   const { ctxIsHebrew, ctxDisplayMode } = useContext(LanguageContext)
@@ -347,7 +347,7 @@ export const WordBlock = ({
     ? new Set(ctxHighlightedSoundChipIds)
     : new Set<string>();
   const selectedLetterIds = ctxLetterHighlightEnabled
-    ? new Set(ctxSelectedLetterChipIds)
+    ? new Set(ctxHighlightedLetterChipIds)
     : new Set<string>();
 
   const renderInlineHighlightSegments = () => {

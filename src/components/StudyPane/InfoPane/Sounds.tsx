@@ -106,6 +106,8 @@ const Sounds = () => {
     ctxSetSoundHighlightEnabled,
     ctxSelectedLetterChipIds,
     ctxSetSelectedLetterChipIds,
+    ctxHighlightedLetterChipIds,
+    ctxSetHighlightedLetterChipIds,
     ctxLetterHighlightEnabled,
     ctxSetLetterHighlightEnabled,
     ctxSetSelectedWords,
@@ -130,6 +132,7 @@ const Sounds = () => {
   }, [showTooltip]);
 
   const soundSectionRef = useRef<HTMLDivElement>(null);
+  const letterSectionRef = useRef<HTMLDivElement>(null);
 
   // Deselect all sound chips when the user clicks outside the sound section.
   // Uses "click" (not "mousedown") to avoid racing with useDragToSelect's mousedown→mouseup
@@ -145,6 +148,18 @@ const Sounds = () => {
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, [ctxSelectedSoundChipIds, ctxSetSelectedSoundChipIds, showTooltip]);
+
+  // Deselect all letter chips when the user clicks outside the letter section.
+  useEffect(() => {
+    if (ctxSelectedLetterChipIds.length === 0) return;
+    const handleClick = (e: MouseEvent) => {
+      if (letterSectionRef.current && !letterSectionRef.current.contains(e.target as Node)) {
+        ctxSetSelectedLetterChipIds([]);
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [ctxSelectedLetterChipIds, ctxSetSelectedLetterChipIds]);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
@@ -217,27 +232,29 @@ const Sounds = () => {
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
     if (ctxSelectedSoundChipIds.length > 0) {
-      // Apply selected chips as the highlighted set, then deselect.
       ctxSetHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
       ctxSetSoundHighlightEnabled(true);
       ctxSetSelectedSoundChipIds([]);
+      ctxSetSelectedLetterChipIds([]);
       ctxSetLetterHighlightEnabled(false);
     } else if (ctxSoundHighlightEnabled) {
-      // Clear Highlight — no chips selected, just turn off.
       ctxSetHighlightedSoundChipIds([]);
       ctxSetSoundHighlightEnabled(false);
     }
   };
 
   const toggleLetterHighlight = () => {
-    if (ctxSelectedLetterChipIds.length === 0) {
-      return;
-    }
-
-    const next = !ctxLetterHighlightEnabled;
-    ctxSetLetterHighlightEnabled(next);
-    if (next) {
+    ctxSetSelectedWords([]);
+    ctxSetNumSelectedWords(0);
+    if (ctxSelectedLetterChipIds.length > 0) {
+      ctxSetHighlightedLetterChipIds([...ctxSelectedLetterChipIds]);
+      ctxSetLetterHighlightEnabled(true);
+      ctxSetSelectedLetterChipIds([]);
+      ctxSetSelectedSoundChipIds([]);
       ctxSetSoundHighlightEnabled(false);
+    } else if (ctxLetterHighlightEnabled) {
+      ctxSetHighlightedLetterChipIds([]);
+      ctxSetLetterHighlightEnabled(false);
     }
   };
 
@@ -329,7 +346,7 @@ const Sounds = () => {
           )}
         </div>
 
-        <div className="mx-4 border-b border-stroke dark:border-strokedark">
+        <div ref={letterSectionRef} className="mx-4 border-b border-stroke dark:border-strokedark">
           <button
             type="button"
             className="ClickBlock flex w-full items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
@@ -352,7 +369,8 @@ const Sounds = () => {
                   const isSelected = group.memberIds.every((id) =>
                     ctxSelectedLetterChipIds.includes(id),
                   );
-                  const isHighlighted = ctxLetterHighlightEnabled && isSelected;
+                  const isHighlighted = ctxLetterHighlightEnabled &&
+                    group.memberIds.every((id) => ctxHighlightedLetterChipIds.includes(id));
 
                   return (
                     <DistributionChip
@@ -371,8 +389,8 @@ const Sounds = () => {
               </div>
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton
-                  active={ctxLetterHighlightEnabled}
-                  disabled={ctxSelectedLetterChipIds.length === 0}
+                  active={ctxLetterHighlightEnabled && ctxSelectedLetterChipIds.length === 0}
+                  disabled={ctxSelectedLetterChipIds.length === 0 && !ctxLetterHighlightEnabled}
                   onClick={toggleLetterHighlight}
                 />
               </div>
