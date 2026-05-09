@@ -43,8 +43,8 @@ export const SOUND_CHIPS: SoundChip[] = [
   { id: "sh", label: "sh", palette: createPalette("#FFD54F") },        // gold/amber
   { id: "ts", label: "ts", palette: createPalette("#FFB74D") },        // orange (between sh and z)
   { id: "z", label: "z", palette: createPalette("#FF9800") },          // dark orange
-  { id: "kh-ch", label: "kh/ch", palette: createPalette("#CE93D8") },  // lavender
-  { id: "k-q", label: "k/q", palette: createPalette("#BA68C8") },          // medium purple (between kh/ch and g)
+  { id: "kh-ch", label: "kh/ ch", palette: createPalette("#CE93D8") },  // lavender
+  { id: "k-q", label: "k/ q", palette: createPalette("#BA68C8") },          // medium purple (between kh/ch and g)
   { id: "g", label: "g", palette: createPalette("#AB47BC") },          // purple (not green)
   { id: "h", label: "h", palette: createPalette("#E1BEE7") },          // light purple/lilac
   { id: "d", label: "d", palette: createPalette("#81C784") },          // light green
