@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
@@ -125,6 +125,21 @@ const Sounds = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showTooltip]);
 
+  const soundSectionRef = useRef<HTMLDivElement>(null);
+
+  // Deselect all sound chips when the user clicks outside the sound section.
+  useEffect(() => {
+    if (ctxSelectedSoundChipIds.length === 0) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (showTooltip) return;
+      if (soundSectionRef.current && !soundSectionRef.current.contains(e.target as Node)) {
+        ctxSetSelectedSoundChipIds([]);
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [ctxSelectedSoundChipIds, ctxSetSelectedSoundChipIds, showTooltip]);
+
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
   };
@@ -230,7 +245,7 @@ const Sounds = () => {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="accordion">
-        <div className="mx-4 border-b border-stroke dark:border-strokedark">
+        <div ref={soundSectionRef} className="mx-4 border-b border-stroke dark:border-strokedark">
           <button
             type="button"
             className="ClickBlock flex w-full items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
