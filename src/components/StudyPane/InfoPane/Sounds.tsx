@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
@@ -108,6 +110,20 @@ const Sounds = () => {
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowTooltip(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showTooltip]);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
@@ -225,20 +241,46 @@ const Sounds = () => {
               Hebrew Sound Distribution
             </span>
             <span
-              className="relative ml-1 inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500"
-              onClick={(e) => { e.stopPropagation(); setShowTooltip((v) => !v); }}
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
+              className="relative ml-1 inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
+              onClick={(e) => { e.stopPropagation(); setShowTooltip(true); }}
+              role="button"
+              aria-label="About sound distribution"
             >
               i
-              {showTooltip && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-700 shadow-lg dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
-                  <p>{soundTooltipP1}</p>
-                  <p className="mt-3">{soundTooltipP2}</p>
-                </div>
-              )}
             </span>
           </button>
+
+          {isMounted && showTooltip && createPortal(
+            <div
+              className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="sound-dist-modal-title"
+              onClick={(e) => { if (e.target === e.currentTarget) setShowTooltip(false); }}
+            >
+              <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+                <button
+                  type="button"
+                  onClick={() => setShowTooltip(false)}
+                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  aria-label="Close"
+                >
+                  <IconX size={18} stroke={2} />
+                </button>
+                <div className="flex items-center gap-2 text-primary">
+                  <IconInfoCircle size={22} stroke={2.2} />
+                  <h3 id="sound-dist-modal-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Hebrew Sound Distribution
+                  </h3>
+                </div>
+                <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                  <p>{soundTooltipP1}</p>
+                  <p>{soundTooltipP2}</p>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
 
           {openSection === "sound-distribution" && (
             <div className="space-y-4 p-4">
