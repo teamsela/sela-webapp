@@ -45,7 +45,7 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
-    ctxSelectedSoundChipIds,
+    ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
     ctxSelectedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
 
@@ -343,8 +343,9 @@ export const WordBlock = ({
     );
   };
 
-  // Sound highlight is now handled via useHighlightManager ("sound" source) → wordsColorMap.
-  const selectedSoundIds = new Set<string>();
+  const selectedSoundIds = ctxSoundHighlightEnabled
+    ? new Set(ctxHighlightedSoundChipIds)
+    : new Set<string>();
   const selectedLetterIds = ctxLetterHighlightEnabled
     ? new Set(ctxSelectedLetterChipIds)
     : new Set<string>();
