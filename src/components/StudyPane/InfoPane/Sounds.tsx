@@ -100,6 +100,8 @@ const Sounds = () => {
     ctxPassageProps,
     ctxSelectedSoundChipIds,
     ctxSetSelectedSoundChipIds,
+    ctxHighlightedSoundChipIds,
+    ctxSetHighlightedSoundChipIds,
     ctxSoundHighlightEnabled,
     ctxSetSoundHighlightEnabled,
     ctxSelectedLetterChipIds,
@@ -185,12 +187,6 @@ const Sounds = () => {
   }, [allWords]);
 
   useEffect(() => {
-    if (ctxSelectedSoundChipIds.length === 0 && ctxSoundHighlightEnabled) {
-      ctxSetSoundHighlightEnabled(false);
-    }
-  }, [ctxSelectedSoundChipIds, ctxSetSoundHighlightEnabled, ctxSoundHighlightEnabled]);
-
-  useEffect(() => {
     if (ctxSelectedLetterChipIds.length === 0 && ctxLetterHighlightEnabled) {
       ctxSetLetterHighlightEnabled(false);
     }
@@ -214,14 +210,16 @@ const Sounds = () => {
   };
 
   const toggleSoundHighlight = () => {
-    if (ctxSelectedSoundChipIds.length === 0) {
-      return;
-    }
-
-    const next = !ctxSoundHighlightEnabled;
-    ctxSetSoundHighlightEnabled(next);
-    if (next) {
+    if (ctxSelectedSoundChipIds.length > 0) {
+      // Apply selected chips as the highlighted set, then deselect.
+      ctxSetHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
+      ctxSetSoundHighlightEnabled(true);
+      ctxSetSelectedSoundChipIds([]);
       ctxSetLetterHighlightEnabled(false);
+    } else if (ctxSoundHighlightEnabled) {
+      // Clear Highlight — no chips selected, just turn off.
+      ctxSetHighlightedSoundChipIds([]);
+      ctxSetSoundHighlightEnabled(false);
     }
   };
 
@@ -309,15 +307,15 @@ const Sounds = () => {
                     border={chip.palette.border}
                     text={chip.palette.text}
                     isSelected={ctxSelectedSoundChipIds.includes(chip.id)}
-                    isHighlighted={ctxSoundHighlightEnabled && ctxSelectedSoundChipIds.includes(chip.id)}
+                    isHighlighted={ctxSoundHighlightEnabled && ctxHighlightedSoundChipIds.includes(chip.id)}
                     onClick={() => toggleSoundChip(chip.id)}
                   />
                 ))}
               </div>
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton
-                  active={ctxSoundHighlightEnabled}
-                  disabled={ctxSelectedSoundChipIds.length === 0}
+                  active={ctxSoundHighlightEnabled && ctxSelectedSoundChipIds.length === 0}
+                  disabled={ctxSelectedSoundChipIds.length === 0 && !ctxSoundHighlightEnabled}
                   onClick={toggleSoundHighlight}
                 />
               </div>

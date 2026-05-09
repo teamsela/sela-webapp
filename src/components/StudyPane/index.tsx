@@ -106,6 +106,8 @@ export const FormatContext = createContext({
   ctxSetNonEnglishDisplayMode: (arg: NonEnglishDisplayMode) => {},
   ctxSelectedSoundChipIds: [] as string[],
   ctxSetSelectedSoundChipIds: (arg: string[]) => {},
+  ctxHighlightedSoundChipIds: [] as string[],
+  ctxSetHighlightedSoundChipIds: (arg: string[]) => {},
   ctxSoundHighlightEnabled: false,
   ctxSetSoundHighlightEnabled: (arg: boolean) => {},
   ctxSelectedLetterChipIds: [] as string[],
@@ -186,6 +188,7 @@ const StudyPane = ({
   );
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
   const [selectedSoundChipIds, setSelectedSoundChipIds] = useState<string[]>([]);
+  const [highlightedSoundChipIds, setHighlightedSoundChipIds] = useState<string[]>([]);
   const [soundHighlightEnabled, setSoundHighlightEnabled] = useState(false);
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
@@ -314,6 +317,8 @@ const StudyPane = ({
     ctxSetNonEnglishDisplayMode: setNonEnglishDisplayMode,
     ctxSelectedSoundChipIds: selectedSoundChipIds,
     ctxSetSelectedSoundChipIds: setSelectedSoundChipIds,
+    ctxHighlightedSoundChipIds: highlightedSoundChipIds,
+    ctxSetHighlightedSoundChipIds: setHighlightedSoundChipIds,
     ctxSoundHighlightEnabled: soundHighlightEnabled,
     ctxSetSoundHighlightEnabled: setSoundHighlightEnabled,
     ctxSelectedLetterChipIds: selectedLetterChipIds,

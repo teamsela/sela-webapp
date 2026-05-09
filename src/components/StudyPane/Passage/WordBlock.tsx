@@ -45,7 +45,7 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
-    ctxSelectedSoundChipIds, ctxSoundHighlightEnabled,
+    ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
     ctxSelectedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
 
@@ -344,7 +344,7 @@ export const WordBlock = ({
   };
 
   const selectedSoundIds = ctxSoundHighlightEnabled
-    ? new Set(ctxSelectedSoundChipIds)
+    ? new Set(ctxHighlightedSoundChipIds)
     : new Set<string>();
   const selectedLetterIds = ctxLetterHighlightEnabled
     ? new Set(ctxSelectedLetterChipIds)
