@@ -629,7 +629,9 @@ async def sela_run_test(
         - Each chip's background is the exact expected RGB color.
         - No yellow selection outline present on any chip.
         - Every highlighted passage span matches a chip color with correct Hebrew letters.
-    11. Report PASS or FAIL with full detail.
+    11. Switch to Hebrew Letters Distribution — verify chips still present post-highlight.
+        Browser is left on this panel for visual inspection.
+    12. Report PASS or FAIL with full detail.
 
     Args:
         base_url: Vercel preview or production URL.
@@ -716,6 +718,24 @@ async def sela_run_test(
     det_result = await sela_verify_deterministic(chips)
     record("verify_deterministic", det_result)
     await browser_screenshot("09_verify_deterministic.png")
+
+    # 11. Switch back to Letter Distribution — verify chips still present after highlight,
+    #     then leave the browser here for visual inspection.
+    record("open_letter_dist_post", await sela_open_letter_distribution())
+    page = await _ensure_page()
+    await page.wait_for_timeout(600)
+    await browser_screenshot("10_letter_dist_post_highlight.png")
+
+    letter_chip_count_post = await page.evaluate(
+        "() => document.querySelectorAll('button.wordBlock').length"
+    )
+    record(
+        "letter_chips_post_highlight",
+        f"PASS: {letter_chip_count_post} letter chip(s) visible in Letters Distribution after highlight"
+        if letter_chip_count_post > 0
+        else "FAIL: No letter chips found after highlight",
+    )
+    await browser_screenshot("11_letter_chips_post.png")
 
     # Summary
     verdict = "PASS" if passed else "FAIL"
