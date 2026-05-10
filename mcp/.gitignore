@@ -22,3 +22,6 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 .pyright/
+
+# Playwright browser binaries
+playwright-browsers/
