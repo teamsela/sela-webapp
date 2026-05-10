@@ -14,7 +14,7 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -31,6 +31,7 @@ export const StanzaBlock = ({
 
   const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
   const isParallelMode = ctxLanguageMode == LanguageMode.Parallel;
+  const shouldStretchReadmeStanza = ctxReadmeBtnOn && !isParallelMode;
   const stanzaHorizontalPaddingClass = isParallelMode
     ? (ctxIsHebrew ? 'pl-10 pr-2' : 'pr-10 pl-2')
     : (ctxIsHebrew ? 'pl-2' : 'pr-2');
@@ -214,7 +215,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? '' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`} 
+      className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`} 
       >
       <div
         className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${stanzaCollapseButtonSideClass}`}
@@ -252,7 +253,7 @@ export const StanzaBlock = ({
         )
       )}
 
-      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? 'w-full' : ''}`}>
+      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || shouldStretchReadmeStanza ? 'w-full min-w-0' : ''}`}>
       {
           stanzaProps.strophes.map((strophe) => {
               return (

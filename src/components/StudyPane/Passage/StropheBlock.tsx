@@ -25,7 +25,8 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
+    ctxReadmeBtnOn
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -326,9 +327,9 @@ export const StropheBlock = ({
               </div>
             }
               <div
-                className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
+                className={`${shouldShowWords ? '' : 'hidden'} flex-1 w-full min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
+                <div ref={wordAreaRef} className="w-full min-w-0">
                   {stropheNoteTitle && shouldRenderWordArea && (
                   <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
                     <span
@@ -343,28 +344,30 @@ export const StropheBlock = ({
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
-                        <div 
-                          key={"line_" + lineId}
-                          data-strophe-line="true"
-                          className={`flex my-1`}
-                        >
-                        {
-                          line.words.map((word) => {
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
-                              >
-                                <WordBlock
-                                  key={"word_" + word.wordId}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
+                        <React.Fragment key={"line_" + lineId}>
+                          {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+                          <div 
+                            data-strophe-line="true"
+                            className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
+                          >
+                          {
+                            line.words.map((word) => {
+                              return (
+                                <div
+                                  className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+                                  key={word.wordId}
+                                >
+                                  <WordBlock
+                                    key={"word_" + word.wordId}
+                                    wordProps={word}
+                                    isFirstLineInStrophe={lineId === 0}
+                                  />
+                                </div>
+                              )
+                            })
+                          }
+                          </div>
+                        </React.Fragment>
                       )
                     })
                   }
@@ -382,11 +385,11 @@ export const StropheBlock = ({
             }
             </>
           ) : (
-            <div className="relative">
+            <div className="relative w-full min-w-0">
               <div
-                className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
+                className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} w-full min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
+                <div ref={wordAreaRef} className="w-full min-w-0">
                   {stropheNoteTitle && shouldRenderWordArea && (
                   <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
                     <span
@@ -402,28 +405,30 @@ export const StropheBlock = ({
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
-                        <div 
-                          key={"line_" + lineId}
-                          data-strophe-line="true"
-                          className={`flex my-1 `}
-                        >
-                        {
-                          line.words.map((word) => {
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
-                              >
-                                <WordBlock
-                                  key={"word_" + word.wordId}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
+                        <React.Fragment key={"line_" + lineId}>
+                          {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+                          <div 
+                            data-strophe-line="true"
+                            className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
+                          >
+                          {
+                            line.words.map((word) => {
+                              return (
+                                <div
+                                  className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+                                  key={word.wordId}
+                                >
+                                  <WordBlock
+                                    key={"word_" + word.wordId}
+                                    wordProps={word}
+                                    isFirstLineInStrophe={lineId === 0}
+                                  />
+                                </div>
+                              )
+                            })
+                          }
+                          </div>
+                        </React.Fragment>
                       )
                     })
                   }

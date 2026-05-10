@@ -18,6 +18,11 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
     const [clickToDeSelect, setClickToDeSelect] = useState(true);
     const containerRef = useRef<HTMLDivElement>(null);
+    const selectedWordsRef = useRef(ctxSelectedWords);
+
+    useEffect(() => {
+        selectedWordsRef.current = ctxSelectedWords;
+    }, [ctxSelectedWords]);
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
         // to make selection of text inside text boxes possible ***  //
@@ -34,8 +39,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         event.preventDefault();
         setIsDragging(true);
         document.body.style.userSelect = 'none';
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
         setSelectionStart({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
         setSelectionEnd(null);
         //click to de-select
@@ -46,21 +49,26 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
     };
 
-    let rects;
     const handleMouseMove = useCallback((event: MouseEvent) => {
         if (!isDragging) return;
         if (!selectionStart) return;
         // filter out small accidental drags when user clicks
         /////////
         const distance = Math.sqrt(Math.pow(event.clientX - selectionStart.x, 2) + Math.pow(event.clientY - selectionStart.y, 2));
-        if (distance > 6)
-            setSelectionEnd({ x: event.clientX + window.scrollX, y: event.clientY + window.scrollY });
+        const nextSelectionEnd =
+            distance > 6
+                ? { x: event.clientX + window.scrollX, y: event.clientY + window.scrollY }
+                : null;
+        if (nextSelectionEnd)
+            setSelectionEnd(nextSelectionEnd);
         else
             setSelectionEnd(null);
         /////////
-        if (!selectionStart || !selectionEnd || !containerRef.current) return;
+        if (!selectionStart || !nextSelectionEnd || !containerRef.current) return;
         // Get all elements with the class 'wordBlock' inside the container
-        rects = containerRef.current.querySelectorAll('.wordBlock');
+        const rects = containerRef.current.querySelectorAll('.wordBlock');
+        const wordsToAdd: PassageData[] = [];
+        const existingWords = selectedWordsRef.current;
 
         rects.forEach(rect => {
             const rectBounds = rect.getBoundingClientRect();
@@ -73,27 +81,35 @@ export const useDragToSelect = (passageProps: PassageProps) => {
 
             // Check if the element is within the selection box
             if (
-                adjustedBounds.left < Math.max(selectionStart.x, selectionEnd.x) &&
-                adjustedBounds.right > Math.min(selectionStart.x, selectionEnd.x) &&
-                adjustedBounds.top < Math.max(selectionStart.y, selectionEnd.y) &&
-                adjustedBounds.bottom > Math.min(selectionStart.y, selectionEnd.y)
+                adjustedBounds.left < Math.max(selectionStart.x, nextSelectionEnd.x) &&
+                adjustedBounds.right > Math.min(selectionStart.x, nextSelectionEnd.x) &&
+                adjustedBounds.top < Math.max(selectionStart.y, nextSelectionEnd.y) &&
+                adjustedBounds.bottom > Math.min(selectionStart.y, nextSelectionEnd.y)
             ) {
                 const wordId = Number(rect.getAttribute('id'));
                 const selectedWord = getWordById(passageProps, wordId);
-                if (selectedWord !== null && !ctxSelectedWords.includes(selectedWord)) {
-                    const newArray = [...ctxSelectedWords, selectedWord];
-                    ctxSetSelectedWords(newArray);
-                    ctxSetNumSelectedWords(ctxSelectedWords.length);
+                if (
+                    selectedWord !== null &&
+                    !existingWords.includes(selectedWord) &&
+                    !wordsToAdd.includes(selectedWord)
+                ) {
+                    wordsToAdd.push(selectedWord);
                 }
             }
         });
+
+        if (wordsToAdd.length > 0) {
+            const nextWords = [...existingWords, ...wordsToAdd];
+            ctxSetSelectedWords(nextWords);
+            ctxSetNumSelectedWords(nextWords.length);
+        }
 
         ctxSetColorFill(DEFAULT_COLOR_FILL);
         ctxSetBorderColor(DEFAULT_BORDER_COLOR);
         ctxSetTextColor(DEFAULT_TEXT_COLOR);
 
-        if (ctxSelectedWords.length >= 1) {
-            const lastSelectedWord = ctxSelectedWords.at(ctxSelectedWords.length - 1);
+        if (existingWords.length >= 1) {
+            const lastSelectedWord = existingWords.at(existingWords.length - 1);
             // if (lastSelectedWord) {
             //     wordsHasSameColor(ctxSelectedWords, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedWord?.colorFill);
             //     wordsHasSameColor(ctxSelectedWords, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedWord?.borderColor);
@@ -102,7 +118,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             ctxSetSelectedStrophes([]);
         }
 
-    }, [isDragging, selectionStart, selectionEnd, passageProps, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+    }, [isDragging, selectionStart, passageProps, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
 
     const handleMouseUp = useCallback((event: MouseEvent) => {
         const target = event.target as HTMLTextAreaElement;
@@ -127,6 +143,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
 
   
     useEffect(() => {
+        if (!isDragging) return;
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
         return () => {
@@ -192,7 +209,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [ ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
+    }, [passageProps.stanzaProps, ctxSetNumSelectedWords, ctxSetSelectedWords]);
     ///////////////////////////////////////////////////
 
 

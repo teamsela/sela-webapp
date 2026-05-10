@@ -110,6 +110,8 @@ export const FormatContext = createContext({
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
   ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxReadmeBtnOn: false,
+  ctxSetReadmeBtnOn: (arg: boolean) => {},
   ctxCurrentSpokenWordIds: [] as number[],
   ctxSetCurrentSpokenWordIds: (_arg: number[]) => {}
 });
@@ -179,6 +181,7 @@ const StudyPane = ({
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
   const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
+  const [readmeBtnOn, setReadmeBtnOn] = useState(false);
   const [currentSpokenWordIds, setCurrentSpokenWordIds] = useState<number[]>([]);
 
   const addToHistory = (
@@ -304,6 +307,8 @@ const StudyPane = ({
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
     ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxReadmeBtnOn: readmeBtnOn,
+    ctxSetReadmeBtnOn: setReadmeBtnOn,
     ctxCurrentSpokenWordIds: currentSpokenWordIds,
     ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds
   };
@@ -311,7 +316,11 @@ const StudyPane = ({
   useEffect(() => {
 
     // merge custom metadata with bible data
-    let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
+    let initPassageProps : PassageProps = mergeData(
+      passageData.bibleData,
+      studyMetadata,
+      { useSourceStanzaBreaks: readmeBtnOn }
+    );
     setPassageProps(initPassageProps);
     
     // Handle migration from old BoxDisplayStyle enum to new BoxDisplayConfig
@@ -334,7 +343,7 @@ const StudyPane = ({
     setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
     setLanguageMode(studyMetadata.lang || LanguageMode.English);
   
-  }, [passageData.bibleData, studyMetadata]);
+  }, [passageData.bibleData, studyMetadata, readmeBtnOn]);
 
   if (!passageData.study.metadata.words) {
     let emptyStudyMetadata : StudyMetadata = { words: {} };

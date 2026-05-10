@@ -10,7 +10,7 @@ export const LanguageContext = createContext({
 
 export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
-  const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
+  const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn } = useContext(FormatContext);
 
   const [isNarrow, setIsNarrow] = useState(false);
 
@@ -36,7 +36,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
 
   const isParallel = ctxLanguageMode == LanguageMode.Parallel;
   const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel;
-  const allowPassageGrowth = ctxStropheNoteBtnOn;
+  const allowPassageGrowth = ctxStropheNoteBtnOn && !ctxReadmeBtnOn;
   const stackedWidthClass = allowPassageGrowth
     ? 'w-fit min-w-full max-w-none'
     : isParallel
@@ -44,8 +44,10 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
       : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`
-    : 'flex-row max-w-[600px]';
-  const passageWidthClass = isHebrew
+    : `flex-row ${ctxReadmeBtnOn ? 'w-full max-w-full' : 'max-w-[600px]'}`;
+  const passageWidthClass = ctxReadmeBtnOn && !isParallel
+    ? `w-full min-w-0 ${isHebrew ? 'hbFont' : ''}`
+    : isHebrew
     ? `hbFont ${allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : shouldStackStanzas ? 'w-[100%]' : 'w-[70%]'}`
     : allowPassageGrowth ? 'w-fit min-w-full max-w-none' : isParallel ? 'w-fit max-w-none shrink-0' : 'w-[100%]';
 

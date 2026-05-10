@@ -1,6 +1,7 @@
 "use client";
 
 import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuNotebookPen } from "react-icons/lu";
+import { CgEreader } from "react-icons/cg";
 import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
 import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
@@ -770,7 +771,7 @@ const areWordsContiguous = (words: WordProps[]): boolean => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps, ctxReadmeBtnOn } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
@@ -828,39 +829,40 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
       areStrophesContiguous(ctxSelectedStrophes);
   }
 
-  const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
+  const effectiveEnabled = buttonEnabled && !ctxReadmeBtnOn;
+  const handleClick = () => { effectiveEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (
     <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
       <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
+        className={`hover:text-primary ${effectiveEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
         {
-          (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          ((updateType == StructureUpdateType.mergeWithPrevStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && isHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          ((updateType == StructureUpdateType.mergeWithPrevStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && isHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         {
-          ((updateType == StructureUpdateType.mergeWithNextStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && isHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
+          ((updateType == StructureUpdateType.mergeWithNextStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && isHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(effectiveEnabled) ? `1` : `0.4`} fontSize="1.5em" />
         }
         <ToolTip text={toolTip} />
       </button>
@@ -891,7 +893,7 @@ export const StropheNoteBtn = () => {
   const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn, ctxLanguageMode } = useContext(FormatContext)
   const disabled = ctxLanguageMode === LanguageMode.Parallel;
   return (
-    <div >
+    <div>
       <button 
         className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
@@ -901,4 +903,18 @@ export const StropheNoteBtn = () => {
       </button>
     </div>
   )
+}
+
+export const ReadmeBtn = () => {
+  const { ctxReadmeBtnOn, ctxSetReadmeBtnOn } = useContext(FormatContext)
+  return (
+    <div className="p-2">
+      <button
+        className={`${ctxReadmeBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center`}
+        onClick={() => {ctxSetReadmeBtnOn(!ctxReadmeBtnOn)}}
+      >
+        <CgEreader />
+      </button>
+    </div>
+  );
 }
