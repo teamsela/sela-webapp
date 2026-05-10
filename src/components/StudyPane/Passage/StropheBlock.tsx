@@ -223,14 +223,33 @@ export const StropheBlock = ({
   }, [ctxScaleValue]);
 
   useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return;
     const el = wordAreaRef.current;
     if (!el) return;
 
+    const runSync = () => {
+      requestAnimationFrame(() => syncWordAreaHeight());
+    };
+
     syncWordAreaHeight();
-    const observer = new ResizeObserver(() => syncWordAreaHeight());
+    window.addEventListener("resize", runSync);
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        window.removeEventListener("resize", runSync);
+      };
+    }
+
+    const observer = new ResizeObserver(() => runSync());
     observer.observe(el);
+    if (el.parentElement) {
+      observer.observe(el.parentElement);
+    }
+    if (el.parentElement?.parentElement) {
+      observer.observe(el.parentElement.parentElement);
+    }
+
     return () => {
+      window.removeEventListener("resize", runSync);
       observer.disconnect();
     };
   }, [syncWordAreaHeight]);
@@ -243,7 +262,7 @@ export const StropheBlock = ({
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
+  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
 
   const contentWidthClass = "w-full min-w-0";
 
