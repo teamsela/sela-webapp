@@ -102,10 +102,14 @@ async def _ensure_page(headless: bool = False) -> Page:
         _pw = await async_playwright().start()
 
     if _browser is None or not _browser.is_connected():
-        _browser = await _pw.chromium.launch(headless=headless)
+        _browser = await _pw.chromium.launch(
+            headless=headless,
+            args=["--start-maximized"],
+        )
 
     if _page is None or _page.is_closed():
-        _page = await _browser.new_page(viewport={"width": 1280, "height": 900})
+        # no_viewport=True lets the browser control window size (works with --start-maximized)
+        _page = await _browser.new_page(no_viewport=True)
 
     return _page
 

@@ -21,6 +21,35 @@ from _app import mcp
 from tools.browser import _ensure_page, _screenshot_path
 
 # ---------------------------------------------------------------------------
+# Sound chip palette — mirrors hebrewHighlights.ts exactly.
+# Used by deterministic verification to assert exact colors and letter mappings.
+# Key: chip label (same as SOUND_CHIPS id/label).
+# rgb: CSS computed value (rgb(R, G, B)) that the browser will report.
+# letters: Hebrew base characters (NFC, no combining marks) that carry this sound.
+# ---------------------------------------------------------------------------
+SOUND_PALETTE: dict[str, dict] = {
+    "s":     {"hex": "#FFF176", "rgb": "rgb(255, 241, 118)", "letters": ["\u05E1", "\u05E9"]},          # ס שׂ
+    "sh":    {"hex": "#FFD54F", "rgb": "rgb(255, 213, 79)",  "letters": ["\u05E9"]},                    # שׁ (with shin-dot)
+    "ts":    {"hex": "#FFB74D", "rgb": "rgb(255, 183, 77)",  "letters": ["\u05E6", "\u05E5"]},          # צ ץ
+    "z":     {"hex": "#FF9800", "rgb": "rgb(255, 152, 0)",   "letters": ["\u05D6"]},                    # ז
+    "kh-ch": {"hex": "#CE93D8", "rgb": "rgb(206, 147, 216)", "letters": ["\u05D7", "\u05DB", "\u05DA"]}, # ח כ ך
+    "k-q":   {"hex": "#BA68C8", "rgb": "rgb(186, 104, 200)", "letters": ["\u05E7", "\u05DB", "\u05DA"]}, # ק כ ך (with dagesh)
+    "g":     {"hex": "#AB47BC", "rgb": "rgb(171, 71, 188)",  "letters": ["\u05D2"]},                    # ג
+    "h":     {"hex": "#E1BEE7", "rgb": "rgb(225, 190, 231)", "letters": ["\u05D4"]},                    # ה
+    "d":     {"hex": "#81C784", "rgb": "rgb(129, 199, 132)", "letters": ["\u05D3"]},                    # ד
+    "t":     {"hex": "#388E3C", "rgb": "rgb(56, 142, 60)",   "letters": ["\u05D8", "\u05EA"]},          # ט ת
+    "n":     {"hex": "#EF9A9A", "rgb": "rgb(239, 154, 154)", "letters": ["\u05E0", "\u05DF"]},          # נ ן
+    "m":     {"hex": "#F44336", "rgb": "rgb(244, 67, 54)",   "letters": ["\u05DE", "\u05DD"]},          # מ ם
+    "b":     {"hex": "#795548", "rgb": "rgb(121, 85, 72)",   "letters": ["\u05D1"]},                    # ב (with dagesh)
+    "v":     {"hex": "#D7CCC8", "rgb": "rgb(215, 204, 200)", "letters": ["\u05D5", "\u05D1"]},          # ו ב (no dagesh)
+    "p":     {"hex": "#616161", "rgb": "rgb(97, 97, 97)",    "letters": ["\u05E4", "\u05E3"]},          # פ ף (with dagesh)
+    "f":     {"hex": "#E0E0E0", "rgb": "rgb(224, 224, 224)", "letters": ["\u05E4", "\u05E3"]},          # פ ף (no dagesh)
+    "l":     {"hex": "#2196F3", "rgb": "rgb(33, 150, 243)",  "letters": ["\u05DC"]},                    # ל
+    "r":     {"hex": "#64B5F6", "rgb": "rgb(100, 181, 246)", "letters": ["\u05E8"]},                    # ר
+    "y":     {"hex": "#B3E5FC", "rgb": "rgb(179, 229, 252)", "letters": ["\u05D9"]},                    # י
+}
+
+# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
@@ -59,12 +88,42 @@ async def sela_auth(base_url: str, user_email: str) -> str:
 # Study creation
 # ---------------------------------------------------------------------------
 
+async def _create_study_impl(page, book: str, passage: str) -> str:
+    """Internal: fill and submit the New Study dialog. Page must be on dashboard."""
+    new_study_btn = page.locator("button", has_text="New Study").first
+    await new_study_btn.wait_for(timeout=8_000)
+    await new_study_btn.click()
+    await page.wait_for_timeout(1000)
+
+    book_select = page.locator("select[name='book']")
+    await book_select.wait_for(timeout=5_000)
+    await book_select.select_option(book)
+    await page.wait_for_timeout(400)
+
+    passage_input = page.locator("input[name='passage']")
+    await passage_input.wait_for(timeout=5_000)
+    await passage_input.click()
+    await page.keyboard.type(passage)
+    await page.wait_for_timeout(400)
+
+    # Use .last — a hidden collapsed copy of the dialog may also be in the DOM.
+    await page.locator("button[type='submit']", has_text="OK").last.click(timeout=8_000)
+    await page.wait_for_timeout(4000)
+
+    err_el = await page.query_selector(".text-red-700, .bg-red-100")
+    if err_el:
+        err_txt = await err_el.inner_text()
+        return f"ERROR: Validation failed: {err_txt.strip()}"
+
+    url = page.url
+    if "/study/" not in url:
+        return f"WARNING: Expected /study/ URL after creation, got: {url}"
+    return f"Study created. URL: {url}"
+
+
 @mcp.tool()
 async def sela_create_study(book: str, passage: str, base_url: str = "") -> str:
     """Create a new study via the dashboard New Study dialog.
-
-    Clicks New Study, selects the book, types the passage, clicks OK, then
-    waits for navigation to the study edit page.
 
     Valid book values (lowercase): 'genesis', 'psalms', 'isaiah', etc.
     Passage format: '23' (whole chapter), '23:1' (single verse).
@@ -76,47 +135,51 @@ async def sela_create_study(book: str, passage: str, base_url: str = "") -> str:
     """
     try:
         page = await _ensure_page()
+        if base_url:
+            await page.goto(f"{base_url.rstrip('/')}/dashboard/home",
+                            timeout=30_000, wait_until="networkidle")
+            await page.wait_for_timeout(2000)
+        return await _create_study_impl(page, book, passage)
+    except Exception as exc:
+        return f"ERROR: {exc}"
+
+
+@mcp.tool()
+async def sela_open_or_create_study(book: str, passage: str, base_url: str = "") -> str:
+    """Navigate to an existing study matching book+passage, or create one if none exists.
+
+    Idempotent: if a study for this book/passage already exists in the dashboard
+    it is opened directly without creating a duplicate.
+
+    Args:
+        book: Book name (lowercase), e.g. 'psalms'.
+        passage: Chapter/verse string, e.g. '23'.
+        base_url: If provided, navigate to the dashboard first.
+    """
+    try:
+        page = await _ensure_page()
 
         if base_url:
             await page.goto(f"{base_url.rstrip('/')}/dashboard/home",
                             timeout=30_000, wait_until="networkidle")
             await page.wait_for_timeout(2000)
 
-        # Open New Study dialog
-        new_study_btn = page.locator("button", has_text="New Study").first
-        await new_study_btn.wait_for(timeout=8_000)
-        await new_study_btn.click()
-        await page.wait_for_timeout(1000)
+        # Look for an existing study card whose title contains book + passage,
+        # e.g. "Psalms 23". Study cards are typically <a> elements.
+        book_label = book.capitalize()
+        search_text = f"{book_label} {passage}"
+        existing = page.locator(f"text={search_text}").first
+        try:
+            await existing.wait_for(timeout=4_000)
+            await existing.click()
+            await page.wait_for_timeout(2000)
+            url = page.url
+            if "/study/" in url:
+                return f"Opened existing study. URL: {url}"
+        except Exception:
+            pass  # No existing study found — fall through to creation
 
-        # Select book
-        book_select = page.locator("select[name='book']")
-        await book_select.wait_for(timeout=5_000)
-        await book_select.select_option(book)
-        await page.wait_for_timeout(400)
-
-        # Type passage using keyboard (React controlled input)
-        passage_input = page.locator("input[name='passage']")
-        await passage_input.wait_for(timeout=5_000)
-        await passage_input.click()
-        await page.keyboard.type(passage)
-        await page.wait_for_timeout(400)
-
-        # Submit — use .last because there may be a hidden copy of the button
-        # from a collapsed dialog; .click() already waits for visibility.
-        await page.locator("button[type='submit']", has_text="OK").last.click(timeout=8_000)
-        await page.wait_for_timeout(4000)
-
-        # Check for validation errors
-        err_el = await page.query_selector(".text-red-700, .bg-red-100")
-        if err_el:
-            err_txt = await err_el.inner_text()
-            return f"ERROR: Validation failed: {err_txt.strip()}"
-
-        url = page.url
-        if "/study/" not in url:
-            return f"WARNING: Expected /study/ URL after creation, got: {url}"
-
-        return f"Study created. URL: {url}"
+        return await _create_study_impl(page, book, passage)
     except Exception as exc:
         return f"ERROR: {exc}"
 
@@ -371,6 +434,174 @@ async def sela_verify_letter_highlights() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Deterministic verification
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+async def sela_verify_deterministic(chip_labels: list[str]) -> str:
+    """Deterministically verify chip colors, outline absence, and passage highlights.
+
+    For each chip in chip_labels (must be keys in SOUND_PALETTE, e.g. ['m','l','n']):
+      - Asserts the chip button background is the exact expected RGB color.
+      - Asserts the yellow selection outline (#FFC300) is NOT present.
+      - Asserts every highlighted span in the passage has a color from the
+        tested chips (no unexpected colors).
+      - Asserts every highlighted Hebrew character corresponds to the correct
+        sound for its chip color (e.g. red spans only contain מ or ם).
+
+    Returns a detailed pass/fail report for each assertion.
+    """
+    try:
+        page = await _ensure_page()
+
+        # Build config for only the chips under test
+        tested = {
+            label: SOUND_PALETTE[label]
+            for label in chip_labels
+            if label in SOUND_PALETTE
+        }
+        unknown = [l for l in chip_labels if l not in SOUND_PALETTE]
+
+        # Serialize to pass into JS (JSON-safe)
+        config_js = json.dumps(tested)
+
+        result = await page.evaluate(f"""(configJson) => {{
+            const SOUND_CONFIG = JSON.parse(configJson);
+            const YELLOW_OUTLINE = 'rgb(255, 195, 0)';  // #FFC300
+
+            // ---------- 1. Chip assertions ----------
+            const chipResults = {{}};
+            document.querySelectorAll('button.wordBlock').forEach(btn => {{
+                const labelEl = btn.querySelector('span.text-black');
+                if (!labelEl) return;
+                const label = labelEl.innerText.trim();
+                if (!SOUND_CONFIG[label]) return;
+
+                const bg = btn.style.background || btn.style.backgroundColor;
+                const cs = getComputedStyle(btn);
+                const outlineStyle = cs.outlineStyle;
+                const outlineColor = cs.outlineColor;
+                const hasYellowOutline = outlineStyle !== 'none' && outlineColor === YELLOW_OUTLINE;
+
+                chipResults[label] = {{
+                    bgActual: bg,
+                    bgExpected: SOUND_CONFIG[label].rgb,
+                    bgMatch: bg === SOUND_CONFIG[label].rgb,
+                    hasYellowOutline,
+                    outlineStyle,
+                    outlineColor,
+                }};
+            }});
+
+            // ---------- 2. Passage highlight assertions ----------
+            const correct = [];
+            const wrong   = [];
+
+            // Build reverse map: rgb string -> {{ label, letters[] }}
+            const rgbToSound = {{}};
+            for (const [label, cfg] of Object.entries(SOUND_CONFIG)) {{
+                rgbToSound[cfg.rgb] = {{ label, letters: cfg.letters }};
+            }}
+
+            document.querySelectorAll('span[style*="background-color"]').forEach(span => {{
+                const bg = span.style.backgroundColor;
+                if (!bg || bg === 'rgb(255, 255, 255)' || bg === 'transparent' || bg === '') return;
+
+                const text = span.innerText;
+
+                // Is this color one we expect?
+                const soundEntry = rgbToSound[bg];
+                if (!soundEntry) {{
+                    wrong.push({{ text, bg, reason: 'unexpected_color' }});
+                    return;
+                }}
+
+                // Extract base Hebrew letters (strip combining marks)
+                const stripped = text.normalize('NFKD').replace(/\\p{{M}}/gu, '');
+                const hebrewChars = [...stripped].filter(c => /\\p{{Script=Hebrew}}/u.test(c));
+
+                const badChars = hebrewChars.filter(c => !soundEntry.letters.includes(c));
+                if (badChars.length > 0) {{
+                    wrong.push({{
+                        text,
+                        bg,
+                        sound: soundEntry.label,
+                        expectedLetters: soundEntry.letters,
+                        badChars,
+                        reason: 'wrong_hebrew_char',
+                    }});
+                }} else {{
+                    correct.push({{ text, bg, sound: soundEntry.label }});
+                }}
+            }});
+
+            return {{
+                chips: chipResults,
+                passageCorrect: correct.length,
+                passageWrong: wrong,
+                passageSamples: correct.slice(0, 6),
+            }};
+        }}""", config_js)
+
+        lines: list[str] = []
+        all_pass = True
+
+        # Report chip results
+        for label in chip_labels:
+            if label in (unknown or []):
+                lines.append(f"  [skip] chip '{label}': not in SOUND_PALETTE")
+                continue
+            cr = result["chips"].get(label)
+            if not cr:
+                lines.append(f"  [FAIL] chip '{label}': not found in DOM")
+                all_pass = False
+                continue
+
+            bg_ok = cr["bgMatch"]
+            outline_ok = not cr["hasYellowOutline"]
+            chip_pass = bg_ok and outline_ok
+
+            bg_status = "ok" if bg_ok else "FAIL"
+            ol_status = "ok" if outline_ok else "FAIL"
+            lines.append(
+                f"  [{bg_status}] chip '{label}' color: {cr['bgActual']!r}"
+                f" (expected {cr['bgExpected']!r})"
+            )
+            lines.append(
+                f"  [{ol_status}] chip '{label}' outline: "
+                + ("no yellow outline" if outline_ok else f"YELLOW OUTLINE PRESENT ({cr['outlineColor']})")
+            )
+            if not chip_pass:
+                all_pass = False
+
+        # Report passage results
+        pc = result["passageCorrect"]
+        pw = result["passageWrong"]
+
+        if pc > 0 and not pw:
+            samples = ", ".join(
+                f"{s['text']!r}={s['sound']}({s['bg']})" for s in result["passageSamples"]
+            )
+            lines.append(f"  [ok] passage: {pc} correctly highlighted span(s). Samples: {samples}")
+        elif pw:
+            all_pass = False
+            lines.append(f"  [FAIL] passage: {len(pw)} incorrectly highlighted span(s):")
+            for w in pw[:5]:
+                lines.append(f"    - text={w.get('text')!r} color={w.get('bg')} reason={w.get('reason')} badChars={w.get('badChars', [])}")
+            if pc:
+                lines.append(f"  [ok] passage: {pc} correct span(s) also present")
+        else:
+            all_pass = False
+            lines.append("  [FAIL] passage: no highlighted spans found")
+
+        verdict = "PASS" if all_pass else "FAIL"
+        return f"[{verdict}] Deterministic check for chips {chip_labels}:\n" + "\n".join(lines)
+
+    except Exception as exc:
+        return f"ERROR: {exc}"
+
+
+# ---------------------------------------------------------------------------
 # Full end-to-end test
 # ---------------------------------------------------------------------------
 
@@ -387,15 +618,18 @@ async def sela_run_test(
     Steps:
     1. Initialise a timestamped run folder for screenshots.
     2. Authenticate via Clerk sign-in token.
-    3. Create a new study (default: Psalms 23).
+    3. Open existing Psalms 23 study or create one if none exists (idempotent).
     4. Set language to Parallel / English Gloss + Hebrew OHB.
-    5. Open Sounds tab > Hebrew Sound Distribution.
-    6. Select 3 sound chips (default: m, l, n).
-    7. Click Smart Highlight.
-    8. Verify highlighted letters appear in passage.
-    9. Open Hebrew Letters Distribution and verify chips are present (not colored —
-       sound highlight mode disables letter highlight coloring by design).
-    10. Report PASS or FAIL with detail.
+    5. Open Sounds tab.
+    6. Open Hebrew Letters Distribution first — verify it loads (pre-highlight).
+    7. Switch back to Sound Distribution.
+    8. Select sound chips (default: m, l, n).
+    9. Click Smart Highlight.
+    10. Deterministic verify:
+        - Each chip's background is the exact expected RGB color.
+        - No yellow selection outline present on any chip.
+        - Every highlighted passage span matches a chip color with correct Hebrew letters.
+    11. Report PASS or FAIL with full detail.
 
     Args:
         base_url: Vercel preview or production URL.
@@ -430,13 +664,13 @@ async def sela_run_test(
         results.append("ABORTED: auth failed.")
         return "\n".join(results)
 
-    # 3. Create study (navigate to dashboard first)
-    study_result = await sela_create_study(book, passage, base_url=base_url)
-    record("create_study", study_result)
-    await browser_screenshot("02_study_created.png")
+    # 3. Open existing study or create new one
+    study_result = await sela_open_or_create_study(book, passage, base_url=base_url)
+    record("open_or_create_study", study_result)
+    await browser_screenshot("02_study.png")
 
     if "ERROR" in study_result:
-        results.append("ABORTED: study creation failed.")
+        results.append("ABORTED: study open/create failed.")
         return "\n".join(results)
 
     # 4. Set language parallel
@@ -444,48 +678,44 @@ async def sela_run_test(
     record("set_language", lang_result)
     await browser_screenshot("03_parallel_mode.png")
 
-    # 5. Open Sounds tab
+    # 5. Open Sounds tab then visit Hebrew Letters Distribution first
     record("open_sounds_tab", await sela_open_sounds_tab())
     await browser_screenshot("04_sounds_tab.png")
 
-    # Hebrew Sound Distribution should be open by default; confirm visible
-    try:
-        page = await _ensure_page()
-        await page.wait_for_selector("text=Hebrew Sound Distribution", timeout=8_000)
-        record("sound_dist_visible", "Hebrew Sound Distribution visible")
-    except Exception as exc:
-        record("sound_dist_visible", f"ERROR: {exc}")
+    page = await _ensure_page()
 
-    # 6. Select chips
-    record("select_chips", await sela_select_sound_chips(chips))
-    await browser_screenshot("05_chips_selected.png")
-
-    # 7. Smart highlight
-    record("smart_highlight", await sela_smart_highlight())
-    await browser_screenshot("06_after_highlight.png")
-
-    # 8. Verify highlights in passage
-    verify_result = await sela_verify_letter_highlights()
-    record("verify_highlights", verify_result)
-    await browser_screenshot("07_verify_highlights.png")
-
-    # 9. Open letter distribution and confirm chips are present
-    record("open_letter_dist", await sela_open_letter_distribution())
+    # 6. Open Hebrew Letters Distribution first (verify it loads before sound selection)
+    record("open_letter_dist_first", await sela_open_letter_distribution())
     await page.wait_for_timeout(600)
-    await browser_screenshot("08_letter_distribution.png")
+    await browser_screenshot("05_letter_dist_first.png")
 
-    # Verify letter chips are rendered (sound highlight is active so letter chips
-    # are intentionally un-colored; we just confirm the panel loaded correctly).
-    letter_chip_count = await page.evaluate(
+    letter_chip_count_pre = await page.evaluate(
         "() => document.querySelectorAll('button.wordBlock').length"
     )
     record(
-        "letter_chips_visible",
-        f"PASS: {letter_chip_count} letter chip(s) visible in Letters Distribution"
-        if letter_chip_count > 0
+        "letter_chips_pre_highlight",
+        f"PASS: {letter_chip_count_pre} letter chip(s) visible before highlight"
+        if letter_chip_count_pre > 0
         else "FAIL: No letter chips found — Letters Distribution may not have loaded",
     )
-    await browser_screenshot("09_letter_chips.png")
+
+    # 7. Switch back to Sound Distribution
+    record("open_sound_dist", await sela_open_sound_distribution())
+    await page.wait_for_selector("text=Hebrew Sound Distribution", timeout=8_000)
+    await browser_screenshot("06_sound_dist.png")
+
+    # 8. Select chips
+    record("select_chips", await sela_select_sound_chips(chips))
+    await browser_screenshot("07_chips_selected.png")
+
+    # 9. Smart highlight
+    record("smart_highlight", await sela_smart_highlight())
+    await browser_screenshot("08_after_highlight.png")
+
+    # 10. Deterministic verify: chip colors, outline absence, passage character correctness
+    det_result = await sela_verify_deterministic(chips)
+    record("verify_deterministic", det_result)
+    await browser_screenshot("09_verify_deterministic.png")
 
     # Summary
     verdict = "PASS" if passed else "FAIL"
