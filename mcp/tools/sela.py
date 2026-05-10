@@ -64,6 +64,31 @@ async def _ss(step: str) -> str:
     return str(path)
 
 
+# Maps sound chip ID → letter chip group label(s) as they appear in the DOM
+# (the label prop of LETTER_CHIP_GROUPS in hebrewHighlights.ts).
+SOUND_TO_LETTER_GROUP: dict[str, list[str]] = {
+    "s":     ["ס", "שׂ שׁ"],    # samekh + shin-sin-group (sin carries s sound)
+    "sh":    ["שׂ שׁ"],          # shin-sin-group (shin carries sh sound)
+    "ts":    ["צ ץ"],
+    "z":     ["ז"],
+    "kh-ch": ["כ ך", "ח"],
+    "k-q":   ["ק", "כ ך"],
+    "g":     ["ג"],
+    "h":     ["ה"],
+    "d":     ["ד"],
+    "t":     ["ט", "ת"],
+    "n":     ["נ ן"],
+    "m":     ["מ ם"],
+    "b":     ["ב"],
+    "v":     ["ו", "ב"],
+    "p":     ["פ"],
+    "f":     ["פ"],
+    "l":     ["ל"],
+    "r":     ["ר"],
+    "y":     ["י"],
+}
+
+
 # ---------------------------------------------------------------------------
 # Auth tool
 # ---------------------------------------------------------------------------
@@ -363,7 +388,15 @@ async def sela_smart_highlight() -> str:
         btn = page.locator("button[aria-pressed='false']:not([disabled])", has_text="Smart Highlight").first
         await btn.wait_for(timeout=5_000)
         await btn.click()
-        await page.wait_for_timeout(800)
+        # Wait for the button to change to "Clear Highlight" (aria-pressed=true) as
+        # confirmation that the React state update propagated to the DOM.
+        try:
+            await page.locator("button[aria-pressed='true']", has_text="Clear Highlight").first.wait_for(
+                timeout=3_000
+            )
+        except Exception:
+            pass  # Fall back gracefully; caller can re-check
+        await page.wait_for_timeout(400)
         return "Smart Highlight applied."
     except Exception as exc:
         return f"ERROR: {exc}"
@@ -438,29 +471,40 @@ async def sela_verify_letter_highlights() -> str:
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
-async def sela_verify_deterministic(chip_labels: list[str]) -> str:
+async def sela_verify_deterministic(
+    chip_labels: list[str],
+    dom_label_map: dict | None = None,
+) -> str:
     """Deterministically verify chip colors, outline absence, and passage highlights.
 
-    For each chip in chip_labels (must be keys in SOUND_PALETTE, e.g. ['m','l','n']):
-      - Asserts the chip button background is the exact expected RGB color.
-      - Asserts the yellow selection outline (#FFC300) is NOT present.
-      - Asserts every highlighted span in the passage has a color from the
-        tested chips (no unexpected colors).
-      - Asserts every highlighted Hebrew character corresponds to the correct
-        sound for its chip color (e.g. red spans only contain מ or ם).
+    chip_labels: sound chip IDs to test (e.g. ['m','l','n']).
+    dom_label_map: optional mapping from the DOM button label to the sound palette
+        config dict {rgb, letters}. Use this when verifying Letter Distribution chips
+        whose DOM labels are Hebrew (e.g. {'מ ם': SOUND_PALETTE['m'], ...}).
+        When omitted, the DOM label is assumed to be the same as the chip ID.
 
-    Returns a detailed pass/fail report for each assertion.
+    Asserts per chip:
+      - Button background matches the exact expected RGB color.
+      - Yellow selection outline (#FFC300) is NOT present.
+    Asserts for the passage:
+      - Every highlighted span has a color from the tested chips.
+      - Every highlighted Hebrew character matches the correct sound's letters.
     """
     try:
         page = await _ensure_page()
 
-        # Build config for only the chips under test
-        tested = {
-            label: SOUND_PALETTE[label]
-            for label in chip_labels
-            if label in SOUND_PALETTE
-        }
-        unknown = [l for l in chip_labels if l not in SOUND_PALETTE]
+        # Build the DOM-label → palette config mapping.
+        # If dom_label_map is provided, use it directly (for letter distribution chips).
+        # Otherwise fall back to identity: DOM label == sound chip ID.
+        if dom_label_map is not None:
+            tested = dom_label_map
+        else:
+            tested = {
+                label: SOUND_PALETTE[label]
+                for label in chip_labels
+                if label in SOUND_PALETTE
+            }
+        unknown = [l for l in chip_labels if l not in SOUND_PALETTE and dom_label_map is None]
 
         # Serialize to pass into JS (JSON-safe)
         config_js = json.dumps(tested)
@@ -546,8 +590,12 @@ async def sela_verify_deterministic(chip_labels: list[str]) -> str:
         lines: list[str] = []
         all_pass = True
 
+        # When dom_label_map is supplied, chipResults is keyed by DOM label (Hebrew).
+        # Otherwise it's keyed by sound ID.
+        report_labels = list(dom_label_map.keys()) if dom_label_map else chip_labels
+
         # Report chip results
-        for label in chip_labels:
+        for label in report_labels:
             if label in (unknown or []):
                 lines.append(f"  [skip] chip '{label}': not in SOUND_PALETTE")
                 continue
@@ -595,7 +643,8 @@ async def sela_verify_deterministic(chip_labels: list[str]) -> str:
             lines.append("  [FAIL] passage: no highlighted spans found")
 
         verdict = "PASS" if all_pass else "FAIL"
-        return f"[{verdict}] Deterministic check for chips {chip_labels}:\n" + "\n".join(lines)
+        display_labels = list(dom_label_map.keys()) if dom_label_map else chip_labels
+        return f"[{verdict}] Deterministic check for chips {display_labels}:\n" + "\n".join(lines)
 
     except Exception as exc:
         return f"ERROR: {exc}"
@@ -618,20 +667,18 @@ async def sela_run_test(
     Steps:
     1. Initialise a timestamped run folder for screenshots.
     2. Authenticate via Clerk sign-in token.
-    3. Open existing Psalms 23 study or create one if none exists (idempotent).
+    3. Open existing study or create one if none exists (idempotent).
     4. Set language to Parallel / English Gloss + Hebrew OHB.
     5. Open Sounds tab.
-    6. Open Hebrew Letters Distribution first — verify it loads (pre-highlight).
-    7. Switch back to Sound Distribution.
-    8. Select sound chips (default: m, l, n).
-    9. Click Smart Highlight.
-    10. Deterministic verify:
-        - Each chip's background is the exact expected RGB color.
-        - No yellow selection outline present on any chip.
-        - Every highlighted passage span matches a chip color with correct Hebrew letters.
-    11. Switch to Hebrew Letters Distribution — verify chips still present post-highlight.
-        Browser is left on this panel for visual inspection.
-    12. Report PASS or FAIL with full detail.
+    6. Switch to Hebrew Letters Distribution — verify 22 chips loaded.
+    7. Select the letter chips corresponding to the requested sound chips
+       (e.g. m -> מ ם, l -> ל, n -> נ ן) and click Smart Highlight.
+    8. Deterministic verify (still on Letter Distribution):
+       - Each letter chip's background is the exact expected RGB color.
+       - No yellow selection outline present.
+       - Every highlighted passage span matches a chip color with correct Hebrew letters.
+    9. Browser is left on Letter Distribution for visual inspection.
+    10. Report PASS or FAIL with full detail.
 
     Args:
         base_url: Vercel preview or production URL.
@@ -648,9 +695,11 @@ async def sela_run_test(
 
     def record(step: str, result: str) -> None:
         nonlocal passed
-        status = "FAIL" if result.startswith(("ERROR", "FAIL", "WARNING")) else "ok"
-        if status == "FAIL":
+        # Treat both "[FAIL]" prefix (from verify tools) and bare "FAIL/"ERROR"/"WARNING" as failures
+        is_fail = result.startswith(("ERROR", "FAIL", "WARNING")) or result.startswith("[FAIL]")
+        if is_fail:
             passed = False
+        status = "FAIL" if is_fail else "ok"
         results.append(f"[{status}] {step}: {result[:120]}")
 
     # 1. Init run folder
@@ -680,62 +729,55 @@ async def sela_run_test(
     record("set_language", lang_result)
     await browser_screenshot("03_parallel_mode.png")
 
-    # 5. Open Sounds tab then visit Hebrew Letters Distribution first
+    # 5. Open Sounds tab (enters Sound Distribution by default)
     record("open_sounds_tab", await sela_open_sounds_tab())
     await browser_screenshot("04_sounds_tab.png")
 
     page = await _ensure_page()
 
-    # 6. Open Hebrew Letters Distribution first (verify it loads before sound selection)
-    record("open_letter_dist_first", await sela_open_letter_distribution())
+    # 6. Switch to Hebrew Letters Distribution — this is where selection happens
+    record("open_letter_dist", await sela_open_letter_distribution())
     await page.wait_for_timeout(600)
-    await browser_screenshot("05_letter_dist_first.png")
+    await browser_screenshot("05_letter_dist.png")
 
-    letter_chip_count_pre = await page.evaluate(
+    letter_chip_count = await page.evaluate(
         "() => document.querySelectorAll('button.wordBlock').length"
     )
     record(
-        "letter_chips_pre_highlight",
-        f"PASS: {letter_chip_count_pre} letter chip(s) visible before highlight"
-        if letter_chip_count_pre > 0
+        "letter_chips_visible",
+        f"PASS: {letter_chip_count} letter chip(s) visible"
+        if letter_chip_count > 0
         else "FAIL: No letter chips found — Letters Distribution may not have loaded",
     )
 
-    # 7. Switch back to Sound Distribution
-    record("open_sound_dist", await sela_open_sound_distribution())
-    await page.wait_for_selector("text=Hebrew Sound Distribution", timeout=8_000)
-    await browser_screenshot("06_sound_dist.png")
+    # 7. Select the letter chips that correspond to the requested sound chips.
+    #    SOUND_TO_LETTER_GROUP maps sound id -> list of letter group DOM labels.
+    letter_labels: list[str] = []
+    for sound_id in chips:
+        letter_labels.extend(SOUND_TO_LETTER_GROUP.get(sound_id, []))
+    # De-duplicate while preserving order
+    seen: set[str] = set()
+    letter_labels = [l for l in letter_labels if not (l in seen or seen.add(l))]  # type: ignore[func-returns-value]
 
-    # 8. Select chips
-    record("select_chips", await sela_select_sound_chips(chips))
-    await browser_screenshot("07_chips_selected.png")
+    record("select_letter_chips", await sela_select_letter_chips(letter_labels))
+    await browser_screenshot("06_letter_chips_selected.png")
 
-    # 9. Smart highlight
+    # 8. Smart highlight (from Letter Distribution panel)
     record("smart_highlight", await sela_smart_highlight())
-    await browser_screenshot("08_after_highlight.png")
+    await browser_screenshot("07_after_highlight.png")
 
-    # 10. Deterministic verify: chip colors, outline absence, passage character correctness
-    det_result = await sela_verify_deterministic(chips)
+    # 9. Deterministic verify: chip colors, outline absence, passage character correctness.
+    #    Build DOM-label → palette config map (letter group label → sound palette entry).
+    dom_label_map = {}
+    for sound_id in chips:
+        for lbl in SOUND_TO_LETTER_GROUP.get(sound_id, []):
+            dom_label_map[lbl] = SOUND_PALETTE[sound_id]
+
+    det_result = await sela_verify_deterministic(chips, dom_label_map=dom_label_map)
     record("verify_deterministic", det_result)
-    await browser_screenshot("09_verify_deterministic.png")
+    await browser_screenshot("08_verify_deterministic.png")
 
-    # 11. Switch back to Letter Distribution — verify chips still present after highlight,
-    #     then leave the browser here for visual inspection.
-    record("open_letter_dist_post", await sela_open_letter_distribution())
-    page = await _ensure_page()
-    await page.wait_for_timeout(600)
-    await browser_screenshot("10_letter_dist_post_highlight.png")
-
-    letter_chip_count_post = await page.evaluate(
-        "() => document.querySelectorAll('button.wordBlock').length"
-    )
-    record(
-        "letter_chips_post_highlight",
-        f"PASS: {letter_chip_count_post} letter chip(s) visible in Letters Distribution after highlight"
-        if letter_chip_count_post > 0
-        else "FAIL: No letter chips found after highlight",
-    )
-    await browser_screenshot("11_letter_chips_post.png")
+    # Browser is left on Letter Distribution for visual inspection.
 
     # Summary
     verdict = "PASS" if passed else "FAIL"

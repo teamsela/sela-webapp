@@ -206,12 +206,6 @@ const Sounds = () => {
     return counts;
   }, [allWords]);
 
-  useEffect(() => {
-    if (ctxSelectedLetterChipIds.length === 0 && ctxLetterHighlightEnabled) {
-      ctxSetLetterHighlightEnabled(false);
-    }
-  }, [ctxSelectedLetterChipIds, ctxSetLetterHighlightEnabled, ctxLetterHighlightEnabled]);
-
   const toggleSoundChip = (chipId: string) => {
     ctxSetSelectedSoundChipIds(
       ctxSelectedSoundChipIds.includes(chipId)
