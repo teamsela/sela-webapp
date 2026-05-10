@@ -266,7 +266,7 @@ const Sounds = () => {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="accordion">
-        <div ref={soundSectionRef} className="mx-4 border-b border-stroke dark:border-strokedark">
+        <div ref={soundSectionRef} className="ClickBlock mx-4 border-b border-stroke dark:border-strokedark">
           <button
             type="button"
             className="ClickBlock flex w-full items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
@@ -319,7 +319,15 @@ const Sounds = () => {
           )}
 
           {openSection === "sound-distribution" && (
-            <div className="space-y-4 p-4">
+            <div
+              className="space-y-4 p-4"
+              onClick={(e) => {
+                // Deselect chips when clicking blank space (not on a button).
+                if (!(e.target as HTMLElement).closest("button")) {
+                  ctxSetSelectedSoundChipIds([]);
+                }
+              }}
+            >
               <div className="grid grid-cols-4 gap-1">
                 {SOUND_CHIPS.map((chip) => (
                   <DistributionChip
@@ -346,7 +354,7 @@ const Sounds = () => {
           )}
         </div>
 
-        <div ref={letterSectionRef} className="mx-4 border-b border-stroke dark:border-strokedark">
+        <div ref={letterSectionRef} className="ClickBlock mx-4 border-b border-stroke dark:border-strokedark">
           <button
             type="button"
             className="ClickBlock flex w-full items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
@@ -359,7 +367,14 @@ const Sounds = () => {
           </button>
 
           {openSection === "letter-distribution" && (
-            <div className="space-y-4 p-4">
+            <div
+              className="space-y-4 p-4"
+              onClick={(e) => {
+                if (!(e.target as HTMLElement).closest("button")) {
+                  ctxSetSelectedLetterChipIds([]);
+                }
+              }}
+            >
               <div className="grid grid-cols-4 gap-1">
                 {LETTER_CHIP_GROUPS.map((group) => {
                   const groupCount = group.memberIds.reduce(
