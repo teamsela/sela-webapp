@@ -1,4 +1,4 @@
-"""Git workflow tools: push, pull/merge, and conflict resolution."""
+"""Git workflow tools: push, pull/merge, branch switching, and conflict resolution."""
 
 from _app import REPO_ROOT, _current_branch, _run, mcp
 
@@ -40,7 +40,45 @@ def _merge_conflict_report(branch: str, *, already_in_progress: bool = False) ->
 
 
 @mcp.tool()
-def git_push_branch() -> str:
+def git_list_branches() -> str:
+    """List all local branches and remote branches available on origin.
+
+    Fetches from origin first so the list is current.
+    The active branch is shown with an asterisk (*).
+    """
+    _run(["git", "fetch", "origin", "--prune"])  # best-effort — ignore errors
+    rc, out, err = _run(["git", "branch", "-a"])
+    if rc != 0:
+        return f"ERROR: Could not list branches:\n{err}"
+    return out or "No branches found."
+
+
+@mcp.tool()
+def git_checkout_branch(branch: str) -> str:
+    """Switch to the specified branch.
+
+    Fetches from origin first so remote-tracking refs are up to date.
+    If the branch only exists on origin, a local tracking branch is created
+    automatically.
+
+    Args:
+        branch: Branch name to check out (e.g. 'brian/sound-v2').
+    """
+    _run(["git", "fetch", "origin"])  # best-effort
+
+    rc, out, err = _run(["git", "checkout", branch])
+    if rc == 0:
+        return f"Switched to branch '{branch}'.\n{(out + chr(10) + err).strip()}".strip()
+
+    # Branch may only exist on origin — try creating a local tracking branch.
+    rc2, out2, err2 = _run(["git", "checkout", "-b", branch, f"origin/{branch}"])
+    if rc2 == 0:
+        return f"Checked out '{branch}' as a local tracking branch from origin/{branch}."
+
+    return f"ERROR: Could not switch to '{branch}':\n{err}\n{err2}".strip()
+
+
+
     """Push the current branch to remote origin.
 
     Idempotent: safe to call multiple times. Sets upstream tracking if not set.
