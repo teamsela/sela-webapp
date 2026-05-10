@@ -35,11 +35,11 @@ const DistributionChip = ({
   isHighlighted,
   onClick,
 }: DistributionChipProps) => {
-  const statusClassName = isHighlighted
-    ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md"
-    : isSelected
-      ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-sm"
-      : "outline-offset-[-4px]";
+  // Yellow outline only for "selected" (pending) state.
+  // "Highlighted" chips just show their fill color — no outline needed.
+  const statusClassName = isSelected
+    ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-sm"
+    : "outline-offset-[-4px]";
 
   // Colors only show when highlighted — default is white/gray (matching PDF page 7)
   const chipFill = isHighlighted ? (fill ?? "#FFFFFF") : "#FFFFFF";
