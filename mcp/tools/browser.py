@@ -34,7 +34,17 @@ _pw: Playwright | None = None
 _browser: Browser | None = None
 _page: Page | None = None
 
-SCREENSHOTS_DIR = REPO_ROOT / "local" / "browser_screenshots"
+SCREENSHOTS_BASE = REPO_ROOT / "local"
+_run_folder: Path | None = None  # set by browser_run_init(); used by browser_screenshot()
+
+
+def _current_run_folder() -> Path:
+    """Return the active run folder, creating a default one if not initialised."""
+    global _run_folder
+    if _run_folder is None:
+        _run_folder = SCREENSHOTS_BASE / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        _run_folder.mkdir(parents=True, exist_ok=True)
+    return _run_folder
 
 
 # ---------------------------------------------------------------------------
@@ -100,18 +110,63 @@ async def _ensure_page(headless: bool = False) -> Page:
     return _page
 
 
+def _make_clerk_token(user_email: str) -> tuple[str, str]:
+    """Look up a Clerk user by email and create a sign-in token.
+
+    Returns (user_id, token) on success.
+    Raises ValueError with a descriptive message on failure.
+    """
+    secret = _load_clerk_secret()
+    if not secret:
+        raise ValueError("CLERK_SECRET_KEY not found in environment or .env.")
+
+    qs = urllib.parse.urlencode({"email_address[]": user_email})
+    status, body = _clerk_request("GET", f"/users?{qs}", secret)
+    if status != 200:
+        raise ValueError(f"Clerk user lookup failed ({status}): {body}")
+    users = body if isinstance(body, list) else body.get("data", [])
+    if not users:
+        raise ValueError(f"No Clerk user found with email '{user_email}'.")
+    user_id = users[0]["id"]
+
+    status, body = _clerk_request("POST", "/sign_in_tokens", secret, {"user_id": user_id})
+    if status != 200:
+        raise ValueError(f"Could not create sign-in token ({status}): {body}")
+    token = body.get("token")
+    if not token:
+        raise ValueError(f"Clerk API returned no token. Response: {body}")
+    return user_id, token
+
+
 def _screenshot_path(filename: str) -> Path:
-    SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
+    folder = _current_run_folder()
     if not filename:
-        filename = f"screenshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        filename = f"screenshot_{datetime.now().strftime('%H-%M-%S_%f')[:19]}.png"
     elif not filename.endswith(".png"):
         filename += ".png"
-    return SCREENSHOTS_DIR / filename
+    return folder / filename
 
 
 # ---------------------------------------------------------------------------
 # Tools
 # ---------------------------------------------------------------------------
+
+@mcp.tool()
+async def browser_run_init(label: str = "") -> str:
+    """Create a new timestamped run folder under local/ for this session's screenshots.
+
+    All subsequent browser_screenshot() calls will save into this folder.
+    Call once at the start of each test run.
+
+    Args:
+        label: Optional short label appended to the folder name (e.g. 'sounds-test').
+    """
+    global _run_folder
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    name = f"{ts}_{label}" if label else ts
+    _run_folder = SCREENSHOTS_BASE / name
+    _run_folder.mkdir(parents=True, exist_ok=True)
+    return f"Run folder created: {_run_folder}"
 
 @mcp.tool()
 async def browser_open(url: str, headless: bool = False) -> str:
@@ -149,27 +204,10 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
         base_url: Root URL of the app (e.g. the Vercel preview URL).
         user_email: Email address of the Clerk account to sign in as.
     """
-    secret = _load_clerk_secret()
-    if not secret:
-        return "ERROR: CLERK_SECRET_KEY not found in environment or .env."
-
-    # Look up user by email — Clerk uses email_address[] array param syntax.
-    qs = urllib.parse.urlencode({"email_address[]": user_email})
-    status, body = _clerk_request("GET", f"/users?{qs}", secret)
-    if status != 200:
-        return f"ERROR: Clerk user lookup failed ({status}): {body}"
-    users = body if isinstance(body, list) else body.get("data", [])
-    if not users:
-        return f"ERROR: No Clerk user found with email '{user_email}'."
-    user_id = users[0]["id"]
-
-    # Create sign-in token.
-    status, body = _clerk_request("POST", "/sign_in_tokens", secret, {"user_id": user_id})
-    if status != 200:
-        return f"ERROR: Could not create sign-in token ({status}): {body}"
-    token = body.get("token")
-    if not token:
-        return f"ERROR: Clerk API returned no token. Response: {body}"
+    try:
+        user_id, token = _make_clerk_token(user_email)
+    except ValueError as exc:
+        return f"ERROR: {exc}"
 
     try:
         page = await _ensure_page()
@@ -306,11 +344,12 @@ async def browser_get_text(selector: str = "body") -> str:
 async def browser_screenshot(filename: str = "") -> str:
     """Take a screenshot of the current browser page.
 
-    Saves to local/browser_screenshots/<filename>.
+    Saves to the current run folder (set by browser_run_init) under local/.
+    A new timestamped folder is auto-created if browser_run_init was not called.
     Filename is auto-generated (timestamp) when not provided.
 
     Args:
-        filename: Optional filename (e.g. 'sounds-tab.png').
+        filename: Optional filename (e.g. '01_sounds-tab.png').
     """
     try:
         page = await _ensure_page()
