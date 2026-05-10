@@ -66,14 +66,20 @@ def _clerk_request(method: str, path: str, secret: str, body: dict | None = None
         headers={
             "Authorization": f"Bearer {secret}",
             "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 sela-mcp/1.0",
         },
     )
     ctx = ssl.create_default_context()
     try:
         with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
-            return resp.status, json.loads(resp.read())
+            raw = resp.read()
+            return resp.status, json.loads(raw) if raw else {}
     except urllib.error.HTTPError as exc:
-        return exc.code, json.loads(exc.read())
+        raw = exc.read()
+        try:
+            return exc.code, json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            return exc.code, {"error": raw.decode(errors="replace")}
     except Exception as exc:
         return 0, {"error": str(exc)}
 
@@ -131,9 +137,11 @@ async def browser_open(url: str, headless: bool = False) -> str:
 async def browser_auth_clerk(base_url: str, user_email: str) -> str:
     """Sign in to the app using a Clerk sign-in token (bypasses Google OAuth).
 
-    Looks up the Clerk user by email, creates a short-lived sign-in token via
-    the Clerk Backend API, then navigates to base_url?__clerk_ticket=<token>
-    so the browser session is fully authenticated.
+    Strategy:
+    1. Navigate to the sign-in page and wait for Clerk JS to mount.
+    2. Call window.Clerk.client.signIn.create({ strategy: 'ticket', ticket }) via
+       the Clerk Backend API token.
+    3. Activate the resulting session and navigate to the app root.
 
     Requires CLERK_SECRET_KEY in the environment or the repo .env file.
 
@@ -145,8 +153,8 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
     if not secret:
         return "ERROR: CLERK_SECRET_KEY not found in environment or .env."
 
-    # Look up user by email.
-    qs = urllib.parse.urlencode({"email_address": user_email})
+    # Look up user by email — Clerk uses email_address[] array param syntax.
+    qs = urllib.parse.urlencode({"email_address[]": user_email})
     status, body = _clerk_request("GET", f"/users?{qs}", secret)
     if status != 200:
         return f"ERROR: Clerk user lookup failed ({status}): {body}"
@@ -163,12 +171,39 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
     if not token:
         return f"ERROR: Clerk API returned no token. Response: {body}"
 
-    # Navigate with the ticket — Clerk JS will complete the sign-in automatically.
-    auth_url = f"{base_url.rstrip('/')}/?__clerk_ticket={token}"
     try:
         page = await _ensure_page()
-        await page.goto(auth_url, timeout=30_000, wait_until="networkidle")
-        await page.wait_for_timeout(2000)
+
+        # Navigate to the sign-in page so Clerk JS initialises.
+        sign_in_url = f"{base_url.rstrip('/')}/sign-in"
+        await page.goto(sign_in_url, timeout=30_000, wait_until="networkidle")
+        await page.wait_for_function("window.Clerk !== undefined", timeout=10_000)
+
+        # Use the Clerk JS SDK to authenticate via the sign-in token.
+        js_result = await page.evaluate(
+            """async (token) => {
+                try {
+                    const si = await window.Clerk.client.signIn.create({ strategy: 'ticket', ticket: token });
+                    return { status: si.status, sessionId: si.createdSessionId };
+                } catch(e) {
+                    return { error: e.message };
+                }
+            }""",
+            token,
+        )
+        if js_result.get("error"):
+            return f"ERROR: Clerk JS signIn failed: {js_result['error']}"
+
+        session_id = js_result.get("sessionId")
+        await page.evaluate(
+            "async (sid) => { await window.Clerk.setActive({ session: sid }); }",
+            session_id,
+        )
+        await page.wait_for_timeout(1500)
+
+        # Navigate to the app root now that we're authenticated.
+        await page.goto(base_url.rstrip("/") + "/", timeout=30_000, wait_until="networkidle")
+        await page.wait_for_timeout(1500)
         title = await page.title()
         return (
             f"Authenticated as '{user_email}' (user_id={user_id}).\n"
@@ -176,7 +211,7 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
             f"Title: {title}"
         )
     except Exception as exc:
-        return f"ERROR navigating after auth: {exc}"
+        return f"ERROR during Clerk auth: {exc}"
 
 
 @mcp.tool()

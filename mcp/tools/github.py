@@ -22,7 +22,7 @@ def _pr_data(branch: str) -> tuple[dict, str]:
     """Fetch PR JSON for the given branch. Returns (data, error)."""
     cmd = ["gh", "pr", "view", "--json", "url,state,isDraft,comments,statusCheckRollup"]
     if branch:
-        cmd.insert(2, branch)  # gh pr view <branch> --json ...
+        cmd.insert(3, branch)  # gh pr view <branch> --json ...
     rc, out, err = _run(cmd)
     if rc != 0:
         return {}, err
