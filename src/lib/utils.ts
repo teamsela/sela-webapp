@@ -453,8 +453,8 @@ export const mergeData = (
 
     let currentLineData = currentStropheData.lines[currentLineIdx];
     let ignoreNewLine = wordProps.metadata?.ignoreNewLine || false;
-    const isVerseBoundary = prevVerseNum !== 0 && prevVerseNum !== wordProps.verse;
-    const hasSourceLineBreak = wordProps.newLine && (!useReadmeParagraphMode || !isVerseBoundary);
+    wordProps.newVerse = prevVerseNum !== 0 && prevVerseNum !== wordProps.verse;
+    const hasSourceLineBreak = useReadmeParagraphMode ? wordProps.BSBnewLine : wordProps.newLine;
     const hasManualLineBreak = Boolean(wordProps.metadata?.lineBreak);
     const startsNewParagraph = useReadmeParagraphMode
       && Boolean(wordProps.BSBstanzaBreak)

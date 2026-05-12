@@ -96,6 +96,8 @@ export interface WordProps {
     morphology?: string;
     metadata: WordMetadata;
     newLine: boolean;
+    BSBnewLine: boolean;
+    newVerse: boolean;
     BSBstanzaBreak?: boolean;
     showVerseNum: boolean;
     firstWordInStrophe: boolean;

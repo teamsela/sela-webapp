@@ -791,6 +791,8 @@ export async function fetchPassageData(studyId: string) {
           hebWord.morphology = word.morphology?.trim() || "";
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
+          hebWord.BSBnewLine = (word.BSBnewLine) || false;
+          hebWord.newVerse = false;
           hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
 
           if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
