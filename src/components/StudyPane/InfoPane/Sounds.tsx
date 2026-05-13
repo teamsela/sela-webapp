@@ -117,6 +117,7 @@ const Sounds = () => {
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showLetterTooltip, setShowLetterTooltip] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -131,6 +132,15 @@ const Sounds = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showTooltip]);
+
+  useEffect(() => {
+    if (!showLetterTooltip) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowLetterTooltip(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showLetterTooltip]);
 
   const soundSectionRef = useRef<HTMLDivElement>(null);
   const letterSectionRef = useRef<HTMLDivElement>(null);
@@ -154,13 +164,14 @@ const Sounds = () => {
   useEffect(() => {
     if (ctxSelectedLetterChipIds.length === 0) return;
     const handleClick = (e: MouseEvent) => {
+      if (showLetterTooltip) return;
       if (letterSectionRef.current && !letterSectionRef.current.contains(e.target as Node)) {
         ctxSetSelectedLetterChipIds([]);
       }
     };
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, [ctxSelectedLetterChipIds, ctxSetSelectedLetterChipIds]);
+  }, [ctxSelectedLetterChipIds, ctxSetSelectedLetterChipIds, showLetterTooltip]);
 
   const toggleSection = (sectionId: SoundsSectionId) => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
@@ -257,6 +268,11 @@ const Sounds = () => {
     "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written.";
   const soundTooltipP2 =
     "The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
+
+  const letterTooltipP1 =
+    "Some Hebrew letters can produce different sounds. Hebrew poetry can also create literary patterns by rearranging the same letters to form new words, creating visual connections that may not sound similar when read aloud.";
+  const letterTooltipP2 =
+    "This tool helps you detect literary patterns and visual echoes across words and throughout a passage based on how words are written, not how they are heard.";
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -359,7 +375,47 @@ const Sounds = () => {
             <span className={openSection === "letter-distribution" ? "text-primary" : "text-black dark:text-white"}>
               Hebrew Letters Distribution
             </span>
+            <span
+              className="relative ml-1 inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
+              onClick={(e) => { e.stopPropagation(); setShowLetterTooltip(true); }}
+              role="button"
+              aria-label="About letter distribution"
+            >
+              i
+            </span>
           </button>
+
+          {isMounted && showLetterTooltip && createPortal(
+            <div
+              className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="letter-dist-modal-title"
+              onClick={(e) => { if (e.target === e.currentTarget) setShowLetterTooltip(false); }}
+            >
+              <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+                <button
+                  type="button"
+                  onClick={() => setShowLetterTooltip(false)}
+                  className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  aria-label="Close"
+                >
+                  <IconX size={18} stroke={2} />
+                </button>
+                <div className="flex items-center gap-2 text-primary">
+                  <IconInfoCircle size={22} stroke={2.2} />
+                  <h3 id="letter-dist-modal-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Hebrew Letters Distribution
+                  </h3>
+                </div>
+                <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                  <p>{letterTooltipP1}</p>
+                  <p>{letterTooltipP2}</p>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
 
           {openSection === "letter-distribution" && (
             <div

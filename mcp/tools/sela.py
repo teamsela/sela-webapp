@@ -783,3 +783,147 @@ async def sela_run_test(
     verdict = "PASS" if passed else "FAIL"
     summary = f"\n{'='*50}\nTEST RESULT: {verdict}\n{'='*50}\n" + "\n".join(results)
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Letter Distribution tooltip test
+# ---------------------------------------------------------------------------
+
+_LETTER_TOOLTIP_P1 = (
+    "Some Hebrew letters can produce different sounds. Hebrew poetry can also create literary "
+    "patterns by rearranging the same letters to form new words, creating visual connections "
+    "that may not sound similar when read aloud."
+)
+_LETTER_TOOLTIP_P2 = (
+    "This tool helps you detect literary patterns and visual echoes across words and throughout "
+    "a passage based on how words are written, not how they are heard."
+)
+
+
+@mcp.tool()
+async def sela_test_letter_tooltip(
+    base_url: str,
+    user_email: str,
+    book: str = "psalms",
+    passage: str = "23",
+) -> str:
+    """Test that the Hebrew Letters Distribution info tooltip appears with the correct text.
+
+    Steps:
+    1. Init run folder.
+    2. Auth via Clerk.
+    3. Open or create study.
+    4. Open Sounds tab.
+    5. Open Hebrew Letters Distribution accordion.
+    6. Click the 'i' info button.
+    7. Screenshot the tooltip modal.
+    8. Verify both tooltip paragraphs contain the exact expected text.
+    9. Close the tooltip (click X button).
+    10. Verify the tooltip is dismissed.
+    11. Report PASS or FAIL with detail.
+
+    Args:
+        base_url: Vercel preview or production URL.
+        user_email: Clerk account email for auth.
+        book: Book value for study creation (default: 'psalms').
+        passage: Passage string (default: '23').
+    """
+    from tools.browser import browser_run_init, browser_screenshot
+
+    results: list[str] = []
+    passed = True
+
+    def record(step: str, result: str) -> None:
+        nonlocal passed
+        is_fail = result.startswith(("ERROR", "FAIL", "WARNING")) or result.startswith("[FAIL]")
+        if is_fail:
+            passed = False
+        status = "FAIL" if is_fail else "ok"
+        results.append(f"[{status}] {step}: {result[:200]}")
+
+    # 1. Init run folder
+    record("run_init", await browser_run_init("letter-tooltip-test"))
+
+    # 2. Auth
+    auth_result = await sela_auth(base_url, user_email)
+    record("auth", auth_result)
+    await browser_screenshot("01_dashboard.png")
+    if "ERROR" in auth_result:
+        results.append("ABORTED: auth failed.")
+        return "\n".join(results)
+
+    # 3. Open study
+    study_result = await sela_open_or_create_study(book, passage, base_url=base_url)
+    record("open_or_create_study", study_result)
+    await browser_screenshot("02_study.png")
+    if "ERROR" in study_result:
+        results.append("ABORTED: study failed.")
+        return "\n".join(results)
+
+    # 4. Open Sounds tab
+    record("open_sounds_tab", await sela_open_sounds_tab())
+    await browser_screenshot("03_sounds_tab.png")
+
+    # 5. Open Letters Distribution accordion
+    record("open_letter_dist", await sela_open_letter_distribution())
+    await browser_screenshot("04_letter_dist.png")
+
+    try:
+        page = await _ensure_page()
+
+        # 6. Click the 'i' info button (aria-label="About letter distribution")
+        info_btn = page.locator('[aria-label="About letter distribution"]')
+        await info_btn.wait_for(timeout=8_000)
+        await info_btn.click()
+        await page.wait_for_timeout(400)
+        await browser_screenshot("05_tooltip_open.png")
+
+        # 7. Verify the modal dialog is present
+        dialog = page.locator('[role="dialog"][aria-labelledby="letter-dist-modal-title"]')
+        try:
+            await dialog.wait_for(timeout=5_000)
+            record("tooltip_modal_visible", "PASS: tooltip modal is present in DOM")
+        except Exception:
+            record("tooltip_modal_visible", "FAIL: tooltip modal did not appear")
+
+        # 8. Verify paragraph 1
+        p1_el = dialog.locator("p").nth(0)
+        try:
+            p1_text = await p1_el.inner_text(timeout=4_000)
+            if _LETTER_TOOLTIP_P1 in p1_text:
+                record("tooltip_p1_text", f"PASS: paragraph 1 matches expected text")
+            else:
+                record("tooltip_p1_text", f"FAIL: paragraph 1 mismatch. Got: {p1_text!r}")
+        except Exception as exc:
+            record("tooltip_p1_text", f"FAIL: could not read paragraph 1: {exc}")
+
+        # 9. Verify paragraph 2
+        p2_el = dialog.locator("p").nth(1)
+        try:
+            p2_text = await p2_el.inner_text(timeout=4_000)
+            if _LETTER_TOOLTIP_P2 in p2_text:
+                record("tooltip_p2_text", f"PASS: paragraph 2 matches expected text")
+            else:
+                record("tooltip_p2_text", f"FAIL: paragraph 2 mismatch. Got: {p2_text!r}")
+        except Exception as exc:
+            record("tooltip_p2_text", f"FAIL: could not read paragraph 2: {exc}")
+
+        # 10. Close via X button
+        close_btn = dialog.locator('[aria-label="Close"]')
+        await close_btn.click()
+        await page.wait_for_timeout(400)
+        await browser_screenshot("06_tooltip_closed.png")
+
+        # 11. Verify tooltip gone
+        count = await page.locator('[role="dialog"][aria-labelledby="letter-dist-modal-title"]').count()
+        if count == 0:
+            record("tooltip_dismissed", "PASS: tooltip modal is gone after close")
+        else:
+            record("tooltip_dismissed", "FAIL: tooltip modal still present after close")
+
+    except Exception as exc:
+        record("tooltip_test", f"ERROR: {exc}")
+
+    verdict = "PASS" if passed else "FAIL"
+    summary = f"\n{'='*50}\nTEST RESULT: {verdict}\n{'='*50}\n" + "\n".join(results)
+    return summary
