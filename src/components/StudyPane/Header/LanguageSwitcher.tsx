@@ -23,7 +23,7 @@ const getDropdownOptions = (mode: LanguageMode): DropdownOption[] => {
 };
 
 const Chevron = () => (
-  <svg width="10" height="6" viewBox="0 0 10 6" className="ml-[2px] opacity-60">
+  <svg width="10" height="6" viewBox="0 0 10 6" className="opacity-60">
     <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
@@ -73,8 +73,14 @@ const LanguageSwitcher = () => {
     setDropdownOpen(false);
   };
 
-  // Clicking the whole button: switch mode (if needed) + open dropdown
-  const handleButtonClick = (mode: LanguageMode) => {
+  // Clicking the label area: switch mode, close any open dropdown
+  const handleMainClick = (mode: LanguageMode) => {
+    handleSwitcherClick(mode);
+    setDropdownOpen(false);
+  };
+
+  // Clicking the chevron area: switch mode if needed, then toggle dropdown
+  const handleChevronClick = (mode: LanguageMode) => {
     handleSwitcherClick(mode);
     const opts = getDropdownOptions(mode);
     if (opts.length > 0) {
@@ -84,9 +90,35 @@ const LanguageSwitcher = () => {
     }
   };
 
-  const base = "flex items-center gap-[2px] px-[16px] py-[6px] cursor-pointer select-none transition-colors hover:bg-[#E6E6E6]";
-  const active = "bg-[#FFFFFF] font-bold";
+  const activeClass = "bg-[#FFFFFF] font-bold";
+  const hoverClass = "hover:bg-[#E6E6E6]";
   const options = getDropdownOptions(ctxLanguageMode);
+
+  const renderLangButton = (
+    mode: LanguageMode,
+    label: string,
+    outerClass: string,
+    labelRoundClass: string,
+    chevronRoundClass: string = "",
+  ) => {
+    const isActive = ctxLanguageMode === mode;
+    return (
+      <div className={`flex items-stretch ${outerClass}`}>
+        <span
+          onClick={() => handleMainClick(mode)}
+          className={`flex items-center pl-[14px] pr-[6px] py-[6px] cursor-pointer select-none transition-colors ${hoverClass} ${labelRoundClass} ${isActive ? activeClass : ""}`}
+        >
+          {label}
+        </span>
+        <span
+          onClick={(e) => { e.stopPropagation(); handleChevronClick(mode); }}
+          className={`flex items-center justify-center w-[20px] py-[6px] cursor-pointer select-none transition-colors border-l border-l-[#D9D9D9] ${hoverClass} ${chevronRoundClass} ${isActive ? activeClass : ""}`}
+        >
+          <Chevron />
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -95,27 +127,9 @@ const LanguageSwitcher = () => {
         className="flex cursor-pointer select-none items-center ml-2"
       >
         <div className="flex flex-row rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] place-content-around items-center">
-          <span
-            onClick={() => handleButtonClick(LanguageMode.English)}
-            className={`rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.English ? active : ""}`}
-          >
-            A
-            <Chevron />
-          </span>
-          <span
-            onClick={() => handleButtonClick(LanguageMode.Parallel)}
-            className={`${base} ${ctxLanguageMode === LanguageMode.Parallel ? active : ""}`}
-          >
-            Aא
-            <Chevron />
-          </span>
-          <span
-            onClick={() => handleButtonClick(LanguageMode.Hebrew)}
-            className={`rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9] ${base} ${ctxLanguageMode === LanguageMode.Hebrew ? active : ""}`}
-          >
-            א
-            <Chevron />
-          </span>
+          {renderLangButton(LanguageMode.English,  "A",  "rounded-tl-[5px] rounded-bl-[5px] border-r-2 border-r-[#D9D9D9]", "rounded-tl-[5px] rounded-bl-[5px]")}
+          {renderLangButton(LanguageMode.Parallel, "Aא", "", "")}
+          {renderLangButton(LanguageMode.Hebrew,   "א",  "rounded-tr-[5px] rounded-br-[5px] border-l-2 border-l-[#D9D9D9]", "", "rounded-tr-[5px] rounded-br-[5px]")}
         </div>
       </label>
 
