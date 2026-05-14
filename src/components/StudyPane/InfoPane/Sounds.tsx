@@ -238,7 +238,8 @@ const Sounds = () => {
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
     if (ctxSelectedSoundChipIds.length > 0) {
-      ctxSetHighlightedSoundChipIds([...ctxSelectedSoundChipIds]);
+      const merged = [...new Set([...ctxHighlightedSoundChipIds, ...ctxSelectedSoundChipIds])];
+      ctxSetHighlightedSoundChipIds(merged);
       ctxSetSoundHighlightEnabled(true);
       ctxSetSelectedSoundChipIds([]);
       ctxSetSelectedLetterChipIds([]);
@@ -253,7 +254,8 @@ const Sounds = () => {
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
     if (ctxSelectedLetterChipIds.length > 0) {
-      ctxSetHighlightedLetterChipIds([...ctxSelectedLetterChipIds]);
+      const merged = [...new Set([...ctxHighlightedLetterChipIds, ...ctxSelectedLetterChipIds])];
+      ctxSetHighlightedLetterChipIds(merged);
       ctxSetLetterHighlightEnabled(true);
       ctxSetSelectedLetterChipIds([]);
       ctxSetSelectedSoundChipIds([]);
