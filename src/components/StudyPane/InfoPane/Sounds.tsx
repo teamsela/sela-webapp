@@ -266,14 +266,14 @@ const Sounds = () => {
   };
 
   const soundTooltipP1 =
-    "Different Hebrew letters can produce similar sounds. This tool helps you detect sound patterns and rhymes based on how words are heard, not how they are written.";
-  const soundTooltipP2 =
-    "The highlighted Hebrew sound patterns are only visible in the English transliteration and Hebrew text, not in the default English display.";
+    "Some Hebrew letters can produce similar sounds. For example, the letters \u05DB and \u05E7 can both produce the \u201ck\u201d sound. Hebrew poetry can create patterns between words that sound similar even if they are spelled differently, such as \u05E7\u05D5\u05B9\u05DC (Kol) and \u05DB\u05BC\u05B9\u05DC (Kol) in Psalm 29:9. This tool helps you detect sound patterns and sound echoes throughout a passage based on how words are heard, not how they are written.";
+  const soundTooltipNote =
+    "Highlights from this tool are only visible in the Hebrew text and English transliteration, not in the default English display.";
 
   const letterTooltipP1 =
-    "Some Hebrew letters can produce different sounds. Hebrew poetry can also create literary patterns by rearranging the same letters to form new words, creating visual connections that may not sound similar when read aloud.";
-  const letterTooltipP2 =
-    "This tool helps you detect literary patterns and visual echoes across words and throughout a passage based on how words are written, not how they are heard.";
+    "Some Hebrew letters can produce different sounds. For example, the letter \u05D1 can produce a \u201cb\u201d or \u201cv\u201d sound. Hebrew poetry can also create patterns between words that are spelled similarly, even when they do not sound similar when read aloud, such as \u05E7\u05B6\u05D1\u05B6\u05E8 (Qever) and \u05D1\u05BC\u05B9\u05E7\u05B6\u05E8 (Boqer) in Psalm 88:12,14. This tool helps you detect visual literary patterns and letter echoes throughout a passage based on how words are written, not how they are heard.";
+  const letterTooltipNote =
+    "Highlights from this tool are only visible in the Hebrew text, not in the default English gloss or transliteration display.";
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -323,7 +323,7 @@ const Sounds = () => {
                 </div>
                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                   <p>{soundTooltipP1}</p>
-                  <p>{soundTooltipP2}</p>
+                  <p className="text-xs italic text-gray-500 dark:text-gray-400"><span className="font-semibold not-italic">Note:</span> {soundTooltipNote}</p>
                 </div>
               </div>
             </div>,
@@ -411,7 +411,7 @@ const Sounds = () => {
                 </div>
                 <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                   <p>{letterTooltipP1}</p>
-                  <p>{letterTooltipP2}</p>
+                  <p className="text-xs italic text-gray-500 dark:text-gray-400"><span className="font-semibold not-italic">Note:</span> {letterTooltipNote}</p>
                 </div>
               </div>
             </div>,

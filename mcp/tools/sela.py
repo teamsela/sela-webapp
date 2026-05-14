@@ -790,13 +790,16 @@ async def sela_run_test(
 # ---------------------------------------------------------------------------
 
 _LETTER_TOOLTIP_P1 = (
-    "Some Hebrew letters can produce different sounds. Hebrew poetry can also create literary "
-    "patterns by rearranging the same letters to form new words, creating visual connections "
-    "that may not sound similar when read aloud."
+    "Some Hebrew letters can produce different sounds. For example, the letter \u05d1 can produce "
+    "a \u201cb\u201d or \u201cv\u201d sound. Hebrew poetry can also create patterns between words "
+    "that are spelled similarly, even when they do not sound similar when read aloud, such as "
+    "\u05e7\u05b6\u05d1\u05b6\u05e8 (Qever) and \u05d1\u05bc\u05b9\u05e7\u05b6\u05e8 (Boqer) in "
+    "Psalm 88:12,14. This tool helps you detect visual literary patterns and letter echoes "
+    "throughout a passage based on how words are written, not how they are heard."
 )
-_LETTER_TOOLTIP_P2 = (
-    "This tool helps you detect literary patterns and visual echoes across words and throughout "
-    "a passage based on how words are written, not how they are heard."
+_LETTER_TOOLTIP_NOTE = (
+    "Highlights from this tool are only visible in the Hebrew text, not in the default "
+    "English gloss or transliteration display."
 )
 
 
@@ -897,16 +900,16 @@ async def sela_test_letter_tooltip(
         except Exception as exc:
             record("tooltip_p1_text", f"FAIL: could not read paragraph 1: {exc}")
 
-        # 9. Verify paragraph 2
-        p2_el = dialog.locator("p").nth(1)
+        # 9. Verify note paragraph
+        note_el = dialog.locator("p").nth(1)
         try:
-            p2_text = await p2_el.inner_text(timeout=4_000)
-            if _LETTER_TOOLTIP_P2 in p2_text:
-                record("tooltip_p2_text", f"PASS: paragraph 2 matches expected text")
+            note_text = await note_el.inner_text(timeout=4_000)
+            if _LETTER_TOOLTIP_NOTE in note_text:
+                record("tooltip_note_text", f"PASS: note paragraph matches expected text")
             else:
-                record("tooltip_p2_text", f"FAIL: paragraph 2 mismatch. Got: {p2_text!r}")
+                record("tooltip_note_text", f"FAIL: note paragraph mismatch. Got: {note_text!r}")
         except Exception as exc:
-            record("tooltip_p2_text", f"FAIL: could not read paragraph 2: {exc}")
+            record("tooltip_note_text", f"FAIL: could not read note paragraph: {exc}")
 
         # 10. Close via X button
         close_btn = dialog.locator('[aria-label="Close"]')
