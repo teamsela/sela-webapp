@@ -35,10 +35,9 @@ const DistributionChip = ({
   isHighlighted,
   onClick,
 }: DistributionChipProps) => {
-  // Yellow outline only for "selected" (pending) state.
-  // Highlighted chips show their fill color only — suppress the outline so the
-  // color is the sole visual indicator of which chips are active.
-  const statusClassName = isSelected && !isHighlighted
+  // Yellow outline shows whenever the chip is selected (pending Smart Highlight).
+  // Highlighted chips keep their fill color AND get the outline when also selected.
+  const statusClassName = isSelected
     ? "outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-sm"
     : "outline-offset-[-4px]";
 
