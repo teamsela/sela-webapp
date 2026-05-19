@@ -41,10 +41,11 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         setSelectionEnd(null);
         //click to de-select
         //if clicked on wordBlock, set status here so de-select function doesnt fire
-        //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
+        // Use closest() so clicks on inner child spans (e.g. Hebrew highlight
+        // segments) correctly resolve the clickable ancestor, not just the direct target.
         const target = event.target as HTMLElement;
-        const clickedTarget = target.getAttribute('data-clickType');
-        clickToDeSelectRef.current = clickedTarget !== "clickable";
+        const clickableAncestor = target.closest('[data-clicktype="clickable"]');
+        clickToDeSelectRef.current = !clickableAncestor;
     };
 
     let rects;
