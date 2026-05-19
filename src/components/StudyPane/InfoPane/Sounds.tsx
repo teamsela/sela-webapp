@@ -242,6 +242,7 @@ const Sounds = () => {
       ctxSetSoundHighlightEnabled(true);
       ctxSetSelectedSoundChipIds([]);
       ctxSetSelectedLetterChipIds([]);
+      ctxSetHighlightedLetterChipIds([]);
       ctxSetLetterHighlightEnabled(false);
     } else if (ctxSoundHighlightEnabled) {
       ctxSetHighlightedSoundChipIds([]);
@@ -258,6 +259,7 @@ const Sounds = () => {
       ctxSetLetterHighlightEnabled(true);
       ctxSetSelectedLetterChipIds([]);
       ctxSetSelectedSoundChipIds([]);
+      ctxSetHighlightedSoundChipIds([]);
       ctxSetSoundHighlightEnabled(false);
     } else if (ctxLetterHighlightEnabled) {
       ctxSetHighlightedLetterChipIds([]);
