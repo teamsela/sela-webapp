@@ -247,6 +247,12 @@ const Sounds = () => {
     } else if (ctxSoundHighlightEnabled) {
       ctxSetHighlightedSoundChipIds([]);
       ctxSetSoundHighlightEnabled(false);
+    } else {
+      // Nothing selected and nothing highlighted — highlight all chips.
+      ctxSetHighlightedSoundChipIds(SOUND_CHIPS.map((c) => c.id));
+      ctxSetSoundHighlightEnabled(true);
+      ctxSetHighlightedLetterChipIds([]);
+      ctxSetLetterHighlightEnabled(false);
     }
   };
 
@@ -264,6 +270,12 @@ const Sounds = () => {
     } else if (ctxLetterHighlightEnabled) {
       ctxSetHighlightedLetterChipIds([]);
       ctxSetLetterHighlightEnabled(false);
+    } else {
+      // Nothing selected and nothing highlighted — highlight all chips.
+      ctxSetHighlightedLetterChipIds(LETTER_CHIP_GROUPS.flatMap((g) => g.memberIds));
+      ctxSetLetterHighlightEnabled(true);
+      ctxSetHighlightedSoundChipIds([]);
+      ctxSetSoundHighlightEnabled(false);
     }
   };
 
@@ -360,7 +372,7 @@ const Sounds = () => {
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton
                   active={ctxSoundHighlightEnabled && ctxSelectedSoundChipIds.length === 0}
-                  disabled={ctxSelectedSoundChipIds.length === 0 && !ctxSoundHighlightEnabled}
+                  disabled={false}
                   onClick={toggleSoundHighlight}
                 />
               </div>
@@ -459,7 +471,7 @@ const Sounds = () => {
               <div className="flex justify-center pt-2">
                 <SoundsHighlightButton
                   active={ctxLetterHighlightEnabled && ctxSelectedLetterChipIds.length === 0}
-                  disabled={ctxSelectedLetterChipIds.length === 0 && !ctxLetterHighlightEnabled}
+                  disabled={false}
                   onClick={toggleLetterHighlight}
                 />
               </div>
