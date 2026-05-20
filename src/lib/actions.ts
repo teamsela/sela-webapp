@@ -890,15 +890,15 @@ export async function fetchPassageData(studyId: string) {
           })();
 
           const hebrewWord = (() => {
-            // Use WLC passage text as primary source (actual Hebrew text with vowel points).
-            // StepBible Hebrew is the dictionary citation form (without prefixes/suffixes)
-            // and should only be used as a fallback.
-            const wlcHebrew = hebWord.wlcWord?.trim();
-            if (wlcHebrew && wlcHebrew.length > 0) {
-              return wlcHebrew;
-            }
+            // Use StepBible Hebrew as primary source — it is the lexical/dictionary citation form
+            // (without context-specific prefixes/suffixes), appropriate for word information display.
             const stepBibleHebrew = wordInfo?.Hebrew?.trim();
-            return stepBibleHebrew && stepBibleHebrew.length > 0 ? stepBibleHebrew : "";
+            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
+              return stepBibleHebrew;
+            }
+            // Fall back to WLC passage text if no lexical form is available.
+            const wlcHebrew = hebWord.wlcWord?.trim();
+            return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
           })();
 
           const gloss = (() => {
@@ -922,23 +922,13 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
-          // Use OHB data (hebUnicode) for transliteration — it stores the qere reading.
+          // Transliterate the lexical Hebrew form (hebrewWord is the StepBible citation form).
           // H3068 (Tetragrammaton יהוה) is always read as "Adonai" per qere perpetuum tradition.
-          // For all other words, check hebUnicode first, then fall back to WLC word transliteration.
           let transliteration = "";
           if (Math.trunc(word.strongNumber || 0) === 3068) {
             transliteration = "a.do.nai";
           } else {
-            const ohbText = decodeHtmlEntities(word.hebUnicode);
-            if (ohbText && ohbText.length > 0) {
-              const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
-              transliteration = isHebrew
-                ? transliterateHebrew(ohbText)
-                : ohbText;
-            }
-            if (!transliteration) {
-              transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
-            }
+            transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
           }
 
           hebWord.wordInformation = {
