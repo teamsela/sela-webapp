@@ -112,7 +112,7 @@ const LanguageSwitcher = () => {
         </span>
         <span
           onClick={(e) => { e.stopPropagation(); handleChevronClick(mode); }}
-          className={`flex items-center justify-center w-[20px] py-[6px] cursor-pointer select-none transition-colors border-l border-l-transparent ${hoverClass} ${chevronRoundClass} ${isActive ? activeClass : ""}`}
+          className={`flex items-center justify-center w-[14px] py-[6px] cursor-pointer select-none transition-colors border-l border-l-transparent ${hoverClass} ${chevronRoundClass} ${isActive ? activeClass : ""}`}
         >
           <Chevron />
         </span>
