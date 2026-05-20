@@ -58,8 +58,8 @@ export const WordBlock = ({
   const skipBlurCommitRef = useRef(false);
   const canEditEnglish = ctxDisplayMode === "gloss" && !ctxInViewMode;
   const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
-  const transliterationValue = wordProps.wordInformation?.transliteration?.trim() || "";
-  const hebrewValue = wordProps.wordInformation?.hebrew?.trim() || wordProps.wlcWord || "";
+  const transliterationValue = wordProps.passageTransliteration || wordProps.wordInformation?.transliteration?.trim() || "";
+  const hebrewValue = wordProps.wlcWord || wordProps.wordInformation?.hebrew?.trim() || "";
   const displayValue =
     ctxDisplayMode === "hebrew"
       ? hebrewValue

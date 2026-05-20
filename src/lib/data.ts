@@ -91,6 +91,7 @@ export interface WordProps {
     verse: number;
     strongNumber: number;
     wlcWord: string;
+    passageTransliteration?: string;
     gloss: string;
     ETCBCgloss: string | undefined;
     morphology?: string;

@@ -922,8 +922,25 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
-          // Transliterate the lexical Hebrew form (hebrewWord is the StepBible citation form).
-          // H3068 (Tetragrammaton יהוה) is always read as "Adonai" per qere perpetuum tradition.
+          // Passage transliteration: transliterates the actual passage text (with prefixes/suffixes)
+          // from heb_bible. H3068 is always "a.do.nai" (qere perpetuum).
+          // Used by the passage display in transliteration mode — separate from wordInformation.
+          const passageTransliteration = (() => {
+            if (Math.trunc(word.strongNumber || 0) === 3068) {
+              return "a.do.nai";
+            }
+            const ohbText = decodeHtmlEntities(word.hebUnicode);
+            if (ohbText && ohbText.length > 0) {
+              const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
+              const result = isHebrew ? transliterateHebrew(ohbText) : ohbText;
+              if (result) return result;
+            }
+            return transliterateHebrew(hebWord.wlcWord) || "";
+          })();
+          hebWord.passageTransliteration = passageTransliteration;
+
+          // Word information transliteration: uses the lexical/dictionary form (StepBible).
+          // H3068 is always "a.do.nai".
           let transliteration = "";
           if (Math.trunc(word.strongNumber || 0) === 3068) {
             transliteration = "a.do.nai";
