@@ -43,26 +43,26 @@ export const SOUND_CHIPS: SoundChip[] = [
   { id: "sh", label: "sh", palette: createPalette("#FFD54F") },        // gold/amber
   { id: "ts", label: "ts", palette: createPalette("#FFB74D") },        // orange (between sh and z)
   { id: "z", label: "z", palette: createPalette("#FF9800") },          // dark orange
-  { id: "kh-ch", label: "kh/ ch", palette: createPalette("#CE93D8") },  // lavender
-  { id: "k-q", label: "k/ q", palette: createPalette("#BA68C8") },          // medium purple (between kh/ch and g)
-  { id: "g", label: "g", palette: createPalette("#AB47BC") },          // purple (not green)
   { id: "h", label: "h", palette: createPalette("#E1BEE7") },          // light purple/lilac
+  { id: "kh-ch", label: "kh/ ch", palette: createPalette("#CE93D8") },  // lavender
+  { id: "k-q", label: "k/ q", palette: createPalette("#BA68C8") },     // medium purple
+  { id: "g", label: "g", palette: createPalette("#AB47BC") },          // purple
   { id: "d", label: "d", palette: createPalette("#81C784") },          // light green
   { id: "t", label: "t", palette: createPalette("#388E3C", "#FFFFFF") }, // dark green
   { id: "n", label: "n", palette: createPalette("#EF9A9A") },          // light red/pink
   { id: "m", label: "m", palette: createPalette("#F44336", "#FFFFFF") }, // red
+  { id: "v", label: "v", palette: createPalette("#A1887F", "#FFFFFF") }, // medium brown
   { id: "b", label: "b", palette: createPalette("#795548", "#FFFFFF") }, // brown
-  { id: "v", label: "v", palette: createPalette("#D7CCC8") },          // light grey-brown
+  { id: "f", label: "f", palette: createPalette("#969696", "#FFFFFF") }, // medium gray
   { id: "p", label: "p", palette: createPalette("#616161", "#FFFFFF") }, // dark gray
-  { id: "f", label: "f", palette: createPalette("#E0E0E0") },          // light gray
-  { id: "l", label: "l", palette: createPalette("#2196F3", "#FFFFFF") }, // blue
-  { id: "r", label: "r", palette: createPalette("#64B5F6") },          // lighter blue
   { id: "y", label: "y", palette: createPalette("#B3E5FC") },          // very light blue
+  { id: "r", label: "r", palette: createPalette("#64B5F6") },          // lighter blue
+  { id: "l", label: "l", palette: createPalette("#2196F3", "#FFFFFF") }, // blue
 ];
 
 export const LETTER_CHIPS: LetterChip[] = [
   // Each letter uses the color of the sound it makes (matching Sound Distribution palette, page_17.png)
-  { id: "aleph", label: "א", palette: createPalette("#FFFFFF") },                    // silent
+  { id: "aleph", label: "א", palette: createPalette("#E3E6F7") },                    // silent
   { id: "bet", label: "ב", palette: createPalette("#795548", "#FFFFFF") },           // b sound
   { id: "gimel", label: "ג", palette: createPalette("#AB47BC") },                    // g sound
   { id: "dalet", label: "ד", palette: createPalette("#81C784") },                    // d sound
@@ -80,7 +80,7 @@ export const LETTER_CHIPS: LetterChip[] = [
   { id: "nun", label: "נ", palette: createPalette("#EF9A9A") },                      // n sound
   { id: "final-nun", label: "ן", palette: createPalette("#EF9A9A") },               // n sound (same as nun)
   { id: "samekh", label: "ס", palette: createPalette("#FFF176") },                   // s sound
-  { id: "ayin", label: "ע", palette: createPalette("#FFFFFF") },                     // silent
+  { id: "ayin", label: "ע", palette: createPalette("#C5CAE9") },                     // silent
   { id: "pe", label: "פ", palette: createPalette("#616161", "#FFFFFF") },            // p sound
   { id: "tsadi", label: "צ", palette: createPalette("#FFB74D") },                    // ts sound
   { id: "final-tsadi", label: "ץ", palette: createPalette("#FFB74D") },              // ts sound (same as tsadi)
@@ -110,7 +110,7 @@ export type LetterChipGroup = {
 };
 
 export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
-  { id: "aleph", label: "א", memberIds: ["aleph"], palette: createPalette("#FFFFFF") },                                     // silent
+  { id: "aleph", label: "א", memberIds: ["aleph"], palette: createPalette("#E3E6F7") },                                     // silent
   { id: "bet", label: "ב", memberIds: ["bet"], palette: createPalette("#795548", "#FFFFFF") },                              // b sound
   { id: "gimel", label: "ג", memberIds: ["gimel"], palette: createPalette("#AB47BC") },                                     // g sound
   { id: "dalet", label: "ד", memberIds: ["dalet"], palette: createPalette("#81C784") },                                     // d sound
@@ -125,7 +125,7 @@ export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
   { id: "mem-group", label: "מ ם", memberIds: ["mem", "final-mem"], palette: createPalette("#F44336", "#FFFFFF") },         // m sound
   { id: "nun-group", label: "נ ן", memberIds: ["nun", "final-nun"], palette: createPalette("#EF9A9A") },                    // n sound
   { id: "samekh", label: "ס", memberIds: ["samekh"], palette: createPalette("#FFF176") },                                   // s sound
-  { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#FFFFFF") },                                       // silent
+  { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#C5CAE9") },                                       // silent
   { id: "pe", label: "פ", memberIds: ["pe"], palette: createPalette("#616161", "#FFFFFF") },                                // p sound
   { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#FFB74D") },              // ts sound
   { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#BA68C8") },                                         // k/q sound
