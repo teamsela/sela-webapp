@@ -162,6 +162,7 @@ const transliterationPatterns: TransliterationPattern[] = [
 const COMBINING_MARK = /\p{M}/u;
 const HEBREW_LETTER = /\p{Script=Hebrew}/u;
 const DAGESH = "\u05BC";
+const HOLAM = "\u05B9";
 const SHIN_DOT = "\u05C1";
 const SIN_DOT = "\u05C2";
 
@@ -218,8 +219,13 @@ const getHebrewClusterMetadata = (cluster: string): HebrewClusterMatch => {
       return { text: cluster, letterId: "dalet", soundIds: ["d"] };
     case "ה":
       return { text: cluster, letterId: "he", soundIds: ["h"] };
-    case "ו":
-      return { text: cluster, letterId: "vav", soundIds: ["v"] };
+    case "ו": {
+      // Vav with holam (וֹ \u05B9) = "o" vowel; with dagesh/shuruk (וּ \u05BC) = "u" vowel.
+      // In both cases vav is a vowel carrier and makes no consonant sound.
+      // Only bare vav (no holam, no shuruk) is the "v" consonant.
+      const isVowelCarrier = marks.has(HOLAM) || marks.has(DAGESH);
+      return { text: cluster, letterId: "vav", soundIds: isVowelCarrier ? [] : ["v"] };
+    }
     case "ז":
       return { text: cluster, letterId: "zayin", soundIds: ["z"] };
     case "ח":

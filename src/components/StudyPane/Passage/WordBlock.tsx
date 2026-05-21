@@ -379,9 +379,15 @@ export const WordBlock = ({
       });
     }
 
+    // יהוה (Tetragrammaton, H3068) is a qere perpetuum — its written letters carry
+    // no sound when read aloud (pronounced "Adonai"). Suppress sound highlighting
+    // on Hebrew letters only; letter distribution and transliteration stay intact.
+    const isTetrag = Math.trunc(wordProps.strongNumber || 0) === 3068;
+    const hebrewSoundIds = isTetrag ? new Set<string>() : selectedSoundIds;
+
     const segments = buildHighlightedHebrewSegments(
       hebrewValue,
-      selectedSoundIds,
+      hebrewSoundIds,
       selectedLetterIds,
     );
 
