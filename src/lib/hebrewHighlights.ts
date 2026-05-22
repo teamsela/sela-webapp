@@ -347,21 +347,25 @@ export const splitHebrewClusters = (text: string): HebrewClusterMatch[] => {
 };
 
 export const countSoundOccurrences = (word: WordProps, soundId: string): number => {
-  const transliteration = word.wordInformation?.transliteration ?? "";
+  // Use passage transliteration (heb_bible form with prefixes/suffixes) so the count
+  // matches the highlights visible in transliteration mode.
+  const transliteration = word.passageTransliteration || word.wordInformation?.transliteration || "";
   if (transliteration) {
     return splitTransliterationSegments(transliteration).filter(
       (segment) => segment.highlightId === soundId,
     ).length;
   }
 
-  const hebrew = word.wordInformation?.hebrew || word.wlcWord || "";
+  const hebrew = word.wlcWord || "";
   return splitHebrewClusters(hebrew).filter((cluster) =>
     cluster.soundIds.includes(soundId),
   ).length;
 };
 
 export const countLetterOccurrences = (word: WordProps, letterId: string): number => {
-  const hebrew = word.wordInformation?.hebrew || word.wlcWord || "";
+  // Use wlcWord (heb_bible passage form) so the count matches the highlights
+  // visible in Hebrew mode, including all prefixes and suffixes.
+  const hebrew = word.wlcWord || "";
   return splitHebrewClusters(hebrew).filter(
     (cluster) => cluster.letterId === letterId,
   ).length;
