@@ -772,6 +772,10 @@ const areWordsContiguous = (words: WordProps[]): boolean => {
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
   const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps, ctxReadmeBtnOn } = useContext(FormatContext);
+  const isLineUpdate =
+    updateType === StructureUpdateType.newLine ||
+    updateType === StructureUpdateType.mergeWithPrevLine ||
+    updateType === StructureUpdateType.mergeWithNextLine;
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
@@ -829,7 +833,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
       areStrophesContiguous(ctxSelectedStrophes);
   }
 
-  const effectiveEnabled = buttonEnabled && !ctxReadmeBtnOn;
+  const effectiveEnabled = buttonEnabled && (!ctxReadmeBtnOn || isLineUpdate);
   const handleClick = () => { effectiveEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (

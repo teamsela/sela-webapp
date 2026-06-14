@@ -457,6 +457,7 @@ export const mergeData = (
     const hasSourceLineBreak = useReadmeParagraphMode ? wordProps.BSBnewLine : wordProps.newLine;
     const hasManualLineBreak = Boolean(wordProps.metadata?.lineBreak);
     const startsNewParagraph = useReadmeParagraphMode
+      && !ignoreNewLine
       && Boolean(wordProps.BSBstanzaBreak)
       && currentLineData !== undefined
       && currentLineData.words.length > 0;

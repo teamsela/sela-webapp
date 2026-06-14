@@ -11,6 +11,31 @@ import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
+const isLineStructureUpdate = (updateType: StructureUpdateType) =>
+  updateType === StructureUpdateType.newLine ||
+  updateType === StructureUpdateType.mergeWithPrevLine ||
+  updateType === StructureUpdateType.mergeWithNextLine;
+
+const hasReaderSourceBreak = (word: WordProps) =>
+  Boolean(word.BSBnewLine || word.BSBstanzaBreak);
+
+const hasSourceLineBreak = (word: WordProps, useReadmeParagraphMode: boolean) =>
+  useReadmeParagraphMode ? hasReaderSourceBreak(word) : Boolean(word.newLine);
+
+const hasLineBreakCandidate = (
+  word: WordProps,
+  metadata: WordProps["metadata"] | undefined,
+  useReadmeParagraphMode: boolean,
+) =>
+  hasSourceLineBreak(word, useReadmeParagraphMode) || Boolean(metadata?.lineBreak);
+
+const hasActiveLineBreak = (
+  word: WordProps,
+  metadata: WordProps["metadata"] | undefined,
+  useReadmeParagraphMode: boolean,
+) =>
+  Boolean(metadata?.lineBreak) ||
+  (!metadata?.ignoreNewLine && hasSourceLineBreak(word, useReadmeParagraphMode));
 
 const Passage = ({
   bibleData,
@@ -55,7 +80,11 @@ const Passage = ({
   }, [ctxPassageProps]);
 
   useEffect(() => {
-    if (ctxReadmeBtnOn) {
+    if (
+      ctxReadmeBtnOn &&
+      ctxStructureUpdateType !== StructureUpdateType.none &&
+      !isLineStructureUpdate(ctxStructureUpdateType)
+    ) {
       ctxSetStructureUpdateType(StructureUpdateType.none);
       return;
     }
@@ -64,6 +93,12 @@ const Passage = ({
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
       const newMetadata = structuredClone(ctxStudyMetadata);
+      const wordById = new Map(bibleData.map((word) => [word.wordId, word]));
+      const getWordMetadata = (wordId: number) => newMetadata.words[wordId];
+      const hasBreakCandidate = (word: WordProps) =>
+        hasLineBreakCandidate(word, getWordMetadata(word.wordId), ctxReadmeBtnOn);
+      const hasVisibleLineBreak = (word: WordProps) =>
+        hasActiveLineBreak(word, getWordMetadata(word.wordId), ctxReadmeBtnOn);
 
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
       const firstSelectedWord = sortedWords[0];
@@ -97,7 +132,7 @@ const Passage = ({
         };
 
         rangeWords.forEach(w => {
-          const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
+          const hasBreak = hasBreakCandidate(w);
           if (hasBreak) {
             newMetadata.words[w.wordId] = {
               ...(newMetadata.words[w.wordId] || {}),
@@ -123,14 +158,10 @@ const Passage = ({
         // Merge the selected words with the previous line by removing the break
         // before the selection. A break is inserted after the selection so the
         // following text stays on the next line.
-        // Find the break before the selection. Ignore words whose default break
-        // has already been suppressed via the ignoreNewLine flag.
+        // Find the active visible break before the selection in the currently
+        // displayed layout, including reader-mode source paragraph breaks.
         const foundIndex = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId &&
-          (
-            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
-            newMetadata.words[word.wordId]?.lineBreak
-          )
+          word.wordId <= selectedWordId && hasVisibleLineBreak(word)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -142,8 +173,8 @@ const Passage = ({
         }
 
         for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
-          const word = bibleData.find(w => w.wordId === i);
-          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
+          const word = wordById.get(i);
+          if (word && hasBreakCandidate(word)) {
             newMetadata.words[i] = {
               ...(newMetadata.words[i] || {}),
               lineBreak: undefined,
@@ -166,8 +197,7 @@ const Passage = ({
         // start at the beginning of a line, create a break before it so that any
         // words preceding the selection stay on the original line. When the
         // selection already begins a line we leave the break intact.
-        const isLineStart = (firstSelectedWord.newLine && !newMetadata.words[selectedWordId]?.ignoreNewLine)
-          || newMetadata.words[selectedWordId]?.lineBreak;
+        const isLineStart = hasVisibleLineBreak(firstSelectedWord);
         if (!isLineStart) {
           newMetadata.words[selectedWordId] = {
             ...(newMetadata.words[selectedWordId] || {}),
@@ -177,7 +207,7 @@ const Passage = ({
         }
 
         rangeWords.forEach(w => {
-          if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
+          if (hasBreakCandidate(w)) {
             newMetadata.words[w.wordId] = {
               ...(newMetadata.words[w.wordId] || {}),
               lineBreak: undefined,
@@ -186,14 +216,10 @@ const Passage = ({
           }
         });
 
-        // Locate the first real break after the selection. We treat a word as a
-        // break only if its default line break isn't already ignored.
+        // Locate the next active visible break after the selection in the
+        // current display mode.
         const foundIndex = bibleData.findIndex(word =>
-          word.wordId > lastSelectedWordId &&
-          (
-            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
-            newMetadata.words[word.wordId]?.lineBreak
-          )
+          word.wordId > lastSelectedWordId && hasVisibleLineBreak(word)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -452,7 +478,7 @@ const Passage = ({
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
       const updatedPassageProps = mergeData(bibleData, newMetadata, {
-        useSourceStanzaBreaks: false,
+        useSourceStanzaBreaks: ctxReadmeBtnOn,
       });
 
       const updatedStropheNotes: StropheNote[] = [];
@@ -495,6 +521,8 @@ const Passage = ({
 
       
       ctxSetPassageProps(updatedPassageProps);
+      ctxSetSelectedWords([]);
+      ctxSetNumSelectedWords(0);
 
       updateMetadataInDb(ctxStudyId, newMetadata);
 
