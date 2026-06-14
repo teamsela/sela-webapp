@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useContext, useRef } from 'react';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext } from '../components/StudyPane/index';
 import { getWordById, wordsHasSameColor } from '@/lib/utils';
-import { PassageData, PassageProps } from '@/lib/data';
+import { PassageProps, WordProps } from '@/lib/data';
 import { ColorActionType, StructureUpdateType } from '@/lib/types';
 
 export const useDragToSelect = (passageProps: PassageProps) => {
@@ -67,7 +67,7 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         if (!selectionStart || !nextSelectionEnd || !containerRef.current) return;
         // Get all elements with the class 'wordBlock' inside the container
         const rects = containerRef.current.querySelectorAll('.wordBlock');
-        const wordsToAdd: PassageData[] = [];
+        const wordsToAdd: WordProps[] = [];
         const existingWords = selectedWordsRef.current;
 
         rects.forEach(rect => {
