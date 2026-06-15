@@ -31,13 +31,14 @@ type SpeedPopoverPosition = {
   left: number;
 };
 
-type SpeechChunk = {
-  wordIds: number[];
+type SpeechWord = {
+  wordId: number;
   text: string;
 };
 
-type SpeechWord = {
-  wordId: number;
+type SpeechChunk = {
+  wordIds: number[];
+  words: SpeechWord[];
   text: string;
 };
 
@@ -48,7 +49,66 @@ type AzureWordBoundary = {
   wordLength: number;
 };
 
+type AzureChunkAudio = {
+  blob: Blob;
+  wordBoundaries: AzureWordBoundary[];
+};
+
 type TtsEngine = "azure" | "browser";
+
+// Per-tab LRU cache of synthesized Azure audio. Synthesis for a given
+// (rate, text) is deterministic, so re-reading a line, replaying after a
+// stop, or toggling speed back and forth can play straight from memory with
+// no network round trip. Lives at module scope so it survives across
+// playbacks (but resets on full page reload). Bounded by entries and bytes.
+const AZURE_AUDIO_CACHE_MAX_ENTRIES = 256;
+const AZURE_AUDIO_CACHE_MAX_BYTES = 48 * 1024 * 1024; // 48 MB
+
+const azureAudioCache = new Map<string, AzureChunkAudio>();
+let azureAudioCacheBytes = 0;
+
+const azureCacheKey = (rate: number, text: string) => `${rate}|${text}`;
+
+const getCachedAzureAudio = (key: string): AzureChunkAudio | undefined => {
+  const cached = azureAudioCache.get(key);
+  if (!cached) {
+    return undefined;
+  }
+  // Mark most-recently-used by reinserting at the tail.
+  azureAudioCache.delete(key);
+  azureAudioCache.set(key, cached);
+  return cached;
+};
+
+const setCachedAzureAudio = (key: string, audio: AzureChunkAudio) => {
+  if (audio.blob.size > AZURE_AUDIO_CACHE_MAX_BYTES) {
+    return; // Never cache a single entry larger than the whole budget.
+  }
+
+  const existing = azureAudioCache.get(key);
+  if (existing) {
+    azureAudioCacheBytes -= existing.blob.size;
+    azureAudioCache.delete(key);
+  }
+
+  azureAudioCache.set(key, audio);
+  azureAudioCacheBytes += audio.blob.size;
+
+  while (
+    azureAudioCache.size > AZURE_AUDIO_CACHE_MAX_ENTRIES ||
+    azureAudioCacheBytes > AZURE_AUDIO_CACHE_MAX_BYTES
+  ) {
+    const oldestKey = azureAudioCache.keys().next().value;
+    if (oldestKey === undefined) {
+      break;
+    }
+    const oldest = azureAudioCache.get(oldestKey);
+    if (oldest) {
+      azureAudioCacheBytes -= oldest.blob.size;
+    }
+    azureAudioCache.delete(oldestKey);
+  }
+};
 
 const TTS_ADONAI_TEXT = "אֲ֝דֹנָ֗י";
 const DIVINE_NAME_GLOSS_EDGE_REGEX =
@@ -188,8 +248,6 @@ const Sounds = () => {
   const fetchAbortControllerRef = useRef<AbortController | null>(null);
   const highlightFrameRef = useRef<number | null>(null);
   const speechChunksRef = useRef<SpeechChunk[]>([]);
-  const speechWordsRef = useRef<SpeechWord[]>([]);
-  const azureSpeechTextRef = useRef("");
   const currentWordIndexRef = useRef(0);
   const currentChunkIndexRef = useRef(0);
   const playbackSessionRef = useRef(0);
@@ -208,10 +266,17 @@ const Sounds = () => {
           [...strophe.lines]
             .sort((a, b) => a.lineId - b.lineId)
             .map((line) => {
-              const sortedWords = [...line.words].sort((a, b) => a.wordId - b.wordId);
+              const words = [...line.words]
+                .sort((a, b) => a.wordId - b.wordId)
+                .map((word) => ({
+                  wordId: word.wordId,
+                  text: getTtsWordText(word),
+                }))
+                .filter((word) => word.text);
               return {
-                wordIds: sortedWords.map((word) => word.wordId),
-                text: sortedWords.map(getTtsWordText).filter(Boolean).join(" "),
+                wordIds: words.map((word) => word.wordId),
+                words,
+                text: words.map((word) => word.text).join(" "),
               };
             }),
         )
@@ -223,55 +288,30 @@ const Sounds = () => {
     [...ctxSelectedWords]
       .sort((a, b) => a.wordId - b.wordId)
       .forEach((word) => {
+        const text = getTtsWordText(word);
+        if (!text) {
+          return;
+        }
+
+        const speechWord = { wordId: word.wordId, text };
         const lineKey = `${word.stropheId}:${word.lineId}`;
         const existingChunk = wordsByLine.get(lineKey);
         if (existingChunk) {
           existingChunk.wordIds.push(word.wordId);
-          existingChunk.text = `${existingChunk.text} ${getTtsWordText(word)}`.trim();
+          existingChunk.words.push(speechWord);
+          existingChunk.text = `${existingChunk.text} ${text}`.trim();
           return;
         }
 
         wordsByLine.set(lineKey, {
           wordIds: [word.wordId],
-          text: getTtsWordText(word),
+          words: [speechWord],
+          text,
         });
       });
 
     return Array.from(wordsByLine.values()).filter((chunk) => chunk.text);
   }, [ctxSelectedStrophes, ctxSelectedWords]);
-
-  const selectedSpeechWords = useMemo<SpeechWord[]>(() => {
-    if (ctxSelectedStrophes.length > 0) {
-      return [...ctxSelectedStrophes]
-        .sort((a, b) => a.stropheId - b.stropheId)
-        .flatMap((strophe) =>
-          [...strophe.lines]
-            .sort((a, b) => a.lineId - b.lineId)
-            .flatMap((line) =>
-              [...line.words]
-                .sort((a, b) => a.wordId - b.wordId)
-                .map((word) => ({
-                  wordId: word.wordId,
-                  text: getTtsWordText(word),
-                })),
-            ),
-        )
-        .filter((word) => word.text);
-    }
-
-    return [...ctxSelectedWords]
-      .sort((a, b) => a.wordId - b.wordId)
-      .map((word) => ({
-        wordId: word.wordId,
-        text: getTtsWordText(word),
-      }))
-      .filter((word) => word.text);
-  }, [ctxSelectedStrophes, ctxSelectedWords]);
-
-  const selectedAzureSpeechText = useMemo(
-    () => selectedSpeechChunks.map((chunk) => chunk.text).join("\n"),
-    [selectedSpeechChunks],
-  );
 
   const isReadAloudAvailable = isAzureTtsAvailable || isSpeechSynthesisAvailable;
 
@@ -285,16 +325,17 @@ const Sounds = () => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const cleanupAudioPlayback = useCallback(() => {
-    fetchAbortControllerRef.current?.abort();
-    fetchAbortControllerRef.current = null;
-
+  const teardownCurrentAudio = useCallback(() => {
     if (typeof window !== "undefined" && highlightFrameRef.current !== null) {
       window.cancelAnimationFrame(highlightFrameRef.current);
       highlightFrameRef.current = null;
     }
 
     if (audioRef.current) {
+      audioRef.current.onloadedmetadata = null;
+      audioRef.current.ondurationchange = null;
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current.src = "";
       audioRef.current = null;
@@ -305,6 +346,12 @@ const Sounds = () => {
       audioUrlRef.current = null;
     }
   }, []);
+
+  const cleanupAudioPlayback = useCallback(() => {
+    fetchAbortControllerRef.current?.abort();
+    fetchAbortControllerRef.current = null;
+    teardownCurrentAudio();
+  }, [teardownCurrentAudio]);
 
   const startAzureHighlight = useCallback((
     audio: HTMLAudioElement,
@@ -442,11 +489,8 @@ const Sounds = () => {
     ctxSetCurrentSpokenWordIds([]);
     setTtsError(null);
     const chunks = selectedSpeechChunks;
-    const words = selectedSpeechWords;
 
     speechChunksRef.current = chunks;
-    speechWordsRef.current = words;
-    azureSpeechTextRef.current = selectedAzureSpeechText;
     currentChunkIndexRef.current = 0;
     currentWordIndexRef.current = 0;
     playbackSessionRef.current += 1;
@@ -455,12 +499,7 @@ const Sounds = () => {
     playbackEngineRef.current = isAzureTtsAvailable ? "azure" : "browser";
 
     if (isAzureTtsAvailable) {
-      void speakChunkWithAzure(
-        selectedAzureSpeechText,
-        words,
-        speechRate,
-        playbackSession,
-      );
+      void playAzurePipeline(chunks, speechRate, 0, playbackSession);
       return;
     }
 
@@ -472,39 +511,62 @@ const Sounds = () => {
     speakChunk(0, chunks, speechRate, window.speechSynthesis, playbackSession);
   };
 
-  const speakChunkWithAzure = useCallback(async (
-    text: string,
-    words: SpeechWord[],
+  // Look-ahead window: how many upcoming chunks to synthesize in the
+  // background while the current one plays. 1 is enough to hide latency
+  // because the next chunk is ready by the time the current one ends.
+  const AZURE_PREFETCH_AHEAD = 1;
+
+  const playAzurePipeline = useCallback((
+    chunks: SpeechChunk[],
     rate: number,
+    startIndex: number,
     playbackSession: number,
   ) => {
-    if (playbackSessionRef.current !== playbackSession) {
-      return;
-    }
+    const isStale = () => playbackSessionRef.current !== playbackSession;
 
-    if (!text.trim() || !words.length) {
+    const finishPlayback = (errorMessage: string | null) => {
+      if (isStale()) {
+        return;
+      }
       cleanupAudioPlayback();
       playbackEngineRef.current = null;
       ctxSetCurrentSpokenWordIds([]);
       currentWordIndexRef.current = 0;
+      currentChunkIndexRef.current = 0;
+      setTtsError(errorMessage);
       setIsPlaying(false);
+    };
+
+    if (isStale()) {
       return;
     }
 
-    currentWordIndexRef.current = 0;
-    ctxSetCurrentSpokenWordIds([words[0].wordId]);
+    if (!chunks.length) {
+      finishPlayback(null);
+      return;
+    }
 
     const controller = new AbortController();
     fetchAbortControllerRef.current = controller;
 
-    try {
+    // Each chunk is synthesized at most once; the promise is cached so the
+    // look-ahead prefetch and the playback step share the same request.
+    const audioCache = new Map<number, Promise<AzureChunkAudio>>();
+
+    const fetchChunk = async (index: number): Promise<AzureChunkAudio> => {
+      const key = azureCacheKey(rate, chunks[index].text);
+      const cached = getCachedAzureAudio(key);
+      if (cached) {
+        return cached;
+      }
+
       const response = await fetch("/api/tts/azure", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text,
+          text: chunks[index].text,
           speakingRate: rate,
         }),
         signal: controller.signal,
@@ -512,7 +574,6 @@ const Sounds = () => {
 
       if (!response.ok) {
         let errorMessage = "Azure Speech could not synthesize this selection.";
-
         try {
           const errorPayload = (await response.json()) as { error?: string };
           if (errorPayload.error) {
@@ -521,71 +582,122 @@ const Sounds = () => {
         } catch {
           // Ignore parse failures and keep the fallback message.
         }
-
         throw new Error(errorMessage);
       }
 
-      const data = (await response.json()) as {
-        audioContent?: string;
-        contentType?: string;
-        wordBoundaries?: AzureWordBoundary[];
-      };
-
-      if (!data.audioContent) {
+      // The route returns raw audio/mpeg bytes; word-boundary timings come in
+      // a base64-encoded header rather than the body.
+      const blob = await response.blob();
+      if (!blob.size) {
         throw new Error("Azure Speech returned no audio content.");
       }
 
-      if (playbackSessionRef.current !== playbackSession) {
+      let wordBoundaries: AzureWordBoundary[] = [];
+      const boundariesHeader = response.headers.get("X-Word-Boundaries");
+      if (boundariesHeader) {
+        try {
+          const decoded = new TextDecoder().decode(
+            Uint8Array.from(atob(boundariesHeader), (char) => char.charCodeAt(0)),
+          );
+          wordBoundaries = JSON.parse(decoded) as AzureWordBoundary[];
+        } catch {
+          // Missing/garbled timings just fall back to even word spacing.
+        }
+      }
+
+      const result = { blob, wordBoundaries };
+      setCachedAzureAudio(key, result);
+      return result;
+    };
+
+    const ensureFetch = (index: number) => {
+      if (index < 0 || index >= chunks.length || audioCache.has(index)) {
+        return;
+      }
+      audioCache.set(index, fetchChunk(index));
+    };
+
+    const playFrom = async (index: number) => {
+      if (isStale()) {
         return;
       }
 
-      cleanupAudioPlayback();
-      const audioBytes = Uint8Array.from(atob(data.audioContent), (char) =>
-        char.charCodeAt(0),
-      );
-      const blob = new Blob([audioBytes], {
-        type: data.contentType || "audio/mpeg",
-      });
-      const audioUrl = URL.createObjectURL(blob);
+      if (index >= chunks.length) {
+        finishPlayback(null);
+        return;
+      }
+
+      // Kick off this chunk plus the look-ahead window before awaiting, so
+      // upcoming chunks synthesize while the current one downloads/plays.
+      ensureFetch(index);
+      for (let ahead = 1; ahead <= AZURE_PREFETCH_AHEAD; ahead += 1) {
+        ensureFetch(index + ahead);
+      }
+
+      let chunkAudio: AzureChunkAudio;
+      try {
+        chunkAudio = await audioCache.get(index)!;
+      } catch (error) {
+        if (controller.signal.aborted || isStale()) {
+          return;
+        }
+        finishPlayback(
+          error instanceof Error
+            ? error.message
+            : "Azure Speech playback failed unexpectedly.",
+        );
+        return;
+      }
+
+      if (isStale()) {
+        return;
+      }
+
+      currentChunkIndexRef.current = index;
+
+      // Tear down the previous chunk's audio without aborting the shared
+      // fetch controller (that would cancel the prefetched chunks).
+      teardownCurrentAudio();
+      const audioUrl = URL.createObjectURL(chunkAudio.blob);
       const audio = new Audio(audioUrl);
       audioUrlRef.current = audioUrl;
       audioRef.current = audio;
-      fetchAbortControllerRef.current = null;
 
       let highlightStarted = false;
       const initializeHighlight = () => {
         if (highlightStarted) {
           return;
         }
-
         if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
           return;
         }
-
         highlightStarted = true;
-        startAzureHighlight(audio, words, data.wordBoundaries ?? [], playbackSession);
+        startAzureHighlight(
+          audio,
+          chunks[index].words,
+          chunkAudio.wordBoundaries,
+          playbackSession,
+        );
       };
 
       audio.onloadedmetadata = initializeHighlight;
       audio.ondurationchange = initializeHighlight;
 
-      audio.onended = () => {
-        if (playbackSessionRef.current !== playbackSession) {
-          return;
-        }
-
+      const advance = () => {
         audio.onended = null;
         audio.onerror = null;
-        cleanupAudioPlayback();
-        playbackEngineRef.current = null;
-        ctxSetCurrentSpokenWordIds([]);
-        currentWordIndexRef.current = 0;
-        setTtsError(null);
-        setIsPlaying(false);
+        void playFrom(index + 1);
+      };
+
+      audio.onended = () => {
+        if (isStale()) {
+          return;
+        }
+        advance();
       };
 
       audio.onerror = () => {
-        if (playbackSessionRef.current !== playbackSession) {
+        if (isStale()) {
           return;
         }
 
@@ -596,49 +708,32 @@ const Sounds = () => {
             audio.currentTime >= audio.duration - 0.05);
 
         if (finishedNaturally) {
-          audio.onended = null;
-          audio.onerror = null;
-          cleanupAudioPlayback();
-          playbackEngineRef.current = null;
-          ctxSetCurrentSpokenWordIds([]);
-          currentWordIndexRef.current = 0;
-          setTtsError(null);
-          setIsPlaying(false);
+          advance();
           return;
         }
 
-        audio.onended = null;
-        audio.onerror = null;
-        cleanupAudioPlayback();
-        playbackEngineRef.current = null;
-        ctxSetCurrentSpokenWordIds([]);
-        currentWordIndexRef.current = 0;
-        setTtsError("Azure Speech playback failed.");
-        setIsPlaying(false);
+        finishPlayback("Azure Speech playback failed.");
       };
 
-      await audio.play();
-      initializeHighlight();
-    } catch (error) {
-      if (controller.signal.aborted) {
-        return;
+      try {
+        await audio.play();
+      } catch {
+        // A rejected play() during teardown/session change is benign; bail
+        // unless we are still the active session (then surface as an error).
+        if (isStale()) {
+          return;
+        }
       }
+      initializeHighlight();
+    };
 
-      cleanupAudioPlayback();
-      playbackEngineRef.current = null;
-      ctxSetCurrentSpokenWordIds([]);
-      currentWordIndexRef.current = 0;
-      setTtsError(
-        error instanceof Error
-          ? error.message
-          : "Azure Speech playback failed unexpectedly.",
-      );
-      setIsPlaying(false);
-    }
+    currentWordIndexRef.current = 0;
+    void playFrom(startIndex);
   }, [
     cleanupAudioPlayback,
     ctxSetCurrentSpokenWordIds,
     startAzureHighlight,
+    teardownCurrentAudio,
   ]);
 
   useEffect(() => {
@@ -663,14 +758,8 @@ const Sounds = () => {
 
     if (playbackEngineRef.current === "azure") {
       cleanupAudioPlayback();
-      currentChunkIndexRef.current = 0;
       currentWordIndexRef.current = 0;
-      void speakChunkWithAzure(
-        azureSpeechTextRef.current,
-        speechWordsRef.current,
-        speechRate,
-        playbackSession,
-      );
+      void playAzurePipeline(chunks, speechRate, restartIndex, playbackSession);
       return;
     }
 
@@ -689,8 +778,8 @@ const Sounds = () => {
   }, [
     cleanupAudioPlayback,
     isPlaying,
+    playAzurePipeline,
     speakChunk,
-    speakChunkWithAzure,
     speechRate,
   ]);
 

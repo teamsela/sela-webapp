@@ -47,6 +47,9 @@ next-env.d.ts
 # vscode
 /.vscode
 
+# claude
+.claude/
+
 # migration api routes
 /src/app/api/admin/migrate/route.ts
 
