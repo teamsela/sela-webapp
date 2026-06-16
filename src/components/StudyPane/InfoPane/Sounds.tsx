@@ -935,7 +935,7 @@ const Sounds = () => {
                         : isPlaying
                           ? "Read aloud is currently playing. Click the button again to stop."
                           : isAzureTtsAvailable
-                            ? "Read aloud uses Azure Speech for Hebrew playback."
+                            ? "Select text for Hebrew playback."
                           : hasReadAloudSelection
                             ? "Read aloud is available for the current selection."
                         : "Select a word, multiple words, or a strophe."}
