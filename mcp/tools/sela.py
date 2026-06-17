@@ -223,8 +223,11 @@ async def sela_set_language_parallel() -> str:
     try:
         page = await _ensure_page()
 
-        # Click the Parallel (Aא) tab — it's a <span> with that text
-        await page.locator("span", has_text="Aא").first.click(timeout=8_000)
+        # The Parallel (Aא) switcher is a label span plus a chevron span; only the
+        # chevron opens the options dropdown. Clicking the chevron also switches the
+        # display to Parallel mode if it isn't already.
+        parallel_group = page.locator("div.flex.items-stretch", has_text="Aא")
+        await parallel_group.locator("span").last.click(timeout=8_000)
         await page.wait_for_timeout(600)
 
         # Select "English Gloss / Hebrew OHB" from dropdown
