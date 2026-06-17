@@ -930,3 +930,241 @@ async def sela_test_letter_tooltip(
     verdict = "PASS" if passed else "FAIL"
     summary = f"\n{'='*50}\nTEST RESULT: {verdict}\n{'='*50}\n" + "\n".join(results)
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Distribution occurrence-count regression test
+# ---------------------------------------------------------------------------
+#
+# Catches the "incorrect occurrence count" bug: the number shown in each chip's
+# count bubble is produced by countSoundOccurrences / countLetterOccurrences in
+# hebrewHighlights.ts, which read a DIFFERENT text source than the rendered
+# passage highlights. As a result the bubble number can disagree with the number
+# of highlights actually drawn (e.g. Psalm 1: m bubble 10 but 20 highlights).
+#
+# Invariant asserted: after Smart-Highlighting ALL chips in a distribution panel,
+# each chip's count bubble must equal the number of highlighted Hebrew base
+# letters drawn in the passage in that chip's color.
+#   - Letter mode: highlighted Hebrew base letters per color.
+#   - Sound  mode: same OHB Hebrew base-letter count. The renderer suppresses
+#     sound highlighting on יהוה (qere perpetuum), matching the transliteration
+#     source-of-truth the count bubble is supposed to use.
+
+# JS run after Smart Highlight: read every chip (label, numeric count bubble,
+# computed background color) and tally highlighted Hebrew base letters per color
+# in the passage. Returned to Python for comparison.
+_COUNT_AUDIT_JS = r"""() => {
+    const stripMarks = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '');
+    const isHebrew = (c) => /\p{Script=Hebrew}/u.test(c);
+
+    // ----- 1. Chips: label, count bubble, color (colored only once highlighted) -----
+    const chips = [];
+    document.querySelectorAll('button.wordBlock').forEach((btn) => {
+        const labelEl = btn.querySelector('span.text-black');
+        if (!labelEl) return;
+        const label = labelEl.innerText.trim();
+
+        let count = null;
+        btn.querySelectorAll('span').forEach((s) => {
+            const t = s.innerText.trim();
+            if (/^\d+$/.test(t)) count = parseInt(t, 10);
+        });
+
+        const color = getComputedStyle(btn).backgroundColor;
+        chips.push({ label, count, color });
+    });
+
+    // ----- 2. Passage: highlighted Hebrew base letters per color -----
+    const colorCounts = {};
+    document.querySelectorAll('span[style*="background-color"]').forEach((span) => {
+        const bg = span.style.backgroundColor;
+        if (!bg || bg === 'rgb(255, 255, 255)' || bg === 'transparent' || bg === '') return;
+        const hebChars = [...stripMarks(span.innerText)].filter(isHebrew);
+        if (hebChars.length === 0) return;
+        colorCounts[bg] = (colorCounts[bg] || 0) + hebChars.length;
+    });
+
+    return { chips, colorCounts };
+}"""
+
+
+async def _select_all_chips(page) -> int:
+    """Click every distribution chip in the currently open panel. Returns count."""
+    chips = await page.locator("button.wordBlock").all()
+    for chip in chips:
+        try:
+            await chip.click()
+            await page.wait_for_timeout(60)
+        except Exception:
+            pass
+    return len(chips)
+
+
+async def _audit_distribution_counts(page, mode_label: str) -> tuple[bool, list[str]]:
+    """Highlight all chips in the open panel and compare bubbles to highlights.
+
+    Returns (passed, report_lines).
+    """
+    lines: list[str] = []
+
+    # Start from a clean slate so leftover colors don't pollute the tally.
+    await sela_clear_highlight()
+    await page.wait_for_timeout(300)
+
+    n_selected = await _select_all_chips(page)
+    if n_selected == 0:
+        return False, [f"  [FAIL] {mode_label}: no chips found in the open distribution panel"]
+
+    hl_result = await sela_smart_highlight()
+    if hl_result.startswith("ERROR"):
+        return False, [f"  [FAIL] {mode_label}: Smart Highlight failed: {hl_result}"]
+    await page.wait_for_timeout(500)
+
+    data = await page.evaluate(_COUNT_AUDIT_JS)
+    chips = data["chips"]
+    color_counts = data["colorCounts"]
+
+    # Guard against two chips sharing a fill color (would make the mapping ambiguous).
+    seen_colors: dict[str, str] = {}
+    dup_colors: set[str] = set()
+    for chip in chips:
+        c = chip["color"]
+        if c in seen_colors and seen_colors[c] != chip["label"]:
+            dup_colors.add(c)
+        seen_colors[c] = chip["label"]
+
+    passed = True
+    mismatches = 0
+    for chip in chips:
+        label = chip["label"]
+        bubble = chip["count"]
+        color = chip["color"]
+        highlights = color_counts.get(color, 0)
+
+        if color in dup_colors:
+            lines.append(
+                f"  [skip] {label}: ambiguous (shared color {color}) — cannot map highlights"
+            )
+            continue
+        if bubble is None:
+            passed = False
+            mismatches += 1
+            lines.append(f"  [FAIL] {label}: could not read count bubble")
+            continue
+
+        if bubble == highlights:
+            lines.append(f"  [ok]   {label}: count {bubble} == {highlights} highlights")
+        else:
+            passed = False
+            mismatches += 1
+            lines.append(
+                f"  [FAIL] {label}: count {bubble} != {highlights} highlights "
+                f"(passage shows {highlights}, bubble says {bubble})"
+            )
+
+    header = f"  {mode_label}: {len(chips)} chip(s), {mismatches} mismatch(es)"
+    return passed, [header, *lines]
+
+
+@mcp.tool()
+async def sela_test_distribution_counts(
+    base_url: str,
+    user_email: str,
+    book: str = "psalms",
+    passage: str = "1",
+    mode: str = "both",
+) -> str:
+    """Verify Sound/Letter Distribution chip counts equal the highlights drawn.
+
+    Regression test for the occurrence-count bug where the number in a chip's
+    count bubble disagrees with the number of highlights actually rendered in the
+    passage (e.g. Psalm 1: 'm' bubble 10 but 20 highlights; 'b' bubble 0 but 6
+    highlights).
+
+    For each chip, after Smart-Highlighting ALL chips in the panel, asserts:
+        chip count bubble == highlighted Hebrew base letters of that chip's color.
+
+    Steps:
+    1. Init run folder, Clerk auth, open/create study, set Parallel (English Gloss /
+       Hebrew OHB), open Sounds tab.
+    2. mode='sound'  — audit the Hebrew Sound Distribution chips.
+       mode='letter' — audit the Hebrew Letters Distribution chips.
+       mode='both'   — audit sounds then letters (default).
+    3. Report PASS only if every chip's bubble matches its highlight count.
+
+    Args:
+        base_url: Vercel preview or production URL.
+        user_email: Clerk account email for auth.
+        book: Book value for study creation (default: 'psalms').
+        passage: Passage string (default: '1' — the bug's sample passage).
+        mode: 'sound', 'letter', or 'both' (default: 'both').
+    """
+    from tools.browser import browser_run_init, browser_screenshot
+
+    mode = mode.lower().strip()
+    if mode not in ("sound", "letter", "both"):
+        return f"ERROR: invalid mode {mode!r} (expected 'sound', 'letter', or 'both')"
+
+    results: list[str] = []
+    passed = True
+
+    def record(step: str, result: str) -> None:
+        nonlocal passed
+        is_fail = result.startswith(("ERROR", "FAIL", "WARNING")) or result.startswith("[FAIL]")
+        if is_fail:
+            passed = False
+        status = "FAIL" if is_fail else "ok"
+        results.append(f"[{status}] {step}: {result[:160]}")
+
+    # 1. Init run folder
+    record("run_init", await browser_run_init("distribution-counts-test"))
+
+    # 2. Auth
+    auth_result = await sela_auth(base_url, user_email)
+    record("auth", auth_result)
+    await browser_screenshot("01_dashboard.png")
+    if "ERROR" in auth_result:
+        results.append("ABORTED: auth failed.")
+        return "\n".join(results)
+
+    # 3. Open study
+    study_result = await sela_open_or_create_study(book, passage, base_url=base_url)
+    record("open_or_create_study", study_result)
+    await browser_screenshot("02_study.png")
+    if "ERROR" in study_result:
+        results.append("ABORTED: study open/create failed.")
+        return "\n".join(results)
+
+    # 4. Parallel mode — English Gloss / Hebrew OHB (Hebrew letters carry highlights)
+    record("set_language", await sela_set_language_parallel())
+    await browser_screenshot("03_parallel_mode.png")
+
+    # 5. Open Sounds tab (Sound Distribution is open by default)
+    record("open_sounds_tab", await sela_open_sounds_tab())
+    await browser_screenshot("04_sounds_tab.png")
+
+    page = await _ensure_page()
+
+    # 6. Sound Distribution audit (panel already open after the Sounds tab)
+    if mode in ("sound", "both"):
+        sound_pass, sound_lines = await _audit_distribution_counts(page, "Sound Distribution")
+        if not sound_pass:
+            passed = False
+        results.append("Sound Distribution count audit:")
+        results.extend(sound_lines)
+        await browser_screenshot("05_sound_counts.png")
+
+    # 7. Letter Distribution audit (toggle accordion to Letters)
+    if mode in ("letter", "both"):
+        record("open_letter_dist", await sela_open_letter_distribution())
+        await page.wait_for_timeout(400)
+        letter_pass, letter_lines = await _audit_distribution_counts(page, "Letter Distribution")
+        if not letter_pass:
+            passed = False
+        results.append("Letter Distribution count audit:")
+        results.extend(letter_lines)
+        await browser_screenshot("06_letter_counts.png")
+
+    verdict = "PASS" if passed else "FAIL"
+    summary = f"\n{'='*50}\nTEST RESULT: {verdict}\n{'='*50}\n" + "\n".join(results)
+    return summary
