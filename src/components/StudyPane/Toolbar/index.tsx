@@ -42,19 +42,20 @@ const Toolbar = ({
       { // only show zoom in/out & uniform width buttons in view only mode
         ctxInViewMode ?
           (
-            <div className="flex flex-row space-x-4">
+            <div className="flex flex-row items-center justify-between space-x-4">
               <div className="flex h-8 basis-1/3 items-center justify-left">
                 <ScaleDropDown setScaleValue={setScaleValue} />
                 <UniformWidthBtn setBoxStyle={setBoxStyle} />
               </div>
-              {
-                (study.model) &&
-                (
-                  <div className="flex h-8 basis-2/3 items-center justify-end">
+              <div className="flex h-8 basis-2/3 items-center justify-end gap-3">
+                <LanguageSwitcher />
+                {
+                  (study.model) &&
+                  (
                     <StudyBtn setCloneStudyOpen={setCloneStudyOpen} />
-                  </div>
-                )
-              }
+                  )
+                }
+              </div>
             </div>
           )
         : (

@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -470,26 +471,43 @@ export async function fetchPassageData(studyId: string) {
       if (passageInfo instanceof Error === false)
       {
         const passageCondition = createPassageRangeCondition(passageInfo);
-        const passageContent = await db
-          .select({
-            hebId: hebBible.hebId,
-            chapter: hebBible.chapter,
-            verse: hebBible.verse,
-            strongNumber: hebBible.strongNumber,
-            wlcWord: hebBible.wlcWord,
-            gloss: hebBible.gloss,
-            ETCBCgloss: hebBible.ETCBCgloss,
-            morphology: hebBible.morphology,
-            BSBnewLine: hebBible.BSBnewLine,
-            motifCategories: motifLink.categories,
-            relatedStrongCodes: motifLink.relatedStrongCodes,
-            motifLemma: lemmaLink.lemma,
-          })
-          .from(hebBible)
-          .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
-          .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
-          .where(passageCondition)
-          .orderBy(asc(hebBible.hebId));
+
+        // Build a query with the OHB hebUnicode column if it exists, else fall back without it.
+        const buildPassageQuery = (includeHebUnicode: boolean) =>
+          db
+            .select({
+              hebId: hebBible.hebId,
+              chapter: hebBible.chapter,
+              verse: hebBible.verse,
+              strongNumber: hebBible.strongNumber,
+              wlcWord: hebBible.wlcWord,
+              ...(includeHebUnicode ? { hebUnicode: hebBible.hebUnicode } : {}),
+              gloss: hebBible.gloss,
+              ETCBCgloss: hebBible.ETCBCgloss,
+              morphology: hebBible.morphology,
+              BSBnewLine: hebBible.BSBnewLine,
+              motifCategories: motifLink.categories,
+              relatedStrongCodes: motifLink.relatedStrongCodes,
+              motifLemma: lemmaLink.lemma,
+            })
+            .from(hebBible)
+            .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
+            .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
+            .where(passageCondition)
+            .orderBy(asc(hebBible.hebId));
+
+        let passageContent: Awaited<ReturnType<typeof buildPassageQuery>>;
+        try {
+          passageContent = await buildPassageQuery(true);
+        } catch (queryErr: unknown) {
+          const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
+          if (msg.includes("hebUnicode") || msg.includes("column")) {
+            // hebUnicode column doesn't exist yet — fall back without it
+            passageContent = await buildPassageQuery(false) as typeof passageContent;
+          } else {
+            throw queryErr;
+          }
+        }
 
         const uniqueStrongNumbers = new Set<number>();
         passageContent.forEach((word) => {
@@ -764,6 +782,16 @@ export async function fetchPassageData(studyId: string) {
           })
         );
 
+        // The wlcWord column may store Hebrew text as HTML numeric entities
+        // (e.g. "&#1497;&#1463;" instead of "יַ") depending on the database branch.
+        // Decode them to actual Unicode so React renders Hebrew glyphs, not entity strings.
+        const decodeHtmlEntities = (str: string | null | undefined): string => {
+          if (!str) return "";
+          return str.replace(/&#(\d+);/g, (_, code: string) =>
+            String.fromCodePoint(parseInt(code, 10))
+          );
+        };
+
         const strongNumberSet = new Set<number>();
         passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
         passageContent.forEach(word => {
@@ -772,7 +800,7 @@ export async function fetchPassageData(studyId: string) {
           hebWord.chapter = word.chapter || 0;
           hebWord.verse = word.verse || 0;
           hebWord.strongNumber = word.strongNumber || 0;
-          hebWord.wlcWord = word.wlcWord || "";
+          hebWord.wlcWord = decodeHtmlEntities(word.wlcWord);
           hebWord.gloss = word.gloss?.trim() || "";
           hebWord.ETCBCgloss = word.ETCBCgloss || "";
           hebWord.morphology = word.morphology?.trim() || "";
@@ -862,10 +890,13 @@ export async function fetchPassageData(studyId: string) {
           })();
 
           const hebrewWord = (() => {
+            // Use StepBible Hebrew as primary source — it is the lexical/dictionary citation form
+            // (without context-specific prefixes/suffixes), appropriate for word information display.
             const stepBibleHebrew = wordInfo?.Hebrew?.trim();
             if (stepBibleHebrew && stepBibleHebrew.length > 0) {
               return stepBibleHebrew;
             }
+            // Fall back to WLC passage text if no lexical form is available.
             const wlcHebrew = hebWord.wlcWord?.trim();
             return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
           })();
@@ -891,9 +922,35 @@ export async function fetchPassageData(studyId: string) {
             ? formatStrongNumberForDisplay(strongValue)
             : "";
 
+          // Passage transliteration: transliterates the actual passage text (with prefixes/suffixes)
+          // from heb_bible. H3068 is always "a.do.nai" (qere perpetuum).
+          // Used by the passage display in transliteration mode — separate from wordInformation.
+          const passageTransliteration = (() => {
+            if (Math.trunc(word.strongNumber || 0) === 3068) {
+              return "a.do.nai";
+            }
+            const ohbText = decodeHtmlEntities(word.hebUnicode);
+            if (ohbText && ohbText.length > 0) {
+              const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
+              const result = isHebrew ? transliterateHebrew(ohbText) : ohbText;
+              if (result) return result;
+            }
+            return transliterateHebrew(hebWord.wlcWord) || "";
+          })();
+          hebWord.passageTransliteration = passageTransliteration;
+
+          // Word information transliteration: uses the lexical/dictionary form (StepBible).
+          // H3068 is always "a.do.nai".
+          let transliteration = "";
+          if (Math.trunc(word.strongNumber || 0) === 3068) {
+            transliteration = "a.do.nai";
+          } else {
+            transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
+          }
+
           hebWord.wordInformation = {
             hebrew: hebrewWord,
-            transliteration: wordInfo?.Transliteration?.trim() || "",
+            transliteration,
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
             strongsNumber: strongNumberForDisplay,
