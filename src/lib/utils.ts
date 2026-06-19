@@ -415,9 +415,9 @@ export const mergeData = (
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
-    const startsNewStanza = useReadmeParagraphMode
-      ? false
-      : Boolean(wordProps.metadata?.stanzaDiv);
+    // Honor user-defined stanza divisions in both normal and reader mode so the
+    // strophe/stanza structure is shared (co-edited) across the two views.
+    const startsNewStanza = Boolean(wordProps.metadata?.stanzaDiv);
     if (currentStanzaData === undefined || startsNewStanza) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
@@ -432,9 +432,9 @@ export const mergeData = (
     }
 
     let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
-    const startsNewStrophe = useReadmeParagraphMode
-      ? false
-      : Boolean(wordProps.metadata?.stropheDiv);
+    // Honor user-defined strophe divisions in both normal and reader mode (see
+    // stanza note above).
+    const startsNewStrophe = Boolean(wordProps.metadata?.stropheDiv);
     if (currentStropheData === undefined || startsNewStrophe) {
       passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
       ++currentStropheIdx;
@@ -456,11 +456,16 @@ export const mergeData = (
     wordProps.newVerse = prevVerseNum !== 0 && prevVerseNum !== wordProps.verse;
     const hasSourceLineBreak = useReadmeParagraphMode ? wordProps.BSBnewLine : wordProps.newLine;
     const hasManualLineBreak = Boolean(wordProps.metadata?.lineBreak);
+    // Suppress the extra reader-mode paragraph gap when this word also begins a
+    // user-defined strophe/stanza: the division's own spacing takes over, so we
+    // avoid rendering a redundant blank line on top of it.
     const startsNewParagraph = useReadmeParagraphMode
       && !ignoreNewLine
       && Boolean(wordProps.BSBstanzaBreak)
       && currentLineData !== undefined
-      && currentLineData.words.length > 0;
+      && currentLineData.words.length > 0
+      && !startsNewStrophe
+      && !startsNewStanza;
     if (
       currentLineData === undefined
       || startsNewParagraph

@@ -35,7 +35,9 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
   }
 
   const isParallel = ctxLanguageMode == LanguageMode.Parallel;
-  const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel;
+  // Reader mode tiles stanzas vertically (full width), matching strophe and
+  // line stacking, rather than the horizontal study-mode layout.
+  const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel || ctxReadmeBtnOn;
   const allowPassageGrowth = ctxStropheNoteBtnOn && !ctxReadmeBtnOn;
   const stackedWidthClass = allowPassageGrowth
     ? 'w-fit min-w-full max-w-none'
@@ -44,7 +46,7 @@ export const PassageBlock = ( {isHebrew}: {isHebrew: boolean} ) => {
       : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`
-    : `flex-row ${ctxReadmeBtnOn ? 'w-full max-w-full' : 'max-w-[600px]'}`;
+    : `flex-row max-w-[600px]`;
   const passageWidthClass = ctxReadmeBtnOn && !isParallel
     ? `w-full min-w-0 ${isHebrew ? 'hbFont' : ''}`
     : isHebrew

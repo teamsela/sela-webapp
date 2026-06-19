@@ -198,11 +198,11 @@ export const StanzaBlock = ({
       <button
         type="button"
         onClick={startEditing}
-        className={`flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
+        className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >
         <span
-          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'opacity-50 italic' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
+          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
           dir="auto"
           style={{ color: contrastingForegroundColor }}
         >

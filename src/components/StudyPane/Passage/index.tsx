@@ -11,11 +11,6 @@ import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
-const isLineStructureUpdate = (updateType: StructureUpdateType) =>
-  updateType === StructureUpdateType.newLine ||
-  updateType === StructureUpdateType.mergeWithPrevLine ||
-  updateType === StructureUpdateType.mergeWithNextLine;
-
 const hasReaderSourceBreak = (word: WordProps) =>
   Boolean(word.BSBnewLine || word.BSBstanzaBreak);
 
@@ -80,15 +75,6 @@ const Passage = ({
   }, [ctxPassageProps]);
 
   useEffect(() => {
-    if (
-      ctxReadmeBtnOn &&
-      ctxStructureUpdateType !== StructureUpdateType.none &&
-      !isLineStructureUpdate(ctxStructureUpdateType)
-    ) {
-      ctxSetStructureUpdateType(StructureUpdateType.none);
-      return;
-    }
-
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
@@ -384,18 +370,21 @@ const Passage = ({
         if (prevStanzaIdx !== undefined && prevStanzaIdx > 0) {
           const prevStanzaIdxMinus1 = prevStanzaIdx - 1;
           const prevStanza = ctxPassageProps.stanzaProps[prevStanzaIdxMinus1];
-          if (prevStanza?.metadata?.title) {
-            const currentStanza = ctxPassageProps.stanzaProps[prevStanzaIdx];
-            const currentTitle = currentStanza?.metadata?.title ?? "";
-            const mergedTitle = prevStanza.metadata.title + (currentTitle ? " | " + currentTitle : "");
-            // Set the merged title on the surviving stanza's first word
-            const survivingFirstWordId = sortedStrophes[0].lines[0].words[0].wordId;
-            if (newMetadata.words[survivingFirstWordId]) {
-              newMetadata.words[survivingFirstWordId].stanzaMd = {
-                ...newMetadata.words[survivingFirstWordId].stanzaMd,
+          const currentStanza = ctxPassageProps.stanzaProps[prevStanzaIdx];
+          const prevTitle = prevStanza?.metadata?.title ?? "";
+          const currentTitle = currentStanza?.metadata?.title ?? "";
+          const mergedTitle = [prevTitle, currentTitle].filter(Boolean).join(" | ");
+          if (mergedTitle) {
+            // The combined stanza begins at the previous stanza's first word,
+            // so the merged title must live there to be displayed.
+            const survivingFirstWordId = prevStanza.strophes[0].lines[0].words[0].wordId;
+            newMetadata.words[survivingFirstWordId] = {
+              ...(newMetadata.words[survivingFirstWordId] || {}),
+              stanzaMd: {
+                ...(newMetadata.words[survivingFirstWordId]?.stanzaMd),
                 title: mergedTitle
-              };
-            }
+              }
+            };
           }
         }
 
@@ -433,17 +422,20 @@ const Passage = ({
         if (nextStanzaIdx !== undefined && nextStanzaIdx < ctxPassageProps.stanzaProps.length - 1) {
           const nextStanzaIdxPlus1 = nextStanzaIdx + 1;
           const nextStanza = ctxPassageProps.stanzaProps[nextStanzaIdxPlus1];
-          if (nextStanza?.metadata?.title) {
-            const currentStanza = ctxPassageProps.stanzaProps[nextStanzaIdx];
-            const currentTitle = currentStanza?.metadata?.title ?? "";
-            const mergedTitle = currentTitle + (currentTitle ? " | " + nextStanza.metadata.title : nextStanza.metadata.title);
-            // Set the merged title on the surviving stanza's first word
-            if (newMetadata.words[firstWordId]) {
-              newMetadata.words[firstWordId].stanzaMd = {
-                ...newMetadata.words[firstWordId].stanzaMd,
+          const currentStanza = ctxPassageProps.stanzaProps[nextStanzaIdx];
+          const currentTitle = currentStanza?.metadata?.title ?? "";
+          const nextTitle = nextStanza?.metadata?.title ?? "";
+          const mergedTitle = [currentTitle, nextTitle].filter(Boolean).join(" | ");
+          if (mergedTitle) {
+            // The combined stanza begins at firstWordId, so the merged title
+            // must live there to be displayed.
+            newMetadata.words[firstWordId] = {
+              ...(newMetadata.words[firstWordId] || {}),
+              stanzaMd: {
+                ...(newMetadata.words[firstWordId]?.stanzaMd),
                 title: mergedTitle
-              };
-            }
+              }
+            };
           }
         }
 
@@ -495,22 +487,20 @@ const Passage = ({
           const firstWord = strophe.lines[0].words[0].wordId;
           const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
           const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
-          let updatedText = "";
-          let updatedTitle = "";
+          const titleParts: string[] = [];
+          const textParts: string[] = [];
           oldNotes.strophes.forEach((oldStrophe) => {
             if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
-              if (updatedTitle === "") {
-                updatedTitle += oldStrophe.title;
-                updatedText += oldStrophe.text;
+              if (oldStrophe.title) {
+                titleParts.push(oldStrophe.title);
               }
-              else {
-                updatedTitle += " | " + oldStrophe.title;
-                updatedText += "\n" + oldStrophe.text;
+              if (oldStrophe.text) {
+                textParts.push(oldStrophe.text);
               }
             };
           });
-          updatedStropheNotes[newIndex].title = updatedTitle;
-          updatedStropheNotes[newIndex].text = updatedText;
+          updatedStropheNotes[newIndex].title = titleParts.join(" | ");
+          updatedStropheNotes[newIndex].text = textParts.join("\n");
         });
       });
       const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
