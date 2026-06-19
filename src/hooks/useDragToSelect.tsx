@@ -16,7 +16,8 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
     const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
-    const [clickToDeSelect, setClickToDeSelect] = useState(true);
+    // Use a ref (not state) so handleMouseUp always reads the current value without stale closure.
+    const clickToDeSelectRef = useRef(true);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -40,10 +41,11 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         setSelectionEnd(null);
         //click to de-select
         //if clicked on wordBlock, set status here so de-select function doesnt fire
-        //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
+        // Use closest() so clicks on inner child spans (e.g. Hebrew highlight
+        // segments) correctly resolve the clickable ancestor, not just the direct target.
         const target = event.target as HTMLElement;
-        const clickedTarget = target.getAttribute('data-clickType');
-        clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+        const clickableAncestor = target.closest('[data-clicktype="clickable"]');
+        clickToDeSelectRef.current = !clickableAncestor;
     };
 
     let rects;
@@ -118,12 +120,12 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         if (shouldSkip) {
             return;
         }
-        if (!selectionEnd && clickToDeSelect) {
+        if (!selectionEnd && clickToDeSelectRef.current) {
             ctxSetNumSelectedWords(0);
             ctxSetSelectedWords([]);
             ctxSetSelectedStrophes([]);
         }
-    }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
+    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
 
   
     useEffect(() => {
@@ -200,10 +202,10 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         isDragging,
         selectionStart,
         selectionEnd,
-        clickToDeSelect,
+        clickToDeSelect: clickToDeSelectRef.current,
         handleMouseDown,
         handleMouseUp,
-        setClickToDeSelect,
+        setClickToDeSelect: (val: boolean) => { clickToDeSelectRef.current = val; },
         containerRef,
         getSelectionBoxStyle
     };
