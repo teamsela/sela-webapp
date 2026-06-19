@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -45,7 +47,11 @@ docs/requirements-notes.md
 next-env.d.ts
 
 # vscode
-/.vscode
+/.vscode/*
+!/.vscode/mcp.json
+
+# claude
+.claude/
 
 # claude
 /.claude
@@ -55,3 +61,7 @@ next-env.d.ts
 
 pnpm-lock.yaml
 yarn.lock
+
+# local feature docs
+/local/
+.env*.local

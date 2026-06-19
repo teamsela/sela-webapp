@@ -18,6 +18,32 @@ type AzureWordBoundary = {
   wordLength: number;
 };
 
+type SynthesisResult = {
+  audioData: Buffer;
+  wordBoundaries: AzureWordBoundary[];
+};
+
+// Returns the MP3 bytes directly instead of base64-in-JSON: ~33% smaller
+// payload and no atob() decode on the client. Word-boundary timings ride
+// along in a base64 header (their text is Hebrew, so base64 keeps the header
+// value ASCII-safe).
+const buildAudioResponse = (result: SynthesisResult) => {
+  const wordBoundariesHeader = Buffer.from(
+    JSON.stringify(result.wordBoundaries),
+    "utf-8",
+  ).toString("base64");
+
+  return new Response(new Uint8Array(result.audioData), {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": String(result.audioData.length),
+      "Cache-Control": "no-store",
+      "X-Word-Boundaries": wordBoundariesHeader,
+    },
+  });
+};
+
 const escapeXml = (value: string) =>
   value
     .replace(/&/g, "&amp;")
@@ -180,18 +206,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Text is required." }, { status: 400 });
   }
 
-  try {
-    const result = await synthesizeAzureSpeech(
-      text,
-      normalizeSpeakingRate(payload.speakingRate),
-      request.signal,
-    );
+  const rate = normalizeSpeakingRate(payload.speakingRate);
 
-    return NextResponse.json({
-      audioContent: result.audioData.toString("base64"),
-      contentType: "audio/mpeg",
-      wordBoundaries: result.wordBoundaries,
-    });
+  try {
+    const result = await synthesizeAzureSpeech(text, rate, request.signal);
+
+    return buildAudioResponse(result);
   } catch (error) {
     if (request.signal.aborted || isAbortLikeError(error)) {
       return new Response(null, { status: 499 });

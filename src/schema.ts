@@ -23,6 +23,7 @@ export const hebBible = pgTable('heb_bible_test', {
   verse: integer('verse'),
   strongNumber: doublePrecision('strongNumber'),
   wlcWord: text('wlcWord'),
+  hebUnicode: text('hebUnicode'), // OHB Hebrew text (qere readings, e.g. אֲדֹנָי for יהוה)
   gloss: text('gloss'),
   ETCBCgloss: text('ETCBCgloss'),
   morphology: text('morphology'),
