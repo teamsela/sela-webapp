@@ -43,12 +43,23 @@ export type StanzaMap = {
     [id: number]: StanzaMetadata
 }
 
+export type LayerDef = {
+    id: number;
+    name: string;
+    fill: string;
+    border: string;
+    text: string;
+};
+
 export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
     boxStyle?: BoxDisplayConfig;
     lang?: LanguageMode;
     nonEnglishDisplayMode?: NonEnglishDisplayMode;
+    layerDefs?: LayerDef[];
+    layerWordMaps?: Record<string, WordMap>;
+    activeLayerId?: number;
 }
 
 export interface StudyProps {

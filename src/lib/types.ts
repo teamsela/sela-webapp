@@ -75,4 +75,9 @@ export enum SyntaxType {
 
 export type StropheNote = { title: string, text: string, firstWordId: number , lastWordId: number };
 export type LayerNote = { text: string, strophes: StropheNote[] };
-export type StudyNotes = { main: string, layers: LayerNote[]; };
+export type StudyNotes = {
+  main: string;
+  strophes?: StropheNote[];        // root-level strophes (legacy / layer-0 fallback)
+  layers?: LayerNote[];            // reserved for future structured per-layer notes
+  layerStrophes?: Record<string, StropheNote[]>; // per-layer strophe notes keyed by layer id
+};

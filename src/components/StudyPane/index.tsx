@@ -8,7 +8,7 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { mergeData, wordsHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
@@ -16,6 +16,14 @@ import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+
+export const INITIAL_LAYER_DEF: LayerDef = {
+  id: 0,
+  name: "Default",
+  fill: "#4a6f7a",
+  border: "transparent",
+  text: "#000000",
+};
 
 export type HistoryEntry = {
   metadata: StudyMetadata;
@@ -125,7 +133,11 @@ export const FormatContext = createContext({
   ctxActiveNotesPane: null as "heb" | "eng" | null,
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
-  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxLayers: [INITIAL_LAYER_DEF] as LayerDef[],
+  ctxSetLayers: (_arg: LayerDef[]) => {},
+  ctxActiveLayerId: 0,
+  ctxSwitchLayer: (_id: number) => {},
 });
 
 const StudyPane = ({
@@ -137,7 +149,30 @@ const StudyPane = ({
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
-  const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
+  // --- Layer initialisation (migration-safe) ---
+  const rawMetadata = passageData.study.metadata;
+  const _initialLayerDefs: LayerDef[] = rawMetadata.layerDefs ?? [INITIAL_LAYER_DEF];
+  const _initialActiveLayerId: number = rawMetadata.activeLayerId ?? 0;
+  // The active layer's words are always authoritative in studyMetadata.words.
+  const _initialLayerWordMaps: Record<string, WordMap> = {
+    ...(rawMetadata.layerWordMaps ?? {}),
+    [String(_initialActiveLayerId)]: rawMetadata.words ?? {},
+  };
+  const _initialStudyMetadata: StudyMetadata = {
+    ...rawMetadata,
+    layerDefs: _initialLayerDefs,
+    layerWordMaps: _initialLayerWordMaps,
+    activeLayerId: _initialActiveLayerId,
+  };
+
+  const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(_initialStudyMetadata);
+  const [layerDefs, setLayerDefs] = useState<LayerDef[]>(_initialLayerDefs);
+  const [activeLayerId, setActiveLayerId] = useState<number>(_initialActiveLayerId);
+
+  // Ref kept current so callbacks can read latest metadata without stale closures.
+  const studyMetadataRef = useRef<StudyMetadata>(_initialStudyMetadata);
+  useEffect(() => { studyMetadataRef.current = studyMetadata; }, [studyMetadata]);
+
   const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
@@ -213,6 +248,36 @@ const StudyPane = ({
     setHistory(newHistory);
     setPointer(pointer + 1);
   };
+
+  // Switch the active layer: saves the current layer's words then loads the new layer's words.
+  const switchLayer = useCallback((newId: number) => {
+    if (newId === activeLayerId) return;
+    const current = studyMetadataRef.current;
+    const updatedLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+    };
+    const newWords: WordMap = updatedLayerWordMaps[String(newId)] ?? {};
+    const updated: StudyMetadata = {
+      ...current,
+      words: newWords,
+      layerWordMaps: updatedLayerWordMaps,
+      activeLayerId: newId,
+      layerDefs,
+    };
+    setStudyMetadata(updated);
+    setActiveLayerId(newId);
+    setWordsColorMap(new Map());
+    updateMetadataInDb(passageData.study.id, updated);
+  }, [activeLayerId, layerDefs, passageData.study.id]);
+
+  // Update the layer definitions (name/colour changes, add, delete, reorder).
+  const handleSetLayers = useCallback((newLayers: LayerDef[]) => {
+    setLayerDefs(newLayers);
+    const updated: StudyMetadata = { ...studyMetadataRef.current, layerDefs: newLayers };
+    setStudyMetadata(updated);
+    updateMetadataInDb(passageData.study.id, updated);
+  }, [passageData.study.id]);
 
   useEffect(() => {
     if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
@@ -342,7 +407,11 @@ const StudyPane = ({
     ctxActiveNotesPane: activeNotesPane,
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
-    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxLayers: layerDefs,
+    ctxSetLayers: handleSetLayers,
+    ctxActiveLayerId: activeLayerId,
+    ctxSwitchLayer: switchLayer,
   };
 
   useEffect(() => {

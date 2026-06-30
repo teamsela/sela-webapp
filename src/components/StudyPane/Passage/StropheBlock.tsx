@@ -25,7 +25,8 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
+    ctxActiveLayerId,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -52,8 +53,14 @@ export const StropheBlock = ({
     if (!ctxStudyNotes) return "";
     try {
       const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
-      const strophes = Array.isArray(parsed?.strophes) ? parsed!.strophes! : [];
-      const note = strophes?.[stropheProps.stropheId];
+      const layerKey = String(ctxActiveLayerId);
+      // Prefer per-layer strophes; fall back to root strophes for layer 0 (migration).
+      const layerStrophe = parsed?.layerStrophes?.[layerKey]?.[stropheProps.stropheId];
+      const rootStrophe =
+        ctxActiveLayerId === 0 && Array.isArray(parsed?.strophes)
+          ? (parsed!.strophes!)[stropheProps.stropheId]
+          : undefined;
+      const note = layerStrophe ?? rootStrophe;
       if (note && typeof note.title === "string" && note.title.trim().length > 0) {
         return note.title;
       }
@@ -61,7 +68,7 @@ export const StropheBlock = ({
       // ignore malformed study notes payloads
     }
     return "";
-  }, [ctxStudyNotes, stropheProps.stropheId]);
+  }, [ctxStudyNotes, stropheProps.stropheId, ctxActiveLayerId]);
 
   const noteTitleWrapperClass = useMemo(
     () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),

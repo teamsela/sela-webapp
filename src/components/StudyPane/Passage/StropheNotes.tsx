@@ -33,7 +33,8 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     ctxNoteMerge,
     ctxSetNoteMerge,
     ctxActiveNotesPane,
-    ctxSetActiveNotesPane
+    ctxSetActiveNotesPane,
+    ctxActiveLayerId,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);
@@ -65,15 +66,18 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   const hydratedKeyRef = useRef<string | null>(null);
   const notesVersionRef = useRef(0);
   const lastNotesStrRef = useRef<string | null>(null);
-  if (lastNotesStrRef.current !== ctxStudyNotes) {
+  const lastLayerIdRef = useRef<number>(ctxActiveLayerId);
+  // Bump version on any notes or active-layer change so hydration re-runs.
+  if (lastNotesStrRef.current !== ctxStudyNotes || lastLayerIdRef.current !== ctxActiveLayerId) {
     notesVersionRef.current += 1;
     lastNotesStrRef.current = ctxStudyNotes ?? null;
+    lastLayerIdRef.current = ctxActiveLayerId;
   }
 
   useEffect(() => {
     if (!ctxStudyNotes) return;
 
-    const key = `${stropheId}@${notesVersionRef.current}`;
+    const key = `${stropheId}@${ctxActiveLayerId}@${notesVersionRef.current}`;
     if (hydratedKeyRef.current === key && !ctxNoteMerge) return;
 
     const isLocalPayload = localPayloadRef.current === ctxStudyNotes;
@@ -83,8 +87,14 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     }
 
     try {
-      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
-      const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
+      const parsed = JSON.parse(ctxStudyNotes) as Record<string, unknown>;
+      const layerKey = String(ctxActiveLayerId);
+      // Read from layerStrophes[layerId]; fall back to root strophes for layer 0 (migration).
+      const layerStrophes = parsed?.layerStrophes as Record<string, StropheNote[]> | undefined;
+      let s: StropheNote | undefined = layerStrophes?.[layerKey]?.[stropheId];
+      if (!s && ctxActiveLayerId === 0) {
+        s = Array.isArray(parsed?.strophes) ? (parsed.strophes as StropheNote[])[stropheId] : undefined;
+      }
       const combinedValue = combineNoteValue(s?.title ?? "", s?.text ?? "");
       setNoteValue(combinedValue);
       hydratedKeyRef.current = key;
@@ -98,7 +108,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
         localPayloadRef.current = null;
       }
     }
-  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge]);
+  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge, ctxActiveLayerId]);
 
 const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
@@ -129,21 +139,34 @@ async (payload: string, { keepalive = false } = {}) => {
   },[ctxStudyId]);
 
   const buildPayload = useCallback(() => {
-  let parsed: StudyNotes = { main: "", strophes: [] };
+  let parsed: Record<string, unknown> = { main: "", strophes: [] };
   try {
     if (ctxStudyNotes) parsed = JSON.parse(ctxStudyNotes);
   } catch {/* fall back */}
 
-  const strophes = Array.isArray(parsed.strophes) ? [...parsed.strophes] : [];
-  while (strophes.length <= stropheId) {
-    strophes.push({ title: "", text: "" , firstWordId: firstWordId, lastWordId: lastWordId});
+  const layerKey = String(ctxActiveLayerId);
+  const existingLayerStrophes = (parsed?.layerStrophes as Record<string, StropheNote[]>) ?? {};
+
+  // Migration: seed layer 0 from the root strophes array on first write.
+  if (!existingLayerStrophes["0"] && Array.isArray(parsed.strophes)) {
+    existingLayerStrophes["0"] = [...(parsed.strophes as StropheNote[])];
+  }
+
+  const currentLayerStrophes: StropheNote[] = Array.isArray(existingLayerStrophes[layerKey])
+    ? [...existingLayerStrophes[layerKey]]
+    : [];
+  while (currentLayerStrophes.length <= stropheId) {
+    currentLayerStrophes.push({ title: "", text: "", firstWordId, lastWordId });
   }
   const { title, text } = splitNoteValue(noteValue);
-  strophes[stropheId] = { title, text, firstWordId: firstWordId, lastWordId: lastWordId };
+  currentLayerStrophes[stropheId] = { title, text, firstWordId, lastWordId };
 
-  const next: StudyNotes = { ...parsed, strophes };
+  const next = {
+    ...parsed,
+    layerStrophes: { ...existingLayerStrophes, [layerKey]: currentLayerStrophes },
+  };
   return JSON.stringify(next);
-}, [ctxStudyNotes, stropheId, noteValue, firstWordId, lastWordId]);
+}, [ctxStudyNotes, stropheId, noteValue, firstWordId, lastWordId, ctxActiveLayerId]);
 
 useEffect(() => {
   if (!ctxStudyNotes) return;

@@ -405,7 +405,7 @@ const Passage = ({
           const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
           let updatedText = "";
           let updatedTitle = "";
-          oldNotes.strophes.forEach((oldStrophe) => {
+          (oldNotes.strophes ?? []).forEach((oldStrophe) => {
             if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
               if (updatedTitle === "") {
                 updatedTitle += oldStrophe.title;

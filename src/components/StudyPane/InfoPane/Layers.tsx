@@ -8,32 +8,21 @@ import { ColorActionType } from "@/lib/types";
 
 const ACTION_ICON_SIZE = 22;
 
-// Pastel palette cycled through when new layers are created.
-const LAYER_COLORS = ["#FFFF33", "#FEF3C7", "#DBEAFE", "#DCFCE7", "#F3E8FF", "#FEE2E2"];
-
-const DEFAULT_LAYER_NAME = "Default";
-
 // Selection outline colors.
-const SELECT_OUTLINE = "#FFC300"; // selected via the select button (customizable)
-const CLICK_OUTLINE = "#3C50E0"; //  selected by clicking the box (not customizable)
+const SELECT_OUTLINE = "#FFC300";
+const CLICK_OUTLINE = "#3C50E0";
 
 // Per-layer color defaults.
-const DEFAULT_FILL = "#FFFFFF";
+const DEFAULT_FILL = "#6fa2c1";
 const DEFAULT_BORDER = "transparent";
 const DEFAULT_TEXT = "#000000";
+
+// Pastel palette cycled through when new layers are created.
+const LAYER_COLORS = [DEFAULT_FILL, "#FEF3C7", "#DBEAFE", "#DCFCE7", "#F3E8FF", "#FEE2E2"];
 
 // 'color' = selected through the select button (color customization enabled)
 // 'plain' = selected by clicking the box (color customization disabled)
 type SelectMode = "plain" | "color";
-
-type Layer = {
-  id: number;
-  name: string;
-  fill: string;
-  border: string;
-  text: string;
-  isDefault?: boolean;
-};
 
 const Layers = () => {
   const {
@@ -52,22 +41,18 @@ const Layers = () => {
     ctxStudyId,
     ctxStudyNotes,
     ctxSetStudyNotes,
+    ctxLayers,
+    ctxSetLayers,
+    ctxActiveLayerId,
+    ctxSwitchLayer,
   } = useContext(FormatContext);
 
-  // The list always contains a default "Untitled" layer (it cannot be deleted
-  // or renamed). The remaining layers match the design mock-up.
-  const [layers, setLayers] = useState<Layer[]>([
-    { id: 0, name: DEFAULT_LAYER_NAME, fill: LAYER_COLORS[0], border: DEFAULT_BORDER, text: DEFAULT_TEXT, isDefault: true },
-    { id: 1, name: "Creation Theme", fill: LAYER_COLORS[1], border: DEFAULT_BORDER, text: DEFAULT_TEXT },
-    { id: 2, name: "God's Action", fill: LAYER_COLORS[2], border: DEFAULT_BORDER, text: DEFAULT_TEXT },
-    { id: 3, name: "Man's Action", fill: LAYER_COLORS[3], border: DEFAULT_BORDER, text: DEFAULT_TEXT },
-  ]);
-  // Select the top layer of the list by default on load.
-  const [selectedLayerId, setSelectedLayerId] = useState<number | null>(() => layers[0]?.id ?? null);
   const [selectMode, setSelectMode] = useState<SelectMode>("plain");
 
-  // Id of the layer whose name is being inline-edited (double-click to rename).
+  // Id of the layer whose name is being inline-edited.
   const [editingLayerId, setEditingLayerId] = useState<number | null>(null);
+  // Draft value while the rename input is open.
+  const [editNameValue, setEditNameValue] = useState("");
 
   // Id of the layer whose notes panel is currently open.
   const [openNotesLayerId, setOpenNotesLayerId] = useState<number | null>(null);
@@ -83,7 +68,7 @@ const Layers = () => {
     }
   });
 
-  // Save infrastructure — mirrors the Notes / StropheNotes pattern.
+  // Save infrastructure for layer notes — mirrors the Notes / StropheNotes pattern.
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
@@ -132,10 +117,10 @@ const Layers = () => {
 
   // Close the notes panel when the active layer changes.
   useEffect(() => {
-    if (openNotesLayerId !== null && openNotesLayerId !== selectedLayerId) {
+    if (openNotesLayerId !== null && openNotesLayerId !== ctxActiveLayerId) {
       setOpenNotesLayerId(null);
     }
-  }, [selectedLayerId, openNotesLayerId]);
+  }, [ctxActiveLayerId, openNotesLayerId]);
 
   // State for the "create new layer" box.
   const [creating, setCreating] = useState(false);
@@ -145,17 +130,34 @@ const Layers = () => {
   const dragLayerId = useRef<number | null>(null);
   const [dragOverLayerId, setDragOverLayerId] = useState<number | null>(null);
 
-  const nextIdRef = useRef(4);
+  // Next available layer id (initialised from the current max id).
+  const nextIdRef = useRef(
+    ctxLayers.length > 0 ? Math.max(...ctxLayers.map((l) => l.id)) + 1 : 1
+  );
 
-  // Apply colors picked from the toolbar to the layer that was selected via the
-  // select button. Layers selected by a plain click cannot be customized.
+  // Colour changes from the toolbar are applied to the layer that was selected
+  // via the select button. Plain-click selection disables colour customisation.
+  // The guards below keep this effect idempotent: because ctxSetLayers produces a
+  // new ctxLayers reference (which re-triggers this effect), we must bail out once
+  // the active layer already reflects the requested colour, otherwise we loop.
   useEffect(() => {
-    if (selectMode !== "color" || selectedLayerId === null) return;
+    if (selectMode !== "color" || ctxActiveLayerId === null) return;
 
-    if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
-      setLayers((prev) =>
-        prev.map((layer) =>
-          layer.id === selectedLayerId
+    const activeLayer = ctxLayers.find((l) => l.id === ctxActiveLayerId);
+    if (!activeLayer) return;
+
+    if (
+      ctxColorAction === ColorActionType.resetColor ||
+      ctxColorAction === ColorActionType.resetAllColor
+    ) {
+      const alreadyReset =
+        activeLayer.fill === DEFAULT_FILL &&
+        activeLayer.border === DEFAULT_BORDER &&
+        activeLayer.text === DEFAULT_TEXT;
+      if (alreadyReset) return;
+      ctxSetLayers(
+        ctxLayers.map((layer) =>
+          layer.id === ctxActiveLayerId
             ? { ...layer, fill: DEFAULT_FILL, border: DEFAULT_BORDER, text: DEFAULT_TEXT }
             : layer
         )
@@ -165,41 +167,42 @@ const Layers = () => {
 
     if (ctxSelectedColor === "") return;
 
-    setLayers((prev) =>
-      prev.map((layer) => {
-        if (layer.id !== selectedLayerId) return layer;
+    // Skip if the active layer already has the requested colour (prevents loop).
+    if (ctxColorAction === ColorActionType.colorFill && activeLayer.fill === ctxSelectedColor) return;
+    if (ctxColorAction === ColorActionType.borderColor && activeLayer.border === ctxSelectedColor) return;
+    if (ctxColorAction === ColorActionType.textColor && activeLayer.text === ctxSelectedColor) return;
+
+    ctxSetLayers(
+      ctxLayers.map((layer) => {
+        if (layer.id !== ctxActiveLayerId) return layer;
         if (ctxColorAction === ColorActionType.colorFill) return { ...layer, fill: ctxSelectedColor };
         if (ctxColorAction === ColorActionType.borderColor) return { ...layer, border: ctxSelectedColor };
         if (ctxColorAction === ColorActionType.textColor) return { ...layer, text: ctxSelectedColor };
         return layer;
       })
     );
-  }, [ctxColorAction, ctxSelectedColor, selectMode, selectedLayerId]);
+  }, [ctxColorAction, ctxSelectedColor, selectMode, ctxActiveLayerId, ctxLayers, ctxSetLayers]);
 
-  // Make sure the toolbar customization is turned off when leaving the pane.
+  // Turn off toolbar customisation when leaving the pane.
   useEffect(() => {
-    return () => {
-      ctxSetNumSelectedLayers(0);
-    };
+    return () => { ctxSetNumSelectedLayers(0); };
   }, [ctxSetNumSelectedLayers]);
 
-  // Selecting through the select button enables color customization via the toolbar.
-  // Clicking it again while the layer is already selected is treated as a plain
-  // box click (gold outline, color customization disabled).
-  const handleSelect = (layer: Layer) => {
-    if (selectMode === "color" && selectedLayerId === layer.id) {
-      handleBoxClick(layer.id);
+  // Selecting through the select button enables colour customisation via the toolbar.
+  const handleSelect = (layerId: number) => {
+    const layer = ctxLayers.find((l) => l.id === layerId);
+    if (!layer) return;
+    if (selectMode === "color" && ctxActiveLayerId === layerId) {
+      handleBoxClick(layerId);
       return;
     }
-    setSelectedLayerId(layer.id);
+    ctxSwitchLayer(layerId);
     setSelectMode("color");
-    // Clear word/strophe selections so the toolbar color picks only target this layer.
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
     ctxSetSelectedStrophes([]);
     ctxSetNumSelectedStrophes(0);
     ctxSetNumSelectedLayers(1);
-    // Seed the toolbar's displayed colors with this layer's current colors.
     ctxSetColorFill(layer.fill);
     ctxSetBorderColor(layer.border);
     ctxSetTextColor(layer.text);
@@ -207,9 +210,9 @@ const Layers = () => {
     ctxSetSelectedColor("");
   };
 
-  // A plain click selects the box but does NOT allow color customization.
+  // Plain click: load this layer's metadata without enabling colour customisation.
   const handleBoxClick = (id: number) => {
-    setSelectedLayerId(id);
+    ctxSwitchLayer(id);
     setSelectMode("plain");
     ctxSetNumSelectedLayers(0);
     ctxSetColorAction(ColorActionType.none);
@@ -237,19 +240,25 @@ const Layers = () => {
   }, [layerNotes, ctxStudyNotes, ctxSetStudyNotes, saveNow]);
 
   const handleDelete = (id: number) => {
-    setLayers((prev) => prev.filter((layer) => layer.id !== id));
-    if (selectedLayerId === id) {
-      setSelectedLayerId(null);
-      ctxSetNumSelectedLayers(0);
-    }
+    if (ctxLayers.length <= 1) return; // always keep at least one layer
+    const newLayers = ctxLayers.filter((l) => l.id !== id);
+    ctxSetLayers(newLayers);
+    if (ctxActiveLayerId === id) ctxSwitchLayer(newLayers[0].id);
     if (editingLayerId === id) setEditingLayerId(null);
     if (openNotesLayerId === id) setOpenNotesLayerId(null);
   };
 
-  const handleRename = (id: number, name: string) => {
-    setLayers((prev) =>
-      prev.map((layer) => (layer.id === id ? { ...layer, name } : layer))
-    );
+  const startEditing = (id: number, currentName: string) => {
+    setEditingLayerId(id);
+    setEditNameValue(currentName);
+  };
+
+  const commitRename = (id: number) => {
+    const trimmed = editNameValue.trim();
+    if (trimmed) {
+      ctxSetLayers(ctxLayers.map((l) => (l.id === id ? { ...l, name: trimmed } : l)));
+    }
+    setEditingLayerId(null);
   };
 
   const commitNewLayer = () => {
@@ -257,8 +266,9 @@ const Layers = () => {
     if (name) {
       const id = nextIdRef.current++;
       const fill = LAYER_COLORS[id % LAYER_COLORS.length];
-      setLayers((prev) => [...prev, { id, name, fill, border: DEFAULT_BORDER, text: DEFAULT_TEXT }]);
-      setSelectedLayerId(id);
+      const newLayer = { id, name, fill, border: DEFAULT_BORDER, text: DEFAULT_TEXT };
+      ctxSetLayers([...ctxLayers, newLayer]);
+      ctxSwitchLayer(id);
       setSelectMode("plain");
     }
     setNewLayerName("");
@@ -266,9 +276,7 @@ const Layers = () => {
   };
 
   // ----- Drag and drop reordering -----
-  const handleDragStart = (id: number) => {
-    dragLayerId.current = id;
-  };
+  const handleDragStart = (id: number) => { dragLayerId.current = id; };
 
   const handleDragOver = (event: React.DragEvent, overId: number) => {
     event.preventDefault();
@@ -282,15 +290,13 @@ const Layers = () => {
     setDragOverLayerId(null);
     if (fromId === null || fromId === dropId) return;
 
-    setLayers((prev) => {
-      const fromIdx = prev.findIndex((layer) => layer.id === fromId);
-      const toIdx = prev.findIndex((layer) => layer.id === dropId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const reordered = [...prev];
-      const [moved] = reordered.splice(fromIdx, 1);
-      reordered.splice(toIdx, 0, moved);
-      return reordered;
-    });
+    const fromIdx = ctxLayers.findIndex((l) => l.id === fromId);
+    const toIdx = ctxLayers.findIndex((l) => l.id === dropId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const reordered = [...ctxLayers];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    ctxSetLayers(reordered);
   };
 
   const handleDragEnd = () => {
@@ -302,8 +308,8 @@ const Layers = () => {
     <div className="h-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
 
       <div className="flex flex-col gap-4 mt-8 p-6.5">
-        {layers.map((layer) => {
-          const isSelected = layer.id === selectedLayerId;
+        {ctxLayers.map((layer) => {
+          const isSelected = layer.id === ctxActiveLayerId;
           const isDragOver = layer.id === dragOverLayerId;
 
           let outline: string | undefined;
@@ -324,14 +330,14 @@ const Layers = () => {
                 onDragOver={(e) => handleDragOver(e, layer.id)}
                 onDrop={(e) => handleDrop(e, layer.id)}
                 onDragEnd={handleDragEnd}
-                className="flex cursor-grab items-stretch overflow-hidden rounded-xl border transition active:cursor-grabbing"
+                className="flex min-h-[7rem] cursor-grab items-stretch overflow-hidden rounded-xl border transition active:cursor-grabbing"
                 style={{
                   borderColor: layer.border !== DEFAULT_BORDER ? layer.border : "transparent",
                   outline,
                   outlineOffset: "2px",
                 }}
               >
-                {/* Layer name / inline edit (clicking here = plain selection) */}
+                {/* Layer name / inline edit */}
                 <div
                   className="flex flex-1 items-center justify-center px-5 py-8"
                   style={{ backgroundColor: layer.fill }}
@@ -341,13 +347,12 @@ const Layers = () => {
                     <input
                       autoFocus
                       type="text"
-                      value={layer.name}
-                      onChange={(e) => handleRename(layer.id, e.target.value)}
-                      onBlur={() => setEditingLayerId(null)}
+                      value={editNameValue}
+                      onChange={(e) => setEditNameValue(e.target.value)}
+                      onBlur={() => commitRename(layer.id)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === "Escape") {
-                          setEditingLayerId(null);
-                        }
+                        if (e.key === "Enter") commitRename(layer.id);
+                        if (e.key === "Escape") setEditingLayerId(null);
                       }}
                       className="w-full bg-transparent text-center text-lg outline-none"
                       style={{ color: layer.text }}
@@ -356,7 +361,7 @@ const Layers = () => {
                     <span
                       className="cursor-text text-lg"
                       style={{ color: layer.text }}
-                      onDoubleClick={() => setEditingLayerId(layer.id)}
+                      onDoubleClick={() => startEditing(layer.id, layer.name)}
                     >
                       {layer.name}
                     </span>
@@ -369,7 +374,7 @@ const Layers = () => {
                     <button
                       title="Customize layer"
                       className="hover:opacity-70"
-                      onClick={() => handleSelect(layer)}
+                      onClick={() => handleSelect(layer.id)}
                     >
                       <LuTextSelect size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
                     </button>
@@ -398,7 +403,7 @@ const Layers = () => {
                   value={layerNotes[String(layer.id)] ?? ""}
                   onChange={(e) => handleNoteChange(layer.id, e.target.value)}
                   placeholder="Write your notes for this layer…"
-                  rows={16}
+                  rows={12}
                   className="resize-none w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               )}
