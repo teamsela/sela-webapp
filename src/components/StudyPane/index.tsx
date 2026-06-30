@@ -69,10 +69,12 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
-  ctxSelectedStrophes: [] as StropheProps[],  
+  ctxSelectedStrophes: [] as StropheProps[],
   ctxSetSelectedStrophes: (arg: StropheProps[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
+  ctxNumSelectedLayers: 0 as number,
+  ctxSetNumSelectedLayers: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSetColorAction: (_arg: ColorActionType) => {},
   ctxSelectedColor: "" as string,
@@ -144,6 +146,7 @@ const StudyPane = ({
   const [selectedWords, setSelectedWords] = useState<WordProps[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheProps[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
+  const [numSelectedLayers, setNumSelectedLayers] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -287,6 +290,8 @@ const StudyPane = ({
     ctxSetSelectedStrophes: setSelectedStrophes,
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
+    ctxNumSelectedLayers: numSelectedLayers,
+    ctxSetNumSelectedLayers: setNumSelectedLayers,
     ctxColorAction: colorAction,
     ctxSetColorAction: setColorAction,
     ctxSelectedColor: selectedColor,

@@ -10,7 +10,7 @@ import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL } fro
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
-import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
@@ -58,6 +58,7 @@ export async function fetchStudyById(studyId: string) {
       public: row?.public || false,
       model: row?.model || false,
       metadata: (row?.metadata as StudyMetadata) || { words: {} },
+      //layers: (row?.layers as LayerData[]) || { },
       notes: row?.notes || "",
     };
 
@@ -282,6 +283,7 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -341,6 +343,7 @@ export async function fetchRecentStudies(
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -397,6 +400,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -459,6 +463,7 @@ export async function fetchPassageData(studyId: string) {
       public: currentStudy?.public || false,
       model: currentStudy?.model || false,
       metadata: (currentStudy?.metadata as StudyMetadata) || {},
+      //layers: (currentStudy?.layers) as LayerData[] || {},
       notes: currentStudy?.notes || ""
     };
 

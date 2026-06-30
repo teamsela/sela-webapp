@@ -52,7 +52,7 @@ export enum StructureUpdateType {
 
 export enum InfoPaneActionType {
     none,
-    notes,
+    layers,
     structure,
     motif,
     syntax,
@@ -73,5 +73,6 @@ export enum SyntaxType {
     personsGenderNumber
 }
 
-export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
-export type StudyNotes = { main: string; strophes: StropheNote[] };
+export type StropheNote = { title: string, text: string, firstWordId: number , lastWordId: number };
+export type LayerNote = { text: string, strophes: StropheNote[] };
+export type StudyNotes = { main: string, layers: LayerNote[]; };

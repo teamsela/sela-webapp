@@ -144,7 +144,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory,
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxNumSelectedLayers, ctxAddToHistory,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds
   } = useContext(FormatContext);
 
@@ -159,7 +159,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
   
   useEffect(() => {
-    const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxNumSelectedLayers > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
@@ -175,7 +175,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     else {
       refreshDisplayColor();
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, ctxNumSelectedLayers, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {

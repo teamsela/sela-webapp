@@ -17,6 +17,7 @@ const tables = [
       { name: "passage", type: "text", notNull: true, defaultValue: "1" },
       { name: "model", type: "bool", defaultValue: "false" },
       { name: "metadata", type: "json", defaultValue: "{}" },
+      //{ name: "layers", type: "json", defaultValue: "{}" },
       { name: "book", type: "text" },
       { name: "notes", type: "text" },
       { name: "createdTime", type: "timestamp" },

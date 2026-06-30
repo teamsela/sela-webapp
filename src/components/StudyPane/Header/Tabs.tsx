@@ -28,11 +28,11 @@ export const Tabs = ({
       <button
         className={`inline-flex rounded-l-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
           ${
-            infoPaneAction === InfoPaneActionType.notes ? activeClasses : inactiveClasses
+            infoPaneAction === InfoPaneActionType.layers ? activeClasses : inactiveClasses
           }`}
-        onClick={() => handleClick(InfoPaneActionType.notes)}
+        onClick={() => handleClick(InfoPaneActionType.layers)}
       >
-        Notes
+        Layer
       </button>
       <button
         className="inline-flex border-y border-primary font-medium text-meta-9 dark:border-strokedark dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]"

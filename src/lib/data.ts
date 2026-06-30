@@ -3,19 +3,19 @@ import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/typ
 export type ColorSource = "syntax" | "motif";
 
 export type ColorData = {
-    fill?: string,
-    border?: string,
-    text?: string,
-    source?: ColorSource
+    fill?: string;
+    border?: string;
+    text?: string;
+    source?: ColorSource;
 }
 
 export type WordMetadata = {
-    indent?: number,
-    lineBreak?: boolean,
-    ignoreNewLine?: boolean, // ignore the new line in default Bible data
-    stanzaDiv?: boolean,
+    indent?: number;
+    lineBreak?: boolean;
+    ignoreNewLine?: boolean; // ignore the new line in default Bible data
+    stanzaDiv?: boolean;
     stanzaMd?: StanzaMetadata;
-    stropheDiv?: boolean,
+    stropheDiv?: boolean;
     stropheMd?: StropheMetadata;
     color?: ColorData;
     glossOverride?: string; // optional custom English text
@@ -27,11 +27,12 @@ export type WordMap = {
 
 export type StropheMetadata = {
     expanded?: boolean;
-    color?: ColorData
+    color?: ColorData;
+    notes?: string;
 }
 
 export type StropheMap = {
-    [id: number]: StropheMetadata
+    [id: number]: StropheMetadata;
 }
 
 export type StanzaMetadata = {
@@ -131,6 +132,14 @@ export type PassageProps = {
     stropheCount: number;
 }
 
+export type LayerData = {
+    order: number;
+    name: string;
+    color: ColorData;
+    notes: string;
+    metadata: StudyMetadata;
+}
+
 export interface StudyData {
     id: string;
     name: string;
@@ -144,7 +153,8 @@ export interface StudyData {
     model?: boolean;
     lastUpdated?: Date;
     createdAt?: Date;
-    metadata: StudyMetadata;
+    metadata: StudyMetadata; // to be deprecated
+    //layers: LayerData[];
     notes: string;
 }
 

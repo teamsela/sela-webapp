@@ -5,7 +5,7 @@ import Structure from "./Structure";
 import Motif from "./Motif/index";
 import Syntax from "./Syntax/index";
 import Sounds from "./Sounds";
-import Notes from "./Notes";
+import Layers from "./Layers";
 import { InfoPaneActionType } from "@/lib/types";
 
 const InfoPane = ({
@@ -119,7 +119,7 @@ const InfoPane = ({
 
       {/* Conditionally render the content based on infoPaneAction */}
       <div className="h-full pt-4">
-        {infoPaneAction === InfoPaneActionType.notes && <Notes />}
+        {infoPaneAction === InfoPaneActionType.layers && <Layers />}
         {infoPaneAction === InfoPaneActionType.structure && <Structure />}
         {infoPaneAction === InfoPaneActionType.motif && <Motif />}
         {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
