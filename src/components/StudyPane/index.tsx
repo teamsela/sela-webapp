@@ -10,9 +10,9 @@ import { Footer } from "./Footer";
 
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { mergeData, wordsHasSameColor } from "@/lib/utils";
+import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
-import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
@@ -20,9 +20,9 @@ export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/
 export const INITIAL_LAYER_DEF: LayerDef = {
   id: 0,
   name: "Default",
-  fill: "#4a6f7a",
-  border: "transparent",
-  text: "#000000",
+  fill: DEFAULT_LAYER_FILL,
+  border: DEFAULT_LAYER_BORDER,
+  text: DEFAULT_LAYER_TEXT,
 };
 
 export type HistoryEntry = {
@@ -138,7 +138,26 @@ export const FormatContext = createContext({
   ctxSetLayers: (_arg: LayerDef[]) => {},
   ctxActiveLayerId: 0,
   ctxSwitchLayer: (_id: number) => {},
+  ctxCreateLayer: (_layer: LayerDef) => {},
+  ctxDeleteLayer: (_id: number) => {},
 });
+
+// Clone a word map for a new layer, dropping colour and strophe-note data while
+// keeping structural metadata (line/strophe/stanza divisions, indentation, etc.).
+const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
+  const result: WordMap = {};
+  for (const key of Object.keys(words)) {
+    const id = Number(key);
+    const { color, stropheMd, ...rest } = words[id];
+    const cloned: WordMetadata = structuredClone(rest);
+    if (stropheMd) {
+      const { color: _stropheColor, notes: _stropheNotes, ...stropheRest } = stropheMd;
+      cloned.stropheMd = structuredClone(stropheRest);
+    }
+    result[id] = cloned;
+  }
+  return result;
+};
 
 const StudyPane = ({
   passageData, inViewMode
@@ -249,8 +268,32 @@ const StudyPane = ({
     setPointer(pointer + 1);
   };
 
+  // Commit a layer-level metadata change. `undoable` controls whether this creates
+  // a new history step (true, e.g. deletion) or simply keeps the current history
+  // entry in sync with the latest state (false, e.g. switching, renaming, recolouring).
+  // Defined as a plain function (not memoized) so it always reads fresh history/pointer.
+  const commitLayerState = (
+    updated: StudyMetadata,
+    undoable: boolean,
+    options?: HistorySnapshotOptions,
+  ) => {
+    setStudyMetadata(updated);
+    setLayerDefs(updated.layerDefs ?? []);
+    setActiveLayerId(updated.activeLayerId ?? 0);
+    if (undoable) {
+      addToHistory(updated, options);
+    } else {
+      setHistory((prev) => {
+        const copy = prev.slice();
+        copy[pointer] = snapshotHistoryEntry(updated, options);
+        return copy;
+      });
+    }
+    updateMetadataInDb(passageData.study.id, updated);
+  };
+
   // Switch the active layer: saves the current layer's words then loads the new layer's words.
-  const switchLayer = useCallback((newId: number) => {
+  const switchLayer = (newId: number) => {
     if (newId === activeLayerId) return;
     const current = studyMetadataRef.current;
     const updatedLayerWordMaps: Record<string, WordMap> = {
@@ -265,19 +308,78 @@ const StudyPane = ({
       activeLayerId: newId,
       layerDefs,
     };
-    setStudyMetadata(updated);
-    setActiveLayerId(newId);
     setWordsColorMap(new Map());
-    updateMetadataInDb(passageData.study.id, updated);
-  }, [activeLayerId, layerDefs, passageData.study.id]);
+    commitLayerState(updated, false, { wordsColorMap: new Map() });
+  };
 
-  // Update the layer definitions (name/colour changes, add, delete, reorder).
-  const handleSetLayers = useCallback((newLayers: LayerDef[]) => {
-    setLayerDefs(newLayers);
+  // Update the layer definitions (name/colour changes, reorder). Not separately undoable.
+  const handleSetLayers = (newLayers: LayerDef[]) => {
     const updated: StudyMetadata = { ...studyMetadataRef.current, layerDefs: newLayers };
-    setStudyMetadata(updated);
-    updateMetadataInDb(passageData.study.id, updated);
-  }, [passageData.study.id]);
+    commitLayerState(updated, false);
+  };
+
+  // Create a new layer, copying the current layer's structural metadata (divisions,
+  // indentation, etc.) but not its colour or notes.
+  const createLayer = (newLayer: LayerDef) => {
+    const current = studyMetadataRef.current;
+    const seededWords = cloneWordMapWithoutColorAndNotes(current.words);
+    const updatedLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+      [String(newLayer.id)]: seededWords,
+    };
+    const updated: StudyMetadata = {
+      ...current,
+      words: seededWords,
+      layerWordMaps: updatedLayerWordMaps,
+      layerDefs: [...layerDefs, newLayer],
+      activeLayerId: newLayer.id,
+    };
+    setWordsColorMap(new Map());
+    commitLayerState(updated, false, { wordsColorMap: new Map() });
+  };
+
+  // Delete a layer. This IS undoable: the pre-deletion state lives at history[pointer],
+  // so pressing undo restores the removed layer (and its metadata).
+  const deleteLayer = (id: number) => {
+    if (layerDefs.length <= 1) return; // always keep at least one layer
+    const current = studyMetadataRef.current;
+    const newLayerDefs = layerDefs.filter((l) => l.id !== id);
+    const newLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+    };
+    delete newLayerWordMaps[String(id)];
+
+    let newActiveId = current.activeLayerId ?? activeLayerId;
+    let newWords = current.words;
+    if (newActiveId === id) {
+      newActiveId = newLayerDefs[0].id;
+      newWords = newLayerWordMaps[String(newActiveId)] ?? {};
+      setWordsColorMap(new Map());
+    }
+
+    const updated: StudyMetadata = {
+      ...current,
+      words: newWords,
+      layerWordMaps: newLayerWordMaps,
+      layerDefs: newLayerDefs,
+      activeLayerId: newActiveId,
+    };
+    commitLayerState(updated, true, newActiveId !== (current.activeLayerId ?? activeLayerId) ? { wordsColorMap: new Map() } : undefined);
+  };
+
+  // Keep the layer UI state in sync when studyMetadata is replaced wholesale
+  // (e.g. by undo/redo, which only sets studyMetadata).
+  useEffect(() => {
+    if (studyMetadata.layerDefs && studyMetadata.layerDefs !== layerDefs) {
+      setLayerDefs(studyMetadata.layerDefs);
+    }
+    if (typeof studyMetadata.activeLayerId === "number" && studyMetadata.activeLayerId !== activeLayerId) {
+      setActiveLayerId(studyMetadata.activeLayerId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studyMetadata]);
 
   useEffect(() => {
     if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
@@ -412,6 +514,8 @@ const StudyPane = ({
     ctxSetLayers: handleSetLayers,
     ctxActiveLayerId: activeLayerId,
     ctxSwitchLayer: switchLayer,
+    ctxCreateLayer: createLayer,
+    ctxDeleteLayer: deleteLayer
   };
 
   useEffect(() => {

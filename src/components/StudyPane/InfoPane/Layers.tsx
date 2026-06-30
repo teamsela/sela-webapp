@@ -5,6 +5,8 @@ import { PiNotePencil } from "react-icons/pi";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
+import DeleteLayerModal from "@/components/Modals/DeleteLayer";
+import { DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 
 const ACTION_ICON_SIZE = 22;
 
@@ -12,13 +14,8 @@ const ACTION_ICON_SIZE = 22;
 const SELECT_OUTLINE = "#FFC300";
 const CLICK_OUTLINE = "#3C50E0";
 
-// Per-layer color defaults.
-const DEFAULT_FILL = "#6fa2c1";
-const DEFAULT_BORDER = "transparent";
-const DEFAULT_TEXT = "#000000";
-
 // Pastel palette cycled through when new layers are created.
-const LAYER_COLORS = [DEFAULT_FILL, "#FEF3C7", "#DBEAFE", "#DCFCE7", "#F3E8FF", "#FEE2E2"];
+const LAYER_COLORS = [DEFAULT_LAYER_FILL, "#FEF3C7", "#DBEAFE", "#DCFCE7", "#F3E8FF", "#FEE2E2"];
 
 // 'color' = selected through the select button (color customization enabled)
 // 'plain' = selected by clicking the box (color customization disabled)
@@ -45,6 +42,8 @@ const Layers = () => {
     ctxSetLayers,
     ctxActiveLayerId,
     ctxSwitchLayer,
+    ctxCreateLayer,
+    ctxDeleteLayer,
   } = useContext(FormatContext);
 
   const [selectMode, setSelectMode] = useState<SelectMode>("plain");
@@ -56,6 +55,9 @@ const Layers = () => {
 
   // Id of the layer whose notes panel is currently open.
   const [openNotesLayerId, setOpenNotesLayerId] = useState<number | null>(null);
+
+  // Id of the layer pending deletion (drives the confirmation modal).
+  const [layerToDeleteId, setLayerToDeleteId] = useState<number | null>(null);
 
   // Per-layer notes keyed by layer id, initialised from ctxStudyNotes.
   const [layerNotes, setLayerNotes] = useState<Record<string, string>>(() => {
@@ -151,14 +153,14 @@ const Layers = () => {
       ctxColorAction === ColorActionType.resetAllColor
     ) {
       const alreadyReset =
-        activeLayer.fill === DEFAULT_FILL &&
-        activeLayer.border === DEFAULT_BORDER &&
-        activeLayer.text === DEFAULT_TEXT;
+        activeLayer.fill === DEFAULT_LAYER_FILL &&
+        activeLayer.border === DEFAULT_LAYER_BORDER &&
+        activeLayer.text === DEFAULT_LAYER_TEXT;
       if (alreadyReset) return;
       ctxSetLayers(
         ctxLayers.map((layer) =>
           layer.id === ctxActiveLayerId
-            ? { ...layer, fill: DEFAULT_FILL, border: DEFAULT_BORDER, text: DEFAULT_TEXT }
+            ? { ...layer, fill: DEFAULT_LAYER_FILL, border: DEFAULT_LAYER_BORDER, text: DEFAULT_LAYER_TEXT }
             : layer
         )
       );
@@ -239,13 +241,20 @@ const Layers = () => {
     }, 2000);
   }, [layerNotes, ctxStudyNotes, ctxSetStudyNotes, saveNow]);
 
-  const handleDelete = (id: number) => {
+  // Open the confirmation modal for the given layer.
+  const requestDelete = (id: number) => {
     if (ctxLayers.length <= 1) return; // always keep at least one layer
-    const newLayers = ctxLayers.filter((l) => l.id !== id);
-    ctxSetLayers(newLayers);
-    if (ctxActiveLayerId === id) ctxSwitchLayer(newLayers[0].id);
+    setLayerToDeleteId(id);
+  };
+
+  // Perform the deletion once confirmed. Undoable via the toolbar's undo button.
+  const confirmDelete = () => {
+    const id = layerToDeleteId;
+    if (id === null) return;
+    ctxDeleteLayer(id);
     if (editingLayerId === id) setEditingLayerId(null);
     if (openNotesLayerId === id) setOpenNotesLayerId(null);
+    setLayerToDeleteId(null);
   };
 
   const startEditing = (id: number, currentName: string) => {
@@ -266,9 +275,10 @@ const Layers = () => {
     if (name) {
       const id = nextIdRef.current++;
       const fill = LAYER_COLORS[id % LAYER_COLORS.length];
-      const newLayer = { id, name, fill, border: DEFAULT_BORDER, text: DEFAULT_TEXT };
-      ctxSetLayers([...ctxLayers, newLayer]);
-      ctxSwitchLayer(id);
+      const newLayer = { id, name, fill, border: DEFAULT_LAYER_BORDER, text: DEFAULT_LAYER_TEXT };
+      // Copies the current layer's structural metadata (minus colour/notes) and
+      // makes the new layer active (see ctxCreateLayer).
+      ctxCreateLayer(newLayer);
       setSelectMode("plain");
     }
     setNewLayerName("");
@@ -332,7 +342,7 @@ const Layers = () => {
                 onDragEnd={handleDragEnd}
                 className="flex min-h-[7rem] cursor-grab items-stretch overflow-hidden rounded-xl border transition active:cursor-grabbing"
                 style={{
-                  borderColor: layer.border !== DEFAULT_BORDER ? layer.border : "transparent",
+                  borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
                   outline,
                   outlineOffset: "2px",
                 }}
@@ -388,7 +398,7 @@ const Layers = () => {
                     <button
                       title="Delete layer"
                       className="hover:opacity-70"
-                      onClick={() => handleDelete(layer.id)}
+                      onClick={() => requestDelete(layer.id)}
                     >
                       <IconTrash size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
                     </button>
@@ -421,7 +431,7 @@ const Layers = () => {
               autoFocus
               type="text"
               value={newLayerName}
-              placeholder="Layer name"
+              placeholder="New Layer"
               onChange={(e) => setNewLayerName(e.target.value)}
               onBlur={commitNewLayer}
               onKeyDown={(e) => {
@@ -440,6 +450,13 @@ const Layers = () => {
           )}
         </div>
       </div>
+
+      <DeleteLayerModal
+        open={layerToDeleteId !== null}
+        setOpen={(isOpen) => { if (!isOpen) setLayerToDeleteId(null); }}
+        layerName={ctxLayers.find((l) => l.id === layerToDeleteId)?.name ?? ""}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };
