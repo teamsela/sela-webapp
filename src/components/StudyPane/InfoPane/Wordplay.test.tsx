@@ -133,6 +133,14 @@ function readState(): CtxState {
 
 const resultsRegion = () => screen.getByLabelText("Possible wordplays results");
 
+// Find the candidate <button> whose row text contains the given Hebrew word.
+function candidateWith(text: string): HTMLElement {
+  const buttons = within(resultsRegion()).getAllByRole("button");
+  const match = buttons.find((b) => b.textContent?.includes(text));
+  if (!match) throw new Error(`no candidate row containing ${text}`);
+  return match;
+}
+
 beforeEach(() => {
   document.body.innerHTML = "";
 });
@@ -152,8 +160,7 @@ describe("Wordplay panel — default (Shared Letters)", () => {
 
   it("clicking a candidate enables the letter highlight with the shared letter ids", () => {
     render(<Harness />);
-    const results = resultsRegion();
-    const candidate = within(results).getAllByRole("button")[0];
+    const candidate = candidateWith("קֶבֶר"); // Qever/Boqer row
     fireEvent.click(candidate);
 
     const st = readState();
@@ -165,7 +172,7 @@ describe("Wordplay panel — default (Shared Letters)", () => {
 
   it("clicking the active candidate again clears the highlight", () => {
     render(<Harness />);
-    const candidate = within(resultsRegion()).getAllByRole("button")[0];
+    const candidate = candidateWith("קֶבֶר");
     fireEvent.click(candidate);
     expect(readState().letterHighlightEnabled).toBe(true);
     fireEvent.click(candidate);

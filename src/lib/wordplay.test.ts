@@ -183,6 +183,17 @@ describe("Wordplay — Shared Lexical Letters", () => {
     expect(isWordplayMatch(["bet", "aleph"])).toBe(false); // 2 no rare
     expect(isWordplayMatch(["het"])).toBe(false); // only 1
   });
+
+  it("excludes a word with no lemma (never falls back to the conjugated form)", () => {
+    // Same conjugated letters, but no lemma → must NOT match on wlcWord (p36 CRITICAL).
+    const noLemma = makeWord({
+      wlcWord: "בֹּקֶר",
+      motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+      strongNumber: 900,
+    });
+    expect(wordLetterIds(noLemma)).toEqual([]);
+    expect(findWordplayCandidates([qever, noLemma])).toHaveLength(0);
+  });
 });
 
 describe("same-word exclusion", () => {
@@ -216,20 +227,30 @@ describe("secondary tags", () => {
       makeWord({
         passageTransliteration: "ba.qe.ver",
         wlcWord: "בְּקֶבֶר",
-        morphology: "HVqp3ms",
+        // preposition (R) + common noun → POS "N", preposition ב
+        morphology: "HR/Ncbsa",
         strongNumber: 1100,
         stropheId: 0,
       }),
       makeWord({
         passageTransliteration: "u.va.bo.qer",
         wlcWord: "בְּבֹקֶר",
-        morphology: "HVqp3fs",
+        morphology: "HR/Ncbsa",
         strongNumber: 1101,
         stropheId: 0,
       }),
     ]);
     expect(candidates[0].secondaryTags).toContain("same-pos");
     expect(candidates[0].secondaryTags).toContain("same-preposition");
+  });
+
+  it("does NOT flag a preposition when morphology shows no prefix (avoids false positives)", () => {
+    // First letter is ב but it is a root letter (no R prefix morpheme) → no tag.
+    const candidates = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", wlcWord: "בֶּקֶבֶר", morphology: "HNcbsa", strongNumber: 1110, stropheId: 0 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", wlcWord: "בֹּקֶר", morphology: "HNcbsa", strongNumber: 1111, stropheId: 0 }),
+    ]);
+    expect(candidates[0].secondaryTags).not.toContain("same-preposition");
   });
 });
 

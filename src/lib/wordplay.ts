@@ -103,8 +103,16 @@ const normalizeLetterId = (letterId: string): string =>
  * The consonant sound-ids of a word's **conjugated form**, vowels ignored.
  * Prefers the passage transliteration (matches what the user sees / hears); falls
  * back to deriving sounds from the pointed Hebrew (`wlcWord`).
+ *
+ * The Tetragrammaton (H3068) is a qere perpetuum — its written letters carry no
+ * sound when read aloud (pronounced "Adonai") — so it contributes no sounds,
+ * mirroring the display-side suppression in WordBlock.
  */
 export const wordSoundIds = (word: WordProps): string[] => {
+  if (Math.trunc(word.strongNumber || 0) === 3068) {
+    return [];
+  }
+
   const transliteration =
     word.passageTransliteration || word.wordInformation?.transliteration || "";
   if (transliteration) {
@@ -120,11 +128,19 @@ export const wordSoundIds = (word: WordProps): string[] => {
 
 /**
  * The Hebrew letter-ids of a word's **unconjugated / lexical form** (lemma),
- * normalised so final forms match their base. Falls back to the conjugated
- * `wlcWord` only when no lemma is available.
+ * normalised so final forms match their base.
+ *
+ * CRITICAL (deck p36): Wordplay must compare the *unconjugated lexical* letters,
+ * never the conjugated `wlcWord` (which carries prefixes/suffixes). If a word has
+ * no lemma available we therefore return an **empty list** rather than falling
+ * back to the conjugated form — a lemma-less word simply cannot participate in
+ * Wordplay letter matching (better to omit it than to emit a wrong candidate).
  */
 export const wordLetterIds = (word: WordProps): string[] => {
-  const lexical = word.motifData?.lemma || word.wlcWord || "";
+  const lexical = word.motifData?.lemma || "";
+  if (!lexical) {
+    return [];
+  }
   return splitHebrewClusters(lexical)
     .map((cluster) => cluster.letterId)
     .filter((id): id is string => Boolean(id))
@@ -155,19 +171,41 @@ export const sharedMultiset = (a: string[], b: string[]): string[] => {
 const isSameWord = (a: WordProps, b: WordProps): boolean =>
   a.strongNumber === b.strongNumber;
 
-/** Extract the part of speech from an OSHB-style morphology code (e.g. "HVqp3ms" → "V"). */
+/**
+ * Extract the part of speech from an OSHB-style morphology code. Morphology is a
+ * language marker (H/A) followed by one or more `/`-separated morphemes, prefixes
+ * first (e.g. "HR/Ncmsa" = preposition + common noun). The *word's* POS is the
+ * last morpheme, so we read the POS letter from there ("HR/Ncmsa" → "N",
+ * "HVqp3ms" → "V").
+ */
 const partOfSpeech = (morphology?: string): string | null => {
   if (!morphology) return null;
-  // Strip a leading language marker (H = Hebrew, A = Aramaic) then take the POS code.
   const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
-  return body.charAt(0) || null;
+  const morphemes = body.split("/").filter(Boolean);
+  const main = morphemes[morphemes.length - 1] ?? "";
+  return main.charAt(0) || null;
 };
 
-/** The leading preposition prefix letter of the conjugated form, if any. */
+/**
+ * The leading preposition prefix letter (ב ל כ מ) of the conjugated form, if the
+ * morphology confirms a prefixed preposition morpheme (OSHB code "R" as the first
+ * morpheme). Requiring the morphology marker avoids false positives where the
+ * first letter is a root letter rather than a preposition. When morphology is
+ * absent we conservatively report no preposition.
+ */
 const prepositionPrefix = (word: WordProps): string | null => {
+  const morphology = word.morphology;
+  if (!morphology) return null;
+  const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
+  const morphemes = body.split("/").filter(Boolean);
+  // A prefixed preposition only exists when there is a leading "R" morpheme AND at
+  // least one following morpheme (the word itself).
+  if (morphemes.length < 2 || !morphemes[0].startsWith("R")) {
+    return null;
+  }
+
   const clusters = splitHebrewClusters(word.wlcWord || "");
   const first = clusters[0]?.text ?? "";
-  // The base letter is the first Hebrew character of the cluster.
   const baseLetter = Array.from(first).find((ch) => /\p{Script=Hebrew}/u.test(ch));
   return baseLetter && PREPOSITION_LETTERS.has(baseLetter) ? baseLetter : null;
 };
@@ -321,12 +359,28 @@ export const findWordplayCandidates = (
   return candidates;
 };
 
-/** Dispatch to the correct generator for the selected tool. */
+/**
+ * Rank candidates for display: strongest first — more shared sounds/letters, then
+ * more secondary confidence tags, then the higher generator tier.
+ */
+export const rankCandidates = (
+  candidates: WordplayCandidate[],
+): WordplayCandidate[] =>
+  [...candidates].sort((a, b) => {
+    if (b.sharedCount !== a.sharedCount) return b.sharedCount - a.sharedCount;
+    if (b.secondaryTags.length !== a.secondaryTags.length)
+      return b.secondaryTags.length - a.secondaryTags.length;
+    return Number(b.strongMatch) - Number(a.strongMatch);
+  });
+
+/** Dispatch to the correct generator for the selected tool, ranked for display. */
 export const findCandidates = (
   words: WordProps[],
   tool: WordplayTool,
   options?: WordplayOptions,
 ): WordplayCandidate[] =>
-  tool === "soundplay"
-    ? findSoundplayCandidates(words, options)
-    : findWordplayCandidates(words, options);
+  rankCandidates(
+    tool === "soundplay"
+      ? findSoundplayCandidates(words, options)
+      : findWordplayCandidates(words, options),
+  );
