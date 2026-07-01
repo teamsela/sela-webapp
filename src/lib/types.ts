@@ -57,6 +57,7 @@ export enum InfoPaneActionType {
     motif,
     syntax,
     sounds,
+    wordplay,
 }
 
 export enum MotifType {
