@@ -21,6 +21,7 @@ const LETTER_ID_FINAL_FORMS: Record<string, string[]> = {
   mem: ["mem", "final-mem"],
   nun: ["nun", "final-nun"],
   tsadi: ["tsadi", "final-tsadi"],
+  pe: ["pe", "final-pe"],
 };
 
 const expandLetterIdsForHighlight = (ids: string[]): string[] => {
@@ -341,6 +342,21 @@ const Wordplay = () => {
     ctxSetLetterHighlightEnabled(false);
     ctxSetSelectedLetterChipIds([]);
   };
+
+  // If the active candidate is filtered out (scope/tag change) or disappears,
+  // drop its now-orphaned passage highlight so the UI can't show a highlight with
+  // no corresponding visible/active row.
+  useEffect(() => {
+    if (!activeCandidateKey) return;
+    const stillVisible = filteredCandidates.some(
+      (c) => `${c.wordA.wordId}-${c.wordB.wordId}` === activeCandidateKey,
+    );
+    if (!stillVisible) {
+      clearHighlight();
+    }
+    // clearHighlight only calls stable context setters; safe to omit from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredCandidates, activeCandidateKey]);
 
   const highlightCandidate = (candidate: WordplayCandidate) => {
     const key = candidateKey(candidate);

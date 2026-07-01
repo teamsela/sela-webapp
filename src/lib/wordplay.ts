@@ -94,6 +94,7 @@ const FINAL_FORM_TO_BASE: Record<string, string> = {
   "final-mem": "mem",
   "final-nun": "nun",
   "final-tsadi": "tsadi",
+  "final-pe": "pe",
 };
 
 const normalizeLetterId = (letterId: string): string =>

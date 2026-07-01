@@ -220,6 +220,17 @@ describe("Wordplay panel — primary tag filter", () => {
     fireEvent.click(screen.getByRole("button", { name: "3 root letters" }));
     expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
   });
+
+  it("clears an active candidate's highlight when a filter hides it (stale-highlight guard)", () => {
+    render(<Harness />);
+    fireEvent.click(candidateWith("קֶבֶר"));
+    expect(readState().letterHighlightEnabled).toBe(true);
+    // Disabling the tier filters the active candidate out → highlight must clear.
+    fireEvent.click(screen.getByRole("button", { name: "3 root letters" }));
+    expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
+    expect(readState().letterHighlightEnabled).toBe(false);
+    expect(readState().highlightedLetterChipIds).toEqual([]);
+  });
 });
 
 describe("Wordplay panel — tooltip", () => {

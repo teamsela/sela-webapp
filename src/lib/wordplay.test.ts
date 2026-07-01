@@ -66,6 +66,25 @@ describe("wordLetterIds", () => {
     const word = makeWord({ motifData: { lemma: "בֵּן", relatedStrongNums: undefined, categories: [] } });
     expect(wordLetterIds(word)).toEqual(["bet", "nun"]);
   });
+
+  it("normalises ALL five final forms (ך ם ן ץ ף) to their base ids", () => {
+    // Regression for the dropped-final-pe bug: every final form must map to base.
+    const cases: Array<[string, string]> = [
+      ["מֶלֶך", "kaf"], // final kaf
+      ["שָׁלוֹם", "mem"], // final mem
+      ["בֵּן", "nun"], // final nun
+      ["אֶרֶץ", "tsadi"], // final tsadi
+      ["כֶּסֶף", "pe"], // final pe (previously dropped entirely)
+    ];
+    for (const [lemma, expectedBase] of cases) {
+      const ids = wordLetterIds(
+        makeWord({ motifData: { lemma, relatedStrongNums: undefined, categories: [] } }),
+      );
+      expect(ids).toContain(expectedBase);
+      // no raw final-form id should leak through
+      expect(ids.some((id) => id.startsWith("final-"))).toBe(false);
+    }
+  });
 });
 
 describe("sharedMultiset", () => {
@@ -137,6 +156,19 @@ describe("Wordplay — Shared Lexical Letters", () => {
     expect(candidates[0].strongMatch).toBe(true);
     expect(candidates[0].sameEnding).toBe(true); // both end in resh
     expect(candidates[0].sameOpening).toBe(false); // ק vs ב
+  });
+
+  it("matches a lemma pair sharing a final-pe letter (regression for dropped ף)", () => {
+    // דֶּלֶף = dalet,lamed,(final)pe ; לַפִּיד = lamed,pe,yod,dalet → shared dalet,lamed,pe = 3.
+    const words = [
+      makeWord({ motifData: { lemma: "דֶּלֶף", relatedStrongNums: undefined, categories: [] }, strongNumber: 1810 }),
+      makeWord({ motifData: { lemma: "לַפִּיד", relatedStrongNums: undefined, categories: [] }, strongNumber: 3940 }),
+    ];
+    const candidates = findWordplayCandidates(words);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].sharedCount).toBe(3);
+    expect([...candidates[0].sharedIds].sort()).toEqual(["dalet", "lamed", "pe"]);
+    expect(candidates[0].strongMatch).toBe(true);
   });
 
   it("2 shared letters with a rare letter (ח) generates a candidate", () => {

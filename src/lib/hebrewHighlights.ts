@@ -82,6 +82,7 @@ export const LETTER_CHIPS: LetterChip[] = [
   { id: "samekh", label: "ס", palette: createPalette("#FFF176") },                   // s sound
   { id: "ayin", label: "ע", palette: createPalette("#C5CAE9") },                     // silent
   { id: "pe", label: "פ", palette: createPalette("#616161", "#FFFFFF") },            // p sound
+  { id: "final-pe", label: "ף", palette: createPalette("#616161", "#FFFFFF") },      // p/f sound (same as pe)
   { id: "tsadi", label: "צ", palette: createPalette("#FFB74D") },                    // ts sound
   { id: "final-tsadi", label: "ץ", palette: createPalette("#FFB74D") },              // ts sound (same as tsadi)
   { id: "qof", label: "ק", palette: createPalette("#BA68C8") },                      // k/q sound
@@ -126,7 +127,7 @@ export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
   { id: "nun-group", label: "נ ן", memberIds: ["nun", "final-nun"], palette: createPalette("#EF9A9A") },                    // n sound
   { id: "samekh", label: "ס", memberIds: ["samekh"], palette: createPalette("#FFF176") },                                   // s sound
   { id: "ayin", label: "ע", memberIds: ["ayin"], palette: createPalette("#C5CAE9") },                                       // silent
-  { id: "pe", label: "פ", memberIds: ["pe"], palette: createPalette("#616161", "#FFFFFF") },                                // p sound
+  { id: "pe-group", label: "פ ף", memberIds: ["pe", "final-pe"], palette: createPalette("#616161", "#FFFFFF") }, // p/f sound
   { id: "tsadi-group", label: "צ ץ", memberIds: ["tsadi", "final-tsadi"], palette: createPalette("#FFB74D") },              // ts sound
   { id: "qof", label: "ק", memberIds: ["qof"], palette: createPalette("#BA68C8") },                                         // k/q sound
   { id: "resh", label: "ר", memberIds: ["resh"], palette: createPalette("#64B5F6") },                                       // r sound
@@ -264,6 +265,12 @@ const getHebrewClusterMetadata = (cluster: string): HebrewClusterMatch => {
       return {
         text: cluster,
         letterId: "pe",
+        soundIds: [hasDagesh ? "p" : "f"],
+      };
+    case "ף":
+      return {
+        text: cluster,
+        letterId: "final-pe",
         soundIds: [hasDagesh ? "p" : "f"],
       };
     case "צ":
