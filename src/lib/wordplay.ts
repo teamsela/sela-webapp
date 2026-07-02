@@ -150,16 +150,18 @@ export const wordSoundIds = (word: WordProps): string[] => {
  * instead of being collapsed or dropped.
  */
 export const wordLetterIds = (word: WordProps): string[] => {
-  const lemma = word.motifData?.lemma;
+  const lemma = word.motifData?.lemma?.trim();
   let lexical = lemma || "";
   if (!lexical) {
     // StepBible Hebrew is the lexical citation form, BUT the data layer falls
-    // back to the conjugated wlcWord when StepBible has no entry (actions.ts).
-    // Detect that fallback (hebrew === wlcWord) and reject it so we never compare
-    // the conjugated form (p36 CRITICAL). A genuine lexical form differs from the
-    // pointed passage word.
-    const hebrew = word.wordInformation?.hebrew;
-    if (hebrew && hebrew !== word.wlcWord) {
+    // back to the (trimmed) conjugated wlcWord when StepBible has no entry
+    // (actions.ts). Detect that fallback — comparing trimmed values, since the
+    // data layer trims `hebrew` but not the stored `wlcWord` — and reject it so we
+    // never compare the conjugated form (p36 CRITICAL). A genuine lexical form
+    // differs from the pointed passage word.
+    const hebrew = word.wordInformation?.hebrew?.trim();
+    const wlc = word.wlcWord?.trim();
+    if (hebrew && hebrew !== wlc) {
       lexical = hebrew;
     }
   }

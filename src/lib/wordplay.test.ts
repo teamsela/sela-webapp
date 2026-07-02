@@ -119,6 +119,24 @@ describe("wordLetterIds", () => {
     });
     expect(wordLetterIds(word)).toEqual([]);
   });
+
+  it("rejects the StepBible fallback even when wlcWord has surrounding whitespace", () => {
+    // The data layer trims `hebrew` but not the stored `wlcWord`; the guard must
+    // compare trimmed values so whitespace can't smuggle the conjugated form in.
+    const word = makeWord({
+      motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+      wordInformation: {
+        hebrew: "בְּקִבְרוֹ",
+        transliteration: "",
+        gloss: "",
+        morphology: "",
+        strongsNumber: "",
+        meaning: "",
+      },
+      wlcWord: "  בְּקִבְרוֹ ",
+    });
+    expect(wordLetterIds(word)).toEqual([]);
+  });
 });
 
 describe("sharedMultiset", () => {
