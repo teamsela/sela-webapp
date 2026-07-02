@@ -47,6 +47,7 @@ export const WordBlock = ({
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
     ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
     ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
+    ctxHighlightRestrictWordIds,
   } = useContext(FormatContext)
 
   const { ctxIsHebrew, ctxDisplayMode } = useContext(LanguageContext)
@@ -343,10 +344,19 @@ export const WordBlock = ({
     );
   };
 
-  const selectedSoundIds = ctxSoundHighlightEnabled
+  // When a restrict-set is active (e.g. a Wordplay candidate pair), the sound/
+  // letter smart-highlight only applies to those specific words — so the shared
+  // sounds/letters light up on the candidate pair rather than the whole passage.
+  // An empty restrict-set means "no restriction" (Sound/Letter Distribution).
+  const highlightRestricted =
+    Array.isArray(ctxHighlightRestrictWordIds) &&
+    ctxHighlightRestrictWordIds.length > 0 &&
+    !ctxHighlightRestrictWordIds.includes(wordProps.wordId);
+
+  const selectedSoundIds = ctxSoundHighlightEnabled && !highlightRestricted
     ? new Set(ctxHighlightedSoundChipIds)
     : new Set<string>();
-  const selectedLetterIds = ctxLetterHighlightEnabled
+  const selectedLetterIds = ctxLetterHighlightEnabled && !highlightRestricted
     ? new Set(ctxHighlightedLetterChipIds)
     : new Set<string>();
 

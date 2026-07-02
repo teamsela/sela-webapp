@@ -90,6 +90,7 @@ type CtxState = {
   letterHighlightEnabled: boolean;
   selectedWords: unknown[];
   numSelectedWords: number;
+  highlightRestrictWordIds: number[];
 };
 
 const EMPTY: CtxState = {
@@ -99,6 +100,7 @@ const EMPTY: CtxState = {
   letterHighlightEnabled: false,
   selectedWords: [],
   numSelectedWords: 0,
+  highlightRestrictWordIds: [],
 };
 
 function Harness() {
@@ -117,6 +119,9 @@ function Harness() {
     ctxSetHighlightedLetterChipIds: set("highlightedLetterChipIds"),
     ctxSetLetterHighlightEnabled: set("letterHighlightEnabled"),
     ctxSetSelectedLetterChipIds: () => {},
+    ctxSoundHighlightEnabled: s.soundHighlightEnabled,
+    ctxLetterHighlightEnabled: s.letterHighlightEnabled,
+    ctxSetHighlightRestrictWordIds: set("highlightRestrictWordIds"),
   };
 
   return (
@@ -168,6 +173,8 @@ describe("Wordplay panel — default (Shared Letters)", () => {
     expect(st.soundHighlightEnabled).toBe(false);
     // shares qof, bet, resh
     expect(st.highlightedLetterChipIds.sort()).toEqual(["bet", "qof", "resh"]);
+    // highlight is restricted to the candidate PAIR, not the whole passage
+    expect(st.highlightRestrictWordIds.sort((a, b) => a - b)).toEqual([1242, 6913]);
   });
 
   it("clicking the active candidate again clears the highlight", () => {
@@ -230,6 +237,13 @@ describe("Wordplay panel — primary tag filter", () => {
     expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
     expect(readState().letterHighlightEnabled).toBe(false);
     expect(readState().highlightedLetterChipIds).toEqual([]);
+  });
+
+  it("'Similar ending' trait filter narrows (positive) instead of excluding", () => {
+    render(<Harness />);
+    // Qever/Boqer both end in resh (sameEnding); enabling the trait keeps it.
+    fireEvent.click(screen.getByRole("button", { name: "Similar ending" }));
+    expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
   });
 });
 

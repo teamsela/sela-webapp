@@ -12,6 +12,8 @@ import {
   WordplayScope,
   WordplayTool,
   findCandidates,
+  wordLetterIds,
+  wordSoundIds,
 } from "@/lib/wordplay";
 
 // Base-letter ids that also have a final form; when highlighting the passage we
@@ -72,28 +74,20 @@ const TOOL_COPY: Record<
   },
 };
 
-type PrimaryFilter =
-  | "strong"
-  | "min"
-  | "opening"
-  | "ending";
+// Tier filters are INCLUSION toggles (default on): they choose which generator
+// tier to show. Trait filters (opening/ending) are POSITIVE refinements (default
+// off): enabling one narrows the list to candidates that have that trait.
+type TierFilter = "strong" | "min";
+type TraitFilter = "opening" | "ending";
 
-const PRIMARY_FILTER_LABELS: Record<
-  WordplayTool,
-  Record<PrimaryFilter, string>
-> = {
-  soundplay: {
-    strong: "5 shared sounds",
-    min: "4 shared sounds",
-    opening: "Similar opening",
-    ending: "Similar ending",
-  },
-  wordplay: {
-    strong: "3 root letters",
-    min: "2 root letters",
-    opening: "Similar opening",
-    ending: "Similar ending",
-  },
+const TIER_LABELS: Record<WordplayTool, Record<TierFilter, string>> = {
+  soundplay: { strong: "5 shared sounds", min: "4 shared sounds" },
+  wordplay: { strong: "3 root letters", min: "2 root letters" },
+};
+
+const TRAIT_LABELS: Record<TraitFilter, string> = {
+  opening: "Similar opening",
+  ending: "Similar ending",
 };
 
 const WordplayInfoModal = ({
@@ -250,6 +244,9 @@ const Wordplay = () => {
     ctxSetHighlightedLetterChipIds,
     ctxSetLetterHighlightEnabled,
     ctxSetSelectedLetterChipIds,
+    ctxSoundHighlightEnabled,
+    ctxLetterHighlightEnabled,
+    ctxSetHighlightRestrictWordIds,
   } = useContext(FormatContext);
 
   const [tool, setTool] = useState<WordplayTool>("wordplay");
@@ -258,11 +255,15 @@ const Wordplay = () => {
   const [activeCandidateKey, setActiveCandidateKey] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  const [primaryFilters, setPrimaryFilters] = useState<Record<PrimaryFilter, boolean>>({
+  // Tier filters default ON (inclusion). Trait filters default OFF (enabling one
+  // narrows to candidates with that trait — never hides otherwise-valid matches).
+  const [tierFilters, setTierFilters] = useState<Record<TierFilter, boolean>>({
     strong: true,
     min: true,
-    opening: true,
-    ending: true,
+  });
+  const [traitFilters, setTraitFilters] = useState<Record<TraitFilter, boolean>>({
+    opening: false,
+    ending: false,
   });
   const [secondaryFilters, setSecondaryFilters] = useState<Record<SecondaryTag, boolean>>({
     "same-pos": false,
@@ -273,6 +274,22 @@ const Wordplay = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Clear any orphaned passage highlight/restriction when the panel unmounts
+  // (e.g. the user switches to another InfoPane tab) so a highlight can't be left
+  // stranded with no way to clear it from this panel.
+  useEffect(
+    () => () => {
+      ctxSetHighlightRestrictWordIds([]);
+      ctxSetHighlightedSoundChipIds([]);
+      ctxSetSoundHighlightEnabled(false);
+      ctxSetHighlightedLetterChipIds([]);
+      ctxSetLetterHighlightEnabled(false);
+    },
+    // Run only on unmount; setters are stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useEffect(() => {
     if (!showTooltip) return;
@@ -301,8 +318,12 @@ const Wordplay = () => {
     if (scopeMode === "whole") {
       return { mode: "whole" };
     }
-    const focusStropheId = ctxSelectedWords[0]?.stropheId ?? allWords[0]?.stropheId ?? 0;
-    return { mode: "adjacent", focusStropheId };
+    const focusWord = ctxSelectedWords[0] ?? allWords[0];
+    return {
+      mode: "adjacent",
+      focusStanzaId: focusWord?.stanzaId ?? 0,
+      focusStropheId: focusWord?.stropheId ?? 0,
+    };
   }, [scopeMode, ctxSelectedWords, allWords]);
 
   const candidates = useMemo(
@@ -310,16 +331,26 @@ const Wordplay = () => {
     [allWords, tool, scope],
   );
 
+  // Words that carry no lexical/sound form and are therefore skipped by the
+  // current tool — surfaced so the scholar knows results are on a subset.
+  const skippedWordCount = useMemo(() => {
+    const hasData = (word: WordProps) =>
+      tool === "wordplay"
+        ? wordLetterIds(word).length > 0
+        : wordSoundIds(word).length > 0;
+    return allWords.filter((word) => !hasData(word)).length;
+  }, [allWords, tool]);
+
   const filteredCandidates = useMemo(() => {
     return candidates.filter((candidate) => {
-      // Primary tags act as exclusion filters: turning a tag OFF hides every
-      // candidate that exhibits that tag. A candidate is shown only when all of
-      // the tags it carries are still enabled. Default (all on) shows everything.
-      const attributes: PrimaryFilter[] = [candidate.strongMatch ? "strong" : "min"];
-      if (candidate.sameOpening) attributes.push("opening");
-      if (candidate.sameEnding) attributes.push("ending");
-      const primaryOk = attributes.every((attr) => primaryFilters[attr]);
-      if (!primaryOk) return false;
+      // Tier is an inclusion filter: show the candidate only if its tier is on.
+      const tierOk = candidate.strongMatch ? tierFilters.strong : tierFilters.min;
+      if (!tierOk) return false;
+
+      // Trait filters are positive refinements: an enabled trait requires the
+      // candidate to have it. Disabled traits never hide anything.
+      if (traitFilters.opening && !candidate.sameOpening) return false;
+      if (traitFilters.ending && !candidate.sameEnding) return false;
 
       // Secondary tags are restrictive (AND): every enabled secondary tag must be
       // present on the candidate. With none enabled there is no secondary filtering.
@@ -328,13 +359,14 @@ const Wordplay = () => {
       );
       return activeSecondary.every((tag) => candidate.secondaryTags.includes(tag));
     });
-  }, [candidates, primaryFilters, secondaryFilters]);
+  }, [candidates, tierFilters, traitFilters, secondaryFilters]);
 
   const candidateKey = (candidate: WordplayCandidate) =>
     `${candidate.wordA.wordId}-${candidate.wordB.wordId}`;
 
   const clearHighlight = () => {
     setActiveCandidateKey(null);
+    ctxSetHighlightRestrictWordIds([]);
     ctxSetHighlightedSoundChipIds([]);
     ctxSetSoundHighlightEnabled(false);
     ctxSetSelectedSoundChipIds([]);
@@ -367,6 +399,9 @@ const Wordplay = () => {
 
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
+    // Restrict the passage highlight to just this candidate pair so the shared
+    // sounds/letters light up on the two words rather than the whole passage.
+    ctxSetHighlightRestrictWordIds([candidate.wordA.wordId, candidate.wordB.wordId]);
     const uniqueShared = [...new Set(candidate.sharedIds)];
 
     if (candidate.tool === "soundplay") {
@@ -394,7 +429,9 @@ const Wordplay = () => {
   };
 
   const copy = TOOL_COPY[tool];
-  const primaryLabels = PRIMARY_FILTER_LABELS[tool];
+  const tierLabels = TIER_LABELS[tool];
+  const highlightActive =
+    Boolean(activeCandidateKey) || ctxSoundHighlightEnabled || ctxLetterHighlightEnabled;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -464,19 +501,29 @@ const Wordplay = () => {
           </div>
         </div>
 
-        {/* Primary tags */}
+        {/* Primary tags: tier (inclusion) + traits (positive refinement) */}
         <div className="mt-4 px-2">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
             Primary tags
           </p>
           <div className="flex flex-wrap gap-2">
-            {(Object.keys(primaryLabels) as PrimaryFilter[]).map((key) => (
+            {(Object.keys(tierLabels) as TierFilter[]).map((key) => (
               <ToggleChip
                 key={key}
-                label={primaryLabels[key]}
-                active={primaryFilters[key]}
+                label={tierLabels[key]}
+                active={tierFilters[key]}
                 onClick={() =>
-                  setPrimaryFilters((prev) => ({ ...prev, [key]: !prev[key] }))
+                  setTierFilters((prev) => ({ ...prev, [key]: !prev[key] }))
+                }
+              />
+            ))}
+            {(Object.keys(TRAIT_LABELS) as TraitFilter[]).map((key) => (
+              <ToggleChip
+                key={key}
+                label={TRAIT_LABELS[key]}
+                active={traitFilters[key]}
+                onClick={() =>
+                  setTraitFilters((prev) => ({ ...prev, [key]: !prev[key] }))
                 }
               />
             ))}
@@ -508,7 +555,7 @@ const Wordplay = () => {
         <span className="text-sm font-medium text-black dark:text-white">
           {filteredCandidates.length} result{filteredCandidates.length === 1 ? "" : "s"}
         </span>
-        {activeCandidateKey && (
+        {highlightActive && (
           <button
             type="button"
             onClick={clearHighlight}
@@ -518,6 +565,13 @@ const Wordplay = () => {
           </button>
         )}
       </div>
+
+      {skippedWordCount > 0 && (
+        <p className="px-6 pb-1 text-xs italic text-slate-500">
+          {skippedWordCount} word{skippedWordCount === 1 ? "" : "s"} skipped (no{" "}
+          {tool === "wordplay" ? "lexical form" : "sounds"} available).
+        </p>
+      )}
 
       <div className="flex flex-col gap-2 px-4 pb-8" aria-label="Possible wordplays results">
         {filteredCandidates.length === 0 ? (

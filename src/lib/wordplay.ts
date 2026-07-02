@@ -3,6 +3,7 @@ import {
   splitHebrewClusters,
   splitTransliterationSegments,
 } from "@/lib/hebrewHighlights";
+import { transliterateHebrew } from "@/lib/transliterate";
 
 /**
  * Wordplay / Soundplay candidate engine (pure logic).
@@ -52,7 +53,12 @@ export type WordplayCandidate = {
 
 export type WordplayScope =
   | { mode: "whole" }
-  | { mode: "adjacent"; focusStropheId: number; radius?: number };
+  | {
+      mode: "adjacent";
+      focusStanzaId: number;
+      focusStropheId: number;
+      radius?: number;
+    };
 
 export type WordplayOptions = {
   scope?: WordplayScope;
@@ -102,12 +108,16 @@ const normalizeLetterId = (letterId: string): string =>
 
 /**
  * The consonant sound-ids of a word's **conjugated form**, vowels ignored.
- * Prefers the passage transliteration (matches what the user sees / hears); falls
- * back to deriving sounds from the pointed Hebrew (`wlcWord`).
  *
- * The Tetragrammaton (H3068) is a qere perpetuum — its written letters carry no
- * sound when read aloud (pronounced "Adonai") — so it contributes no sounds,
- * mirroring the display-side suppression in WordBlock.
+ * Always derived from the **transliteration** so the result is deterministic and
+ * matches the deck's "transliterated consonant sounds" rule: it uses the passage
+ * transliteration when present, otherwise transliterates the pointed Hebrew.
+ * (Previously it could fall back to raw Hebrew clusters, which disagreed with the
+ * transliteration on matres lectionis — e.g. a vowel yod — making results depend
+ * on whether a transliteration happened to be stored.)
+ *
+ * The Tetragrammaton (H3068) is a qere perpetuum — pronounced "Adonai" — so its
+ * written letters carry no sound; it contributes none, mirroring WordBlock.
  */
 export const wordSoundIds = (word: WordProps): string[] => {
   if (Math.trunc(word.strongNumber || 0) === 3068) {
@@ -115,34 +125,36 @@ export const wordSoundIds = (word: WordProps): string[] => {
   }
 
   const transliteration =
-    word.passageTransliteration || word.wordInformation?.transliteration || "";
-  if (transliteration) {
-    return splitTransliterationSegments(transliteration)
-      .map((segment) => segment.highlightId)
-      .filter((id): id is string => Boolean(id));
-  }
+    word.passageTransliteration ||
+    word.wordInformation?.transliteration ||
+    transliterateHebrew(word.wlcWord || "");
 
-  return splitHebrewClusters(word.wlcWord || "").flatMap(
-    (cluster) => cluster.soundIds,
-  );
+  return splitTransliterationSegments(transliteration)
+    .map((segment) => segment.highlightId)
+    .filter((id): id is string => Boolean(id));
 };
 
 /**
- * The Hebrew letter-ids of a word's **unconjugated / lexical form** (lemma),
- * normalised so final forms match their base.
+ * The Hebrew letter-ids of a word's **unconjugated / lexical form**, normalised so
+ * final forms match their base.
  *
  * CRITICAL (deck p36): Wordplay must compare the *unconjugated lexical* letters,
- * never the conjugated `wlcWord` (which carries prefixes/suffixes). If a word has
- * no lemma available we therefore return an **empty list** rather than falling
- * back to the conjugated form — a lemma-less word simply cannot participate in
- * Wordplay letter matching (better to omit it than to emit a wrong candidate).
+ * never the conjugated `wlcWord` (which carries prefixes/suffixes). We prefer the
+ * motif lemma, then the StepBible dictionary/citation form (broadly available per
+ * Strong number, unlike the motif-gated lemma), and if neither is available we
+ * return an **empty list** rather than falling back to the conjugated form — a
+ * word with no lexical form simply cannot participate in Wordplay letter matching.
+ *
+ * The input is NFKD-normalised first so Hebrew presentation forms / ligatures
+ * (e.g. U+FB2A שׁ, U+FB4F אל) decompose into their constituent base letters
+ * instead of being collapsed or dropped.
  */
 export const wordLetterIds = (word: WordProps): string[] => {
-  const lexical = word.motifData?.lemma || "";
+  const lexical = word.motifData?.lemma || word.wordInformation?.hebrew || "";
   if (!lexical) {
     return [];
   }
-  return splitHebrewClusters(lexical)
+  return splitHebrewClusters(lexical.normalize("NFKD"))
     .map((cluster) => cluster.letterId)
     .filter((id): id is string => Boolean(id))
     .map(normalizeLetterId);
@@ -189,19 +201,21 @@ const partOfSpeech = (morphology?: string): string | null => {
 
 /**
  * The leading preposition prefix letter (ב ל כ מ) of the conjugated form, if the
- * morphology confirms a prefixed preposition morpheme (OSHB code "R" as the first
- * morpheme). Requiring the morphology marker avoids false positives where the
- * first letter is a root letter rather than a preposition. When morphology is
- * absent we conservatively report no preposition.
+ * morphology confirms a prefixed preposition morpheme (OSHB code "R" among the
+ * prefix morphemes — everything before the final "word" morpheme). Requiring the
+ * morphology marker avoids false positives where the first letter is a root
+ * letter. Handles multi-prefix stacks (e.g. "HC/R/Ncmsa" = waw + preposition).
+ * When morphology is absent we conservatively report no preposition.
  */
 const prepositionPrefix = (word: WordProps): string | null => {
   const morphology = word.morphology;
   if (!morphology) return null;
   const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
   const morphemes = body.split("/").filter(Boolean);
-  // A prefixed preposition only exists when there is a leading "R" morpheme AND at
-  // least one following morpheme (the word itself).
-  if (morphemes.length < 2 || !morphemes[0].startsWith("R")) {
+  // A prefixed preposition exists when an "R" morpheme appears among the prefixes
+  // (any morpheme before the final word morpheme).
+  const prefixMorphemes = morphemes.slice(0, -1);
+  if (!prefixMorphemes.some((m) => m.startsWith("R"))) {
     return null;
   }
 
@@ -210,6 +224,14 @@ const prepositionPrefix = (word: WordProps): string | null => {
   const baseLetter = Array.from(first).find((ch) => /\p{Script=Hebrew}/u.test(ch));
   return baseLetter && PREPOSITION_LETTERS.has(baseLetter) ? baseLetter : null;
 };
+
+// Two words are in the same or an adjacent strophe. NOTE: word.stropheId is a
+// PER-STANZA index (it resets to 0 in every stanza), so proximity is only
+// meaningful within the same stanza — comparing raw stropheIds across stanzas
+// would wrongly treat e.g. stanza 0 strophe 2 and stanza 3 strophe 2 as the same
+// strophe. We therefore require the same stanza and an adjacent strophe index.
+const inProximity = (a: WordProps, b: WordProps): boolean =>
+  a.stanzaId === b.stanzaId && Math.abs(a.stropheId - b.stropheId) <= 1;
 
 const computeSecondaryTags = (a: WordProps, b: WordProps): SecondaryTag[] => {
   const tags: SecondaryTag[] = [];
@@ -226,8 +248,7 @@ const computeSecondaryTags = (a: WordProps, b: WordProps): SecondaryTag[] => {
     tags.push("same-preposition");
   }
 
-  // Proximity: same or adjacent strophe.
-  if (Math.abs(a.stropheId - b.stropheId) <= 1) {
+  if (inProximity(a, b)) {
     tags.push("proximity");
   }
 
@@ -270,8 +291,12 @@ const filterByScope = (
     return words;
   }
   const radius = scope.radius ?? 2;
+  // stropheId is per-stanza, so the ±N window is scoped within the focus stanza
+  // (comparing raw stropheIds across stanzas would be meaningless — see inProximity).
   return words.filter(
-    (word) => Math.abs(word.stropheId - scope.focusStropheId) <= radius,
+    (word) =>
+      word.stanzaId === scope.focusStanzaId &&
+      Math.abs(word.stropheId - scope.focusStropheId) <= radius,
   );
 };
 

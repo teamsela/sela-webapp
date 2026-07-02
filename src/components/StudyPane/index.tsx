@@ -116,6 +116,8 @@ export const FormatContext = createContext({
   ctxSetHighlightedLetterChipIds: (arg: string[]) => {},
   ctxLetterHighlightEnabled: false,
   ctxSetLetterHighlightEnabled: (arg: boolean) => {},
+  ctxHighlightRestrictWordIds: [] as number[],
+  ctxSetHighlightRestrictWordIds: (arg: number[]) => {},
   ctxNoteBox: undefined as undefined|DOMRect,
   ctxSetNoteBox: (arg: undefined|DOMRect) => {},
   ctxNoteMerge: true,
@@ -195,6 +197,7 @@ const StudyPane = ({
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
+  const [highlightRestrictWordIds, setHighlightRestrictWordIds] = useState<number[]>([]);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
@@ -330,6 +333,8 @@ const StudyPane = ({
     ctxSetHighlightedLetterChipIds: setHighlightedLetterChipIds,
     ctxLetterHighlightEnabled: letterHighlightEnabled,
     ctxSetLetterHighlightEnabled: setLetterHighlightEnabled,
+    ctxHighlightRestrictWordIds: highlightRestrictWordIds,
+    ctxSetHighlightRestrictWordIds: setHighlightRestrictWordIds,
     ctxNoteBox: noteBox,
     ctxSetNoteBox: setNoteBox,
     ctxNoteMerge: noteMerge,

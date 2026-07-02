@@ -96,6 +96,7 @@ function Harness({ initial }: { initial?: Partial<CtxState> }) {
     ctxSetLetterHighlightEnabled: asSetter("letterHighlightEnabled"),
     ctxSetSelectedWords: () => patch({}),
     ctxSetNumSelectedWords: asSetter("numSelectedWords"),
+    ctxSetHighlightRestrictWordIds: () => {},
   };
 
   return (

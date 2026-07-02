@@ -361,6 +361,7 @@ const Sounds = () => {
     ctxSetLetterHighlightEnabled,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
+    ctxSetHighlightRestrictWordIds,
   } = useContext(FormatContext);
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>("sound-distribution");
 
@@ -454,6 +455,9 @@ const Sounds = () => {
   ) => () => {
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
+    // Distribution highlights apply passage-wide, so drop any Wordplay pair
+    // restriction that may still be active.
+    ctxSetHighlightRestrictWordIds([]);
     if (self.selected.length > 0) {
       self.setHighlighted([...new Set([...self.highlighted, ...self.selected])]);
       self.setEnabled(true);

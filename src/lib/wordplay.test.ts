@@ -85,6 +85,22 @@ describe("wordLetterIds", () => {
       expect(ids.some((id) => id.startsWith("final-"))).toBe(false);
     }
   });
+
+  it("uses the StepBible lexical form (wordInformation.hebrew) when no motif lemma", () => {
+    const word = makeWord({
+      motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+      wordInformation: {
+        hebrew: "קֶבֶר",
+        transliteration: "",
+        gloss: "",
+        morphology: "",
+        strongsNumber: "",
+        meaning: "",
+      },
+      wlcWord: "בְּקִבְרוֹ", // conjugated form must NOT be used
+    });
+    expect(wordLetterIds(word)).toEqual(["qof", "bet", "resh"]);
+  });
 });
 
 describe("sharedMultiset", () => {
@@ -242,16 +258,25 @@ describe("same-word exclusion", () => {
 describe("secondary tags", () => {
   it("flags proximity for same/adjacent strophes and drops it when far apart", () => {
     const near = findSoundplayCandidates([
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1000, stropheId: 3 }),
-      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1001, stropheId: 4 }),
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1000, stanzaId: 0, stropheId: 3 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1001, stanzaId: 0, stropheId: 4 }),
     ]);
     expect(near[0].secondaryTags).toContain("proximity");
 
     const far = findSoundplayCandidates([
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1002, stropheId: 0 }),
-      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1003, stropheId: 9 }),
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1002, stanzaId: 0, stropheId: 0 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1003, stanzaId: 0, stropheId: 9 }),
     ]);
     expect(far[0].secondaryTags).not.toContain("proximity");
+  });
+
+  it("does NOT flag proximity for equal per-stanza stropheIds in DIFFERENT stanzas", () => {
+    // stropheId is per-stanza; stanza 0 strophe 2 and stanza 3 strophe 2 are far apart.
+    const candidates = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1050, stanzaId: 0, stropheId: 2 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1051, stanzaId: 3, stropheId: 2 }),
+    ]);
+    expect(candidates[0].secondaryTags).not.toContain("proximity");
   });
 
   it("flags same part of speech and same preposition prefix", () => {
@@ -297,11 +322,24 @@ describe("run scope", () => {
 
   it("±2 strophes excludes words outside the window around the focus", () => {
     const words = [
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1300, stropheId: 5 }),
-      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1301, stropheId: 10 }),
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1300, stanzaId: 0, stropheId: 5 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1301, stanzaId: 0, stropheId: 10 }),
     ];
     const scoped = findSoundplayCandidates(words, {
-      scope: { mode: "adjacent", focusStropheId: 5 },
+      scope: { mode: "adjacent", focusStanzaId: 0, focusStropheId: 5 },
+    });
+    expect(scoped).toHaveLength(0);
+  });
+
+  it("±2 strophes only compares within the focus stanza (per-stanza stropheId)", () => {
+    // Both have stropheId within ±2 of focus, but the second is in a different
+    // stanza, so it must be excluded despite the small stropheId delta.
+    const words = [
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1400, stanzaId: 0, stropheId: 0 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", strongNumber: 1401, stanzaId: 1, stropheId: 0 }),
+    ];
+    const scoped = findSoundplayCandidates(words, {
+      scope: { mode: "adjacent", focusStanzaId: 0, focusStropheId: 0 },
     });
     expect(scoped).toHaveLength(0);
   });
