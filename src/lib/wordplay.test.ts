@@ -101,6 +101,24 @@ describe("wordLetterIds", () => {
     });
     expect(wordLetterIds(word)).toEqual(["qof", "bet", "resh"]);
   });
+
+  it("rejects wordInformation.hebrew when it equals the conjugated wlcWord (StepBible-miss fallback)", () => {
+    // actions.ts falls back to wlcWord when StepBible has no entry → hebrew===wlcWord.
+    // That is a conjugated form and must NOT be used for letter matching (p36).
+    const word = makeWord({
+      motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+      wordInformation: {
+        hebrew: "בְּקִבְרוֹ",
+        transliteration: "",
+        gloss: "",
+        morphology: "",
+        strongsNumber: "",
+        meaning: "",
+      },
+      wlcWord: "בְּקִבְרוֹ",
+    });
+    expect(wordLetterIds(word)).toEqual([]);
+  });
 });
 
 describe("sharedMultiset", () => {

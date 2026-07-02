@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
@@ -275,11 +275,19 @@ const Wordplay = () => {
     setIsMounted(true);
   }, []);
 
-  // Clear any orphaned passage highlight/restriction when the panel unmounts
-  // (e.g. the user switches to another InfoPane tab) so a highlight can't be left
-  // stranded with no way to clear it from this panel.
+  // Track the latest active candidate for the unmount cleanup below.
+  const activeCandidateKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    activeCandidateKeyRef.current = activeCandidateKey;
+  }, [activeCandidateKey]);
+
+  // On unmount (e.g. switching to another InfoPane tab) clear the passage
+  // highlight ONLY if this panel currently owns it (a candidate is active).
+  // Otherwise a Sound/Letter Distribution highlight the user set elsewhere must
+  // be left untouched.
   useEffect(
     () => () => {
+      if (!activeCandidateKeyRef.current) return;
       ctxSetHighlightRestrictWordIds([]);
       ctxSetHighlightedSoundChipIds([]);
       ctxSetSoundHighlightEnabled(false);

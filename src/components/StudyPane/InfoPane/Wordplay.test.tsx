@@ -245,6 +245,14 @@ describe("Wordplay panel — primary tag filter", () => {
     fireEvent.click(screen.getByRole("button", { name: "Similar ending" }));
     expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
   });
+
+  it("'Similar opening' trait filter hides candidates lacking that trait", () => {
+    render(<Harness />);
+    // Qever (ק) / Boqer (ב) do NOT share an opening letter → enabling the trait
+    // narrows them out (proving positive filtering hides non-matching candidates).
+    fireEvent.click(screen.getByRole("button", { name: "Similar opening" }));
+    expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
+  });
 });
 
 describe("Wordplay panel — tooltip", () => {
