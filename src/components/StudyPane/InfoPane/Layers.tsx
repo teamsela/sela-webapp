@@ -1,7 +1,6 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { LuTextSelect } from "react-icons/lu";
-import { PiNotePencil } from "react-icons/pi";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -53,8 +52,9 @@ const Layers = () => {
   // Draft value while the rename input is open.
   const [editNameValue, setEditNameValue] = useState("");
 
-  // Id of the layer whose notes panel is currently open.
-  const [openNotesLayerId, setOpenNotesLayerId] = useState<number | null>(null);
+  // Whether the active layer's note is expanded into an editable textarea.
+  // When collapsed, only a single-line sneak peek is shown.
+  const [notesExpanded, setNotesExpanded] = useState(false);
 
   // Id of the layer pending deletion (drives the confirmation modal).
   const [layerToDeleteId, setLayerToDeleteId] = useState<number | null>(null);
@@ -117,12 +117,10 @@ const Layers = () => {
     };
   }, [saveNow]);
 
-  // Close the notes panel when the active layer changes.
+  // Collapse the note back to its sneak peek when the active layer changes.
   useEffect(() => {
-    if (openNotesLayerId !== null && openNotesLayerId !== ctxActiveLayerId) {
-      setOpenNotesLayerId(null);
-    }
-  }, [ctxActiveLayerId, openNotesLayerId]);
+    setNotesExpanded(false);
+  }, [ctxActiveLayerId]);
 
   // State for the "create new layer" box.
   const [creating, setCreating] = useState(false);
@@ -221,10 +219,6 @@ const Layers = () => {
     ctxSetSelectedColor("");
   };
 
-  const handleToggleNotes = (id: number) => {
-    setOpenNotesLayerId((prev) => (prev === id ? null : id));
-  };
-
   const handleNoteChange = useCallback((layerId: number, value: string) => {
     const updated = { ...layerNotes, [String(layerId)]: value };
     setLayerNotes(updated);
@@ -253,7 +247,6 @@ const Layers = () => {
     if (id === null) return;
     ctxDeleteLayer(id);
     if (editingLayerId === id) setEditingLayerId(null);
-    if (openNotesLayerId === id) setOpenNotesLayerId(null);
     setLayerToDeleteId(null);
   };
 
@@ -315,7 +308,7 @@ const Layers = () => {
   };
 
   return (
-    <div className="h-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="h-full">
 
       <div className="flex flex-col gap-4 mt-8 p-6.5">
         {ctxLayers.map((layer) => {
@@ -329,76 +322,77 @@ const Layers = () => {
             outline = `3px solid ${selectMode === "color" ? SELECT_OUTLINE : CLICK_OUTLINE}`;
           }
 
-          const notesOpen = openNotesLayerId === layer.id;
+          const noteValue = layerNotes[String(layer.id)] ?? "";
+          const notePeek = noteValue.split("\n")[0].trim();
 
           return (
-            <div key={layer.id} className="flex flex-col gap-2">
-              {/* Layer row */}
+            // The whole box (header + note) carries the fill background and the
+            // selection outline, so highlighting the layer highlights its note too.
+            <div
+              key={layer.id}
+              draggable={editingLayerId !== layer.id}
+              onDragStart={() => handleDragStart(layer.id)}
+              onDragOver={(e) => handleDragOver(e, layer.id)}
+              onDrop={(e) => handleDrop(e, layer.id)}
+              onDragEnd={handleDragEnd}
+              className="flex cursor-grab flex-col overflow-hidden rounded-xl border transition active:cursor-grabbing"
+              style={{
+                backgroundColor: layer.fill,
+                borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
+                outline,
+                outlineOffset: "2px",
+              }}
+            >
+              {/* Header row: dot, name, action icons */}
               <div
-                draggable={editingLayerId !== layer.id}
-                onDragStart={() => handleDragStart(layer.id)}
-                onDragOver={(e) => handleDragOver(e, layer.id)}
-                onDrop={(e) => handleDrop(e, layer.id)}
-                onDragEnd={handleDragEnd}
-                className="flex min-h-[7rem] cursor-grab items-stretch overflow-hidden rounded-xl border transition active:cursor-grabbing"
-                style={{
-                  borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
-                  outline,
-                  outlineOffset: "2px",
-                }}
+                className="flex items-center gap-3 px-5 py-4"
+                onClick={() => handleBoxClick(layer.id)}
               >
-                {/* Layer name / inline edit */}
-                <div
-                  className="flex flex-1 items-center justify-center px-5 py-8"
-                  style={{ backgroundColor: layer.fill }}
-                  onClick={() => handleBoxClick(layer.id)}
-                >
-                  {editingLayerId === layer.id ? (
-                    <input
-                      autoFocus
-                      type="text"
-                      value={editNameValue}
-                      onChange={(e) => setEditNameValue(e.target.value)}
-                      onBlur={() => commitRename(layer.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitRename(layer.id);
-                        if (e.key === "Escape") setEditingLayerId(null);
-                      }}
-                      className="w-full bg-transparent text-center text-lg outline-none"
-                      style={{ color: layer.text }}
-                    />
-                  ) : (
-                    <span
-                      className="cursor-text text-lg"
-                      style={{ color: layer.text }}
-                      onDoubleClick={() => startEditing(layer.id, layer.name)}
-                    >
-                      {layer.name}
-                    </span>
-                  )}
-                </div>
+                {/* Active/inactive status dot */}
+                <span
+                  className="h-3 w-3 flex-shrink-0 rounded-full"
+                  style={{ backgroundColor: isSelected ? CLICK_OUTLINE : "#9CA3AF" }}
+                />
 
-                {/* Action buttons — only rendered when this layer is active */}
+                {/* Layer name / inline edit */}
+                {editingLayerId === layer.id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editNameValue}
+                    onChange={(e) => setEditNameValue(e.target.value)}
+                    onBlur={() => commitRename(layer.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitRename(layer.id);
+                      if (e.key === "Escape") setEditingLayerId(null);
+                    }}
+                    className="flex-1 bg-transparent text-left text-lg outline-none"
+                    style={{ color: layer.text }}
+                  />
+                ) : (
+                  <span
+                    className="flex-1 cursor-text text-lg"
+                    style={{ color: layer.text }}
+                    onDoubleClick={() => startEditing(layer.id, layer.name)}
+                  >
+                    {layer.name}
+                  </span>
+                )}
+
+                {/* Action buttons — horizontal, only for the active layer */}
                 {isSelected && (
-                  <div className="flex flex-col justify-center gap-2 bg-primary px-2 py-3 text-white">
+                  <div className="flex flex-shrink-0 items-center gap-3" style={{ color: "#656565" }}>
                     <button
                       title="Customize layer"
                       className="hover:opacity-70"
-                      onClick={() => handleSelect(layer.id)}
+                      onClick={(e) => { e.stopPropagation(); handleSelect(layer.id); }}
                     >
                       <LuTextSelect size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
                     </button>
                     <button
-                      title={notesOpen ? "Close notes" : "Open notes"}
-                      className={`hover:opacity-70 ${notesOpen ? "opacity-70" : ""}`}
-                      onClick={() => handleToggleNotes(layer.id)}
-                    >
-                      <PiNotePencil size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
-                    </button>
-                    <button
                       title="Delete layer"
                       className="hover:opacity-70"
-                      onClick={() => requestDelete(layer.id)}
+                      onClick={(e) => { e.stopPropagation(); requestDelete(layer.id); }}
                     >
                       <IconTrash size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
                     </button>
@@ -406,16 +400,33 @@ const Layers = () => {
                 )}
               </div>
 
-              {/* Notes textarea — visible when pencil is toggled on */}
-              {notesOpen && (
-                <textarea
-                  autoFocus
-                  value={layerNotes[String(layer.id)] ?? ""}
-                  onChange={(e) => handleNoteChange(layer.id, e.target.value)}
-                  placeholder="Write your notes for this layer…"
-                  rows={12}
-                  className="resize-none w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                />
+              {/* Note lives inside the box — only for the active layer. Click the
+                  peek to expand; blur (click outside) collapses it back. */}
+              {isSelected && (
+                <div className="px-3 pb-3">
+                  {notesExpanded ? (
+                    <textarea
+                      autoFocus
+                      value={noteValue}
+                      onChange={(e) => handleNoteChange(layer.id, e.target.value)}
+                      onBlur={() => setNotesExpanded(false)}
+                      placeholder="Click here to add notes"
+                      rows={6}
+                      className="resize-none w-full rounded-lg bg-white px-4 py-2 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
+                    />
+                  ) : (
+                    <div
+                      className="w-full cursor-text overflow-hidden text-ellipsis whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm dark:bg-boxdark"
+                      onClick={() => setNotesExpanded(true)}
+                    >
+                      {notePeek ? (
+                        <span className="text-black dark:text-white">{notePeek}</span>
+                      ) : (
+                        <span className="text-gray-400">Click here to add notes</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           );
@@ -423,7 +434,7 @@ const Layers = () => {
 
         {/* Create new layer */}
         <div
-          className="flex min-h-[80px] cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke px-5 py-8 text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
+          className="flex gap-3 px-5 py-4 cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
           onClick={() => !creating && setCreating(true)}
         >
           {creating ? (
