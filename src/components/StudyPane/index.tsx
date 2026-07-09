@@ -91,7 +91,7 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxActiveHighlightIds: { syntax: null, motif: null, structure: null } as Record<ColorSource, string | null>,
   ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
@@ -125,7 +125,9 @@ export const FormatContext = createContext({
   ctxStropheNoteBtnOn: false,
   ctxSetStropheNoteBtnOn: (arg: boolean) => {},
   ctxCurrentSpokenWordIds: [] as number[],
-  ctxSetCurrentSpokenWordIds: (_arg: number[]) => {}
+  ctxSetCurrentSpokenWordIds: (_arg: number[]) => {},
+  ctxUnderlinedWordIds: [] as number[],
+  ctxSetUnderlinedWordIds: (_arg: number[]) => {}
 });
 
 const StudyPane = ({
@@ -163,6 +165,7 @@ const StudyPane = ({
   const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
     syntax: null,
     motif: null,
+    structure: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
@@ -197,6 +200,7 @@ const StudyPane = ({
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
+  const [underlinedWordIds, setUnderlinedWordIds] = useState<number[]>([]);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
@@ -342,7 +346,9 @@ const StudyPane = ({
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
     ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
     ctxCurrentSpokenWordIds: currentSpokenWordIds,
-    ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds
+    ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds,
+    ctxUnderlinedWordIds: underlinedWordIds,
+    ctxSetUnderlinedWordIds: setUnderlinedWordIds
   };
 
   useEffect(() => {

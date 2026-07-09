@@ -45,7 +45,7 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
-    ctxCurrentSpokenWordIds,
+    ctxCurrentSpokenWordIds, ctxUnderlinedWordIds,
     ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
     ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
@@ -78,6 +78,9 @@ export const WordBlock = ({
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
   const isCurrentSpokenWord = ctxCurrentSpokenWordIds.includes(wordProps.wordId);
+  // Lead word of a selected poetic accent (Structure tab) — underlined only,
+  // never part of the editable selection. Spoken-word underline takes priority.
+  const isAccentLeadWord = ctxUnderlinedWordIds.includes(wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -457,10 +460,10 @@ export const WordBlock = ({
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''} relative`}
             data-clicktype="clickable"
             style={{
-              textDecoration: isCurrentSpokenWord ? 'underline' : 'none',
-              textDecorationThickness: isCurrentSpokenWord ? '3px' : undefined,
-              textUnderlineOffset: isCurrentSpokenWord ? '0.2em' : undefined,
-              textDecorationColor: isCurrentSpokenWord ? '#FFC300' : undefined,
+              textDecoration: (isCurrentSpokenWord || isAccentLeadWord) ? 'underline' : 'none',
+              textDecorationThickness: isCurrentSpokenWord ? '3px' : (isAccentLeadWord ? '2px' : undefined),
+              textUnderlineOffset: (isCurrentSpokenWord || isAccentLeadWord) ? '0.2em' : undefined,
+              textDecorationColor: isCurrentSpokenWord ? '#FFC300' : (isAccentLeadWord ? textColorLocal : undefined),
               transition: 'text-decoration-color 140ms ease-in-out',
             }}
           >
