@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import RichTextEditor from "./RichTextEditor";
@@ -52,8 +52,40 @@ describe("RichTextEditor", () => {
     await screen.findByText("Hello notes");
     const area = document.querySelector(".tiptap-prose");
     expect(area).not.toBeNull();
-    fireEvent.contextMenu(area as Element);
-    expect(await screen.findByLabelText("Bold")).toBeInTheDocument();
+    fireEvent.contextMenu(area as Element, { clientX: 120, clientY: 90 });
+    const menu = await screen.findByRole("menu");
+    // Opens at the cursor when there is room.
+    expect(menu.style.left).toBe("120px");
+    expect(menu.style.top).toBe("90px");
+  });
+
+  it("nudges the menu back inside the viewport when opened near an edge", async () => {
+    // jsdom has no layout, so give the menu a measured size and a small window.
+    const rect = { width: 248, height: 200, top: 0, left: 0, right: 248, bottom: 200, x: 0, y: 0, toJSON: () => {} };
+    const rectSpy = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue(rect as DOMRect);
+    const origW = window.innerWidth;
+    const origH = window.innerHeight;
+    Object.defineProperty(window, "innerWidth", { value: 500, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 400, configurable: true });
+
+    try {
+      render(<RichTextEditor value={sampleDoc} onChange={() => {}} editable />);
+      const area = document.querySelector(".tiptap-prose");
+      // Right-click in the bottom-right corner.
+      fireEvent.contextMenu(area as Element, { clientX: 495, clientY: 395 });
+      const menu = await screen.findByRole("menu");
+      // Whole 248x200 menu must fit within 500x400 (8px margin): left<=244, top<=192.
+      expect(parseFloat(menu.style.left)).toBeLessThanOrEqual(500 - 248 - 8);
+      expect(parseFloat(menu.style.top)).toBeLessThanOrEqual(400 - 200 - 8);
+      expect(parseFloat(menu.style.left)).toBeGreaterThanOrEqual(8);
+      expect(parseFloat(menu.style.top)).toBeGreaterThanOrEqual(8);
+    } finally {
+      rectSpy.mockRestore();
+      Object.defineProperty(window, "innerWidth", { value: origW, configurable: true });
+      Object.defineProperty(window, "innerHeight", { value: origH, configurable: true });
+    }
   });
 
   it("shows a placeholder when the document is empty and editable", async () => {

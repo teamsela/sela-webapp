@@ -214,7 +214,6 @@ useEffect(() => {
         placeholder="Title on the first line. Write your notes beneath it."
         dir="auto"
         fill
-        allowContextMenu={false}
         className="min-h-0 flex-1 bg-white dark:bg-form-input"
       />
     </div>

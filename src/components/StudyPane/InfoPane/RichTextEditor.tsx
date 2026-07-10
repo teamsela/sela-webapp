@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Editor, EditorContent, useEditor } from "@tiptap/react";
 import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -236,22 +237,38 @@ const FormatControls = ({ editor }: { editor: Editor }) => (
   </div>
 );
 
-// Floating formatting menu — positioned at a viewport coordinate (fixed, so it is
-// never clipped by the editor's own scroll container). Opened by the corner icon
-// or by right-clicking inside the editor; closes on outside click / Escape / scroll.
-const MENU_W = 248;
-const MENU_H = 96;
-
+// Floating formatting menu. Opened by the corner icon or by right-clicking inside
+// the editor; closes on outside click / Escape / scroll.
+//
+// It is rendered in a portal on document.body so an ancestor CSS transform does
+// NOT reposition it: the zoomable passage sets `transform: scale()` on its
+// container, and a position:fixed element inside a transformed ancestor is placed
+// relative to that ancestor rather than the viewport — which is what made the
+// menu appear in the wrong place for strophe notes. It then self-measures and
+// nudges back inside the window so it is never clipped by an edge.
 const FloatingFormatMenu = ({
   editor,
-  position,
+  anchor,
   onClose,
 }: {
   editor: Editor;
-  position: { left: number; top: number };
+  anchor: { x: number; y: number };
   onClose: () => void;
 }) => {
   const ref = useRef<HTMLDivElement | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number }>({ left: anchor.x, top: anchor.y });
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    const margin = 8;
+    // Prefer the anchor (cursor), but keep the whole menu on-screen.
+    const left = Math.max(margin, Math.min(anchor.x, window.innerWidth - width - margin));
+    const top = Math.max(margin, Math.min(anchor.y, window.innerHeight - height - margin));
+    setPos({ left, top });
+  }, [anchor.x, anchor.y]);
+
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) onClose();
@@ -273,16 +290,18 @@ const FloatingFormatMenu = ({
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       role="menu"
       className="fixed z-[1000] rounded-md border border-stroke bg-white p-2 shadow-lg dark:border-strokedark dark:bg-boxdark"
-      style={{ left: position.left, top: position.top, width: MENU_W }}
+      // Shrink-wrap to the controls (no dead space), but never exceed the viewport.
+      style={{ left: pos.left, top: pos.top, width: "max-content", maxWidth: "calc(100vw - 16px)" }}
       onContextMenu={(e) => e.preventDefault()}
     >
       <FormatControls editor={editor} />
-    </div>
+    </div>,
+    document.body,
   );
 };
 
@@ -342,28 +361,27 @@ const RichTextEditor = ({
     },
   });
 
-  const [menuPos, setMenuPos] = useState<{ left: number; top: number } | null>(null);
+  // Raw anchor (viewport coords) for the formatting menu; the menu clamps itself
+  // to stay on-screen. getBoundingClientRect / clientX already account for any
+  // ancestor transform, so these are true viewport coordinates.
+  const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
   const cornerRef = useRef<HTMLButtonElement | null>(null);
-
-  const clampToViewport = (left: number, top: number) => ({
-    left: Math.max(8, Math.min(left, window.innerWidth - MENU_W - 8)),
-    top: Math.max(8, Math.min(top, window.innerHeight - MENU_H - 8)),
-  });
+  const closeMenu = useCallback(() => setMenuAnchor(null), []);
 
   const openAtEvent = (e: React.MouseEvent) => {
     if (!editable) return;
     e.preventDefault();
-    setMenuPos(clampToViewport(e.clientX, e.clientY));
+    setMenuAnchor({ x: e.clientX, y: e.clientY });
   };
 
   const toggleFromCorner = () => {
-    if (menuPos) {
-      setMenuPos(null);
+    if (menuAnchor) {
+      setMenuAnchor(null);
       return;
     }
     const rect = cornerRef.current?.getBoundingClientRect();
-    if (rect) setMenuPos(clampToViewport(rect.right - MENU_W, rect.top - MENU_H));
-    else setMenuPos(clampToViewport(window.innerWidth / 2, window.innerHeight / 2));
+    if (rect) setMenuAnchor({ x: rect.left, y: rect.top });
+    else setMenuAnchor({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   };
 
   // Keep editability in sync if the surrounding view toggles view/edit mode.
@@ -420,8 +438,8 @@ const RichTextEditor = ({
         </button>
       )}
 
-      {editable && menuPos && (
-        <FloatingFormatMenu editor={editor} position={menuPos} onClose={() => setMenuPos(null)} />
+      {editable && menuAnchor && (
+        <FloatingFormatMenu editor={editor} anchor={menuAnchor} onClose={closeMenu} />
       )}
     </div>
   );
