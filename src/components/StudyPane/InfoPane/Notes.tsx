@@ -2,17 +2,18 @@
 import React, { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { FormatContext } from "..";
 import { StropheNote, StudyNotes } from "@/lib/types";
+import { RichDoc, toRichDoc } from "@/lib/richText";
+import RichTextEditor from "./RichTextEditor";
 
 const Notes = () => {
-  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps } = useContext(FormatContext);
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { ctxStudyId, ctxStudyNotes, ctxSetStudyNotes, ctxPassageProps, ctxInViewMode } =
+    useContext(FormatContext);
 
   // timers/flags
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);   // what we intend to save next
   const lastSavedPayloadRef = useRef<string | null>(null); // what backend already has
+  const dirtyRef = useRef(false);                          // set once the user actually edits
 
   const buildEmptyStrophes = useCallback(
     () =>
@@ -31,7 +32,9 @@ const Notes = () => {
     try {
       const parsed = JSON.parse(ctxStudyNotes) as StudyNotes;
       return {
-        main: typeof parsed?.main === "string" ? parsed.main : "",
+        ...parsed,
+        // `main` may be legacy plain text or a rich doc — keep whatever shape it is.
+        main: parsed?.main ?? "",
         strophes: Array.isArray(parsed?.strophes) ? parsed.strophes : fallback.strophes,
       };
     } catch {
@@ -39,9 +42,11 @@ const Notes = () => {
     }
   }, [ctxStudyNotes, buildEmptyStrophes]);
 
-  // Initialize local text
-  const [text, setText] = useState(() => getSafeNotes().main ?? "");
-  const [rows, setRows] = useState(1);
+  // Rich-text doc is the source of truth for the main note. Migrate legacy
+  // plain-text notes to a doc on first load.
+  const [mainDoc, setMainDoc] = useState<RichDoc>(() => toRichDoc(getSafeNotes().main));
+
+  const editable = !ctxInViewMode;
 
   // Ensure context has default shape AFTER mount
   useEffect(() => {
@@ -50,18 +55,6 @@ const Notes = () => {
       ctxSetStudyNotes(JSON.stringify({ main: "", strophes: array }));
     }
   }, [ctxStudyNotes, ctxSetStudyNotes, buildEmptyStrophes]);
-
-  // Keep context in sync with local text
-  useEffect(() => {
-    const currentJSON = getSafeNotes();
-    const updatedJSON = { ...currentJSON, main: text };
-    const payload = JSON.stringify(updatedJSON);
-    if (payload !== ctxStudyNotes) {
-      ctxSetStudyNotes(payload);
-    }
-    // keep our pending payload up to date for quick flush
-    pendingPayloadRef.current = payload;
-  }, [text, ctxStudyNotes, ctxSetStudyNotes, getSafeNotes]);
 
   // A stable "save now" that supports keepalive and beacon
   const saveNow = useCallback(async (payload: string, { keepalive = false } = {}) => {
@@ -81,8 +74,6 @@ const Notes = () => {
 
       if (!res.ok) throw new Error("Save failed");
       lastSavedPayloadRef.current = payload;
-      // Consider: toast or console only
-      console.log("Saved:", JSON.parse(payload));
     } catch (err) {
       // Try a best-effort beacon when we're in an unload scenario and fetch failed
       if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
@@ -103,24 +94,43 @@ const Notes = () => {
     }
   }, [ctxStudyId]);
 
-  // Debounced autosave whenever `text` changes
+  // Build the full StudyNotes payload, preserving strophes / other keys and only
+  // swapping in the current main doc.
+  const buildPayload = useCallback(() => {
+    let parsed: StudyNotes = { main: "", strophes: [] };
+    try {
+      if (ctxStudyNotes) parsed = JSON.parse(ctxStudyNotes);
+    } catch {/* fall back */}
+    return JSON.stringify({ ...parsed, main: mainDoc });
+  }, [ctxStudyNotes, mainDoc]);
+
+  const handleChange = useCallback((doc: RichDoc) => {
+    dirtyRef.current = true;
+    setMainDoc(doc);
+  }, []);
+
+  // Sync context + debounced autosave whenever the main doc changes. Only runs
+  // after a real edit, so simply opening the Notes tab never writes (or migrates
+  // legacy plain-text notes) behind the user's back.
   useEffect(() => {
-    // clear previous debounce
+    if (!editable || !dirtyRef.current) return;
+
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    const payload =
-      pendingPayloadRef.current ??
-      JSON.stringify({ ...getSafeNotes(), main: text });
+    const payload = buildPayload();
     pendingPayloadRef.current = payload;
 
+    if (payload !== ctxStudyNotes) {
+      ctxSetStudyNotes(payload);
+    }
+
     timeoutRef.current = setTimeout(() => {
-      // standard save (not unloading)
       saveNow(payload, { keepalive: false });
     }, 2000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [text, saveNow, getSafeNotes]);
+  }, [buildPayload, ctxStudyNotes, ctxSetStudyNotes, saveNow, editable]);
 
   // Flush on unmount and tab/page visibility changes
   useEffect(() => {
@@ -149,46 +159,20 @@ const Notes = () => {
     };
   }, [saveNow]);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    const textarea = textareaRef.current;
-    if (!container || !textarea) return;
-
-    const containerPadding = 16;
-    textarea.style.lineHeight = "1.5";
-
-    const computeRows = () => {
-      const computedStyle = window.getComputedStyle(textarea);
-      const lineHeight = parseFloat(computedStyle.lineHeight);
-      const containerHeight = container.clientHeight - containerPadding * 8;
-      if (lineHeight > 0) {
-        const calculatedRows = Math.floor(containerHeight / lineHeight);
-        setRows(calculatedRows);
-      }
-    };
-
-    computeRows();
-    const resizeObserver = new ResizeObserver(computeRows);
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
-
   return (
-    <div ref={containerRef} className="h-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="flex h-full flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-6.5 py-4 dark:border-strokedark">
         <h3 className="font-medium text-black dark:text-white">Notes</h3>
       </div>
-      <div className="flex flex-col gap-5.5 p-6.5">
-        <div>
-          <textarea
-            ref={textareaRef}
-            rows={rows}
-            placeholder="Your notes here..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="resize-none w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-          />
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col p-6.5">
+        <RichTextEditor
+          value={mainDoc}
+          onChange={handleChange}
+          editable={editable}
+          placeholder="Your notes here..."
+          fill
+          className="min-h-0 flex-1"
+        />
       </div>
     </div>
   );

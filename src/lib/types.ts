@@ -73,5 +73,12 @@ export enum SyntaxType {
     personsGenderNumber
 }
 
-export type StropheNote = { title: string; text: string, firstWordId: number , lastWordId: number};
-export type StudyNotes = { main: string; strophes: StropheNote[] };
+import type { RichDoc } from "./richText";
+
+// `title` stays single-line plain text (shown on the strophe when notes are
+// inactive); `text` is a rich-text doc after the upgrade, legacy plain string
+// before it (migrated on read).
+export type StropheNote = { title: string; text: string | RichDoc, firstWordId: number , lastWordId: number};
+// `main` is a rich-text ProseMirror doc for notes created/edited after the rich
+// text upgrade; legacy studies store a plain string and are migrated on read.
+export type StudyNotes = { version?: number; main: string | RichDoc; strophes: StropheNote[] };

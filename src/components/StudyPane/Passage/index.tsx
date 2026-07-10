@@ -5,6 +5,7 @@ import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
+import { RichDoc, mergeRichDocs } from '@/lib/richText';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
@@ -403,22 +404,22 @@ const Passage = ({
           const firstWord = strophe.lines[0].words[0].wordId;
           const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
           const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
-          let updatedText = "";
+          const bodyParts: Array<RichDoc | string> = [];
           let updatedTitle = "";
           oldNotes.strophes.forEach((oldStrophe) => {
             if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
+              const oldTitle = typeof oldStrophe.title === "string" ? oldStrophe.title : "";
               if (updatedTitle === "") {
-                updatedTitle += oldStrophe.title;
-                updatedText += oldStrophe.text;
+                updatedTitle = oldTitle;
+              } else if (oldTitle) {
+                updatedTitle += " | " + oldTitle;
               }
-              else {
-                updatedTitle += " | " + oldStrophe.title;
-                updatedText += "\n" + oldStrophe.text;
-              }
+              // Bodies may be rich docs or legacy strings — merge structurally.
+              bodyParts.push(oldStrophe.text ?? "");
             };
           });
           updatedStropheNotes[newIndex].title = updatedTitle;
-          updatedStropheNotes[newIndex].text = updatedText;
+          updatedStropheNotes[newIndex].text = mergeRichDocs(bodyParts);
         });
       });
       const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };

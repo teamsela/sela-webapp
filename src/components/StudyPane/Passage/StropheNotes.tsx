@@ -1,28 +1,9 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
+import { RichDoc, combineNoteDoc, firstLineText, toRichDoc } from "@/lib/richText";
 import { LanguageContext } from "./PassageBlock";
-
-// export const STROPHE_NOTE_TITLE_MIN_HEIGHT = 44;
-// export const STROPHE_NOTE_TEXT_MIN_HEIGHT = 104;
-// export const STROPHE_NOTE_VERTICAL_GAP = 22;
-
-const splitNoteValue = (value: string) => {
-  const normalized = value.replace(/\r\n/g, "\n");
-  const newlineIndex = normalized.indexOf("\n");
-  if (newlineIndex === -1) return { title: normalized, text: "" };
-  return {
-    title: normalized.slice(0, newlineIndex),
-    text: normalized.slice(newlineIndex + 1),
-  };
-};
-
-const combineNoteValue = (title?: string, text?: string) => {
-  const safeTitle = title ?? "";
-  const safeText = text ?? "";
-  if (!safeText) return safeTitle;
-  return `${safeTitle}\n${safeText}`;
-};
+import RichTextEditor from "../InfoPane/RichTextEditor";
 
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
   const {
@@ -33,14 +14,17 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     ctxNoteMerge,
     ctxSetNoteMerge,
     ctxActiveNotesPane,
-    ctxSetActiveNotesPane
+    ctxSetActiveNotesPane,
+    ctxInViewMode
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const viewId = useMemo<"heb" | "eng">(() => (ctxIsHebrew ? "heb" : "eng"), [ctxIsHebrew]);
+  const editable = !ctxInViewMode;
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
+  const dirtyRef = useRef(false); // set once the user actually edits this strophe
 
   // 1) Ensure ctxStudyNotes exists once on mount
   useEffect(() => {
@@ -52,9 +36,10 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentionally run once
 
-  // 2) Local UI state that syncs from ctxStudyNotes when it changes
-  const [noteValue, setNoteValue] = useState("");
-  
+  // 2) Local UI state: one combined rich-text doc whose first line is the title.
+  //    Synced from ctxStudyNotes when it changes.
+  const [noteDoc, setNoteDoc] = useState<RichDoc>(() => toRichDoc(""));
+
   const claimActivePane = useCallback(() => {
     if (ctxActiveNotesPane !== viewId) {
       ctxSetActiveNotesPane(viewId);
@@ -85,8 +70,8 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     try {
       const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
       const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
-      const combinedValue = combineNoteValue(s?.title ?? "", s?.text ?? "");
-      setNoteValue(combinedValue);
+      // Fold a (possibly legacy separate) title + body back into one doc.
+      setNoteDoc(combineNoteDoc(s?.title, s?.text));
       hydratedKeyRef.current = key;
     } catch {
       // ignore parse errors
@@ -138,16 +123,19 @@ async (payload: string, { keepalive = false } = {}) => {
   while (strophes.length <= stropheId) {
     strophes.push({ title: "", text: "" , firstWordId: firstWordId, lastWordId: lastWordId});
   }
-  const { title, text } = splitNoteValue(noteValue);
-  strophes[stropheId] = { title, text, firstWordId: firstWordId, lastWordId: lastWordId };
+  // Title is the note's first line, derived so the strophe can show it when the
+  // note pane is closed.
+  strophes[stropheId] = { title: firstLineText(noteDoc), text: noteDoc, firstWordId: firstWordId, lastWordId: lastWordId };
 
   const next: StudyNotes = { ...parsed, strophes };
   return JSON.stringify(next);
-}, [ctxStudyNotes, stropheId, noteValue, firstWordId, lastWordId]);
+}, [ctxStudyNotes, stropheId, noteDoc, firstWordId, lastWordId]);
 
 useEffect(() => {
+  if (!editable) return;
   if (!ctxStudyNotes) return;
   if (ctxActiveNotesPane !== viewId) return;
+  if (!dirtyRef.current) return; // only sync/save after a real edit
 
   if (timeoutRef.current) clearTimeout(timeoutRef.current);
   const payload = buildPayload();
@@ -166,7 +154,7 @@ useEffect(() => {
   return () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
-}, [buildPayload, ctxStudyNotes, ctxSetStudyNotes, saveNow, ctxActiveNotesPane, viewId]);
+}, [buildPayload, ctxStudyNotes, ctxSetStudyNotes, saveNow, ctxActiveNotesPane, viewId, editable]);
 
 // 5) Flush on hide/unload
 useEffect(() => {
@@ -190,19 +178,22 @@ useEffect(() => {
   };
   }, [saveNow]);
 
+  const handleChange = useCallback((doc: RichDoc) => {
+    dirtyRef.current = true;
+    claimActivePane();
+    setNoteDoc(doc);
+  }, [claimActivePane]);
+
   return (
-    <div className="flex h-full bg-transparent flex-col gap-5.5">
-      <textarea
-        value={noteValue}
-        onChange={(e) => {
-          claimActivePane();
-          setNoteValue(e.target.value);
-        }}
-        onFocus={claimActivePane}
+    <div className="flex h-full flex-col bg-transparent" onFocus={claimActivePane}>
+      <RichTextEditor
+        value={noteDoc}
+        onChange={handleChange}
+        editable={editable}
         placeholder="Title on the first line. Write your notes beneath it."
-        className="resize-none w-full flex-1 rounded border border-stroke bg-white px-5 py-4 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        dir="ltr"
-        // style={{ minHeight: STROPHE_NOTE_TEXT_MIN_HEIGHT }}
+        dir="auto"
+        fill
+        className="min-h-0 flex-1 bg-white dark:bg-form-input"
       />
     </div>
   );
