@@ -126,8 +126,10 @@ export const FormatContext = createContext({
   ctxSetStropheNoteBtnOn: (arg: boolean) => {},
   ctxCurrentSpokenWordIds: [] as number[],
   ctxSetCurrentSpokenWordIds: (_arg: number[]) => {},
-  ctxUnderlinedWordIds: [] as number[],
-  ctxSetUnderlinedWordIds: (_arg: number[]) => {}
+  // Accent "portion" words (cross-word lead words) tied to the current Structure
+  // selection; they receive a matching border when a fill color is applied.
+  ctxAccentBorderWordIds: [] as number[],
+  ctxSetAccentBorderWordIds: (_arg: number[]) => {}
 });
 
 const StudyPane = ({
@@ -200,7 +202,7 @@ const StudyPane = ({
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
-  const [underlinedWordIds, setUnderlinedWordIds] = useState<number[]>([]);
+  const [accentBorderWordIds, setAccentBorderWordIds] = useState<number[]>([]);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
@@ -347,8 +349,8 @@ const StudyPane = ({
     ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
     ctxCurrentSpokenWordIds: currentSpokenWordIds,
     ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds,
-    ctxUnderlinedWordIds: underlinedWordIds,
-    ctxSetUnderlinedWordIds: setUnderlinedWordIds
+    ctxAccentBorderWordIds: accentBorderWordIds,
+    ctxSetAccentBorderWordIds: setAccentBorderWordIds
   };
 
   useEffect(() => {

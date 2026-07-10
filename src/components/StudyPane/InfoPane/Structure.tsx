@@ -52,8 +52,13 @@ const levelKey = (level: AccentLevel | null): CategoryKey =>
 
 const EMPTY_SCAN: ScanResult = { ids: [], underIds: [], counts: {}, spans: {} };
 
-/** head = resolving words (fill); lead = earlier words of a spanning accent (underline / border). */
-type CategoryData = { count: number; headWords: WordProps[]; leadWords: WordProps[] };
+/**
+ * fill = words that receive a solid fill; border = words shown as an outline
+ * only. Border covers the earlier word of a cross-word accent AND the words of a
+ * maqqef-joined unit whose accent straddles the maqqef. Maqqef "leaner" words
+ * that carry no accent mark of their own receive neither.
+ */
+type CategoryData = { count: number; fillWords: WordProps[]; borderWords: WordProps[] };
 
 const flattenWords = (passageProps?: PassageProps): WordProps[] => {
   if (!passageProps?.stanzaProps) {
@@ -121,7 +126,7 @@ const Structure = () => {
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
     ctxSetSelectedStrophes,
-    ctxSetUnderlinedWordIds,
+    ctxSetAccentBorderWordIds,
     ctxWordsColorMap,
     ctxStudyMetadata,
     ctxInViewMode,
@@ -147,29 +152,46 @@ const Structure = () => {
   }, [isPoeticBook, allWords]);
 
   // Aggregate occurrences into per-level (and conjunctive) buckets. Each accent
-  // occurrence counts once; its head word(s) get the fill, its lead word(s) the
-  // underline / border.
+  // occurrence counts once. Coloring follows the accent MARKS, not the whole
+  // prosodic (maqqef-joined) word:
+  //   • the word that carries the resolving mark gets a solid fill;
+  //   • the earlier word of a cross-word accent, and every word of a maqqef unit
+  //     whose accent straddles the maqqef, get an outline (border) only;
+  //   • a maqqef "leaner" carrying no mark of its own gets neither.
   const categories = useMemo(() => {
+    const makeBucket = (): CategoryData => ({ count: 0, fillWords: [], borderWords: [] });
+    const makeSeen = (): Record<CategoryKey, Set<number>> => ({
+      "level-1": new Set(),
+      "level-2": new Set(),
+      "level-3": new Set(),
+      "level-4": new Set(),
+      conjunctive: new Set(),
+    });
     const buckets: Record<CategoryKey, CategoryData> = {
-      "level-1": { count: 0, headWords: [], leadWords: [] },
-      "level-2": { count: 0, headWords: [], leadWords: [] },
-      "level-3": { count: 0, headWords: [], leadWords: [] },
-      "level-4": { count: 0, headWords: [], leadWords: [] },
-      conjunctive: { count: 0, headWords: [], leadWords: [] },
+      "level-1": makeBucket(),
+      "level-2": makeBucket(),
+      "level-3": makeBucket(),
+      "level-4": makeBucket(),
+      conjunctive: makeBucket(),
     };
-    const seenHead: Record<CategoryKey, Set<number>> = {
-      "level-1": new Set(),
-      "level-2": new Set(),
-      "level-3": new Set(),
-      "level-4": new Set(),
-      conjunctive: new Set(),
+    const fillSeen = makeSeen();
+    const borderSeen = makeSeen();
+
+    const addFill = (key: CategoryKey, t: number) => {
+      const word = allWords[t];
+      if (!word || fillSeen[key].has(word.wordId)) {
+        return;
+      }
+      fillSeen[key].add(word.wordId);
+      buckets[key].fillWords.push(word);
     };
-    const seenLead: Record<CategoryKey, Set<number>> = {
-      "level-1": new Set(),
-      "level-2": new Set(),
-      "level-3": new Set(),
-      "level-4": new Set(),
-      conjunctive: new Set(),
+    const addBorder = (key: CategoryKey, t: number) => {
+      const word = allWords[t];
+      if (!word || borderSeen[key].has(word.wordId)) {
+        return;
+      }
+      borderSeen[key].add(word.wordId);
+      buckets[key].borderWords.push(word);
     };
 
     Object.entries(scan.spans).forEach(([id, occurrences]) => {
@@ -177,25 +199,41 @@ const Structure = () => {
         return;
       }
       const key = levelKey(getAccentLevel(id));
-      const bucket = buckets[key];
 
       occurrences.forEach((occ) => {
-        bucket.count += 1;
-        occ.head.forEach((t) => {
-          const word = allWords[t];
-          if (word && !seenHead[key].has(word.wordId)) {
-            seenHead[key].add(word.wordId);
-            bucket.headWords.push(word);
+        buckets[key].count += 1;
+        const claimTokens = new Set((occ.claims ?? []).map((claim) => claim.t));
+
+        // Head = the prosodic word the accent resolves on.
+        if (occ.head.length <= 1) {
+          // Standalone word (no maqqef): solid fill.
+          occ.head.forEach((t) => addFill(key, t));
+        } else {
+          const headMarked = occ.head.filter((t) => claimTokens.has(t));
+          if (headMarked.length >= 2) {
+            // Accent straddles the maqqef → outline the words it touches.
+            headMarked.forEach((t) => addBorder(key, t));
+          } else {
+            // Accent sits on one word of the unit → fill it; leaner(s) stay blank.
+            headMarked.forEach((t) => addFill(key, t));
           }
-        });
-        occ.lead.forEach((t) => {
-          const word = allWords[t];
-          if (word && !seenLead[key].has(word.wordId)) {
-            seenLead[key].add(word.wordId);
-            bucket.leadWords.push(word);
-          }
-        });
+        }
+
+        // Lead = the earlier word(s) of a cross-word accent (outline only).
+        if (occ.lead.length === 1) {
+          addBorder(key, occ.lead[0]);
+        } else if (occ.lead.length > 1) {
+          occ.lead.filter((t) => claimTokens.has(t)).forEach((t) => addBorder(key, t));
+        }
       });
+    });
+
+    // A word that earns a solid fill anywhere in a category outranks an outline
+    // it may also have picked up from another accent in the same category.
+    CATEGORY_KEYS.forEach((key) => {
+      buckets[key].borderWords = buckets[key].borderWords.filter(
+        (word) => !fillSeen[key].has(word.wordId),
+      );
     });
 
     return buckets;
@@ -212,37 +250,40 @@ const Structure = () => {
     [ctxWordsColorMap, ctxStudyMetadata.words],
   );
 
-  // Underline the lead words of any category whose head words are fully selected
-  // (i.e. selected via its Level/All button). Lead words are never editable.
+  // Track the accent "portion" (border) words of any category whose fill words
+  // are fully selected (i.e. selected via its Level/All button). When the user
+  // then applies a fill color from the toolbar, these words receive a matching
+  // border — the same fill/border split Smart Highlight produces. Portion words
+  // are never part of the editable selection.
   useEffect(() => {
-    const underlined = new Set<number>();
+    const borderPartners = new Set<number>();
     CATEGORY_KEYS.forEach((key) => {
-      const { headWords, leadWords } = categories[key];
-      if (headWords.length > 0 && headWords.every((word) => selectedWordIds.has(word.wordId))) {
-        leadWords.forEach((word) => underlined.add(word.wordId));
+      const { fillWords, borderWords } = categories[key];
+      if (fillWords.length > 0 && fillWords.every((word) => selectedWordIds.has(word.wordId))) {
+        borderWords.forEach((word) => borderPartners.add(word.wordId));
       }
     });
-    ctxSetUnderlinedWordIds(Array.from(underlined));
-  }, [categories, selectedWordIds, ctxSetUnderlinedWordIds]);
+    ctxSetAccentBorderWordIds(Array.from(borderPartners));
+  }, [categories, selectedWordIds, ctxSetAccentBorderWordIds]);
 
-  // Clear the underline cue when the panel is closed / unmounted.
-  useEffect(() => () => ctxSetUnderlinedWordIds([]), [ctxSetUnderlinedWordIds]);
+  // Clear the association when the panel is closed / unmounted.
+  useEffect(() => () => ctxSetAccentBorderWordIds([]), [ctxSetAccentBorderWordIds]);
 
   const isHighlightActive = activeHighlightId === STRUCTURE_HIGHLIGHT_ID;
 
-  const toggleCategorySelection = (headWords: WordProps[]) => {
-    if (!headWords.length) {
+  const toggleCategorySelection = (words: WordProps[]) => {
+    if (!words.length) {
       return;
     }
-    const idsToToggle = new Set(headWords.map((word) => word.wordId));
-    const allSelected = headWords.every((word) => selectedWordIds.has(word.wordId));
+    const idsToToggle = new Set(words.map((word) => word.wordId));
+    const allSelected = words.every((word) => selectedWordIds.has(word.wordId));
     let next = [...ctxSelectedWords];
 
     if (allSelected) {
       next = next.filter((word) => !idsToToggle.has(word.wordId));
     } else {
       const existing = new Set(next.map((word) => word.wordId));
-      headWords.forEach((word) => {
+      words.forEach((word) => {
         if (!existing.has(word.wordId)) {
           next.push(word);
           existing.add(word.wordId);
@@ -256,24 +297,25 @@ const Structure = () => {
   };
 
   // Smart Highlight colors EVERY category at once (independent of selection):
-  // head words get the category fill; lead words get the category color as a
+  // fill words get the category fill; border words (cross-word lead words and
+  // maqqef units whose accent straddles the maqqef) get the category color as a
   // border only, leaving their fill untouched.
   const highlightGroups: HighlightGroup[] = useMemo(() => {
     const groups: HighlightGroup[] = [];
     CATEGORY_KEYS.forEach((key) => {
-      const { headWords, leadWords } = categories[key];
+      const { fillWords, borderWords } = categories[key];
       const palette = CATEGORY_PALETTE[key];
-      if (headWords.length > 0) {
+      if (fillWords.length > 0) {
         groups.push({
-          label: `${key}-head`,
-          words: headWords,
+          label: `${key}-fill`,
+          words: fillWords,
           palette: { fill: palette.fill, border: palette.fill, text: palette.text },
         });
       }
-      if (leadWords.length > 0) {
+      if (borderWords.length > 0) {
         groups.push({
-          label: `${key}-lead`,
-          words: leadWords,
+          label: `${key}-border`,
+          words: borderWords,
           palette: { border: palette.fill },
         });
       }
@@ -292,9 +334,9 @@ const Structure = () => {
   };
 
   const renderCategoryButton = (key: CategoryKey, label: string) => {
-    const { headWords, count } = categories[key];
-    const selected = headWords.length > 0 && headWords.every((word) => selectedWordIds.has(word.wordId));
-    const uniform = headWords.length > 0 ? deriveUniformWordPalette(headWords, paletteOptions) : undefined;
+    const { fillWords, count } = categories[key];
+    const selected = fillWords.length > 0 && fillWords.every((word) => selectedWordIds.has(word.wordId));
+    const uniform = fillWords.length > 0 ? deriveUniformWordPalette(fillWords, paletteOptions) : undefined;
     const activeColors = uniform?.fill
       ? { fill: uniform.fill, border: uniform.border, text: uniform.text }
       : undefined;
@@ -306,8 +348,8 @@ const Structure = () => {
         count={count}
         activeColors={activeColors}
         selected={selected}
-        disabled={headWords.length === 0}
-        onClick={() => toggleCategorySelection(headWords)}
+        disabled={fillWords.length === 0}
+        onClick={() => toggleCategorySelection(fillWords)}
       />
     );
   };

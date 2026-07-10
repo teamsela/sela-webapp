@@ -337,6 +337,9 @@ describe("maqqef-joined prosodic words", () => {
     const occ = r.spans["sinnorit-merkha"][0];
     expect(occ.lead).toEqual([]);
     expect(occ.head).toEqual([0, 1]);
+    // Structure's maqqef coloring relies on claims naming the marked tokens:
+    // Tsinnorit on token 0 + Merkha on token 1 → the accent straddles the maqqef.
+    expect(occ.claims.map((c) => c.t).sort()).toEqual([0, 1]);
   });
 });
 

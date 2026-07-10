@@ -30,9 +30,15 @@ import Structure from "./Structure";
 import { FormatContext } from "..";
 
 const BET = 0x05d1;
+const MAQQEF = ACCENT_CODEPOINTS.MAQQEF;
 // Each word gets a unique verse to keep single marks from pairing across words.
 const mkWord = (wordId: number, ...marks: number[]): WordProps =>
   ({ wordId, wlcWord: String.fromCharCode(BET, ...marks), chapter: 1, verse: wordId } as WordProps);
+
+// A word pinned to a specific verse so maqqef-joined tokens can share one verse
+// (and thus one prosodic word). A trailing MAQQEF makes a token join the next.
+const mkWordInVerse = (wordId: number, verse: number, ...marks: number[]): WordProps =>
+  ({ wordId, wlcWord: String.fromCharCode(BET, ...marks), chapter: 1, verse } as WordProps);
 
 const buildPassage = (words: WordProps[]): PassageProps =>
   ({ stanzaProps: [{ strophes: [{ lines: [{ words }] }] }] } as unknown as PassageProps);
@@ -48,7 +54,7 @@ const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = fals
   const ctxSetSelectedWords = vi.fn();
   const ctxSetNumSelectedWords = vi.fn();
   const ctxSetSelectedStrophes = vi.fn();
-  const ctxSetUnderlinedWordIds = vi.fn();
+  const ctxSetAccentBorderWordIds = vi.fn();
 
   const value = {
     ctxPassageProps: passage,
@@ -57,7 +63,7 @@ const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = fals
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
     ctxSetSelectedStrophes,
-    ctxSetUnderlinedWordIds,
+    ctxSetAccentBorderWordIds,
     ctxWordsColorMap: new Map(),
     ctxStudyMetadata: { words: {} },
     ctxInViewMode: inViewMode,
@@ -69,7 +75,7 @@ const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = fals
     </FormatContext.Provider>,
   );
 
-  return { ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSetUnderlinedWordIds };
+  return { ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSetAccentBorderWordIds };
 };
 
 const catButton = (name: RegExp) => screen.getByRole("button", { name });
@@ -161,11 +167,11 @@ describe("Structure panel — Accents in Poetry", () => {
     expect(highlightId).toBe("accents-in-poetry");
 
     const byLabel = Object.fromEntries(groups.map((g: any) => [g.label, g]));
-    expect(Object.keys(byLabel).sort()).toEqual(["conjunctive-head", "level-1-head", "level-2-head"]);
-    expect(byLabel["level-1-head"].palette).toMatchObject({ fill: "#B71C1C", text: "#FFFFFF" });
-    expect(byLabel["level-2-head"].palette).toMatchObject({ fill: "#D32F2F", text: "#FFFFFF" });
-    expect(byLabel["conjunctive-head"].palette).toMatchObject({ fill: "#C8E6C9" });
-    expect(byLabel["level-1-head"].words.map((w: WordProps) => w.wordId)).toEqual([1]);
+    expect(Object.keys(byLabel).sort()).toEqual(["conjunctive-fill", "level-1-fill", "level-2-fill"]);
+    expect(byLabel["level-1-fill"].palette).toMatchObject({ fill: "#B71C1C", text: "#FFFFFF" });
+    expect(byLabel["level-2-fill"].palette).toMatchObject({ fill: "#D32F2F", text: "#FFFFFF" });
+    expect(byLabel["conjunctive-fill"].palette).toMatchObject({ fill: "#C8E6C9" });
+    expect(byLabel["level-1-fill"].words.map((w: WordProps) => w.wordId)).toEqual([1]);
   });
 
   it("disables Smart Highlight when there are no accents", () => {
@@ -183,5 +189,95 @@ describe("Structure panel — Accents in Poetry", () => {
     expect(screen.getByText(/applies to the poetic books/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Level 1/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Smart Highlight/ })).toBeNull();
+  });
+
+  describe("maqqef-joined words", () => {
+    it("fills only the accent-bearing word of a maqqef unit, leaving the leaner blank", () => {
+      // Token 10 ends with a maqqef and carries no accent of its own (a leaner);
+      // token 11 carries an Etnachta. Sharing verse 5 makes them one prosodic word.
+      setup({
+        passage: buildPassage([
+          mkWordInVerse(10, 5, MAQQEF),
+          mkWordInVerse(11, 5, ACCENT_CODEPOINTS.ETNACHTA),
+        ]),
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+      const [, groups] = toggleHighlightMock.mock.calls[0];
+      const byLabel = Object.fromEntries(groups.map((g: any) => [g.label, g]));
+      // Solid fill for the accent-bearing word only; no border group.
+      expect(byLabel["level-2-fill"].words.map((w: WordProps) => w.wordId)).toEqual([11]);
+      expect(byLabel["level-2-border"]).toBeUndefined();
+      // The maqqef leaner (10) is colored in NO group at all.
+      const allWordIds = groups.flatMap((g: any) => g.words.map((w: WordProps) => w.wordId));
+      expect(allWordIds).not.toContain(10);
+    });
+
+    it("outlines (border only) both words when the accent straddles the maqqef", () => {
+      // Tsinnorit on token 20 (ends with maqqef) + Merkha on token 21, same verse
+      // → one Sinnorit Merkha (level 3) whose marks straddle the maqqef.
+      setup({
+        passage: buildPassage([
+          mkWordInVerse(20, 6, ACCENT_CODEPOINTS.TSINNORIT, MAQQEF),
+          mkWordInVerse(21, 6, ACCENT_CODEPOINTS.MERKHA),
+        ]),
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+      const [, groups] = toggleHighlightMock.mock.calls[0];
+      const byLabel = Object.fromEntries(groups.map((g: any) => [g.label, g]));
+      // Border-only group holds BOTH words; the unit gets no solid fill.
+      expect(byLabel["level-3-border"].palette).toEqual({ border: "#FFCDD2" });
+      expect(
+        byLabel["level-3-border"].words.map((w: WordProps) => w.wordId).sort((a: number, b: number) => a - b),
+      ).toEqual([20, 21]);
+      expect(byLabel["level-3-fill"]).toBeUndefined();
+    });
+
+    it("selecting a maqqef unit's level selects only the accent-bearing word", () => {
+      const { ctxSetSelectedWords } = setup({
+        passage: buildPassage([
+          mkWordInVerse(10, 5, MAQQEF),
+          mkWordInVerse(11, 5, ACCENT_CODEPOINTS.ETNACHTA),
+        ]),
+      });
+
+      fireEvent.click(catButton(/^Level 2/));
+
+      const selected = ctxSetSelectedWords.mock.calls[0][0] as WordProps[];
+      expect(selected.map((w) => w.wordId)).toEqual([11]);
+    });
+  });
+
+  describe("cross-word accent portion words", () => {
+    it("registers the lead word as a border partner when the level is selected", () => {
+      // Tsinnorit on word 30 + Merkha on word 31 in one verse (no maqqef) →
+      // a cross-word Sinnorit Merkha (level 3): head = 31 (fill), lead = 30 (border).
+      // The lead word is a portion partner that gets a matching border when the
+      // selected head is filled from the toolbar — no underline involved.
+      const lead = mkWordInVerse(30, 7, ACCENT_CODEPOINTS.TSINNORIT);
+      const head = mkWordInVerse(31, 7, ACCENT_CODEPOINTS.MERKHA);
+      const { ctxSetAccentBorderWordIds } = setup({
+        passage: buildPassage([lead, head]),
+        selectedWords: [head], // the level-3 fill word is already selected
+      });
+
+      const lastCall = ctxSetAccentBorderWordIds.mock.calls.at(-1)?.[0];
+      expect(lastCall).toEqual([30]);
+    });
+
+    it("registers no border partners while the level's fill word is unselected", () => {
+      const lead = mkWordInVerse(30, 7, ACCENT_CODEPOINTS.TSINNORIT);
+      const head = mkWordInVerse(31, 7, ACCENT_CODEPOINTS.MERKHA);
+      const { ctxSetAccentBorderWordIds } = setup({
+        passage: buildPassage([lead, head]),
+        selectedWords: [], // nothing selected yet
+      });
+
+      const lastCall = ctxSetAccentBorderWordIds.mock.calls.at(-1)?.[0];
+      expect(lastCall).toEqual([]);
+    });
   });
 });
