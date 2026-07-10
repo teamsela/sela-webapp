@@ -223,6 +223,13 @@ async def sela_auth(base_url: str, user_email: str) -> str:
 # Study creation
 # ---------------------------------------------------------------------------
 
+async def _wait_for_study_ready(page) -> None:
+    await page.wait_for_url("**/study/**", timeout=30_000)
+    await page.locator("button", has_text="Notes").first.wait_for(timeout=20_000)
+    parallel_group = page.locator("div.flex.items-stretch", has_text="Aא")
+    await parallel_group.locator("span").last.wait_for(timeout=20_000)
+
+
 async def _create_study_impl(page, book: str, passage: str) -> str:
     """Internal: fill and submit the New Study dialog. Page must be on dashboard."""
     new_study_btn = page.locator("button", has_text="New Study").first
@@ -243,13 +250,14 @@ async def _create_study_impl(page, book: str, passage: str) -> str:
 
     # Use .last — a hidden collapsed copy of the dialog may also be in the DOM.
     await page.locator("button[type='submit']", has_text="OK").last.click(timeout=8_000)
-    await page.wait_for_timeout(4000)
+    await page.wait_for_timeout(500)
 
     err_el = await page.query_selector(".text-red-700, .bg-red-100")
     if err_el:
         err_txt = await err_el.inner_text()
         return f"ERROR: Validation failed: {err_txt.strip()}"
 
+    await _wait_for_study_ready(page)
     url = page.url
     if "/study/" not in url:
         return f"WARNING: Expected /study/ URL after creation, got: {url}"
@@ -307,7 +315,7 @@ async def sela_open_or_create_study(book: str, passage: str, base_url: str = "")
         try:
             await existing.wait_for(timeout=4_000)
             await existing.click()
-            await page.wait_for_timeout(2000)
+            await _wait_for_study_ready(page)
             url = page.url
             if "/study/" in url:
                 return f"Opened existing study. URL: {url}"
