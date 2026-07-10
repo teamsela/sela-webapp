@@ -40,6 +40,7 @@ const DistributionChip = ({
   text,
   isSelected,
   isHighlighted,
+  memberIds,
   onClick,
 }: {
   label: string;
@@ -49,6 +50,7 @@ const DistributionChip = ({
   text?: string;
   isSelected: boolean;
   isHighlighted: boolean;
+  memberIds: string[];
   onClick: () => void;
 }) => {
   // Yellow outline shows whenever the chip is selected (pending Smart Highlight).
@@ -67,6 +69,8 @@ const DistributionChip = ({
       <button
         type="button"
         onClick={onClick}
+        data-testid="distribution-chip"
+        data-member-ids={memberIds.join(",")}
         className={`wordBlock flex w-full rounded border ${statusClassName}`}
         style={{
           background: chipFill,
@@ -321,6 +325,7 @@ const DistributionSection = ({
                   text={chip.palette.text}
                   isSelected={isSelected}
                   isHighlighted={isHighlighted}
+                  memberIds={chip.memberIds}
                   onClick={() => config.onToggleChip(chip.memberIds)}
                 />
               );

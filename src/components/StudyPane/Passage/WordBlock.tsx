@@ -376,6 +376,7 @@ export const WordBlock = ({
           <span
             key={`${wordProps.wordId}-translit-${index}`}
             data-highlight-id={segment.highlightId || undefined}
+            data-highlight-count={segment.occurrences}
             style={palette ? {
               backgroundColor: palette.fill,
               color: palette.text,
@@ -412,6 +413,7 @@ export const WordBlock = ({
         <span
           key={`${wordProps.wordId}-hebrew-${index}`}
           data-highlight-id={segment.highlightId || undefined}
+          data-highlight-count={segment.occurrences}
           style={palette ? {
             backgroundColor: palette.fill,
             color: palette.text,

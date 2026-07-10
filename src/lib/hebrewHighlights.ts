@@ -30,6 +30,7 @@ type HebrewClusterMatch = {
 export type InlineTextSegment = {
   text: string;
   highlightId?: string;
+  occurrences?: number;
 };
 
 const createPalette = (fill: string, text = DEFAULT_TEXT_COLOR): InlinePalette => ({
@@ -179,10 +180,17 @@ const pushInlineSegment = (
   const previous = segments[segments.length - 1];
   if (previous && previous.highlightId === highlightId) {
     previous.text += text;
+    if (highlightId) {
+      previous.occurrences = (previous.occurrences ?? 0) + 1;
+    }
     return;
   }
 
-  segments.push({ text, highlightId });
+  segments.push(
+    highlightId
+      ? { text, highlightId, occurrences: 1 }
+      : { text },
+  );
 };
 
 const getHebrewClusterMetadata = (cluster: string): HebrewClusterMatch => {

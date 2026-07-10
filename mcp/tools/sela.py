@@ -323,13 +323,7 @@ async def sela_open_or_create_study(book: str, passage: str, base_url: str = "")
 # Language / panel selector
 # ---------------------------------------------------------------------------
 
-@mcp.tool()
-async def sela_set_language_parallel() -> str:
-    """Switch the passage display to Parallel mode and select 'English Gloss / Hebrew OHB'.
-
-    Clicks the 'Aא' language switcher button then selects the first dropdown
-    option (English Gloss / Hebrew OHB).
-    """
+async def _set_language_parallel(option_label: str) -> str:
     try:
         page = await _ensure_page()
 
@@ -340,13 +334,24 @@ async def sela_set_language_parallel() -> str:
         await parallel_group.locator("span").last.click(timeout=8_000)
         await page.wait_for_timeout(600)
 
-        # Select "English Gloss / Hebrew OHB" from dropdown
-        await page.locator("button", has_text="English Gloss / Hebrew OHB").first.click(timeout=5_000)
+        await page.locator("button", has_text=option_label).first.click(timeout=5_000)
         await page.wait_for_timeout(600)
 
-        return "Language set to: English Gloss / Hebrew OHB (Parallel mode)"
+        return f"Language set to: {option_label} (Parallel mode)"
     except Exception as exc:
         return f"ERROR: {exc}"
+
+
+@mcp.tool()
+async def sela_set_language_parallel() -> str:
+    """Switch to Parallel mode with English Gloss / Hebrew OHB."""
+    return await _set_language_parallel("English Gloss / Hebrew OHB")
+
+
+@mcp.tool()
+async def sela_set_language_parallel_transliteration() -> str:
+    """Switch to Parallel mode with English Gloss / Hebrew Transliteration."""
+    return await _set_language_parallel("English Gloss / Hebrew Transliteration")
 
 
 # ---------------------------------------------------------------------------
@@ -1250,23 +1255,18 @@ async def sela_test_letter_tooltip(
 # of highlights actually drawn (e.g. Psalm 1: m bubble 10 but 20 highlights).
 #
 # Invariant asserted: after Smart-Highlighting ALL chips in a distribution panel,
-# each chip's count bubble must equal the number of highlighted Hebrew base
-# letters drawn in the passage in that chip's color.
-#   - Letter mode: highlighted Hebrew base letters per color.
-#   - Sound  mode: same OHB Hebrew base-letter count. The renderer suppresses
-#     sound highlighting on יהוה (qere perpetuum), matching the transliteration
-#     source-of-truth the count bubble is supposed to use.
+# each chip's count bubble must equal rendered occurrences carrying that chip's
+# underlying data-highlight-id.
+#   - Letter mode is audited in Hebrew OHB.
+#   - Sound mode is audited in transliteration, the pronunciation source of truth.
 
-# JS run after Smart Highlight: read every chip (label, numeric count bubble,
-# computed background color) and tally highlighted Hebrew base letters per color
-# in the passage. Returned to Python for comparison.
+# JS run after Smart Highlight: read every chip's underlying ids and tally
+# rendered occurrences by data-highlight-id. data-highlight-count preserves
+# multiplicity when adjacent occurrences merge into one span.
 _COUNT_AUDIT_JS = r"""() => {
-    const stripMarks = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '');
-    const isHebrew = (c) => /\p{Script=Hebrew}/u.test(c);
-
-    // ----- 1. Chips: label, count bubble, color (colored only once highlighted) -----
+    // ----- 1. Chips: label, count bubble, underlying ids -----
     const chips = [];
-    document.querySelectorAll('button.wordBlock').forEach((btn) => {
+    document.querySelectorAll("button[data-testid='distribution-chip']").forEach((btn) => {
         const labelEl = btn.querySelector('span.text-black');
         if (!labelEl) return;
         const label = labelEl.innerText.trim();
@@ -1277,27 +1277,26 @@ _COUNT_AUDIT_JS = r"""() => {
             if (/^\d+$/.test(t)) count = parseInt(t, 10);
         });
 
-        const color = getComputedStyle(btn).backgroundColor;
-        chips.push({ label, count, color });
+        const memberIds = (btn.dataset.memberIds || '').split(',').filter(Boolean);
+        chips.push({ label, count, memberIds });
     });
 
-    // ----- 2. Passage: highlighted Hebrew base letters per color -----
-    const colorCounts = {};
-    document.querySelectorAll('span[style*="background-color"]').forEach((span) => {
-        const bg = span.style.backgroundColor;
-        if (!bg || bg === 'rgb(255, 255, 255)' || bg === 'transparent' || bg === '') return;
-        const hebChars = [...stripMarks(span.innerText)].filter(isHebrew);
-        if (hebChars.length === 0) return;
-        colorCounts[bg] = (colorCounts[bg] || 0) + hebChars.length;
+    // ----- 2. Passage: rendered highlight occurrences per id -----
+    const idCounts = {};
+    document.querySelectorAll("[data-testid='passage-word'] [data-highlight-id]").forEach((span) => {
+        const id = span.dataset.highlightId;
+        if (!id) return;
+        const occurrences = Number(span.dataset.highlightCount || '1');
+        idCounts[id] = (idCounts[id] || 0) + occurrences;
     });
 
-    return { chips, colorCounts };
+    return { chips, idCounts };
 }"""
 
 
 async def _select_all_chips(page) -> int:
     """Click every distribution chip in the currently open panel. Returns count."""
-    chips = await page.locator("button.wordBlock").all()
+    chips = await page.locator("button[data-testid='distribution-chip']").all()
     for chip in chips:
         try:
             await chip.click()
@@ -1329,30 +1328,14 @@ async def _audit_distribution_counts(page, mode_label: str) -> tuple[bool, list[
 
     data = await page.evaluate(_COUNT_AUDIT_JS)
     chips = data["chips"]
-    color_counts = data["colorCounts"]
-
-    # Guard against two chips sharing a fill color (would make the mapping ambiguous).
-    seen_colors: dict[str, str] = {}
-    dup_colors: set[str] = set()
-    for chip in chips:
-        c = chip["color"]
-        if c in seen_colors and seen_colors[c] != chip["label"]:
-            dup_colors.add(c)
-        seen_colors[c] = chip["label"]
+    id_counts = data["idCounts"]
 
     passed = True
     mismatches = 0
     for chip in chips:
         label = chip["label"]
         bubble = chip["count"]
-        color = chip["color"]
-        highlights = color_counts.get(color, 0)
-
-        if color in dup_colors:
-            lines.append(
-                f"  [skip] {label}: ambiguous (shared color {color}) — cannot map highlights"
-            )
-            continue
+        highlights = sum(id_counts.get(member_id, 0) for member_id in chip["memberIds"])
         if bubble is None:
             passed = False
             mismatches += 1
@@ -1389,7 +1372,7 @@ async def sela_test_distribution_counts(
     highlights).
 
     For each chip, after Smart-Highlighting ALL chips in the panel, asserts:
-        chip count bubble == highlighted Hebrew base letters of that chip's color.
+        chip count bubble == rendered occurrences for the chip's underlying ids.
 
     Steps:
     1. Init run folder, Clerk auth, open/create study, set Parallel (English Gloss /
@@ -1442,8 +1425,8 @@ async def sela_test_distribution_counts(
         results.append("ABORTED: study open/create failed.")
         return "\n".join(results)
 
-    # 4. Parallel mode — English Gloss / Hebrew OHB (Hebrew letters carry highlights)
-    record("set_language", await sela_set_language_parallel())
+    # 4. Audit sounds against transliteration (the pronunciation source).
+    record("set_language", await sela_set_language_parallel_transliteration())
     await browser_screenshot("03_parallel_mode.png")
 
     # 5. Open Sounds tab (Sound Distribution is open by default)
@@ -1463,6 +1446,7 @@ async def sela_test_distribution_counts(
 
     # 7. Letter Distribution audit (toggle accordion to Letters)
     if mode in ("letter", "both"):
+        record("set_language_hebrew", await sela_set_language_parallel())
         record("open_letter_dist", await sela_open_letter_distribution())
         await page.wait_for_timeout(400)
         letter_pass, letter_lines = await _audit_distribution_counts(page, "Letter Distribution")
