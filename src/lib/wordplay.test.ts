@@ -58,6 +58,21 @@ describe("wordSoundIds", () => {
     const word = makeWord({ wlcWord: "מָמָ" });
     expect(wordSoundIds(word)).toEqual(["m", "m"]);
   });
+
+  it("never falls back to the lexical dictionary transliteration", () => {
+    const word = makeWord({
+      wlcWord: "מָמָ",
+      wordInformation: {
+        hebrew: "בָּקָר",
+        transliteration: "ba.qar",
+        gloss: "",
+        morphology: "",
+        strongsNumber: "",
+        meaning: "",
+      },
+    });
+    expect(wordSoundIds(word)).toEqual(["m", "m"]);
+  });
 });
 
 describe("wordLetterIds", () => {
@@ -315,7 +330,7 @@ describe("secondary tags", () => {
     expect(candidates[0].secondaryTags).not.toContain("proximity");
   });
 
-  it("flags same part of speech and same preposition prefix", () => {
+  it("flags similar conjugation, same part of speech, and same preposition prefix", () => {
     const candidates = findSoundplayCandidates([
       makeWord({
         passageTransliteration: "ba.qe.ver",
@@ -333,8 +348,23 @@ describe("secondary tags", () => {
         stropheId: 0,
       }),
     ]);
+    expect(candidates[0].secondaryTags).toContain("similar-conjugation");
     expect(candidates[0].secondaryTags).toContain("same-pos");
     expect(candidates[0].secondaryTags).toContain("same-preposition");
+  });
+
+  it("flags identical conjugated vowel sequences and rejects different ones", () => {
+    const similar = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1120 }),
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1121 }),
+    ]);
+    expect(similar[0].secondaryTags).toContain("similar-vowels");
+
+    const different = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1122 }),
+      makeWord({ passageTransliteration: "bo.qo.var", strongNumber: 1123 }),
+    ]);
+    expect(different[0].secondaryTags).not.toContain("similar-vowels");
   });
 
   it("does NOT flag a preposition when morphology shows no prefix (avoids false positives)", () => {

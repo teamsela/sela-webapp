@@ -4,7 +4,11 @@ import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
-import { LETTER_CHIP_MAP, SOUND_CHIP_MAP } from "@/lib/hebrewHighlights";
+import {
+  LETTER_CHIP_GROUPS,
+  LETTER_CHIP_MAP,
+  SOUND_CHIP_MAP,
+} from "@/lib/hebrewHighlights";
 import { WordProps } from "@/lib/data";
 import {
   SecondaryTag,
@@ -18,18 +22,19 @@ import {
 
 // Base-letter ids that also have a final form; when highlighting the passage we
 // expand a base id to include its final form so ק≈ק and צ≈ץ both light up.
-const LETTER_ID_FINAL_FORMS: Record<string, string[]> = {
-  kaf: ["kaf", "final-kaf"],
-  mem: ["mem", "final-mem"],
-  nun: ["nun", "final-nun"],
-  tsadi: ["tsadi", "final-tsadi"],
-  pe: ["pe", "final-pe"],
-};
+const LETTER_ID_FINAL_FORMS = new Map(
+  LETTER_CHIP_GROUPS.filter((group) =>
+    group.memberIds.some((id) => id.startsWith("final-")),
+  ).map((group) => [
+    group.memberIds.find((id) => !id.startsWith("final-"))!,
+    group.memberIds,
+  ]),
+);
 
 const expandLetterIdsForHighlight = (ids: string[]): string[] => {
   const expanded = new Set<string>();
   ids.forEach((id) => {
-    (LETTER_ID_FINAL_FORMS[id] ?? [id]).forEach((member) => expanded.add(member));
+    (LETTER_ID_FINAL_FORMS.get(id) ?? [id]).forEach((member) => expanded.add(member));
   });
   return [...expanded];
 };
@@ -47,6 +52,8 @@ const chipPalette = (tool: WordplayTool, id: string) =>
     : LETTER_CHIP_MAP.get(id)?.palette;
 
 const SECONDARY_TAG_LABELS: Record<SecondaryTag, string> = {
+  "similar-vowels": "Similar vowels",
+  "similar-conjugation": "Similar conjugations",
   "same-pos": "Same part of speech",
   "same-preposition": "Same preposition",
   proximity: "Proximity (same / adjacent strophe)",
@@ -174,6 +181,14 @@ const CandidateRow = ({
       type="button"
       onClick={onClick}
       aria-pressed={isActive}
+      data-testid="wordplay-candidate"
+      data-tool={candidate.tool}
+      data-word-a-id={candidate.wordA.wordId}
+      data-word-b-id={candidate.wordB.wordId}
+      data-word-a-strong={candidate.wordA.strongNumber}
+      data-word-b-strong={candidate.wordB.strongNumber}
+      data-shared-count={candidate.sharedCount}
+      data-shared-ids={uniqueShared.join(",")}
       className={`flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition ${
         isActive
           ? "border-primary bg-primary/5"
@@ -251,6 +266,10 @@ const Wordplay = () => {
 
   const [tool, setTool] = useState<WordplayTool>("wordplay");
   const [scopeMode, setScopeMode] = useState<"whole" | "adjacent">("whole");
+  const [adjacentFocus, setAdjacentFocus] = useState<{
+    stanzaId: number;
+    stropheId: number;
+  } | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [activeCandidateKey, setActiveCandidateKey] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -266,6 +285,8 @@ const Wordplay = () => {
     ending: false,
   });
   const [secondaryFilters, setSecondaryFilters] = useState<Record<SecondaryTag, boolean>>({
+    "similar-vowels": false,
+    "similar-conjugation": false,
     "same-pos": false,
     "same-preposition": false,
     proximity: false,
@@ -322,17 +343,27 @@ const Wordplay = () => {
     return words;
   }, [ctxPassageProps]);
 
+  useEffect(() => {
+    const selected = ctxSelectedWords[0];
+    if (scopeMode === "adjacent" && selected) {
+      setAdjacentFocus({
+        stanzaId: selected.stanzaId,
+        stropheId: selected.stropheId,
+      });
+    }
+  }, [scopeMode, ctxSelectedWords]);
+
   const scope: WordplayScope = useMemo(() => {
     if (scopeMode === "whole") {
       return { mode: "whole" };
     }
-    const focusWord = ctxSelectedWords[0] ?? allWords[0];
+    const focusWord = allWords[0];
     return {
       mode: "adjacent",
-      focusStanzaId: focusWord?.stanzaId ?? 0,
-      focusStropheId: focusWord?.stropheId ?? 0,
+      focusStanzaId: adjacentFocus?.stanzaId ?? focusWord?.stanzaId ?? 0,
+      focusStropheId: adjacentFocus?.stropheId ?? focusWord?.stropheId ?? 0,
     };
-  }, [scopeMode, ctxSelectedWords, allWords]);
+  }, [scopeMode, adjacentFocus, allWords]);
 
   const candidates = useMemo(
     () => findCandidates(allWords, tool, { scope }),
@@ -436,13 +467,25 @@ const Wordplay = () => {
     setTool(nextTool);
   };
 
+  const switchScope = (nextMode: "whole" | "adjacent") => {
+    if (nextMode === "adjacent") {
+      const focusWord = ctxSelectedWords[0] ?? allWords[0];
+      setAdjacentFocus(
+        focusWord
+          ? { stanzaId: focusWord.stanzaId, stropheId: focusWord.stropheId }
+          : null,
+      );
+    }
+    setScopeMode(nextMode);
+  };
+
   const copy = TOOL_COPY[tool];
   const tierLabels = TIER_LABELS[tool];
   const highlightActive =
     Boolean(activeCandidateKey) || ctxSoundHighlightEnabled || ctxLetterHighlightEnabled;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-full flex-col overflow-y-auto" data-testid="wordplay-panel">
       <div className="mx-4 border-b border-stroke pb-4 dark:border-strokedark">
         <div className="flex items-center gap-2 px-2 py-4">
           <AccordionToggleIcon isOpen />
@@ -499,12 +542,12 @@ const Wordplay = () => {
             <ToggleChip
               label="Whole passage"
               active={scopeMode === "whole"}
-              onClick={() => setScopeMode("whole")}
+              onClick={() => switchScope("whole")}
             />
             <ToggleChip
               label="±2 strophes"
               active={scopeMode === "adjacent"}
-              onClick={() => setScopeMode("adjacent")}
+              onClick={() => switchScope("adjacent")}
             />
           </div>
         </div>
@@ -560,7 +603,10 @@ const Wordplay = () => {
 
       {/* Results */}
       <div className="flex items-center justify-between px-6 pb-2 pt-4">
-        <span className="text-sm font-medium text-black dark:text-white">
+        <span
+          className="text-sm font-medium text-black dark:text-white"
+          data-testid="wordplay-result-count"
+        >
           {filteredCandidates.length} result{filteredCandidates.length === 1 ? "" : "s"}
         </span>
         {highlightActive && (

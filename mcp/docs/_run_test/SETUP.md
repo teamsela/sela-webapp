@@ -7,12 +7,12 @@
 ## Verify
 
 ```powershell
-python mcp/_run_test.py  # opens a browser and runs the flows
+python mcp/_run_test.py --suite wordplay
 ```
 
 ## Usage
 
-Edit the `PREVIEW` and `EMAIL` constants at the top, then run `python mcp/_run_test.py`. Press Ctrl+C to exit.
+Set `SELA_PREVIEW_URL` and `SELA_TEST_EMAIL`, then run `python mcp/_run_test.py --suite wordplay`. Use `--suite all` for every flow or `--keep-open` for a live demo.
 
 ## Notes
 

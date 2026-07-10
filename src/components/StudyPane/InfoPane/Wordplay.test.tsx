@@ -103,8 +103,12 @@ const EMPTY: CtxState = {
   highlightRestrictWordIds: [],
 };
 
-function Harness() {
-  const [s, setS] = useState<CtxState>(EMPTY);
+function Harness({ initialSelectedWords = [] }: { initialSelectedWords?: unknown[] }) {
+  const [s, setS] = useState<CtxState>({
+    ...EMPTY,
+    selectedWords: initialSelectedWords,
+    numSelectedWords: initialSelectedWords.length,
+  });
   const set = <K extends keyof CtxState>(key: K) => (v: CtxState[K]) =>
     setS((prev) => ({ ...prev, [key]: v }));
 
@@ -218,6 +222,30 @@ describe("Wordplay panel — run scope", () => {
       within(resultsRegion()).queryByText(/מְכַמַּת/),
     ).not.toBeInTheDocument();
   });
+
+  it("keeps a selected-word focus when clicking an adjacent-scope candidate", () => {
+    const focusWord = makeWord({
+      strongNumber: 2450,
+      wlcWord: "מְכַמַּת",
+      passageTransliteration: "me.kha.mat",
+      motifData: { lemma: "מְכַמַּת", relatedStrongNums: undefined, categories: [] },
+      stropheId: 5,
+    });
+    render(<Harness initialSelectedWords={[focusWord]} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Shared Sounds" }));
+    fireEvent.click(screen.getByRole("button", { name: "±2 strophes" }));
+    const candidate = candidateWith("מְכַמַּת");
+    fireEvent.click(candidate);
+
+    expect(candidate).toHaveAttribute("aria-pressed", "true");
+    expect(within(resultsRegion()).getByText(/מְכַמַּת/)).toBeInTheDocument();
+    expect(readState().soundHighlightEnabled).toBe(true);
+    expect(readState().highlightRestrictWordIds.sort((a, b) => a - b)).toEqual([
+      2450,
+      2451,
+    ]);
+  });
 });
 
 describe("Wordplay panel — primary tag filter", () => {
@@ -226,6 +254,28 @@ describe("Wordplay panel — primary tag filter", () => {
     expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "3 root letters" }));
     expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
+  });
+
+  describe("Wordplay panel — secondary tag filters", () => {
+    it("renders every secondary tag required across the detector mockups", () => {
+      render(<Harness />);
+      [
+        "Similar vowels",
+        "Similar conjugations",
+        "Same part of speech",
+        "Same preposition",
+        "Proximity (same / adjacent strophe)",
+      ].forEach((label) => {
+        expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+      });
+    });
+
+    it("applies secondary tags as positive refinements", () => {
+      render(<Harness />);
+      expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Similar vowels" }));
+      expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
+    });
   });
 
   it("clears an active candidate's highlight when a filter hides it (stale-highlight guard)", () => {

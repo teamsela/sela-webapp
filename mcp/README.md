@@ -24,7 +24,7 @@ mcp/
     ├── git.py           # branch switch, pull/merge main, conflict resolution
     ├── github.py        # draft PRs + Vercel preview checks
     ├── browser.py       # Playwright browser automation (Clerk auth, screenshots)
-    ├── sela.py          # high-level Sela app E2E flows (sound/letter highlights)
+    ├── sela.py          # high-level Sela E2E flows (sound/letter + Wordplay)
     └── requirements.py  # PDF → requirements extraction (/sela-extract-reqs)
 ```
 
@@ -37,7 +37,7 @@ mcp/
 | `tools/git.py` | branch switching, `git_pull_merge_main`, merge continue/abort |
 | `tools/github.py` | `create_draft_pr`, `check_pr`, Vercel preview helpers |
 | `tools/browser.py` | open/navigate/click/screenshot a Chromium page, Clerk sign-in |
-| `tools/sela.py` | Sela-specific study creation + Sound/Letter highlight tests |
+| `tools/sela.py` | Sela-specific study creation + Sound/Letter and Wordplay acceptance tests |
 | `tools/requirements.py` | parse a PDF, render pages, split out relevant pages, write requirements markdown; invoked by natural language (and exposes a `sela-extract-reqs` MCP prompt) |
 
 ## Running the PDF → requirements workflow

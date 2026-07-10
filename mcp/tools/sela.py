@@ -41,12 +41,25 @@ SOUND_PALETTE: dict[str, dict] = {
     "n":     {"hex": "#EF9A9A", "rgb": "rgb(239, 154, 154)", "letters": ["\u05E0", "\u05DF"]},          # נ ן
     "m":     {"hex": "#F44336", "rgb": "rgb(244, 67, 54)",   "letters": ["\u05DE", "\u05DD"]},          # מ ם
     "b":     {"hex": "#795548", "rgb": "rgb(121, 85, 72)",   "letters": ["\u05D1"]},                    # ב (with dagesh)
-    "v":     {"hex": "#D7CCC8", "rgb": "rgb(215, 204, 200)", "letters": ["\u05D5", "\u05D1"]},          # ו ב (no dagesh)
+    "v":     {"hex": "#A1887F", "rgb": "rgb(161, 136, 127)", "letters": ["\u05D5", "\u05D1"]},          # ו ב (no dagesh)
     "p":     {"hex": "#616161", "rgb": "rgb(97, 97, 97)",    "letters": ["\u05E4", "\u05E3"]},          # פ ף (with dagesh)
-    "f":     {"hex": "#E0E0E0", "rgb": "rgb(224, 224, 224)", "letters": ["\u05E4", "\u05E3"]},          # פ ף (no dagesh)
+    "f":     {"hex": "#969696", "rgb": "rgb(150, 150, 150)", "letters": ["\u05E4", "\u05E3"]},          # פ ף (no dagesh)
     "l":     {"hex": "#2196F3", "rgb": "rgb(33, 150, 243)",  "letters": ["\u05DC"]},                    # ל
     "r":     {"hex": "#64B5F6", "rgb": "rgb(100, 181, 246)", "letters": ["\u05E8"]},                    # ר
     "y":     {"hex": "#B3E5FC", "rgb": "rgb(179, 229, 252)", "letters": ["\u05D9"]},                    # י
+}
+
+WORDPLAY_LETTER_RGB = {
+    "bet": "rgb(121, 85, 72)",
+    "qof": "rgb(186, 104, 200)",
+    "resh": "rgb(100, 181, 246)",
+}
+
+WORDPLAY_SOUND_RGB = {
+    "b": "rgb(121, 85, 72)",
+    "v": "rgb(161, 136, 127)",
+    "k-q": "rgb(186, 104, 200)",
+    "r": "rgb(100, 181, 246)",
 }
 
 # ---------------------------------------------------------------------------
@@ -62,6 +75,103 @@ async def _ss(step: str) -> str:
     path = _screenshot_path(step if step.endswith(".png") else f"{step}.png")
     await page.screenshot(path=str(path))
     return str(path)
+
+async def _wordplay_candidate(page, tool: str, strong_a: int, strong_b: int):
+    selector = (
+        f"button[data-testid='wordplay-candidate'][data-tool='{tool}']"
+        f"[data-word-a-strong='{strong_a}'][data-word-b-strong='{strong_b}'],"
+        f"button[data-testid='wordplay-candidate'][data-tool='{tool}']"
+        f"[data-word-a-strong='{strong_b}'][data-word-b-strong='{strong_a}']"
+    )
+    locator = page.locator(selector).first
+    await locator.wait_for(timeout=10_000)
+    return locator
+
+
+async def _verify_active_wordplay_highlight(expected_palette: dict[str, str]) -> str:
+    page = await _ensure_page()
+    result = await page.evaluate(
+        """(expectedPalette) => {
+          const row = document.querySelector(
+            "button[data-testid='wordplay-candidate'][aria-pressed='true']"
+          );
+          if (!row) return { error: "No active Wordplay candidate row" };
+
+          const targetIds = [row.dataset.wordAId, row.dataset.wordBId];
+          const expectedIds = (row.dataset.sharedIds || "").split(",").filter(Boolean);
+          const passageWords = [...document.querySelectorAll("[data-testid='passage-word']")];
+
+          const targetDetails = targetIds.map((wordId) => {
+            const nodes = passageWords.filter((node) => node.dataset.wordId === wordId);
+            const spans = nodes.flatMap((node) =>
+              [...node.querySelectorAll("[data-highlight-id]")]
+            );
+            const ids = [...new Set(spans.map((span) => span.dataset.highlightId))];
+            const wrongColors = spans
+              .map((span) => ({
+                id: span.dataset.highlightId,
+                actual: getComputedStyle(span).backgroundColor,
+                expected: expectedPalette[span.dataset.highlightId],
+              }))
+              .filter((entry) => entry.expected && entry.actual !== entry.expected);
+            return {
+              wordId,
+              nodeCount: nodes.length,
+              highlightCount: spans.length,
+              ids,
+              missingIds: expectedIds.filter((id) => !ids.includes(id)),
+              unexpectedIds: ids.filter((id) => !expectedIds.includes(id)),
+              wrongColors,
+            };
+          });
+
+          const nonTargetHighlighted = passageWords
+            .filter((node) => !targetIds.includes(node.dataset.wordId))
+            .reduce(
+              (count, node) =>
+                count + node.querySelectorAll("[data-highlight-id]").length,
+              0,
+            );
+
+          return {
+            expectedIds,
+            targetDetails,
+            nonTargetHighlighted,
+          };
+        }""",
+        expected_palette,
+    )
+
+    if result.get("error"):
+        return f"FAIL: {result['error']}"
+
+    failures: list[str] = []
+    for detail in result["targetDetails"]:
+        if detail["highlightCount"] == 0:
+            failures.append(f"word {detail['wordId']} has no highlighted spans")
+        if detail["missingIds"]:
+            failures.append(
+                f"word {detail['wordId']} missing ids {detail['missingIds']}"
+            )
+        if detail["unexpectedIds"]:
+            failures.append(
+                f"word {detail['wordId']} has unexpected ids {detail['unexpectedIds']}"
+            )
+        if detail["wrongColors"]:
+            failures.append(
+                f"word {detail['wordId']} wrong colors {detail['wrongColors']}"
+            )
+    if result["nonTargetHighlighted"]:
+        failures.append(
+            f"{result['nonTargetHighlighted']} highlighted span(s) leaked outside the pair"
+        )
+
+    if failures:
+        return "FAIL: " + "; ".join(failures)
+    return (
+        "PASS: pair-restricted highlight uses "
+        f"{result['expectedIds']} with exact palette colors"
+    )
 
 
 # Maps sound chip ID → letter chip group label(s) as they appear in the DOM
@@ -251,6 +361,17 @@ async def sela_open_sounds_tab() -> str:
         await page.locator("button", has_text="Sounds").first.click(timeout=8_000)
         await page.wait_for_timeout(1000)
         return "Sounds tab opened."
+    except Exception as exc:
+        return f"ERROR: {exc}"
+
+@mcp.tool()
+async def sela_open_wordplay_tab() -> str:
+    """Click the Wordplay tab in the study header to open the detector panel."""
+    try:
+        page = await _ensure_page()
+        await page.locator("button", has_text="Wordplay").first.click(timeout=8_000)
+        await page.locator("[data-testid='wordplay-panel']").wait_for(timeout=8_000)
+        return "Wordplay tab opened."
     except Exception as exc:
         return f"ERROR: {exc}"
 
@@ -786,6 +907,189 @@ async def sela_run_test(
     verdict = "PASS" if passed else "FAIL"
     summary = f"\n{'='*50}\nTEST RESULT: {verdict}\n{'='*50}\n" + "\n".join(results)
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Wordplay acceptance test
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+async def sela_test_wordplay(
+    base_url: str,
+    user_email: str,
+    book: str = "psalms",
+    passage: str = "88",
+) -> str:
+    """Run the Wordplay/Soundplay acceptance flow against a Sela deployment.
+
+    Uses Psalm 88 because the source requirements anchor both tools to the
+    Qever/Boqer pair (Strong H6913/H1242). The test verifies:
+    - required controls and secondary tags from deck pages 37 and 106;
+    - the real lexical-letter candidate shares bet/qof/resh;
+    - the real sound candidate shares b/v/k-q/r;
+    - selecting either row highlights only that pair with exact palette colors;
+    - clear-highlight, tooltip, and tool switching work;
+    - screenshots are saved for visual proof.
+    """
+    from tools.browser import browser_run_init
+
+    results: list[str] = []
+    screenshots: list[str] = []
+    passed = True
+
+    def record(step: str, result: str) -> bool:
+        nonlocal passed
+        is_fail = result.startswith(("ERROR", "FAIL", "WARNING"))
+        if is_fail:
+            passed = False
+        results.append(f"[{'FAIL' if is_fail else 'ok'}] {step}: {result}")
+        return is_fail
+
+    def summary() -> str:
+        verdict = "PASS" if passed else "FAIL"
+        return (
+            f"\n{'='*50}\nWORDPLAY ACCEPTANCE RESULT: {verdict}\n{'='*50}\n"
+            + "\n".join(results)
+            + "\nScreenshots:\n"
+            + "\n".join(f"- {path}" for path in screenshots)
+        )
+
+    record("run_init", await browser_run_init("wordplay-acceptance"))
+    auth_result = await sela_auth(base_url, user_email)
+    record("auth", auth_result)
+    screenshots.append(await _ss("01-dashboard.png"))
+    if auth_result.startswith("ERROR"):
+        return summary()
+
+    study_result = await sela_open_or_create_study(book, passage, base_url=base_url)
+    record("open_or_create_study", study_result)
+    screenshots.append(await _ss("02-study.png"))
+    if study_result.startswith("ERROR"):
+        return summary()
+
+    if record("set_language", await sela_set_language_parallel()):
+        return summary()
+    if record("open_wordplay", await sela_open_wordplay_tab()):
+        return summary()
+    screenshots.append(await _ss("03-wordplay-panel.png"))
+
+    page = await _ensure_page()
+    try:
+        controls = await page.evaluate(
+            """() => [...document.querySelectorAll("[data-testid='wordplay-panel'] button")]
+              .map((button) => button.textContent.trim())"""
+        )
+        result_count = await page.locator(
+            "[data-testid='wordplay-result-count']"
+        ).inner_text(timeout=10_000)
+    except Exception as exc:
+        record("panel_ready", f"FAIL: Wordplay panel did not become testable: {exc}")
+        return summary()
+    required_controls = [
+        "Shared Letters",
+        "Shared Sounds",
+        "Whole passage",
+        "\u00b12 strophes",
+        "3 root letters",
+        "2 root letters",
+        "Similar opening",
+        "Similar ending",
+        "Similar vowels",
+        "Similar conjugations",
+        "Same part of speech",
+        "Same preposition",
+        "Proximity (same / adjacent strophe)",
+    ]
+    missing_controls = [label for label in required_controls if label not in controls]
+    record(
+        "required_controls",
+        "PASS: all required controls are present"
+        if not missing_controls
+        else f"FAIL: missing controls {missing_controls}",
+    )
+
+    record(
+        "letter_results",
+        f"PASS: {result_count}"
+        if not result_count.strip().startswith("0 ")
+        else "FAIL: Shared Letters returned zero real-passage candidates",
+    )
+
+    try:
+        letter_candidate = await _wordplay_candidate(page, "wordplay", 6913, 1242)
+        letter_count = await letter_candidate.get_attribute("data-shared-count")
+        letter_ids = set(
+            (await letter_candidate.get_attribute("data-shared-ids") or "").split(",")
+        )
+        record(
+            "qever_boqer_letters",
+            "PASS: H6913/H1242 shares bet/qof/resh"
+            if letter_count == "3" and letter_ids == {"bet", "qof", "resh"}
+            else f"FAIL: expected 3 bet/qof/resh, got count={letter_count} ids={sorted(letter_ids)}",
+        )
+        await letter_candidate.click()
+        await page.wait_for_timeout(500)
+        record(
+            "letter_highlight",
+            await _verify_active_wordplay_highlight(WORDPLAY_LETTER_RGB),
+        )
+        screenshots.append(await _ss("04-qever-boqer-letter-highlight.png"))
+    except Exception as exc:
+        record("qever_boqer_letters", f"FAIL: candidate not found or unusable: {exc}")
+
+    clear_button = page.locator("button", has_text="Clear Highlight").first
+    try:
+        await clear_button.click(timeout=5_000)
+        await page.wait_for_timeout(400)
+        remaining = await page.locator(
+            "[data-testid='passage-word'] [data-highlight-id]"
+        ).count()
+        record(
+            "clear_highlight",
+            "PASS: highlight cleared"
+            if remaining == 0
+            else f"FAIL: {remaining} highlighted span(s) remain",
+        )
+    except Exception as exc:
+        record("clear_highlight", f"FAIL: {exc}")
+
+    await page.get_by_role("tab", name="Shared Sounds").click()
+    await page.wait_for_timeout(500)
+    try:
+        sound_candidate = await _wordplay_candidate(page, "soundplay", 6913, 1242)
+        sound_count = await sound_candidate.get_attribute("data-shared-count")
+        sound_ids = set(
+            (await sound_candidate.get_attribute("data-shared-ids") or "").split(",")
+        )
+        record(
+            "qever_boqer_sounds",
+            "PASS: H6913/H1242 shares b/v/k-q/r"
+            if sound_count == "4" and sound_ids == {"b", "v", "k-q", "r"}
+            else f"FAIL: expected 4 b/v/k-q/r, got count={sound_count} ids={sorted(sound_ids)}",
+        )
+        await sound_candidate.click()
+        await page.wait_for_timeout(500)
+        record(
+            "sound_highlight",
+            await _verify_active_wordplay_highlight(WORDPLAY_SOUND_RGB),
+        )
+        screenshots.append(await _ss("05-qever-boqer-sound-highlight.png"))
+    except Exception as exc:
+        record("qever_boqer_sounds", f"FAIL: candidate not found or unusable: {exc}")
+
+    info_button = page.get_by_role("button", name="About wordplay")
+    try:
+        await info_button.click()
+        dialog = page.get_by_role("dialog")
+        await dialog.wait_for(timeout=5_000)
+        screenshots.append(await _ss("06-wordplay-tooltip.png"))
+        await page.keyboard.press("Escape")
+        await dialog.wait_for(state="hidden", timeout=5_000)
+        record("tooltip", "PASS: tooltip opens and closes with Escape")
+    except Exception as exc:
+        record("tooltip", f"FAIL: {exc}")
+
+    return summary()
 
 
 # ---------------------------------------------------------------------------

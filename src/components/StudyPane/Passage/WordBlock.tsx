@@ -375,6 +375,7 @@ export const WordBlock = ({
         return (
           <span
             key={`${wordProps.wordId}-translit-${index}`}
+            data-highlight-id={segment.highlightId || undefined}
             style={palette ? {
               backgroundColor: palette.fill,
               color: palette.text,
@@ -410,6 +411,7 @@ export const WordBlock = ({
       return (
         <span
           key={`${wordProps.wordId}-hebrew-${index}`}
+          data-highlight-id={segment.highlightId || undefined}
           style={palette ? {
             backgroundColor: palette.fill,
             color: palette.text,
@@ -431,6 +433,9 @@ export const WordBlock = ({
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
+        data-testid="passage-word"
+        data-word-id={wordProps.wordId}
+        data-strong-number={wordProps.strongNumber}
         className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
         style={{
           background: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 

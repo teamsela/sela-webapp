@@ -1,59 +1,103 @@
-"""Run sela_run_test end-to-end and leave the browser open for inspection."""
+"""Run Sela browser acceptance flows against a deployed preview."""
+import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from tools.browser import browser_close
 from tools.sela import (
     sela_run_test,
     sela_test_letter_tooltip,
     sela_test_distribution_counts,
+    sela_test_wordplay,
 )
 
-PREVIEW = "https://sela-webapp-git-brian-sound-v2-sela-webapp.vercel.app"
-EMAIL   = "discarable@gmail.com"
 
-
-async def main() -> None:
-    # Full highlight test
-    result = await sela_run_test(
-        base_url=PREVIEW,
-        user_email=EMAIL,
-        book="psalms",
-        passage="23",
-        sound_chips=["m", "l", "n"],
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--preview",
+        default=os.environ.get("SELA_PREVIEW_URL", ""),
+        help="Vercel preview URL (or set SELA_PREVIEW_URL).",
     )
-    print(result)
-
-    # Letter distribution tooltip test
-    print("\nRunning letter tooltip test...")
-    tooltip_result = await sela_test_letter_tooltip(
-        base_url=PREVIEW,
-        user_email=EMAIL,
-        book="psalms",
-        passage="23",
+    parser.add_argument(
+        "--email",
+        default=os.environ.get("SELA_TEST_EMAIL", ""),
+        help="Clerk test-user email (or set SELA_TEST_EMAIL).",
     )
-    print(tooltip_result)
-
-    # Distribution occurrence-count regression test (Psalm 1 is the bug sample)
-    print("\nRunning distribution count test...")
-    counts_result = await sela_test_distribution_counts(
-        base_url=PREVIEW,
-        user_email=EMAIL,
-        book="psalms",
-        passage="1",
-        mode="both",
+    parser.add_argument(
+        "--suite",
+        choices=["wordplay", "sounds", "all"],
+        default="wordplay",
     )
-    print(counts_result)
+    parser.add_argument("--keep-open", action="store_true")
+    args = parser.parse_args()
+    if not args.preview or not args.email:
+        parser.error("--preview and --email are required (or use the environment variables)")
+    return args
 
-    print("\nBrowser left open — press Ctrl+C to exit.")
-    # Keep the event loop alive so the browser stays visible
-    await asyncio.Event().wait()
+async def main(args: argparse.Namespace) -> int:
+    outputs: list[str] = []
+
+    if args.suite in {"wordplay", "all"}:
+        outputs.append(
+            await sela_test_wordplay(
+                base_url=args.preview,
+                user_email=args.email,
+                book="psalms",
+                passage="88",
+            )
+        )
+
+    if args.suite in {"sounds", "all"}:
+        outputs.append(
+            await sela_run_test(
+                base_url=args.preview,
+                user_email=args.email,
+                book="psalms",
+                passage="23",
+                sound_chips=["m", "l", "n"],
+            )
+        )
+        outputs.append(
+            await sela_test_letter_tooltip(
+                base_url=args.preview,
+                user_email=args.email,
+                book="psalms",
+                passage="23",
+            )
+        )
+        outputs.append(
+            await sela_test_distribution_counts(
+                base_url=args.preview,
+                user_email=args.email,
+                book="psalms",
+                passage="1",
+                mode="both",
+            )
+        )
+
+    print("\n\n".join(outputs))
+    failed = any(
+        "RESULT: FAIL" in output
+        or output.startswith("ERROR")
+        or "\n[FAIL]" in output
+        for output in outputs
+    )
+
+    if args.keep_open:
+        print("\nBrowser left open - press Ctrl+C to exit.")
+        await asyncio.Event().wait()
+    else:
+        await browser_close()
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        raise SystemExit(asyncio.run(main(parse_args())))
     except KeyboardInterrupt:
         print("\nExiting.")

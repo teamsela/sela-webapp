@@ -7,12 +7,12 @@ Same as `browser.py` (Playwright + Chromium + `CLERK_SECRET_KEY`).
 ## Verify
 
 ```powershell
-python mcp/_run_test.py
+python mcp/_run_test.py --suite wordplay
 ```
 
 ## Usage
 
-See the docstring at the top of `tools/sela.py` for a full example flow; or run `mcp/_run_test.py`.
+Set `SELA_PREVIEW_URL` and `SELA_TEST_EMAIL`, then run `python mcp/_run_test.py --suite wordplay`. Use `--suite all` for every flow or `--keep-open` for a live demo.
 
 ## Notes
 

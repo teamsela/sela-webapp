@@ -32,7 +32,12 @@ import { transliterateHebrew } from "@/lib/transliterate";
 
 export type WordplayTool = "soundplay" | "wordplay";
 
-export type SecondaryTag = "same-pos" | "same-preposition" | "proximity";
+export type SecondaryTag =
+  | "similar-vowels"
+  | "similar-conjugation"
+  | "same-pos"
+  | "same-preposition"
+  | "proximity";
 
 export type WordplayCandidate = {
   tool: WordplayTool;
@@ -106,6 +111,9 @@ const FINAL_FORM_TO_BASE: Record<string, string> = {
 const normalizeLetterId = (letterId: string): string =>
   FINAL_FORM_TO_BASE[letterId] ?? letterId;
 
+const conjugatedTransliteration = (word: WordProps): string =>
+  word.passageTransliteration || transliterateHebrew(word.wlcWord || "");
+
 /**
  * The consonant sound-ids of a word's **conjugated form**, vowels ignored.
  *
@@ -124,10 +132,7 @@ export const wordSoundIds = (word: WordProps): string[] => {
     return [];
   }
 
-  const transliteration =
-    word.passageTransliteration ||
-    word.wordInformation?.transliteration ||
-    transliterateHebrew(word.wlcWord || "");
+  const transliteration = conjugatedTransliteration(word);
 
   return splitTransliterationSegments(transliteration)
     .map((segment) => segment.highlightId)
@@ -205,12 +210,22 @@ const isSameWord = (a: WordProps, b: WordProps): boolean =>
  * last morpheme, so we read the POS letter from there ("HR/Ncmsa" → "N",
  * "HVqp3ms" → "V").
  */
-const partOfSpeech = (morphology?: string): string | null => {
+const mainMorphology = (morphology?: string): string | null => {
   if (!morphology) return null;
   const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
   const morphemes = body.split("/").filter(Boolean);
-  const main = morphemes[morphemes.length - 1] ?? "";
-  return main.charAt(0) || null;
+  return morphemes[morphemes.length - 1] || null;
+};
+
+const partOfSpeech = (morphology?: string): string | null =>
+  mainMorphology(morphology)?.charAt(0) || null;
+
+const vowelSequence = (word: WordProps): string => {
+  const matches = conjugatedTransliteration(word)
+    .normalize("NFKD")
+    .toLowerCase()
+    .match(/[aeiou]/g);
+  return matches?.join("") ?? "";
 };
 
 /**
@@ -249,6 +264,18 @@ const inProximity = (a: WordProps, b: WordProps): boolean =>
 
 const computeSecondaryTags = (a: WordProps, b: WordProps): SecondaryTag[] => {
   const tags: SecondaryTag[] = [];
+
+  const vowelsA = vowelSequence(a);
+  const vowelsB = vowelSequence(b);
+  if (vowelsA && vowelsA === vowelsB) {
+    tags.push("similar-vowels");
+  }
+
+  const morphologyA = mainMorphology(a.morphology);
+  const morphologyB = mainMorphology(b.morphology);
+  if (morphologyA && morphologyA === morphologyB) {
+    tags.push("similar-conjugation");
+  }
 
   const posA = partOfSpeech(a.morphology);
   const posB = partOfSpeech(b.morphology);
@@ -314,6 +341,48 @@ const filterByScope = (
   );
 };
 
+const findPairCandidates = (
+  scoped: WordProps[],
+  comparisonIds: string[][],
+  letterIds: string[][],
+  tool: WordplayTool,
+  isMatch: (shared: string[]) => boolean,
+  strongThreshold: number,
+): WordplayCandidate[] => {
+  const candidates: WordplayCandidate[] = [];
+
+  for (let i = 0; i < scoped.length; i++) {
+    for (let j = i + 1; j < scoped.length; j++) {
+      const wordA = scoped[i];
+      const wordB = scoped[j];
+      if (isSameWord(wordA, wordB)) {
+        continue;
+      }
+
+      const shared = sharedMultiset(comparisonIds[i], comparisonIds[j]);
+      if (!isMatch(shared)) {
+        continue;
+      }
+
+      const openA = firstLast(letterIds[i]);
+      const openB = firstLast(letterIds[j]);
+      candidates.push({
+        tool,
+        wordA,
+        wordB,
+        sharedIds: shared,
+        sharedCount: shared.length,
+        strongMatch: shared.length >= strongThreshold,
+        sameOpening: Boolean(openA.first) && openA.first === openB.first,
+        sameEnding: Boolean(openA.last) && openA.last === openB.last,
+        secondaryTags: computeSecondaryTags(wordA, wordB),
+      });
+    }
+  }
+
+  return candidates;
+};
+
 /**
  * Soundplay: candidate pairs sharing 4+ transliterated consonant sounds
  * (conjugated form, vowels ignored, duplicates counted individually).
@@ -325,36 +394,14 @@ export const findSoundplayCandidates = (
   const scoped = filterByScope(words, options?.scope);
   const soundIds = scoped.map((word) => wordSoundIds(word));
   const letterIds = scoped.map((word) => wordLetterIds(word));
-  const candidates: WordplayCandidate[] = [];
-
-  for (let i = 0; i < scoped.length; i++) {
-    for (let j = i + 1; j < scoped.length; j++) {
-      const wordA = scoped[i];
-      const wordB = scoped[j];
-      if (isSameWord(wordA, wordB)) {
-        continue;
-      }
-      const shared = sharedMultiset(soundIds[i], soundIds[j]);
-      if (!isSoundplayMatch(shared.length)) {
-        continue;
-      }
-      const openA = firstLast(letterIds[i]);
-      const openB = firstLast(letterIds[j]);
-      candidates.push({
-        tool: "soundplay",
-        wordA,
-        wordB,
-        sharedIds: shared,
-        sharedCount: shared.length,
-        strongMatch: shared.length >= SOUNDPLAY_STRONG_SHARED,
-        sameOpening: Boolean(openA.first) && openA.first === openB.first,
-        sameEnding: Boolean(openA.last) && openA.last === openB.last,
-        secondaryTags: computeSecondaryTags(wordA, wordB),
-      });
-    }
-  }
-
-  return candidates;
+  return findPairCandidates(
+    scoped,
+    soundIds,
+    letterIds,
+    "soundplay",
+    (shared) => isSoundplayMatch(shared.length),
+    SOUNDPLAY_STRONG_SHARED,
+  );
 };
 
 /**
@@ -367,36 +414,14 @@ export const findWordplayCandidates = (
 ): WordplayCandidate[] => {
   const scoped = filterByScope(words, options?.scope);
   const letterIds = scoped.map((word) => wordLetterIds(word));
-  const candidates: WordplayCandidate[] = [];
-
-  for (let i = 0; i < scoped.length; i++) {
-    for (let j = i + 1; j < scoped.length; j++) {
-      const wordA = scoped[i];
-      const wordB = scoped[j];
-      if (isSameWord(wordA, wordB)) {
-        continue;
-      }
-      const shared = sharedMultiset(letterIds[i], letterIds[j]);
-      if (!isWordplayMatch(shared)) {
-        continue;
-      }
-      const openA = firstLast(letterIds[i]);
-      const openB = firstLast(letterIds[j]);
-      candidates.push({
-        tool: "wordplay",
-        wordA,
-        wordB,
-        sharedIds: shared,
-        sharedCount: shared.length,
-        strongMatch: shared.length >= WORDPLAY_STRONG_SHARED,
-        sameOpening: Boolean(openA.first) && openA.first === openB.first,
-        sameEnding: Boolean(openA.last) && openA.last === openB.last,
-        secondaryTags: computeSecondaryTags(wordA, wordB),
-      });
-    }
-  }
-
-  return candidates;
+  return findPairCandidates(
+    scoped,
+    letterIds,
+    letterIds,
+    "wordplay",
+    isWordplayMatch,
+    WORDPLAY_STRONG_SHARED,
+  );
 };
 
 /**

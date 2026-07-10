@@ -44,13 +44,14 @@ SCRIPTS = {
         "title": "_run_test.py — ad-hoc Sela E2E runner",
         "summary": "A standalone script (not an MCP tool) that runs the Sela "
                    "browser end-to-end flows from `tools/sela.py` against a Vercel "
-                   "preview and leaves the browser open for inspection.",
+                   "preview with optional live-browser inspection.",
         "tools": [],
-        "usage": "Edit the `PREVIEW` and `EMAIL` constants at the top, then run "
-                 "`python mcp/_run_test.py`. Press Ctrl+C to exit.",
+        "usage": "Set `SELA_PREVIEW_URL` and `SELA_TEST_EMAIL`, then run "
+                 "`python mcp/_run_test.py --suite wordplay`. Use `--suite all` "
+                 "for every flow or `--keep-open` for a live demo.",
         "deps": "`playwright` (+ `python -m playwright install chromium`), and a "
                 "valid `CLERK_SECRET_KEY` for sign-in.",
-        "verify": "python mcp/_run_test.py  # opens a browser and runs the flows",
+        "verify": "python mcp/_run_test.py --suite wordplay",
         "notes": "This is a developer convenience harness; CI does not run it.",
     },
     "repo": {
@@ -149,23 +150,27 @@ SCRIPTS = {
     "sela": {
         "title": "tools/sela.py — Sela app E2E flows",
         "summary": "High-level, Sela-specific browser flows built on `browser.py`: "
-                   "create studies and exercise the Sound/Letter Distribution "
-                   "highlight features with deterministic verification.",
+                   "create studies and exercise the Sound/Letter Distribution and "
+                   "Wordplay features with deterministic verification.",
         "tools": [
             ("sela_auth / sela_create_study / sela_open_or_create_study",
                 "Sign in and open/create a study."),
-            ("sela_set_language_parallel / sela_open_sounds_tab", "Set up the "
-                "passage view."),
+            ("sela_set_language_parallel / sela_open_sounds_tab / "
+                "sela_open_wordplay_tab", "Set up the passage view."),
             ("sela_select_sound_chips / sela_select_letter_chips / "
                 "sela_smart_highlight / sela_clear_highlight", "Drive highlighting."),
             ("sela_run_test / sela_test_distribution_counts / "
                 "sela_test_letter_tooltip / sela_verify_*", "End-to-end test flows "
                 "with PASS/FAIL output."),
+            ("sela_test_wordplay", "Psalm 88 acceptance flow for real lexical/sound "
+                "candidates, pair-only highlighting, exact colors, controls, "
+                "tooltip, and screenshots."),
         ],
-        "usage": "See the docstring at the top of `tools/sela.py` for a full "
-                 "example flow; or run `mcp/_run_test.py`.",
+        "usage": "Set `SELA_PREVIEW_URL` and `SELA_TEST_EMAIL`, then run "
+                 "`python mcp/_run_test.py --suite wordplay`. Use `--suite all` "
+                 "for every flow or `--keep-open` for a live demo.",
         "deps": "Same as `browser.py` (Playwright + Chromium + `CLERK_SECRET_KEY`).",
-        "verify": "python mcp/_run_test.py",
+        "verify": "python mcp/_run_test.py --suite wordplay",
         "notes": "`SOUND_PALETTE` mirrors `src/lib/hebrewHighlights.ts` exactly so "
                  "verification can assert exact colors. The LanguageSwitcher "
                  "dropdown opens only via each button's chevron span.",
