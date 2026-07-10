@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
+import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import RichTextEditor from "./RichTextEditor";
-import type { RichDoc } from "@/lib/richText";
+import { toRichDoc, type RichDoc } from "@/lib/richText";
 
 const sampleDoc: RichDoc = {
   type: "doc",
@@ -58,6 +59,27 @@ describe("RichTextEditor", () => {
   it("shows a placeholder when the document is empty and editable", async () => {
     render(<RichTextEditor value={undefined} onChange={() => {}} editable placeholder="Your notes here..." />);
     expect(await screen.findByText("Your notes here...")).toBeInTheDocument();
+  });
+
+  it("applies content that arrives via `value` AFTER mount (the re-open/hydration path)", async () => {
+    // Mirrors StropheNotes on re-open: value starts empty, then the parent
+    // hydrates it to the saved doc a tick after mount (no typing involved).
+    function Wrapper() {
+      const [val, setVal] = React.useState<RichDoc>(toRichDoc(""));
+      React.useEffect(() => {
+        setVal({
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Hydrated Title" }] },
+            { type: "paragraph", content: [{ type: "text", text: "hydrated body" }] },
+          ],
+        });
+      }, []);
+      return <RichTextEditor value={val} onChange={() => {}} editable fill />;
+    }
+    render(<Wrapper />);
+    expect(await screen.findByText("Hydrated Title")).toBeInTheDocument();
+    expect(screen.getByText("hydrated body")).toBeInTheDocument();
   });
 
   it("migrates and renders a legacy plain-text (string) value", async () => {

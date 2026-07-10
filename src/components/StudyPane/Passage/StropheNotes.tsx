@@ -37,8 +37,21 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   }, []); // intentionally run once
 
   // 2) Local UI state: one combined rich-text doc whose first line is the title.
-  //    Synced from ctxStudyNotes when it changes.
-  const [noteDoc, setNoteDoc] = useState<RichDoc>(() => toRichDoc(""));
+  //    Initialised synchronously from ctxStudyNotes so the editor mounts with the
+  //    saved content already in place (no empty first frame), then kept in sync by
+  //    the re-hydration effect below.
+  const [noteDoc, setNoteDoc] = useState<RichDoc>(() => {
+    try {
+      if (ctxStudyNotes) {
+        const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
+        const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
+        return combineNoteDoc(s?.title, s?.text);
+      }
+    } catch {
+      /* fall through to empty */
+    }
+    return toRichDoc("");
+  });
 
   const claimActivePane = useCallback(() => {
     if (ctxActiveNotesPane !== viewId) {
@@ -55,37 +68,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     lastNotesStrRef.current = ctxStudyNotes ?? null;
   }
 
-  useEffect(() => {
-    if (!ctxStudyNotes) return;
-
-    const key = `${stropheId}@${notesVersionRef.current}`;
-    if (hydratedKeyRef.current === key && !ctxNoteMerge) return;
-
-    const isLocalPayload = localPayloadRef.current === ctxStudyNotes;
-    if (!ctxNoteMerge && ctxActiveNotesPane === viewId && isLocalPayload) {
-      hydratedKeyRef.current = key;
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
-      const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
-      // Fold a (possibly legacy separate) title + body back into one doc.
-      setNoteDoc(combineNoteDoc(s?.title, s?.text));
-      hydratedKeyRef.current = key;
-    } catch {
-      // ignore parse errors
-    } finally {
-      if (ctxNoteMerge) {
-        ctxSetNoteMerge(false);
-      }
-      if (isLocalPayload) {
-        localPayloadRef.current = null;
-      }
-    }
-  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge]);
-
-const saveNow = useCallback(
+  const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
   if (!ctxStudyId) return;
   if (lastSavedPayloadRef.current === payload) return;
@@ -131,7 +114,45 @@ async (payload: string, { keepalive = false } = {}) => {
   return JSON.stringify(next);
 }, [ctxStudyNotes, stropheId, noteDoc, firstWordId, lastWordId]);
 
-useEffect(() => {
+  // Re-hydration effect: placed BEFORE the save effect so that when both fire
+  // in the same render (e.g. viewId or ctxActiveNotesPane changes), noteDoc is
+  // already up to date when the save effect reads it from its closure.
+  useEffect(() => {
+    if (!ctxStudyNotes) return;
+
+    const key = `${stropheId}@${notesVersionRef.current}`;
+    if (hydratedKeyRef.current === key && !ctxNoteMerge) return;
+
+    const isLocalPayload = localPayloadRef.current === ctxStudyNotes;
+    if (!ctxNoteMerge && ctxActiveNotesPane === viewId && isLocalPayload) {
+      hydratedKeyRef.current = key;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes>;
+      const s = Array.isArray(parsed?.strophes) ? parsed!.strophes![stropheId] : undefined;
+      // Fold a (possibly legacy separate) title + body back into one doc.
+      setNoteDoc(combineNoteDoc(s?.title, s?.text));
+      hydratedKeyRef.current = key;
+      // We just synced from external data — clear dirty so a stale save effect
+      // doesn't overwrite with a previous closure's noteDoc.
+      dirtyRef.current = false;
+    } catch {
+      // ignore parse errors
+    } finally {
+      if (ctxNoteMerge) {
+        ctxSetNoteMerge(false);
+      }
+      if (isLocalPayload) {
+        localPayloadRef.current = null;
+      }
+    }
+  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge]);
+
+  // Sync context + debounced autosave. Runs AFTER re-hydration so noteDoc is
+  // current when buildPayload captures it.
+  useEffect(() => {
   if (!editable) return;
   if (!ctxStudyNotes) return;
   if (ctxActiveNotesPane !== viewId) return;
@@ -193,6 +214,7 @@ useEffect(() => {
         placeholder="Title on the first line. Write your notes beneath it."
         dir="auto"
         fill
+        allowContextMenu={false}
         className="min-h-0 flex-1 bg-white dark:bg-form-input"
       />
     </div>

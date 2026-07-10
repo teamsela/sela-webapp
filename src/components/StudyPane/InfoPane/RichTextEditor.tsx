@@ -111,8 +111,10 @@ const ColorMenu = ({ icon, title, palette, onSelect, onClear }: ColorMenuProps) 
     const onDocMouseDown = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
+    // Capture phase so outside-click detection works even when a parent
+    // wrapper calls stopPropagation() (e.g. strophe note area).
+    document.addEventListener("mousedown", onDocMouseDown, true);
+    return () => document.removeEventListener("mousedown", onDocMouseDown, true);
   }, [open]);
 
   return (
@@ -257,12 +259,14 @@ const FloatingFormatMenu = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("mousedown", onDown);
+    // Use capture phase so this fires before any stopPropagation() in
+    // child wrappers (e.g. strophe note area onMouseDown handlers).
+    document.addEventListener("mousedown", onDown, true);
     document.addEventListener("keydown", onKey);
     window.addEventListener("scroll", onClose, true);
     window.addEventListener("resize", onClose);
     return () => {
-      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("mousedown", onDown, true);
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("scroll", onClose, true);
       window.removeEventListener("resize", onClose);
@@ -292,6 +296,8 @@ export type RichTextEditorProps = {
   // When true, the editor stretches to fill its parent's height and scrolls
   // internally (used where the note box should span the whole container).
   fill?: boolean;
+  // When false, the right-click formatting menu is disabled (used for strophe notes).
+  allowContextMenu?: boolean;
 };
 
 const RichTextEditor = ({
@@ -302,7 +308,18 @@ const RichTextEditor = ({
   dir = "ltr",
   className = "",
   fill = false,
+  allowContextMenu = true,
 }: RichTextEditorProps) => {
+  // JSON of the doc currently reflected in the editor. It is the single source
+  // of truth for "did the content actually change?" and guards against two
+  // feedback hazards:
+  //   1. Tiptap (with immediatelyRender:false) emits an onUpdate for its INITIAL
+  //      content on mount. Without this guard that empty/initial doc is sent to
+  //      onChange and can wipe freshly-hydrated parent state.
+  //   2. Programmatic setContent() during re-hydration must not echo back to the
+  //      parent, and the parent's own edits must not be re-applied to the editor.
+  const appliedRef = useRef<string>(JSON.stringify(toRichDoc(value)));
+
   const editor = useEditor({
     extensions: buildExtensions(),
     content: toRichDoc(value),
@@ -315,7 +332,14 @@ const RichTextEditor = ({
         dir,
       },
     },
-    onUpdate: ({ editor: e }) => onChange(e.getJSON() as RichDoc),
+    onUpdate: ({ editor: e }) => {
+      const json = e.getJSON();
+      const str = JSON.stringify(json);
+      // Only a genuine, user-driven divergence from the applied doc is a change.
+      if (str === appliedRef.current) return;
+      appliedRef.current = str;
+      onChange(json as RichDoc);
+    },
   });
 
   const [menuPos, setMenuPos] = useState<{ left: number; top: number } | null>(null);
@@ -349,13 +373,12 @@ const RichTextEditor = ({
 
   // Re-hydrate when the source doc is swapped externally (e.g. switching study),
   // but never while the user is actively editing this instance.
-  const lastAppliedRef = useRef<string>("");
   useEffect(() => {
     if (!editor) return;
     const incoming = JSON.stringify(toRichDoc(value));
-    if (incoming === lastAppliedRef.current) return;
+    if (incoming === appliedRef.current) return;
     if (editor.isFocused) return;
-    lastAppliedRef.current = incoming;
+    appliedRef.current = incoming;
     editor.commands.setContent(toRichDoc(value), false);
   }, [editor, value]);
 
@@ -369,7 +392,7 @@ const RichTextEditor = ({
     >
       <div
         className={`relative ${fill ? "min-h-0 flex-1 overflow-y-auto" : ""}`}
-        onContextMenu={openAtEvent}
+        onContextMenu={allowContextMenu ? openAtEvent : undefined}
       >
         {editable && editor.isEmpty && (
           <span className="pointer-events-none absolute left-5 top-3 text-black/40 dark:text-white/40">
