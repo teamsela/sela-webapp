@@ -1,4 +1,8 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+"use client";
+
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { IconX } from "@tabler/icons-react";
 import { MdInfoOutline } from "react-icons/md";
 
 import { DEFAULT_BORDER_COLOR } from "@/lib/colors";
@@ -118,6 +122,81 @@ const AccentCategoryButton = ({
   );
 };
 
+// Static reference copy for the "Accents in Poetry" info popup.
+const ACCENT_INFO_TITLE_ID = "accents-in-poetry-info-title";
+
+const ACCENT_INFO_DISJUNCTIVE_LEVELS: { level: string; accents: string }[] = [
+  { level: "Level 1", accents: "Silluq" },
+  { level: "Level 2", accents: "Etnachta, Ole Veyored, Revi'i Mugrash, Geresh, Shalshelet G" },
+  { level: "Level 3", accents: "Revi'i, Dechi, Sinnor" },
+  { level: "Level 4", accents: "Azla Legarmeh, Mahpakh Legarmeh, Pazer" },
+];
+
+const ACCENT_INFO_CONJUNCTIVES =
+  "Azla, Mahpakh, Munach, Mer'kha, Tarcha, Ole, Illuy, Galgal, Shalshelet, Sinnorit, Sinnorit Mahpakh, Paseq";
+
+// Reference popup describing the poetic accent system and how Smart Highlight
+// colors words. Opened from the info icon in the "Accents in Poetry" header and
+// rendered through a portal so it overlays the whole study view.
+const AccentsInfoModal = ({ onClose }: { onClose: () => void }) =>
+  createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={ACCENT_INFO_TITLE_ID}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          aria-label="Close"
+        >
+          <IconX size={18} stroke={2} />
+        </button>
+
+        <h3
+          id={ACCENT_INFO_TITLE_ID}
+          className="pr-10 text-lg font-bold text-gray-900 dark:text-gray-100"
+        >
+          Accent Levels (Poetic System)
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          These are the accent marks used in the poetic books: Psalms, Job, Proverbs. Use this
+          tool to highlight words in the passage by their accent function and rank.
+        </p>
+
+        <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">
+          Disjunctive Accents
+        </h4>
+        <div className="mt-1 space-y-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          {ACCENT_INFO_DISJUNCTIVE_LEVELS.map((row) => (
+            <p key={row.level}>
+              {row.level}: {row.accents}
+            </p>
+          ))}
+        </div>
+
+        <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          When using the smart highlighter, if a disjunctive accent is split over 2 words, the
+          first word will be given a border color instead of fill color
+        </p>
+
+        <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">
+          Conjunctives Accents
+        </h4>
+        <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          {ACCENT_INFO_CONJUNCTIVES}
+        </p>
+      </div>
+    </div>,
+    document.body,
+  );
+
 const Structure = () => {
   const {
     ctxPassageProps,
@@ -134,6 +213,29 @@ const Structure = () => {
 
   const { toggleHighlight, activeHighlightId } = useHighlightManager("structure");
   const [isOpen, setIsOpen] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  const closeInfo = useCallback(() => setShowInfo(false), []);
+
+  // The info popup is portaled to document.body, so gate it behind mount.
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Close the info popup on Escape while it is open.
+  useEffect(() => {
+    if (!showInfo) {
+      return;
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeInfo();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showInfo, closeInfo]);
 
   const isPoeticBook = POETIC_BOOKS.has((ctxStudyBook ?? "").trim().toLowerCase());
   const allWords = useMemo(() => flattenWords(ctxPassageProps), [ctxPassageProps]);
@@ -367,12 +469,20 @@ const Structure = () => {
             <span className={isOpen ? "text-primary" : "text-black dark:text-white"}>
               Accents in Poetry
             </span>
-            <MdInfoOutline
-              className="text-primary"
-              size="18px"
-              title="Cantillation accents grouped by disjunctive level (1 strongest to 4 weakest) and conjunctives. Applies to Job, Psalms and Proverbs."
-            />
+            <span
+              role="button"
+              aria-label="About accents in poetry"
+              className="ClickBlock inline-flex cursor-pointer items-center justify-center text-primary transition hover:opacity-80"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowInfo(true);
+              }}
+            >
+              <MdInfoOutline size="18px" />
+            </span>
           </button>
+
+          {isMounted && showInfo && <AccentsInfoModal onClose={closeInfo} />}
 
           {isOpen && (
             <div className="space-y-4 p-4">
