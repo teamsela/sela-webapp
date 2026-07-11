@@ -1,6 +1,6 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { LuTextSelect } from "react-icons/lu";
+import { LuTextSelect, LuChevronsDownUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -121,6 +121,21 @@ const Layers = () => {
   useEffect(() => {
     setNotesExpanded(false);
   }, [ctxActiveLayerId]);
+
+  // Collapse the expanded note when the user clicks anywhere outside it.
+  // A document-level listener (instead of textarea onBlur) avoids the event
+  // race that made an in-note collapse button unreliable.
+  const expandedNoteRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!notesExpanded) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (expandedNoteRef.current && !expandedNoteRef.current.contains(e.target as Node)) {
+        setNotesExpanded(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [notesExpanded]);
 
   // State for the "create new layer" box.
   const [creating, setCreating] = useState(false);
@@ -308,18 +323,22 @@ const Layers = () => {
   };
 
   return (
-    <div className="h-full">
+    <div className="flex h-full flex-col">
 
-      <div className="flex flex-col gap-4 mt-8 p-6.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 mt-8 p-6.5">
         {ctxLayers.map((layer) => {
           const isSelected = layer.id === ctxActiveLayerId;
           const isDragOver = layer.id === dragOverLayerId;
 
+          // While a note is expanded, only render the active layer so its
+          // editor can fill the entire sidebar.
+          if (notesExpanded && !isSelected) return null;
+
           let outline: string | undefined;
           if (isDragOver) {
             outline = `3px dashed ${SELECT_OUTLINE}`;
-          } else if (isSelected) {
-            outline = `3px solid ${selectMode === "color" ? SELECT_OUTLINE : CLICK_OUTLINE}`;
+          } else if (isSelected && selectMode === "color") {
+            outline = `3px solid ${SELECT_OUTLINE}`;
           }
 
           const noteValue = layerNotes[String(layer.id)] ?? "";
@@ -335,7 +354,11 @@ const Layers = () => {
               onDragOver={(e) => handleDragOver(e, layer.id)}
               onDrop={(e) => handleDrop(e, layer.id)}
               onDragEnd={handleDragEnd}
-              className="flex cursor-grab flex-col overflow-hidden rounded-xl border transition active:cursor-grabbing"
+              // flex-shrink-0 (and a concrete min-height while expanded) keeps the
+              // layer name + one-line note peek visible however short the window is.
+              className={`flex cursor-grab flex-col overflow-hidden rounded-xl border-2 transition active:cursor-grabbing ${
+                isSelected && notesExpanded ? "min-h-[7.5rem] flex-1" : "flex-shrink-0"
+              }`}
               style={{
                 backgroundColor: layer.fill,
                 borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
@@ -401,20 +424,35 @@ const Layers = () => {
               </div>
 
               {/* Note lives inside the box — only for the active layer. Click the
-                  peek to expand; blur (click outside) collapses it back. */}
+                  peek to expand into a full-height editor; collapse via the
+                  top-right button or by clicking outside the note. */}
               {isSelected && (
-                <div className="px-3 pb-3">
-                  {notesExpanded ? (
+                notesExpanded ? (
+                  <div
+                    ref={expandedNoteRef}
+                    className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
+                  >
                     <textarea
                       autoFocus
                       value={noteValue}
                       onChange={(e) => handleNoteChange(layer.id, e.target.value)}
-                      onBlur={() => setNotesExpanded(false)}
                       placeholder="Click here to add notes"
-                      rows={6}
-                      className="resize-none w-full rounded-lg bg-white px-4 py-2 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
+                      className="min-h-0 w-full flex-1 resize-none rounded-lg bg-white px-4 py-2 pr-10 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
                     />
-                  ) : (
+                    <button
+                      title="Collapse notes"
+                      className="absolute right-5 top-2 hover:opacity-70"
+                      style={{ color: "#656565" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotesExpanded(false);
+                      }}
+                    >
+                      <LuChevronsDownUp size={18} style={{ pointerEvents: "none" }} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-3 pb-3">
                     <div
                       className="w-full cursor-text overflow-hidden text-ellipsis whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm dark:bg-boxdark"
                       onClick={() => setNotesExpanded(true)}
@@ -425,14 +463,16 @@ const Layers = () => {
                         <span className="text-gray-400">Click here to add notes</span>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )
               )}
             </div>
           );
         })}
 
-        {/* Create new layer */}
+        {/* Create new layer — hidden while a note is expanded so the editor
+            can fill the whole sidebar. */}
+        {!notesExpanded && (
         <div
           className="flex gap-3 px-5 py-4 cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
           onClick={() => !creating && setCreating(true)}
@@ -460,6 +500,7 @@ const Layers = () => {
             </span>
           )}
         </div>
+        )}
       </div>
 
       <DeleteLayerModal

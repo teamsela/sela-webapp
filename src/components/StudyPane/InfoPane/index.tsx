@@ -102,11 +102,14 @@ const InfoPane = ({
       }}
     >
       <div
-        className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-slate-200"
+        className="group absolute left-0 top-0 z-999 flex h-full w-3 cursor-col-resize items-center justify-start"
         onMouseDown={handleResizeStart}
         role="presentation"
         aria-hidden
-      />
+      >
+        {/* Slim drag handle indicator */}
+        <div className="h-12 w-1 ml-1 rounded-full bg-bodydark transition-colors group-hover:bg-bodydark2" />
+      </div>
 
       {/* Fixed close button */}
       <button
