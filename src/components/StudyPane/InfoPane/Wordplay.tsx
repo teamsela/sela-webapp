@@ -52,8 +52,6 @@ const chipPalette = (tool: WordplayTool, id: string) =>
     : LETTER_CHIP_MAP.get(id)?.palette;
 
 const SECONDARY_TAG_LABELS: Record<SecondaryTag, string> = {
-  "similar-vowels": "Similar vowels",
-  "similar-conjugation": "Similar conjugations",
   "same-pos": "Same part of speech",
   "same-preposition": "Same preposition",
   proximity: "Proximity (same / adjacent strophe)",
@@ -89,7 +87,7 @@ type TraitFilter = "opening" | "ending";
 
 const TIER_LABELS: Record<WordplayTool, Record<TierFilter, string>> = {
   soundplay: { strong: "5 shared sounds", min: "4 shared sounds" },
-  wordplay: { strong: "3 root letters", min: "2 root letters" },
+  wordplay: { strong: "3 lexical letters", min: "2 lexical letters" },
 };
 
 const TRAIT_LABELS: Record<TraitFilter, string> = {
@@ -227,18 +225,23 @@ const CandidateRow = ({
 const ToggleChip = ({
   label,
   active,
+  disabled = false,
   onClick,
 }: {
   label: string;
   active: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) => (
   <button
     type="button"
     onClick={onClick}
+    disabled={disabled}
     aria-pressed={active}
     className={`rounded-full border px-3 py-1 text-xs transition ${
-      active
+      disabled
+        ? "cursor-not-allowed border-slate-200 text-slate-400"
+        : active
         ? "border-primary bg-primary text-white"
         : "border-slate-300 text-slate-600 hover:border-primary/60 dark:text-slate-300"
     }`}
@@ -285,8 +288,6 @@ const Wordplay = () => {
     ending: false,
   });
   const [secondaryFilters, setSecondaryFilters] = useState<Record<SecondaryTag, boolean>>({
-    "similar-vowels": false,
-    "similar-conjugation": false,
     "same-pos": false,
     "same-preposition": false,
     proximity: false,
@@ -357,13 +358,12 @@ const Wordplay = () => {
     if (scopeMode === "whole") {
       return { mode: "whole" };
     }
-    const focusWord = allWords[0];
     return {
       mode: "adjacent",
-      focusStanzaId: adjacentFocus?.stanzaId ?? focusWord?.stanzaId ?? 0,
-      focusStropheId: adjacentFocus?.stropheId ?? focusWord?.stropheId ?? 0,
+      focusStanzaId: adjacentFocus?.stanzaId ?? 0,
+      focusStropheId: adjacentFocus?.stropheId ?? 0,
     };
-  }, [scopeMode, adjacentFocus, allWords]);
+  }, [scopeMode, adjacentFocus]);
 
   const candidates = useMemo(
     () => findCandidates(allWords, tool, { scope }),
@@ -469,18 +469,21 @@ const Wordplay = () => {
 
   const switchScope = (nextMode: "whole" | "adjacent") => {
     if (nextMode === "adjacent") {
-      const focusWord = ctxSelectedWords[0] ?? allWords[0];
-      setAdjacentFocus(
-        focusWord
-          ? { stanzaId: focusWord.stanzaId, stropheId: focusWord.stropheId }
-          : null,
-      );
+      const focusWord = ctxSelectedWords[0] ?? null;
+      if (!focusWord && !adjacentFocus) return;
+      if (focusWord) {
+        setAdjacentFocus({
+          stanzaId: focusWord.stanzaId,
+          stropheId: focusWord.stropheId,
+        });
+      }
     }
     setScopeMode(nextMode);
   };
 
   const copy = TOOL_COPY[tool];
   const tierLabels = TIER_LABELS[tool];
+  const canUseAdjacentScope = Boolean(ctxSelectedWords[0] || adjacentFocus);
   const highlightActive =
     Boolean(activeCandidateKey) || ctxSoundHighlightEnabled || ctxLetterHighlightEnabled;
 
@@ -547,9 +550,15 @@ const Wordplay = () => {
             <ToggleChip
               label="±2 strophes"
               active={scopeMode === "adjacent"}
+              disabled={!canUseAdjacentScope}
               onClick={() => switchScope("adjacent")}
             />
           </div>
+          {!canUseAdjacentScope && (
+            <p className="mt-1 text-xs italic text-slate-500">
+              Select a passage word to set the ±2-strophe focus.
+            </p>
+          )}
         </div>
 
         {/* Primary tags: tier (inclusion) + traits (positive refinement) */}

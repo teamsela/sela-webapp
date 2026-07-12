@@ -75,6 +75,7 @@ export type MotifData = {
 
 export type WordInformation = {
     hebrew: string;
+    hebrewSource: "lexical" | "passage-fallback";
     transliteration: string;
     gloss: string;
     morphology: string;

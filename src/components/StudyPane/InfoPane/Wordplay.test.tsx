@@ -210,17 +210,12 @@ describe("Wordplay panel — tool switch", () => {
 });
 
 describe("Wordplay panel — run scope", () => {
-  it("±2 strophes around the default focus (strophe 0) drops far-apart pairs", () => {
+  it("requires an explicit selected-word focus for ±2 strophes", () => {
     render(<Harness />);
-    // Switch to sounds: the only sound pair sits in strophe 5, far from focus 0.
-    fireEvent.click(screen.getByRole("tab", { name: "Shared Sounds" }));
-    expect(within(resultsRegion()).getAllByRole("button").length).toBeGreaterThan(0);
-
-    fireEvent.click(screen.getByRole("button", { name: "±2 strophes" }));
-    // With focus strophe 0 and radius 2, the strophe-5 pair is excluded.
+    expect(screen.getByRole("button", { name: "±2 strophes" })).toBeDisabled();
     expect(
-      within(resultsRegion()).queryByText(/מְכַמַּת/),
-    ).not.toBeInTheDocument();
+      screen.getByText("Select a passage word to set the ±2-strophe focus."),
+    ).toBeInTheDocument();
   });
 
   it("keeps a selected-word focus when clicking an adjacent-scope candidate", () => {
@@ -249,33 +244,24 @@ describe("Wordplay panel — run scope", () => {
 });
 
 describe("Wordplay panel — primary tag filter", () => {
-  it("disabling the '3 root letters' tier hides the 3-letter candidate", () => {
+  it("disabling the '3 lexical letters' tier hides the 3-letter candidate", () => {
     render(<Harness />);
     expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "3 root letters" }));
+    fireEvent.click(screen.getByRole("button", { name: "3 lexical letters" }));
     expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
   });
 
-  describe("Wordplay panel — secondary tag filters", () => {
-    it("renders every secondary tag required across the detector mockups", () => {
-      render(<Harness />);
-      [
-        "Similar vowels",
-        "Similar conjugations",
-        "Same part of speech",
-        "Same preposition",
-        "Proximity (same / adjacent strophe)",
-      ].forEach((label) => {
+  it("renders only the defined secondary confidence tags", () => {
+    render(<Harness />);
+    ["Same part of speech", "Same preposition", "Proximity (same / adjacent strophe)"].forEach(
+      (label) => {
         expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
-      });
-    });
-
-    it("applies secondary tags as positive refinements", () => {
-      render(<Harness />);
-      expect(within(resultsRegion()).getByText(/קֶבֶר/)).toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Similar vowels" }));
-      expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
-    });
+      },
+    );
+    expect(screen.queryByRole("button", { name: "Similar vowels" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Similar conjugations" }),
+    ).not.toBeInTheDocument();
   });
 
   it("clears an active candidate's highlight when a filter hides it (stale-highlight guard)", () => {
@@ -283,7 +269,7 @@ describe("Wordplay panel — primary tag filter", () => {
     fireEvent.click(candidateWith("קֶבֶר"));
     expect(readState().letterHighlightEnabled).toBe(true);
     // Disabling the tier filters the active candidate out → highlight must clear.
-    fireEvent.click(screen.getByRole("button", { name: "3 root letters" }));
+    fireEvent.click(screen.getByRole("button", { name: "3 lexical letters" }));
     expect(within(resultsRegion()).queryByText(/קֶבֶר/)).not.toBeInTheDocument();
     expect(readState().letterHighlightEnabled).toBe(false);
     expect(readState().highlightedLetterChipIds).toEqual([]);

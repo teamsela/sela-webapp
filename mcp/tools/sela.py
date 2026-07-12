@@ -1003,12 +1003,10 @@ async def sela_test_wordplay(
         "Shared Sounds",
         "Whole passage",
         "\u00b12 strophes",
-        "3 root letters",
-        "2 root letters",
+        "3 lexical letters",
+        "2 lexical letters",
         "Similar opening",
         "Similar ending",
-        "Similar vowels",
-        "Similar conjugations",
         "Same part of speech",
         "Same preposition",
         "Proximity (same / adjacent strophe)",
@@ -1019,6 +1017,15 @@ async def sela_test_wordplay(
         "PASS: all required controls are present"
         if not missing_controls
         else f"FAIL: missing controls {missing_controls}",
+    )
+    adjacent_disabled = await page.get_by_role(
+        "button", name="\u00b12 strophes"
+    ).is_disabled()
+    record(
+        "adjacent_scope_focus",
+        "PASS: \u00b12 strophes requires an explicit passage-word focus"
+        if adjacent_disabled
+        else "FAIL: \u00b12 strophes is enabled without a selected focus",
     )
 
     record(

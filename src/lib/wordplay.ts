@@ -32,12 +32,7 @@ import { transliterateHebrew } from "@/lib/transliterate";
 
 export type WordplayTool = "soundplay" | "wordplay";
 
-export type SecondaryTag =
-  | "similar-vowels"
-  | "similar-conjugation"
-  | "same-pos"
-  | "same-preposition"
-  | "proximity";
+export type SecondaryTag = "same-pos" | "same-preposition" | "proximity";
 
 export type WordplayCandidate = {
   tool: WordplayTool;
@@ -158,15 +153,14 @@ export const wordLetterIds = (word: WordProps): string[] => {
   const lemma = word.motifData?.lemma?.trim();
   let lexical = lemma || "";
   if (!lexical) {
-    // StepBible Hebrew is the lexical citation form, BUT the data layer falls
-    // back to the (trimmed) conjugated wlcWord when StepBible has no entry
-    // (actions.ts). Detect that fallback — comparing trimmed values, since the
-    // data layer trims `hebrew` but not the stored `wlcWord` — and reject it so we
-    // never compare the conjugated form (p36 CRITICAL). A genuine lexical form
-    // differs from the pointed passage word.
+    // The data layer records whether this is a genuine StepBible lexical form or
+    // its passage-text fallback. Older serialized data lacks the source marker,
+    // so retain the value comparison as a conservative compatibility guard.
     const hebrew = word.wordInformation?.hebrew?.trim();
+    const source = word.wordInformation?.hebrewSource;
     const wlc = word.wlcWord?.trim();
-    if (hebrew && hebrew !== wlc) {
+    const isLexical = source === "lexical" || (source === undefined && hebrew !== wlc);
+    if (hebrew && isLexical) {
       lexical = hebrew;
     }
   }
@@ -220,14 +214,6 @@ const mainMorphology = (morphology?: string): string | null => {
 const partOfSpeech = (morphology?: string): string | null =>
   mainMorphology(morphology)?.charAt(0) || null;
 
-const vowelSequence = (word: WordProps): string => {
-  const matches = conjugatedTransliteration(word)
-    .normalize("NFKD")
-    .toLowerCase()
-    .match(/[aeiou]/g);
-  return matches?.join("") ?? "";
-};
-
 /**
  * The leading preposition prefix letter (ב ל כ מ) of the conjugated form, if the
  * morphology confirms a prefixed preposition morpheme (OSHB code "R" among the
@@ -264,18 +250,6 @@ const inProximity = (a: WordProps, b: WordProps): boolean =>
 
 const computeSecondaryTags = (a: WordProps, b: WordProps): SecondaryTag[] => {
   const tags: SecondaryTag[] = [];
-
-  const vowelsA = vowelSequence(a);
-  const vowelsB = vowelSequence(b);
-  if (vowelsA && vowelsA === vowelsB) {
-    tags.push("similar-vowels");
-  }
-
-  const morphologyA = mainMorphology(a.morphology);
-  const morphologyB = mainMorphology(b.morphology);
-  if (morphologyA && morphologyA === morphologyB) {
-    tags.push("similar-conjugation");
-  }
 
   const posA = partOfSpeech(a.morphology);
   const posB = partOfSpeech(b.morphology);

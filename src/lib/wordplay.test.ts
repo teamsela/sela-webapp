@@ -64,6 +64,7 @@ describe("wordSoundIds", () => {
       wlcWord: "מָמָ",
       wordInformation: {
         hebrew: "בָּקָר",
+        hebrewSource: "lexical",
         transliteration: "ba.qar",
         gloss: "",
         morphology: "",
@@ -106,6 +107,7 @@ describe("wordLetterIds", () => {
       motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
       wordInformation: {
         hebrew: "קֶבֶר",
+        hebrewSource: "lexical",
         transliteration: "",
         gloss: "",
         morphology: "",
@@ -117,13 +119,12 @@ describe("wordLetterIds", () => {
     expect(wordLetterIds(word)).toEqual(["qof", "bet", "resh"]);
   });
 
-  it("rejects wordInformation.hebrew when it equals the conjugated wlcWord (StepBible-miss fallback)", () => {
-    // actions.ts falls back to wlcWord when StepBible has no entry → hebrew===wlcWord.
-    // That is a conjugated form and must NOT be used for letter matching (p36).
+  it("accepts a genuine lexical form even when it equals the passage form", () => {
     const word = makeWord({
       motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
       wordInformation: {
         hebrew: "בְּקִבְרוֹ",
+        hebrewSource: "lexical",
         transliteration: "",
         gloss: "",
         morphology: "",
@@ -132,16 +133,15 @@ describe("wordLetterIds", () => {
       },
       wlcWord: "בְּקִבְרוֹ",
     });
-    expect(wordLetterIds(word)).toEqual([]);
+    expect(wordLetterIds(word)).toEqual(["bet", "qof", "bet", "resh", "vav"]);
   });
 
-  it("rejects the StepBible fallback even when wlcWord has surrounding whitespace", () => {
-    // The data layer trims `hebrew` but not the stored `wlcWord`; the guard must
-    // compare trimmed values so whitespace can't smuggle the conjugated form in.
+  it("rejects the explicit passage fallback even when values differ by whitespace", () => {
     const word = makeWord({
       motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
       wordInformation: {
         hebrew: "בְּקִבְרוֹ",
+        hebrewSource: "passage-fallback",
         transliteration: "",
         gloss: "",
         morphology: "",
@@ -330,7 +330,7 @@ describe("secondary tags", () => {
     expect(candidates[0].secondaryTags).not.toContain("proximity");
   });
 
-  it("flags similar conjugation, same part of speech, and same preposition prefix", () => {
+  it("flags same part of speech and same preposition prefix", () => {
     const candidates = findSoundplayCandidates([
       makeWord({
         passageTransliteration: "ba.qe.ver",
@@ -348,23 +348,8 @@ describe("secondary tags", () => {
         stropheId: 0,
       }),
     ]);
-    expect(candidates[0].secondaryTags).toContain("similar-conjugation");
     expect(candidates[0].secondaryTags).toContain("same-pos");
     expect(candidates[0].secondaryTags).toContain("same-preposition");
-  });
-
-  it("flags identical conjugated vowel sequences and rejects different ones", () => {
-    const similar = findSoundplayCandidates([
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1120 }),
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1121 }),
-    ]);
-    expect(similar[0].secondaryTags).toContain("similar-vowels");
-
-    const different = findSoundplayCandidates([
-      makeWord({ passageTransliteration: "ba.qe.ver", strongNumber: 1122 }),
-      makeWord({ passageTransliteration: "bo.qo.var", strongNumber: 1123 }),
-    ]);
-    expect(different[0].secondaryTags).not.toContain("similar-vowels");
   });
 
   it("does NOT flag a preposition when morphology shows no prefix (avoids false positives)", () => {
