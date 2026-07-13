@@ -1,3 +1,5 @@
+import type { RichDoc } from "./richText";
+
 export enum ColorActionType {
     none,
     colorFill,
@@ -73,11 +75,18 @@ export enum SyntaxType {
     personsGenderNumber
 }
 
-export type StropheNote = { title: string, text: string, firstWordId: number , lastWordId: number };
-export type LayerNote = { text: string, strophes: StropheNote[] };
+// `title` stays single-line plain text (shown on the strophe when notes are
+// inactive); `text` is a rich-text doc after the upgrade, legacy plain string
+// before it (migrated on read).
+export type StropheNote = { title: string, text: string | RichDoc, firstWordId: number , lastWordId: number };
+// A layer's own note plus its per-strophe notes. `text` is rich-text after the
+// upgrade, legacy plain string before it (migrated on read).
+export type LayerNote = { text: string | RichDoc, strophes: StropheNote[] };
 export type StudyNotes = {
-  main: string;
-  strophes?: StropheNote[];        // root-level strophes (legacy / layer-0 fallback)
-  layers?: LayerNote[];            // reserved for future structured per-layer notes
-  layerStrophes?: Record<string, StropheNote[]>; // per-layer strophe notes keyed by layer id
+  version?: number;
+  main: string | RichDoc;                          // rich-text after upgrade; legacy plain string migrated on read
+  strophes?: StropheNote[];                         // root-level strophes (legacy / layer-0 fallback)
+  layers?: LayerNote[];                             // reserved for future structured per-layer notes
+  layerNotes?: Record<string, string | RichDoc>;   // per-layer main note keyed by layer id
+  layerStrophes?: Record<string, StropheNote[]>;   // per-layer strophe notes keyed by layer id
 };

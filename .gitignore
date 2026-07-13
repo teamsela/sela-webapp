@@ -50,6 +50,9 @@ next-env.d.ts
 /.vscode/*
 !/.vscode/mcp.json
 
+# claude
+.claude/
+
 # migration api routes
 /src/app/api/admin/migrate/route.ts
 

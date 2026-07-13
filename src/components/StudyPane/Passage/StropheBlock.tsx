@@ -217,6 +217,15 @@ export const StropheBlock = ({
     }
     return sizeStyles;
   }, [ctxStropheNoteBtnOn, wordAreaHeight]);
+  // Signature of the strophe's rendered content. Changes when lines/words are
+  // added or removed (e.g. merging or splitting strophes), which is what should
+  // trigger a re-measure of the note panel height.
+  const wordAreaSignature = useMemo(() => {
+    let words = 0;
+    stropheProps.lines.forEach((line) => { words += line.words.length; });
+    return `${stropheProps.lines.length}:${words}:${firstWordId}:${lastWordId}`;
+  }, [stropheProps, firstWordId, lastWordId]);
+
   const syncWordAreaHeight = useCallback(() => {
     const el = wordAreaRef.current;
     if (!el) return;
@@ -228,19 +237,33 @@ export const StropheBlock = ({
     }
   }, [ctxScaleValue]);
 
-  useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return;
-    const el = wordAreaRef.current;
-    if (!el) return;
-
-    syncWordAreaHeight();
-    const observer = new ResizeObserver(() => syncWordAreaHeight());
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-    };
+  // Callback ref so the ResizeObserver always tracks the *current* word-area node.
+  // A plain effect keyed on syncWordAreaHeight would keep observing a stale node
+  // when the layout swaps it (e.g. toggling between side-by-side and overlay
+  // note modes), so the panel height would stop updating.
+  const wordAreaObserverRef = useRef<ResizeObserver | null>(null);
+  const attachWordArea = useCallback((node: HTMLDivElement | null) => {
+    wordAreaRef.current = node;
+    if (wordAreaObserverRef.current) {
+      wordAreaObserverRef.current.disconnect();
+      wordAreaObserverRef.current = null;
+    }
+    if (node && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => syncWordAreaHeight());
+      observer.observe(node);
+      wordAreaObserverRef.current = observer;
+      syncWordAreaHeight();
+    }
   }, [syncWordAreaHeight]);
 
+  useEffect(() => () => {
+    wordAreaObserverRef.current?.disconnect();
+    wordAreaObserverRef.current = null;
+  }, []);
+
+  // Re-measure after layout whenever anything that affects the word-area height
+  // changes — crucially including strophe content changes from merge/split, via
+  // wordAreaSignature (the ResizeObserver alone does not catch these reliably).
   useLayoutEffect(() => {
     if (!shouldRenderWordArea) return;
     const frame = requestAnimationFrame(() => {
@@ -249,7 +272,7 @@ export const StropheBlock = ({
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
+  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, wordAreaSignature, syncWordAreaHeight]);
 
   const contentWidthClass = "w-full min-w-0";
 
@@ -335,7 +358,7 @@ export const StropheBlock = ({
               <div
                 className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
+                <div ref={attachWordArea}>
                   {stropheNoteTitle && shouldRenderWordArea && (
                   <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
                     <span
@@ -393,7 +416,7 @@ export const StropheBlock = ({
               <div
                 className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
+                <div ref={attachWordArea}>
                   {stropheNoteTitle && shouldRenderWordArea && (
                   <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
                     <span

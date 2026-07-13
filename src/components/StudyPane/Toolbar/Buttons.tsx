@@ -145,7 +145,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
     ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxNumSelectedLayers, ctxAddToHistory,
-    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds,
+    ctxAccentBorderWordIds
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -270,6 +271,30 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
     });
 
+    // Structure "Accents in Poetry": when a background (fill) color is applied to
+    // the selected ending words, mirror it as a BORDER onto the accent's portion
+    // words (cross-word lead words) — the same fill/border split Smart Highlight
+    // uses. Portion words are never part of the editable selection.
+    const accentBorderIds =
+      colorAction === ColorActionType.colorFill ? (ctxAccentBorderWordIds ?? []) : [];
+    const selectedWordIdSet = new Set(ctxSelectedWords.map((word) => word.wordId));
+    accentBorderIds.forEach((wordId) => {
+      if (selectedWordIdSet.has(wordId)) {
+        return; // a word that is itself selected keeps its fill
+      }
+      const wordMetadata = ctxStudyMetadata.words[wordId];
+      if (!wordMetadata) {
+        ctxStudyMetadata.words[wordId] = { color: { border: color.hex } };
+        isChanged = true;
+        return;
+      }
+      wordMetadata.color ??= {};
+      if (wordMetadata.color.border !== color.hex) {
+        wordMetadata.color.border = color.hex;
+        isChanged = true;
+      }
+    });
+
     if (ctxSelectedStrophes.length > 0) {
 
       // find the index to the first word of the strophe
@@ -316,6 +341,19 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           }
         });
       }
+
+      // Mirror the accent portion (border) words into the color map too.
+      accentBorderIds.forEach((wordId) => {
+        if (selectedWordIdSet.has(wordId)) {
+          return;
+        }
+        const wordMd = ctxStudyMetadata.words[wordId];
+        const { source: _src, ...normalized } = wordMd?.color || {};
+        if (Object.keys(normalized).length > 0) {
+          nextColorMap.set(wordId, { ...normalized });
+          mapChanged = true;
+        }
+      });
 
       if (mapChanged) {
         ctxSetWordsColorMap(nextColorMap);

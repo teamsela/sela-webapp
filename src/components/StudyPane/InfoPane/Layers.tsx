@@ -4,6 +4,8 @@ import { LuTextSelect, LuChevronsDownUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
+import { RichDoc, toRichDoc, firstLineText } from "@/lib/richText";
+import RichTextEditor from "./RichTextEditor";
 import DeleteLayerModal from "@/components/Modals/DeleteLayer";
 import { DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 
@@ -43,6 +45,7 @@ const Layers = () => {
     ctxSwitchLayer,
     ctxCreateLayer,
     ctxDeleteLayer,
+    ctxInViewMode,
   } = useContext(FormatContext);
 
   const [selectMode, setSelectMode] = useState<SelectMode>("plain");
@@ -59,16 +62,22 @@ const Layers = () => {
   // Id of the layer pending deletion (drives the confirmation modal).
   const [layerToDeleteId, setLayerToDeleteId] = useState<number | null>(null);
 
-  // Per-layer notes keyed by layer id, initialised from ctxStudyNotes.
-  const [layerNotes, setLayerNotes] = useState<Record<string, string>>(() => {
+  // Per-layer notes keyed by layer id, initialised from ctxStudyNotes. Stored as
+  // rich-text docs; legacy plain-text notes are migrated to docs on read.
+  const [layerNotes, setLayerNotes] = useState<Record<string, RichDoc>>(() => {
     if (!ctxStudyNotes) return {};
     try {
       const parsed = JSON.parse(ctxStudyNotes);
-      return (parsed?.layerNotes as Record<string, string>) ?? {};
+      const raw = (parsed?.layerNotes as Record<string, string | RichDoc>) ?? {};
+      const migrated: Record<string, RichDoc> = {};
+      for (const [key, value] of Object.entries(raw)) migrated[key] = toRichDoc(value);
+      return migrated;
     } catch {
       return {};
     }
   });
+
+  const editable = !ctxInViewMode;
 
   // Save infrastructure for layer notes — mirrors the Notes / StropheNotes pattern.
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,9 +138,12 @@ const Layers = () => {
   useEffect(() => {
     if (!notesExpanded) return;
     const onDocMouseDown = (e: MouseEvent) => {
-      if (expandedNoteRef.current && !expandedNoteRef.current.contains(e.target as Node)) {
-        setNotesExpanded(false);
-      }
+      const target = e.target as Node;
+      if (expandedNoteRef.current?.contains(target)) return;
+      // The rich-text formatting menu is portaled to document.body, so clicks on
+      // it land outside the note wrapper — don't treat those as an outside click.
+      if (target instanceof Element && target.closest('[role="menu"]')) return;
+      setNotesExpanded(false);
     };
     document.addEventListener("mousedown", onDocMouseDown);
     return () => document.removeEventListener("mousedown", onDocMouseDown);
@@ -234,8 +246,8 @@ const Layers = () => {
     ctxSetSelectedColor("");
   };
 
-  const handleNoteChange = useCallback((layerId: number, value: string) => {
-    const updated = { ...layerNotes, [String(layerId)]: value };
+  const handleNoteChange = useCallback((layerId: number, doc: RichDoc) => {
+    const updated = { ...layerNotes, [String(layerId)]: doc };
     setLayerNotes(updated);
 
     let parsed: Record<string, unknown> = {};
@@ -341,8 +353,8 @@ const Layers = () => {
             outline = `3px solid ${SELECT_OUTLINE}`;
           }
 
-          const noteValue = layerNotes[String(layer.id)] ?? "";
-          const notePeek = noteValue.split("\n")[0].trim();
+          const noteDoc = layerNotes[String(layer.id)];
+          const notePeek = firstLineText(noteDoc).trim();
 
           return (
             // The whole box (header + note) carries the fill background and the
@@ -432,16 +444,18 @@ const Layers = () => {
                     ref={expandedNoteRef}
                     className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
                   >
-                    <textarea
-                      autoFocus
-                      value={noteValue}
-                      onChange={(e) => handleNoteChange(layer.id, e.target.value)}
+                    <RichTextEditor
+                      value={noteDoc}
+                      onChange={(doc) => handleNoteChange(layer.id, doc)}
+                      editable={editable}
                       placeholder="Click here to add notes"
-                      className="min-h-0 w-full flex-1 resize-none rounded-lg bg-white px-4 py-2 pr-10 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
+                      autoFocus
+                      fill
+                      className="min-h-0 flex-1 bg-white dark:bg-boxdark"
                     />
                     <button
                       title="Collapse notes"
-                      className="absolute right-5 top-2 hover:opacity-70"
+                      className="absolute right-3 top-2 z-20 rounded bg-white/80 hover:opacity-70 dark:bg-boxdark/80"
                       style={{ color: "#656565" }}
                       onClick={(e) => {
                         e.stopPropagation();

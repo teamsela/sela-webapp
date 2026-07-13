@@ -101,7 +101,7 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxActiveHighlightIds: { syntax: null, motif: null, structure: null } as Record<ColorSource, string | null>,
   ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
@@ -140,6 +140,12 @@ export const FormatContext = createContext({
   ctxSwitchLayer: (_id: number) => {},
   ctxCreateLayer: (_layer: LayerDef) => {},
   ctxDeleteLayer: (_id: number) => {},
+  ctxCurrentSpokenWordIds: [] as number[],
+  ctxSetCurrentSpokenWordIds: (_arg: number[]) => {},
+  // Accent "portion" words (cross-word lead words) tied to the current Structure
+  // selection; they receive a matching border when a fill color is applied.
+  ctxAccentBorderWordIds: [] as number[],
+  ctxSetAccentBorderWordIds: (_arg: number[]) => {}
 });
 
 // Clone a word map for a new layer, dropping colour and strophe-note data while
@@ -218,6 +224,7 @@ const StudyPane = ({
   const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
     syntax: null,
     motif: null,
+    structure: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
@@ -252,11 +259,13 @@ const StudyPane = ({
   const [selectedLetterChipIds, setSelectedLetterChipIds] = useState<string[]>([]);
   const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
+  const [accentBorderWordIds, setAccentBorderWordIds] = useState<number[]>([]);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
   const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
+  const [currentSpokenWordIds, setCurrentSpokenWordIds] = useState<number[]>([]);
 
   const addToHistory = (
     updatedMetadata: StudyMetadata,
@@ -515,7 +524,11 @@ const StudyPane = ({
     ctxActiveLayerId: activeLayerId,
     ctxSwitchLayer: switchLayer,
     ctxCreateLayer: createLayer,
-    ctxDeleteLayer: deleteLayer
+    ctxDeleteLayer: deleteLayer,
+    ctxCurrentSpokenWordIds: currentSpokenWordIds,
+    ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds,
+    ctxAccentBorderWordIds: accentBorderWordIds,
+    ctxSetAccentBorderWordIds: setAccentBorderWordIds
   };
 
   useEffect(() => {
