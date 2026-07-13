@@ -13,10 +13,11 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
   const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
+  const shouldStretchReadmeStanza = ctxReadmeBtnOn && ctxLanguageMode != LanguageMode.Parallel;
   const handleCollapseBlockClick = () => {
     setExpanded(prevState => !prevState);
 
@@ -74,7 +75,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} grow-0 ${expanded ? 'flex-1' : ''} ${ctxIsHebrew ? 'pl-2' : 'pr-2'} rounded border`} 
+      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${ctxIsHebrew ? 'pl-2' : 'pr-2'} rounded border`}
       >
       <div
         className={`z-1 ${ctxLanguageMode == LanguageMode.Parallel ? 'relative' : 'absolute'} top-0 p-[0.5] m-[0.5] bg-transparent ${ctxIsHebrew ? 'left-0' : 'right-0'}`}
@@ -90,7 +91,7 @@ export const StanzaBlock = ({
 
       </button>
       </div>
-      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? 'w-full' : ''}`}>
+      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || shouldStretchReadmeStanza ? 'w-full min-w-0' : ''}`}>
       {
           stanzaProps.strophes.map((strophe) => {
               return (

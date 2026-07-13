@@ -134,6 +134,8 @@ export const FormatContext = createContext({
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
   ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxReadmeBtnOn: false,
+  ctxSetReadmeBtnOn: (arg: boolean) => {},
   ctxLayers: [INITIAL_LAYER_DEF] as LayerDef[],
   ctxSetLayers: (_arg: LayerDef[]) => {},
   ctxActiveLayerId: 0,
@@ -265,6 +267,7 @@ const StudyPane = ({
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
   const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
+  const [readmeBtnOn, setReadmeBtnOn] = useState(false);
   const [currentSpokenWordIds, setCurrentSpokenWordIds] = useState<number[]>([]);
 
   const addToHistory = (
@@ -519,6 +522,8 @@ const StudyPane = ({
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
     ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxReadmeBtnOn: readmeBtnOn,
+    ctxSetReadmeBtnOn: setReadmeBtnOn,
     ctxLayers: layerDefs,
     ctxSetLayers: handleSetLayers,
     ctxActiveLayerId: activeLayerId,
@@ -534,7 +539,11 @@ const StudyPane = ({
   useEffect(() => {
 
     // merge custom metadata with bible data
-    let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
+    let initPassageProps : PassageProps = mergeData(
+      passageData.bibleData,
+      studyMetadata,
+      { useSourceStanzaBreaks: readmeBtnOn }
+    );
     setPassageProps(initPassageProps);
     
     // Handle migration from old BoxDisplayStyle enum to new BoxDisplayConfig
@@ -560,7 +569,7 @@ const StudyPane = ({
       studyMetadata.nonEnglishDisplayMode ?? NonEnglishDisplayMode.Hebrew,
     );
   
-  }, [passageData.bibleData, studyMetadata]);
+  }, [passageData.bibleData, studyMetadata, readmeBtnOn]);
 
   if (!passageData.study.metadata.words) {
     let emptyStudyMetadata : StudyMetadata = { words: {} };

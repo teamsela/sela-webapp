@@ -29,6 +29,7 @@ export const hebBible = pgTable('heb_bible_test', {
   ETCBCgloss: text('ETCBCgloss'),
   morphology: text('morphology'),
   BSBnewLine: boolean('BSBnewLine'),
+  BSBstanzaBreak: boolean('BSBstanzaBreak'),
   motifLinkId: text('motifLink'), // FK to motif_link
 });
 

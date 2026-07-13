@@ -81,6 +81,7 @@ const tables = [
       { name: "BSBVersion", type: "text" },
       { name: "mergecolumn", type: "float" },
       { name: "BSBnewLine", type: "bool" },
+      { name: "BSBstanzaBreak", type: "bool" },
       { name: "motifLink", type: "link", link: { table: "motif" } },
     ],
   },

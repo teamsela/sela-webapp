@@ -26,7 +26,7 @@ export const StropheBlock = ({
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
-    ctxActiveLayerId,
+    ctxActiveLayerId, ctxReadmeBtnOn,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -373,10 +373,11 @@ export const StropheBlock = ({
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
-                        <div 
-                          key={"line_" + lineId}
+                        <React.Fragment key={"line_" + lineId}>
+                        {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+                        <div
                           data-strophe-line="true"
-                          className={`flex my-1`}
+                          className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
                         >
                         {
                           line.words.map((word) => {
@@ -395,6 +396,7 @@ export const StropheBlock = ({
                           })
                         }
                         </div>
+                        </React.Fragment>
                       )
                     })
                   }
@@ -432,10 +434,11 @@ export const StropheBlock = ({
                   {
                     stropheProps.lines.map((line, lineId) => {
                       return (
-                        <div 
-                          key={"line_" + lineId}
+                        <React.Fragment key={"line_" + lineId}>
+                        {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+                        <div
                           data-strophe-line="true"
-                          className={`flex my-1 `}
+                          className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
                         >
                         {
                           line.words.map((word) => {
@@ -454,6 +457,7 @@ export const StropheBlock = ({
                           })
                         }
                         </div>
+                        </React.Fragment>
                       )
                     })
                   }

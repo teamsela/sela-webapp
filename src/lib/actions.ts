@@ -491,6 +491,7 @@ export async function fetchPassageData(studyId: string) {
               ETCBCgloss: hebBible.ETCBCgloss,
               morphology: hebBible.morphology,
               BSBnewLine: hebBible.BSBnewLine,
+              BSBstanzaBreak: hebBible.BSBstanzaBreak,
               motifCategories: motifLink.categories,
               relatedStrongCodes: motifLink.relatedStrongCodes,
               motifLemma: lemmaLink.lemma,
@@ -831,6 +832,9 @@ export async function fetchPassageData(studyId: string) {
           hebWord.morphology = word.morphology?.trim() || "";
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
+          hebWord.BSBnewLine = (word.BSBnewLine) || false;
+          hebWord.newVerse = false;
+          hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
 
           if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
             const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))

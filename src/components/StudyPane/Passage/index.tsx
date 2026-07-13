@@ -23,7 +23,7 @@ const Passage = ({
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn,
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
     ctxNonEnglishDisplayMode,
   } = useContext(FormatContext);
 
@@ -36,6 +36,11 @@ const Passage = ({
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
   useEffect(() => {
+    // Reader mode locks the passage to the Bible's own layout — ignore structure edits.
+    if (ctxReadmeBtnOn) {
+      ctxSetStructureUpdateType(StructureUpdateType.none);
+      return;
+    }
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
@@ -388,7 +393,9 @@ const Passage = ({
 
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
-      const updatedPassageProps = mergeData(bibleData, newMetadata);
+      const updatedPassageProps = mergeData(bibleData, newMetadata, {
+        useSourceStanzaBreaks: false,
+      });
 
       const updatedStropheNotes: StropheNote[] = [];
       let oldNotes: StudyNotes = { main: "", strophes: [] };
@@ -439,7 +446,7 @@ const Passage = ({
       // Reset the structure update type
       ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
+  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect identical words
@@ -477,12 +484,12 @@ const Passage = ({
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div
-        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${ctxReadmeBtnOn ? 'w-full min-w-0' : (ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
         id='selaPassage'
       >
         { ctxLanguageMode == LanguageMode.English && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-            <PassageBlock displayMode="gloss"/> 
+          <div className={`flex flex-row mx-auto ${ctxReadmeBtnOn ? 'w-full min-w-0' : ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+            <PassageBlock displayMode="gloss"/>
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
@@ -492,8 +499,8 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Hebrew && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-          <PassageBlock displayMode={nonEnglishDisplayMode}/> 
+          <div className={`flex flex-row mx-auto ${ctxReadmeBtnOn ? 'w-full min-w-0' : ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+          <PassageBlock displayMode={nonEnglishDisplayMode}/>
           </div>
         }
       </div>

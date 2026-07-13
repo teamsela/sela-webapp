@@ -382,7 +382,11 @@ export function strophesHasSameColor(strophes: StropheProps[], actionType: Color
   return true;
 }
 
-export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata) : PassageProps => {
+export const mergeData = (
+  bibleData: WordProps[],
+  studyMetadata : StudyMetadata,
+  options?: { useSourceStanzaBreaks?: boolean }
+) : PassageProps => {
 
   let passageProps : PassageProps = { stanzaProps: [], stanzaCount: 0, stropheCount: 0 }
 
@@ -391,6 +395,9 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
   let runningStropheIdx = -1;
   let currentLineIdx = -1;
   let prevVerseNum = 0;
+  // Reader mode: lay the passage out by the Bible's own (BSB) source breaks
+  // instead of the user's custom strophe/stanza/line divisions.
+  const useReadmeParagraphMode = options?.useSourceStanzaBreaks === true;
 
   bibleData.forEach((wordProps) => {
 
@@ -410,7 +417,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
-    if (currentStanzaData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stanzaDiv)) {
+    const startsNewStanza = useReadmeParagraphMode
+      ? false
+      : Boolean(wordProps.metadata?.stanzaDiv);
+    if (currentStanzaData === undefined || startsNewStanza) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
 
@@ -424,7 +434,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
     }
 
     let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
-    if (currentStropheData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stropheDiv)) {
+    const startsNewStrophe = useReadmeParagraphMode
+      ? false
+      : Boolean(wordProps.metadata?.stropheDiv);
+    if (currentStropheData === undefined || startsNewStrophe) {
       passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
       ++currentStropheIdx;
       currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
@@ -442,8 +455,29 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
     let currentLineData = currentStropheData.lines[currentLineIdx];
     let ignoreNewLine = wordProps.metadata?.ignoreNewLine || false;
-    if (currentLineData === undefined || (!ignoreNewLine && (wordProps.newLine || (wordProps.metadata && wordProps.metadata.lineBreak)))) {
-      currentStropheData.lines.push({lineId: ++currentLineIdx, words: []})
+    wordProps.newVerse = prevVerseNum !== 0 && prevVerseNum !== wordProps.verse;
+    const hasSourceLineBreak = useReadmeParagraphMode ? wordProps.BSBnewLine : wordProps.newLine;
+    const hasManualLineBreak = Boolean(wordProps.metadata?.lineBreak);
+    // A BSB source stanza break becomes an extra paragraph gap in reader mode,
+    // unless the word already begins a user-defined strophe/stanza (whose own
+    // spacing takes over) — avoids a redundant blank line.
+    const startsNewParagraph = useReadmeParagraphMode
+      && !ignoreNewLine
+      && Boolean(wordProps.BSBstanzaBreak)
+      && currentLineData !== undefined
+      && currentLineData.words.length > 0
+      && !startsNewStrophe
+      && !startsNewStanza;
+    if (
+      currentLineData === undefined
+      || startsNewParagraph
+      || (!ignoreNewLine && (hasSourceLineBreak || hasManualLineBreak))
+    ) {
+      currentStropheData.lines.push({
+        lineId: ++currentLineIdx,
+        words: [],
+        paragraphBreakBefore: startsNewParagraph,
+      })
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 

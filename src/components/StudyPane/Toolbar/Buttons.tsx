@@ -6,7 +6,7 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled, TbEdit } from "react-icons/tb";
-import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease, CgEreader } from "react-icons/cg";
 import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
@@ -808,7 +808,7 @@ const areWordsContiguous = (words: WordProps[]): boolean => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
+  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps, ctxReadmeBtnOn } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
@@ -865,6 +865,9 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
       (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1) &&
       areStrophesContiguous(ctxSelectedStrophes);
   }
+
+  // Reader mode locks the passage to the Bible's own layout — structure edits off.
+  if (ctxReadmeBtnOn) buttonEnabled = false;
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 
@@ -939,4 +942,18 @@ export const StropheNoteBtn = () => {
       </button>
     </div>
   )
+}
+
+export const ReadmeBtn = () => {
+  const { ctxReadmeBtnOn, ctxSetReadmeBtnOn } = useContext(FormatContext)
+  return (
+    <div className="p-2">
+      <button
+        className={`${ctxReadmeBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center`}
+        onClick={() => {ctxSetReadmeBtnOn(!ctxReadmeBtnOn)}}
+      >
+        <CgEreader />
+      </button>
+    </div>
+  );
 }
