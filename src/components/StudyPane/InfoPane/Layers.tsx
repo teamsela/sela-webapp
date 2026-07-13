@@ -435,7 +435,7 @@ const Layers = () => {
                   />
                 ) : (
                   <span
-                    className="flex-1 cursor-text text-lg"
+                    className={`flex-1 text-lg ${isSelected ? "cursor-text" : ""}`}
                     style={{ color: layer.text }}
                     onDoubleClick={() => startEditing(layer.id, layer.name)}
                   >
