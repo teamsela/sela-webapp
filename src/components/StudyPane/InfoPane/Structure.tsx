@@ -110,11 +110,11 @@ const AccentCategoryButton = ({
       disabled={disabled}
       aria-pressed={selected}
       style={style}
-      className={`ClickBlock relative flex w-full items-center justify-between rounded-md border-2 px-4 py-3 text-sm font-medium transition
+      className={`ClickBlock relative flex w-full items-center justify-between rounded-md border-2 px-4 py-1 text-lg transition
         ${disabled ? "cursor-not-allowed opacity-50" : "hover:opacity-90"}
         ${selected ? "outline outline-[3px] outline-offset-1 outline-[#FFC300] drop-shadow-md" : ""}`}
     >
-      <span className="flex-1 select-none text-center">{label}</span>
+      <span className="flex-1 select-none text-center leading-none">{label}</span>
       <span className="flex h-6.5 min-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] px-2 text-sm text-black">
         {count}
       </span>
@@ -505,6 +505,24 @@ const Structure = () => {
                       {renderCategoryButton("conjunctive", "All")}
                     </div>
                   </div>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleSmartHighlight}
+                      disabled={highlightDisabled}
+                      aria-pressed={isHighlightActive}
+                      className={`ClickBlock inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-center font-medium transition lg:px-8 xl:px-10 ${
+                        highlightDisabled
+                          ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                          : isHighlightActive
+                            ? "bg-slate-300 text-slate-800 hover:bg-slate-200"
+                            : "bg-primary text-white hover:bg-opacity-90"
+                      }`}
+                    >
+                      {isHighlightActive ? "Clear Highlight" : "Smart Highlight"}
+                    </button>
+                  </div>
                 </>
               ) : (
                 <p className="text-sm text-slate-500 dark:text-slate-300">
@@ -516,26 +534,6 @@ const Structure = () => {
           )}
         </div>
       </div>
-
-      {isPoeticBook && (
-        <div className="flex justify-center p-4">
-          <button
-            type="button"
-            onClick={handleSmartHighlight}
-            disabled={highlightDisabled}
-            aria-pressed={isHighlightActive}
-            className={`ClickBlock inline-flex w-full items-center justify-center gap-2.5 rounded-full px-8 py-4 text-center font-medium transition ${
-              highlightDisabled
-                ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                : isHighlightActive
-                  ? "bg-slate-300 text-slate-800 hover:bg-slate-200"
-                  : "bg-primary text-white hover:bg-opacity-90"
-            }`}
-          >
-            {isHighlightActive ? "Clear Highlight" : "Smart Highlight"}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
