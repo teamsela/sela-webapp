@@ -37,6 +37,7 @@ export type StropheMap = {
 
 export type StanzaMetadata = {
     expanded?: boolean;
+    title?: string;
 }
 
 export type StanzaMap = {
