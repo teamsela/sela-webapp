@@ -198,11 +198,11 @@ export const StanzaBlock = ({
       <button
         type="button"
         onClick={startEditing}
-        className={`flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
+        className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >
         <span
-          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'opacity-50 italic' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
+          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
           dir="auto"
           style={{ color: contrastingForegroundColor }}
         >
@@ -215,7 +215,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative ${ctxLanguageMode == LanguageMode.Parallel ? 'flex flex-row-reverse' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${ctxIsHebrew ? 'pl-2' : 'pr-2'} rounded border`}
+      className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
       >
       <div
         className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${stanzaCollapseButtonSideClass}`}
