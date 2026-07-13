@@ -117,10 +117,39 @@ describe("Revia Mugrash", () => {
     const r = scanAccents([token(word(C.GERESH_MUQDAM, C.REVIA))]);
     expect(r.counts["revia-mugrash"]).toBe(1);
     expect(r.counts["geresh"]).toBe(0);
+    // The Revia is consumed by Revia Mugrash — NOT re-counted as a bare revi'i.
+    expect(r.counts["revia"]).toBe(0);
     expect(r.ids[0]).toContain("revia-mugrash");
     expect(tokenCategory(r.ids[0])).toBe(2);
     // both marks consumed by a single occurrence
     expect(r.spans["revia-mugrash"][0].claims).toHaveLength(2);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3b. Revia (revi'i) — bare Level 3 disjunctive
+// ════════════════════════════════════════════════════════════════════════════
+
+describe("Revia (revi'i)", () => {
+  it("classifies a standalone Revia → revi'i (L3)", () => {
+    const r = scanAccents([token(word(C.REVIA))]);
+    expect(r.counts["revia"]).toBe(1);
+    expect(r.ids[0]).toContain("revia");
+    expect(tokenCategory(r.ids[0])).toBe(3);
+  });
+
+  it("does NOT tag a Revia bound into Revia Mugrash or a Dechi compound", () => {
+    // word 1: Geresh Muqdam + Revia (revia-mugrash); word 2: Dechi + Revia (dechi);
+    // word 3: a lone Revia (revi'i).
+    const r = scanAccents([
+      token(word(C.GERESH_MUQDAM, C.REVIA), 1),
+      token(word(C.DEHI, C.REVIA), 2),
+      token(word(C.REVIA), 3),
+    ]);
+    expect(r.counts["revia-mugrash"]).toBe(1);
+    expect(r.counts["dechi"]).toBe(1);
+    expect(r.counts["revia"]).toBe(1); // only the standalone one
+    expect(tokenCategory(r.ids[2])).toBe(3);
   });
 });
 
@@ -137,9 +166,8 @@ describe("Dechi compound absorption", () => {
     const r = scanAccents([token(word(C.DEHI, cp))]);
     expect(r.counts["dechi"]).toBe(1);
     expect(r.spans["dechi"][0].claims).toHaveLength(2);
-    if (id !== "revia") {
-      expect(r.counts[id]).toBe(0);
-    }
+    // The absorbed mark (incl. a Revia) is never re-counted on its own.
+    expect(r.counts[id]).toBe(0);
   });
 });
 

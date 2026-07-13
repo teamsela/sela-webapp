@@ -118,6 +118,7 @@ export const ACCENT_REGISTRY: readonly AccentDefinition[] = [
   // ── Level 3 ──────────────────────────────────────────────────────────────
   { id: "tsinnor", label: "Tsinnor", level: 3 },
   { id: "dechi", label: "Dechi", level: 3 },
+  { id: "revia", label: "Revia", level: 3 },
   { id: "sinnorit-merkha", label: "Sinnorit Merkha", level: 3 },
   { id: "azla-tarcha", label: "Azla Tarcha", level: 3 },
   { id: "munach-munach", label: "Munach Munach", level: 3 },
@@ -426,6 +427,10 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
     scanReviaMugrash, // 3  L2
     () => bareScan("geresh", CP.GERESH), // 4  L2
     scanDechiAndCompounds, // 5  L3
+    // 5b: bare Revia = revi'i (L3 disjunctive). Runs AFTER Revia Mugrash (pass 3)
+    // and the Dechi+Revia compound (pass 5) so a Revia bound into either of those
+    // is already claimed; only a standalone Revia is tagged revi'i here.
+    () => bareScan("revia", CP.REVIA), // 5b L3
     () => bareScan("tsinnor", CP.ZINOR), // 6  L3
     () => bareScan("pazer", CP.PAZER), // 7  L4
     scanLegarmehFamily, // 8  L2/L4
