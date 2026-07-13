@@ -320,6 +320,10 @@ export const WordBlock = ({
     const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
     return normalizedColor === normalizedDefault;
   };
+  // Use box-shadow instead of outline for the selection ring — avoids layout
+  // shift on wrapping lines in reader mode. contain: paint creates a paint
+  // containment boundary so the shadow doesn't affect adjacent elements.
+  const selectedBoxShadow = selected ? '0 0 0 3px #FFC300' : undefined;
 
   const renderIndents = (times: number) => {
     return (
@@ -423,7 +427,7 @@ export const WordBlock = ({
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} rounded border ${selected ? 'drop-shadow-md' : 'outline-offset-[-4px]'}`}
         style={{
           background: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
             (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
@@ -437,6 +441,8 @@ export const WordBlock = ({
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
           lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
+          boxShadow: selectedBoxShadow,
+          contain: 'paint',
         }}>
         <span
           className={`flex ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''}`}

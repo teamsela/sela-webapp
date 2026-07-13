@@ -156,8 +156,13 @@ const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
   const result: WordMap = {};
   for (const key of Object.keys(words)) {
     const id = Number(key);
-    const { color, stropheMd, ...rest } = words[id];
+    const { color, stropheMd, stanzaMd, ...rest } = words[id];
+    // Keep structural divisions (stanzaDiv, stropheDiv, lineBreak, indent) but
+    // strip user-authored content: color, stanza title, strophe color/notes.
     const cloned: WordMetadata = structuredClone(rest);
+    cloned.stanzaMd = structuredClone({
+      expanded: stanzaMd?.expanded,
+    });
     if (stropheMd) {
       const { color: _stropheColor, notes: _stropheNotes, ...stropheRest } = stropheMd;
       cloned.stropheMd = structuredClone(stropheRest);
