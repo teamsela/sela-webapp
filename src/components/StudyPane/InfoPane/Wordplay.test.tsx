@@ -103,9 +103,17 @@ const EMPTY: CtxState = {
   highlightRestrictWordIds: [],
 };
 
-function Harness({ initialSelectedWords = [] }: { initialSelectedWords?: unknown[] }) {
+function Harness({
+  initialSelectedWords = [],
+  initialLetterHighlight = [],
+}: {
+  initialSelectedWords?: unknown[];
+  initialLetterHighlight?: string[];
+}) {
   const [s, setS] = useState<CtxState>({
     ...EMPTY,
+    highlightedLetterChipIds: initialLetterHighlight,
+    letterHighlightEnabled: initialLetterHighlight.length > 0,
     selectedWords: initialSelectedWords,
     numSelectedWords: initialSelectedWords.length,
   });
@@ -206,6 +214,30 @@ describe("Wordplay panel — tool switch", () => {
     expect(st.soundHighlightEnabled).toBe(true);
     expect(st.letterHighlightEnabled).toBe(false);
     expect(st.highlightedSoundChipIds.length).toBeGreaterThan(0);
+  });
+
+  it("does not claim or clear a sibling distribution highlight", () => {
+    render(<Harness initialLetterHighlight={["aleph"]} />);
+
+    expect(
+      screen.queryByRole("button", { name: "Clear Highlight" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Shared Sounds" }));
+
+    const st = readState();
+    expect(st.letterHighlightEnabled).toBe(true);
+    expect(st.highlightedLetterChipIds).toEqual(["aleph"]);
+  });
+
+  it("clears a candidate highlight owned by Wordplay when changing tools", () => {
+    render(<Harness />);
+    fireEvent.click(candidateWith("קֶבֶר"));
+    expect(readState().letterHighlightEnabled).toBe(true);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Shared Sounds" }));
+
+    expect(readState().letterHighlightEnabled).toBe(false);
+    expect(readState().highlightRestrictWordIds).toEqual([]);
   });
 });
 

@@ -1,5 +1,6 @@
 import { WordProps } from "@/lib/data";
 import {
+  normalizeHebrewLetterId,
   splitHebrewClusters,
   splitTransliterationSegments,
 } from "@/lib/hebrewHighlights";
@@ -93,19 +94,6 @@ export const SOUNDPLAY_STRONG_SHARED = 5;
 export const WORDPLAY_MIN_SHARED = 2;
 export const WORDPLAY_STRONG_SHARED = 3;
 
-// Normalise final letter forms to their base id so ק≈ק and צ≈ץ match, and the
-// rare-letter test works uniformly.
-const FINAL_FORM_TO_BASE: Record<string, string> = {
-  "final-kaf": "kaf",
-  "final-mem": "mem",
-  "final-nun": "nun",
-  "final-tsadi": "tsadi",
-  "final-pe": "pe",
-};
-
-const normalizeLetterId = (letterId: string): string =>
-  FINAL_FORM_TO_BASE[letterId] ?? letterId;
-
 const conjugatedTransliteration = (word: WordProps): string =>
   word.passageTransliteration || transliterateHebrew(word.wlcWord || "");
 
@@ -170,7 +158,7 @@ export const wordLetterIds = (word: WordProps): string[] => {
   return splitHebrewClusters(lexical.normalize("NFKD"))
     .map((cluster) => cluster.letterId)
     .filter((id): id is string => Boolean(id))
-    .map(normalizeLetterId);
+    .map(normalizeHebrewLetterId);
 };
 
 /**

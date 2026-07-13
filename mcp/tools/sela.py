@@ -1018,6 +1018,17 @@ async def sela_test_wordplay(
         if not missing_controls
         else f"FAIL: missing controls {missing_controls}",
     )
+    undefined_controls = [
+        label
+        for label in ("Similar vowels", "Similar conjugations")
+        if label in controls
+    ]
+    record(
+        "undefined_controls",
+        "PASS: undefined p106 controls are not implemented"
+        if not undefined_controls
+        else f"FAIL: undefined controls were implemented {undefined_controls}",
+    )
     adjacent_disabled = await page.get_by_role(
         "button", name="\u00b12 strophes"
     ).is_disabled()

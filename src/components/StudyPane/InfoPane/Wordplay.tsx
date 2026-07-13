@@ -1,43 +1,25 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
-import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
-import {
-  LETTER_CHIP_GROUPS,
-  LETTER_CHIP_MAP,
-  SOUND_CHIP_MAP,
-} from "@/lib/hebrewHighlights";
+import { LETTER_CHIP_MAP, SOUND_CHIP_MAP } from "@/lib/hebrewHighlights";
 import { WordProps } from "@/lib/data";
 import {
   SecondaryTag,
+  SOUNDPLAY_MIN_SHARED,
+  SOUNDPLAY_STRONG_SHARED,
   WordplayCandidate,
-  WordplayScope,
   WordplayTool,
-  findCandidates,
-  wordLetterIds,
-  wordSoundIds,
+  WORDPLAY_MIN_SHARED,
+  WORDPLAY_STRONG_SHARED,
 } from "@/lib/wordplay";
-
-// Base-letter ids that also have a final form; when highlighting the passage we
-// expand a base id to include its final form so ק≈ק and צ≈ץ both light up.
-const LETTER_ID_FINAL_FORMS = new Map(
-  LETTER_CHIP_GROUPS.filter((group) =>
-    group.memberIds.some((id) => id.startsWith("final-")),
-  ).map((group) => [
-    group.memberIds.find((id) => !id.startsWith("final-"))!,
-    group.memberIds,
-  ]),
-);
-
-const expandLetterIdsForHighlight = (ids: string[]): string[] => {
-  const expanded = new Set<string>();
-  ids.forEach((id) => {
-    (LETTER_ID_FINAL_FORMS.get(id) ?? [id]).forEach((member) => expanded.add(member));
-  });
-  return [...expanded];
-};
+import {
+  candidateKey,
+  TierFilter,
+  TraitFilter,
+  useWordplayController,
+} from "./Wordplay/useWordplayController";
 
 const chipLabel = (tool: WordplayTool, id: string): string => {
   if (tool === "soundplay") {
@@ -82,12 +64,15 @@ const TOOL_COPY: Record<
 // Tier filters are INCLUSION toggles (default on): they choose which generator
 // tier to show. Trait filters (opening/ending) are POSITIVE refinements (default
 // off): enabling one narrows the list to candidates that have that trait.
-type TierFilter = "strong" | "min";
-type TraitFilter = "opening" | "ending";
-
 const TIER_LABELS: Record<WordplayTool, Record<TierFilter, string>> = {
-  soundplay: { strong: "5 shared sounds", min: "4 shared sounds" },
-  wordplay: { strong: "3 lexical letters", min: "2 lexical letters" },
+  soundplay: {
+    strong: `${SOUNDPLAY_STRONG_SHARED} shared sounds`,
+    min: `${SOUNDPLAY_MIN_SHARED} shared sounds`,
+  },
+  wordplay: {
+    strong: `${WORDPLAY_STRONG_SHARED} lexical letters`,
+    min: `${WORDPLAY_MIN_SHARED} lexical letters`,
+  },
 };
 
 const TRAIT_LABELS: Record<TraitFilter, string> = {
@@ -252,74 +237,30 @@ const ToggleChip = ({
 
 const Wordplay = () => {
   const {
-    ctxPassageProps,
-    ctxSelectedWords,
-    ctxSetSelectedWords,
-    ctxSetNumSelectedWords,
-    ctxSetHighlightedSoundChipIds,
-    ctxSetSoundHighlightEnabled,
-    ctxSetSelectedSoundChipIds,
-    ctxSetHighlightedLetterChipIds,
-    ctxSetLetterHighlightEnabled,
-    ctxSetSelectedLetterChipIds,
-    ctxSoundHighlightEnabled,
-    ctxLetterHighlightEnabled,
-    ctxSetHighlightRestrictWordIds,
-  } = useContext(FormatContext);
-
-  const [tool, setTool] = useState<WordplayTool>("wordplay");
-  const [scopeMode, setScopeMode] = useState<"whole" | "adjacent">("whole");
-  const [adjacentFocus, setAdjacentFocus] = useState<{
-    stanzaId: number;
-    stropheId: number;
-  } | null>(null);
+    activeCandidateKey,
+    canUseAdjacentScope,
+    clearHighlight,
+    filteredCandidates,
+    hasActiveHighlight,
+    highlightCandidate,
+    scopeMode,
+    secondaryFilters,
+    setSecondaryFilters,
+    setTierFilters,
+    setTraitFilters,
+    skippedWordCount,
+    switchScope,
+    switchTool,
+    tierFilters,
+    tool,
+    traitFilters,
+  } = useWordplayController();
   const [showTooltip, setShowTooltip] = useState(false);
-  const [activeCandidateKey, setActiveCandidateKey] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-
-  // Tier filters default ON (inclusion). Trait filters default OFF (enabling one
-  // narrows to candidates with that trait — never hides otherwise-valid matches).
-  const [tierFilters, setTierFilters] = useState<Record<TierFilter, boolean>>({
-    strong: true,
-    min: true,
-  });
-  const [traitFilters, setTraitFilters] = useState<Record<TraitFilter, boolean>>({
-    opening: false,
-    ending: false,
-  });
-  const [secondaryFilters, setSecondaryFilters] = useState<Record<SecondaryTag, boolean>>({
-    "same-pos": false,
-    "same-preposition": false,
-    proximity: false,
-  });
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // Track the latest active candidate for the unmount cleanup below.
-  const activeCandidateKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    activeCandidateKeyRef.current = activeCandidateKey;
-  }, [activeCandidateKey]);
-
-  // On unmount (e.g. switching to another InfoPane tab) clear the passage
-  // highlight ONLY if this panel currently owns it (a candidate is active).
-  // Otherwise a Sound/Letter Distribution highlight the user set elsewhere must
-  // be left untouched.
-  useEffect(
-    () => () => {
-      if (!activeCandidateKeyRef.current) return;
-      ctxSetHighlightRestrictWordIds([]);
-      ctxSetHighlightedSoundChipIds([]);
-      ctxSetSoundHighlightEnabled(false);
-      ctxSetHighlightedLetterChipIds([]);
-      ctxSetLetterHighlightEnabled(false);
-    },
-    // Run only on unmount; setters are stable.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
 
   useEffect(() => {
     if (!showTooltip) return;
@@ -330,162 +271,8 @@ const Wordplay = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showTooltip]);
 
-  const allWords = useMemo(() => {
-    const words: WordProps[] = [];
-    for (const stanza of ctxPassageProps.stanzaProps ?? []) {
-      for (const strophe of stanza.strophes) {
-        for (const line of strophe.lines) {
-          for (const word of line.words) {
-            words.push(word);
-          }
-        }
-      }
-    }
-    return words;
-  }, [ctxPassageProps]);
-
-  useEffect(() => {
-    const selected = ctxSelectedWords[0];
-    if (scopeMode === "adjacent" && selected) {
-      setAdjacentFocus({
-        stanzaId: selected.stanzaId,
-        stropheId: selected.stropheId,
-      });
-    }
-  }, [scopeMode, ctxSelectedWords]);
-
-  const scope: WordplayScope = useMemo(() => {
-    if (scopeMode === "whole") {
-      return { mode: "whole" };
-    }
-    return {
-      mode: "adjacent",
-      focusStanzaId: adjacentFocus?.stanzaId ?? 0,
-      focusStropheId: adjacentFocus?.stropheId ?? 0,
-    };
-  }, [scopeMode, adjacentFocus]);
-
-  const candidates = useMemo(
-    () => findCandidates(allWords, tool, { scope }),
-    [allWords, tool, scope],
-  );
-
-  // Words that carry no lexical/sound form and are therefore skipped by the
-  // current tool — surfaced so the scholar knows results are on a subset.
-  const skippedWordCount = useMemo(() => {
-    const hasData = (word: WordProps) =>
-      tool === "wordplay"
-        ? wordLetterIds(word).length > 0
-        : wordSoundIds(word).length > 0;
-    return allWords.filter((word) => !hasData(word)).length;
-  }, [allWords, tool]);
-
-  const filteredCandidates = useMemo(() => {
-    return candidates.filter((candidate) => {
-      // Tier is an inclusion filter: show the candidate only if its tier is on.
-      const tierOk = candidate.strongMatch ? tierFilters.strong : tierFilters.min;
-      if (!tierOk) return false;
-
-      // Trait filters are positive refinements: an enabled trait requires the
-      // candidate to have it. Disabled traits never hide anything.
-      if (traitFilters.opening && !candidate.sameOpening) return false;
-      if (traitFilters.ending && !candidate.sameEnding) return false;
-
-      // Secondary tags are restrictive (AND): every enabled secondary tag must be
-      // present on the candidate. With none enabled there is no secondary filtering.
-      const activeSecondary = (Object.keys(secondaryFilters) as SecondaryTag[]).filter(
-        (tag) => secondaryFilters[tag],
-      );
-      return activeSecondary.every((tag) => candidate.secondaryTags.includes(tag));
-    });
-  }, [candidates, tierFilters, traitFilters, secondaryFilters]);
-
-  const candidateKey = (candidate: WordplayCandidate) =>
-    `${candidate.wordA.wordId}-${candidate.wordB.wordId}`;
-
-  const clearHighlight = () => {
-    setActiveCandidateKey(null);
-    ctxSetHighlightRestrictWordIds([]);
-    ctxSetHighlightedSoundChipIds([]);
-    ctxSetSoundHighlightEnabled(false);
-    ctxSetSelectedSoundChipIds([]);
-    ctxSetHighlightedLetterChipIds([]);
-    ctxSetLetterHighlightEnabled(false);
-    ctxSetSelectedLetterChipIds([]);
-  };
-
-  // If the active candidate is filtered out (scope/tag change) or disappears,
-  // drop its now-orphaned passage highlight so the UI can't show a highlight with
-  // no corresponding visible/active row.
-  useEffect(() => {
-    if (!activeCandidateKey) return;
-    const stillVisible = filteredCandidates.some(
-      (c) => `${c.wordA.wordId}-${c.wordB.wordId}` === activeCandidateKey,
-    );
-    if (!stillVisible) {
-      clearHighlight();
-    }
-    // clearHighlight only calls stable context setters; safe to omit from deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates, activeCandidateKey]);
-
-  const highlightCandidate = (candidate: WordplayCandidate) => {
-    const key = candidateKey(candidate);
-    if (activeCandidateKey === key) {
-      clearHighlight();
-      return;
-    }
-
-    ctxSetSelectedWords([]);
-    ctxSetNumSelectedWords(0);
-    // Restrict the passage highlight to just this candidate pair so the shared
-    // sounds/letters light up on the two words rather than the whole passage.
-    ctxSetHighlightRestrictWordIds([candidate.wordA.wordId, candidate.wordB.wordId]);
-    const uniqueShared = [...new Set(candidate.sharedIds)];
-
-    if (candidate.tool === "soundplay") {
-      ctxSetHighlightedSoundChipIds(uniqueShared);
-      ctxSetSoundHighlightEnabled(true);
-      ctxSetSelectedSoundChipIds([]);
-      ctxSetHighlightedLetterChipIds([]);
-      ctxSetLetterHighlightEnabled(false);
-      ctxSetSelectedLetterChipIds([]);
-    } else {
-      ctxSetHighlightedLetterChipIds(expandLetterIdsForHighlight(uniqueShared));
-      ctxSetLetterHighlightEnabled(true);
-      ctxSetSelectedLetterChipIds([]);
-      ctxSetHighlightedSoundChipIds([]);
-      ctxSetSoundHighlightEnabled(false);
-      ctxSetSelectedSoundChipIds([]);
-    }
-    setActiveCandidateKey(key);
-  };
-
-  const switchTool = (nextTool: WordplayTool) => {
-    if (nextTool === tool) return;
-    clearHighlight();
-    setTool(nextTool);
-  };
-
-  const switchScope = (nextMode: "whole" | "adjacent") => {
-    if (nextMode === "adjacent") {
-      const focusWord = ctxSelectedWords[0] ?? null;
-      if (!focusWord && !adjacentFocus) return;
-      if (focusWord) {
-        setAdjacentFocus({
-          stanzaId: focusWord.stanzaId,
-          stropheId: focusWord.stropheId,
-        });
-      }
-    }
-    setScopeMode(nextMode);
-  };
-
   const copy = TOOL_COPY[tool];
   const tierLabels = TIER_LABELS[tool];
-  const canUseAdjacentScope = Boolean(ctxSelectedWords[0] || adjacentFocus);
-  const highlightActive =
-    Boolean(activeCandidateKey) || ctxSoundHighlightEnabled || ctxLetterHighlightEnabled;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto" data-testid="wordplay-panel">
@@ -618,7 +405,7 @@ const Wordplay = () => {
         >
           {filteredCandidates.length} result{filteredCandidates.length === 1 ? "" : "s"}
         </span>
-        {highlightActive && (
+        {hasActiveHighlight && (
           <button
             type="button"
             onClick={clearHighlight}

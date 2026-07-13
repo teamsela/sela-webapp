@@ -24,6 +24,7 @@ review material (images, a focused PDF) and requirements/planning markdown.
 """
 
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -114,6 +115,85 @@ def _safe_out_path(out_path: str, default_name: str, work_folder: Path) -> Path:
         candidate = (work_folder / raw).resolve()
     candidate.parent.mkdir(parents=True, exist_ok=True)
     return candidate
+
+
+def _requirements_doc_issues(content: str) -> list[str]:
+    """Return structural issues that make a requirements document unsafe to use."""
+    lower = content.lower()
+    required_sections = {
+        "source traceability": ("source traceability", "traceability matrix"),
+        "acceptance criteria": ("acceptance criteria",),
+        "conflicts/ambiguities": ("conflict", "ambigu"),
+        "open questions": ("open question",),
+    }
+    issues = [
+        f"missing {label} section"
+        for label, markers in required_sections.items()
+        if not any(marker in lower for marker in markers)
+    ]
+
+    if "[explicit]" not in lower:
+        issues.append("no [EXPLICIT] source classification")
+    if not re.search(r"\bp(?:age)?\s*\d+\b", lower):
+        issues.append("no page-level source citations")
+
+    traceability_terms = ("classification", "source", "evidence")
+    if "traceability" in lower and not all(term in lower for term in traceability_terms):
+        issues.append("traceability section must identify classification, source, and evidence")
+    return issues
+
+
+def _requirements_prompt_text(pdf_path: str, context: str = "") -> str:
+    focus = context.strip() or "(no specific topic given — summarise the whole deck)"
+    return f"""You are extracting **requirements** from a PDF. Produce planning
+material for review. **Do NOT implement any application code, edit src/, or open
+PRs.** Your only outputs are review images, a focused PDF, and requirements markdown.
+
+Inputs:
+- PDF: `{pdf_path}`
+- Focus / context: {focus}
+
+Follow these steps using the MCP tools:
+
+1. Call `extract_requirements_from_pdf("{pdf_path}", "{context}")`. This renders
+   every page to an image, dumps the text, and creates a work folder.
+2. Review the page images as the authoritative source. Use `text.txt` only as a
+   search aid: it loses columns, indentation, RTL order, color, and emphasis.
+3. Build a per-feature cross-reference before writing. For every repeated feature
+   label, compare all pages where it appears. Record differing lists, terminology,
+   hierarchy, thresholds, or examples as conflicts rather than merging them.
+4. Identify the relevant pages and call
+   `pdf_extract_pages("{pdf_path}", "<relevant pages>")`. Render important pages
+   at higher DPI when hierarchy, color, or small annotations affect meaning.
+5. Write `REQUIREMENTS.md` with these mandatory sections:
+   - **Overview**
+   - **Source traceability matrix** — ID, classification, source page, short
+     verbatim evidence/visual description, and requirement or question.
+   - **Confirmed functional requirements** — only `[EXPLICIT]` source statements.
+   - **Acceptance criteria** — observable checks mapped to confirmed requirement IDs.
+   - **Source conflicts and undefined labels**
+   - **Open questions and assumptions**
+   - **Non-functional / UX requirements**
+   - **Suggested scope and plan** — planning only, no code.
+
+Classification rules:
+- `[EXPLICIT]`: directly stated or unambiguously depicted; include `(pNN)`.
+- `[INFERRED]`: reasoned from context, never a confirmed functional requirement.
+- `[UNDEFINED]`: a label/control exists but its algorithm or behavior is absent.
+- `[CONFLICT]`: pages disagree in terminology, hierarchy, lists, or semantics.
+
+Never invent an algorithm for a UX label. Never flatten sub-bullets into peers.
+Flag placeholder/draft/problem slides as acknowledged open problems. Preserve
+source wording; if you normalize terminology or transliteration, show the original.
+When an unresolved decision changes implementation semantics, mark the feature
+not implementation-ready rather than choosing a behavior.
+
+6. Call `validate_requirements_doc(content)` and resolve every reported issue.
+7. Save the validated document with
+   `write_requirements_doc(content, work_folder=...)`.
+8. Report the work folder, relevant pages, conflicts, undefined labels, and
+   implementation-readiness status. Remind the user that nothing was implemented.
+"""
 
 
 # ---------------------------------------------------------------------------
@@ -390,15 +470,18 @@ def extract_requirements_from_pdf(
 
 ## Next steps (for the LLM — do NOT implement code)
 
-1. `view` each page image in this folder and/or read `text.txt`.
+1. `view` each page image in this folder. Use `text.txt` only as a search aid:
+   multi-column layout, bullet indentation, RTL order, color, and emphasis are lost.
 2. Identify the pages most relevant to **{focus}**.
-3. `pdf_extract_pages("{path}", "<relevant pages>", ...)` to produce a focused PDF.
-4. `write_requirements_doc(...)` to save `REQUIREMENTS.md` with:
-   - Overview of the relevant feature(s)
-   - Functional requirements (numbered)
-   - Non-functional / UX requirements
-   - Open questions / assumptions
-   - Suggested plan & scope **(planning only — no implementation)**
+3. Cross-reference repeated feature labels across all relevant pages. Do not merge
+   conflicting lists or terminology; preserve hierarchy and flag undefined labels.
+4. Record placeholder/draft/problem slides as acknowledged open problems.
+5. `pdf_extract_pages("{path}", "<relevant pages>", ...)` to produce a focused PDF.
+6. Write a traceable `REQUIREMENTS.md` using `[EXPLICIT]`, `[INFERRED]`,
+   `[UNDEFINED]`, and `[CONFLICT]` classifications, page citations, source evidence,
+   acceptance criteria, conflicts, and open questions.
+7. Run `validate_requirements_doc(content)`, resolve all issues, then call
+   `write_requirements_doc(...)`. **Do not implement application code.**
 """
     (work / "INDEX.md").write_text(index_md, encoding="utf-8")
 
@@ -413,6 +496,22 @@ def extract_requirements_from_pdf(
         f"NEXT: view the page images, pick the pages relevant to '{focus}', then call "
         f"pdf_extract_pages and write_requirements_doc. Do NOT implement app code."
     )
+
+
+@mcp.tool()
+def validate_requirements_doc(content: str) -> str:
+    """Validate that generated requirements are traceable and ambiguity-aware.
+
+    This structural gate cannot prove that an interpretation is correct, but it
+    prevents saving documents that omit page evidence, source classifications,
+    acceptance criteria, conflicts/ambiguities, or open questions.
+    """
+    if not content or not content.strip():
+        return "ERROR: 'content' is empty — nothing to validate."
+    issues = _requirements_doc_issues(content)
+    if issues:
+        return "FAIL: " + "; ".join(issues)
+    return "PASS: requirements document includes traceability and ambiguity controls"
 
 
 @mcp.tool()
@@ -432,6 +531,13 @@ def write_requirements_doc(content: str, out_path: str = "", work_folder: str = 
     """
     if not content or not content.strip():
         return "ERROR: 'content' is empty — nothing to write."
+    issues = _requirements_doc_issues(content)
+    if issues:
+        return (
+            "ERROR: Requirements document failed validation: "
+            + "; ".join(issues)
+            + ". Run validate_requirements_doc and correct the document first."
+        )
 
     if work_folder and work_folder.strip():
         wf = Path(work_folder.strip().strip('"').strip("'"))
@@ -469,32 +575,4 @@ def sela_extract_reqs(pdf_path: str, context: str = "") -> str:
         pdf_path: Path to the PDF the user uploaded/referenced.
         context: Extra context/topic from the user (e.g. 'Wordplay').
     """
-    focus = context.strip() or "(no specific topic given — summarise the whole deck)"
-    return f"""You are extracting **requirements** from a PDF. Produce planning
-material for review. **Do NOT implement any application code, edit src/, or open
-PRs.** Your only outputs are: review images, a focused PDF, and requirements markdown.
-
-Inputs:
-- PDF: `{pdf_path}`
-- Focus / context: {focus}
-
-Follow these steps using the MCP tools:
-
-1. Call `extract_requirements_from_pdf("{pdf_path}", "{context}")`. This renders
-   every page to an image, dumps the text, and creates a work folder.
-2. `view` the page images in that work folder (and/or read `text.txt`) to
-   understand the deck. Judge each page's relevance to **{focus}**.
-3. Identify the most relevant page(s). Call
-   `pdf_extract_pages("{pdf_path}", "<relevant pages, e.g. 4,7-9>")` to save a
-   focused PDF, and optionally `pdf_render_images` at higher dpi for detail.
-4. Write `REQUIREMENTS.md` via `write_requirements_doc(content, work_folder=...)`
-   into the same work folder. Structure it as:
-   - **Overview** — what feature/area the relevant pages describe.
-   - **Functional requirements** — numbered, testable statements.
-   - **Non-functional / UX requirements** — performance, accessibility, design.
-   - **Open questions & assumptions**.
-   - **Suggested scope & plan** — phased plan, **planning only, no code**.
-5. Report the work folder path, which pages you judged relevant and why, and a
-   short summary of the requirements. Remind the user this is for review and that
-   nothing was implemented.
-"""
+    return _requirements_prompt_text(pdf_path, context)

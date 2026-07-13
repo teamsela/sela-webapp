@@ -136,6 +136,41 @@ export const LETTER_CHIP_GROUPS: LetterChipGroup[] = [
   { id: "tav", label: "ת", memberIds: ["tav"], palette: createPalette("#388E3C", "#FFFFFF") },                              // t sound
 ];
 
+const FINAL_FORM_GROUPS = LETTER_CHIP_GROUPS.filter((group) =>
+  group.memberIds.some((id) => id.startsWith("final-")),
+);
+
+const FINAL_FORM_TO_BASE = new Map(
+  FINAL_FORM_GROUPS.flatMap((group) => {
+    const baseId = group.memberIds.find((id) => !id.startsWith("final-"));
+    return baseId
+      ? group.memberIds
+          .filter((id) => id.startsWith("final-"))
+          .map((finalId) => [finalId, baseId] as const)
+      : [];
+  }),
+);
+
+const BASE_TO_FINAL_FORMS = new Map(
+  FINAL_FORM_GROUPS.flatMap((group) => {
+    const baseId = group.memberIds.find((id) => !id.startsWith("final-"));
+    return baseId ? [[baseId, group.memberIds] as const] : [];
+  }),
+);
+
+export const normalizeHebrewLetterId = (letterId: string): string =>
+  FINAL_FORM_TO_BASE.get(letterId) ?? letterId;
+
+export const expandHebrewLetterIds = (letterIds: string[]): string[] => {
+  const expanded = new Set<string>();
+  letterIds.forEach((letterId) => {
+    (BASE_TO_FINAL_FORMS.get(letterId) ?? [letterId]).forEach((memberId) =>
+      expanded.add(memberId),
+    );
+  });
+  return [...expanded];
+};
+
 const transliterationPatterns: TransliterationPattern[] = [
   { text: "kh", soundId: "kh-ch" },
   { text: "ch", soundId: "kh-ch" },

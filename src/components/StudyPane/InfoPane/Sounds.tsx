@@ -11,6 +11,7 @@ import {
   LETTER_CHIPS,
   SOUND_CHIPS,
 } from "@/lib/hebrewHighlights";
+import { flattenPassageWords } from "@/lib/passage";
 
 type SoundsSectionId = "sound-distribution" | "letter-distribution";
 
@@ -379,19 +380,10 @@ const Sounds = () => {
     setOpenSection((prev) => (prev === sectionId ? null : sectionId));
   };
 
-  const allWords = useMemo(() => {
-    const words = [];
-    for (const stanza of ctxPassageProps.stanzaProps) {
-      for (const strophe of stanza.strophes) {
-        for (const line of strophe.lines) {
-          for (const word of line.words) {
-            words.push(word);
-          }
-        }
-      }
-    }
-    return words;
-  }, [ctxPassageProps]);
+  const allWords = useMemo(
+    () => flattenPassageWords(ctxPassageProps),
+    [ctxPassageProps],
+  );
 
   // Per-id occurrence counts for both distributions (mirror memos unified).
   const soundCounts = useOccurrenceCounts(

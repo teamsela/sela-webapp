@@ -38,7 +38,7 @@ mcp/
 | `tools/github.py` | `create_draft_pr`, `check_pr`, Vercel preview helpers |
 | `tools/browser.py` | open/navigate/click/screenshot a Chromium page, Clerk sign-in |
 | `tools/sela.py` | Sela-specific study creation + Sound/Letter and Wordplay acceptance tests |
-| `tools/requirements.py` | parse a PDF, render pages, split out relevant pages, write requirements markdown; invoked by natural language (and exposes a `sela-extract-reqs` MCP prompt) |
+| `tools/requirements.py` | parse/render a PDF, cross-reference source pages, validate traceability/ambiguities, and write requirements markdown; invoked by natural language (and exposes a `sela-extract-reqs` MCP prompt) |
 
 ## Running the PDF → requirements workflow
 
@@ -52,7 +52,7 @@ mcp/
 > ```
 > or, with an absolute path:
 > ```
-> Run extract_requirements_from_pdf on "C:\path\Sela Mockup - 2026.pdf" with context "Wordplay", then write the requirements doc.
+> Run extract_requirements_from_pdf on "C:\path\Sela Mockup - 2026.pdf" with context "Wordplay", cross-reference the page images, validate the requirements doc, then write it.
 > ```
 >
 > The `sela-extract-reqs` **MCP prompt** (below) is still exposed for MCP clients
@@ -62,6 +62,8 @@ mcp/
 Point the assistant at a PDF (e.g. a product mockup deck) and a topic. It will
 parse the deck, find the pages relevant to the topic, extract them into a focused
 PDF + page images, and generate **requirements / planning markdown for review**.
+The workflow treats page images as authoritative, classifies explicit versus
+inferred/undefined/conflicting statements, and refuses to save an untraceable doc.
 
 > It is planning-only by design — it never implements application code.
 

@@ -40,14 +40,18 @@ Either way the assistant runs these tools:
 
 1. `extract_requirements_from_pdf(pdf_path, context)` → builds a work folder
    under `local/reqs/` with page images, `text.txt`, `manifest.json`, `INDEX.md`.
-2. `view` the page images / read `text.txt`, choose relevant pages.
+2. `view` the page images (authoritative) and use `text.txt` only for search.
+   Cross-reference repeated labels and preserve columns/bullet hierarchy.
 3. `pdf_extract_pages(pdf_path, "4,7-9")` → focused PDF.
-4. `write_requirements_doc(content, work_folder=...)` → `REQUIREMENTS.md`.
+4. Classify statements as explicit, inferred, undefined, or conflicting.
+5. `validate_requirements_doc(content)` → fix all reported traceability issues.
+6. `write_requirements_doc(content, work_folder=...)` → `REQUIREMENTS.md`.
 
 ## Output
 
 Everything is written under `local/reqs/` (git-ignored). Nothing in `src/` is
-touched — this toolset is planning-only.
+touched — this toolset is planning-only. Documents without source traceability,
+acceptance criteria, conflicts/ambiguities, and open questions are rejected.
 
 ## Troubleshooting
 
