@@ -12,6 +12,15 @@ import { LanguageContext } from './PassageBlock';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
+const getLineRenderKey = (stropheId: number, line: StropheProps["lines"][number]) => {
+  const firstWordId = line.words[0]?.wordId ?? "empty";
+  const lastWordId = line.words.at(-1)?.wordId ?? "empty";
+  return `strophe-${stropheId}-line-${firstWordId}-${lastWordId}-${line.paragraphBreakBefore ? "paragraph" : "plain"}`;
+};
+
+const getWordRenderKey = (wordId: number, stanzaId: number, stropheId: number, lineId: number) =>
+  `word-${wordId}-stanza-${stanzaId}-strophe-${stropheId}-line-${lineId}`;
+
 export const StropheBlock = ({
     stropheProps,
     stanzaExpanded,
@@ -372,8 +381,9 @@ export const StropheBlock = ({
                   )}
                   {
                     stropheProps.lines.map((line, lineId) => {
+                      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
                       return (
-                        <React.Fragment key={"line_" + lineId}>
+                        <React.Fragment key={lineRenderKey}>
                         {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
                         <div
                           data-strophe-line="true"
@@ -381,13 +391,19 @@ export const StropheBlock = ({
                         >
                         {
                           line.words.map((word) => {
+                            const wordRenderKey = getWordRenderKey(
+                              word.wordId,
+                              word.stanzaId,
+                              word.stropheId,
+                              word.lineId,
+                            );
                             return (
                               <div
                                 className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
+                                key={wordRenderKey}
                               >
                                 <WordBlock
-                                  key={"word_" + word.wordId}
+                                  key={wordRenderKey}
                                   wordProps={word}
                                   isFirstLineInStrophe={lineId === 0}
                                 />
@@ -433,8 +449,9 @@ export const StropheBlock = ({
                   
                   {
                     stropheProps.lines.map((line, lineId) => {
+                      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
                       return (
-                        <React.Fragment key={"line_" + lineId}>
+                        <React.Fragment key={lineRenderKey}>
                         {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
                         <div
                           data-strophe-line="true"
@@ -442,13 +459,19 @@ export const StropheBlock = ({
                         >
                         {
                           line.words.map((word) => {
+                            const wordRenderKey = getWordRenderKey(
+                              word.wordId,
+                              word.stanzaId,
+                              word.stropheId,
+                              word.lineId,
+                            );
                             return (
                               <div
                                 className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
+                                key={wordRenderKey}
                               >
                                 <WordBlock
-                                  key={"word_" + word.wordId}
+                                  key={wordRenderKey}
                                   wordProps={word}
                                   isFirstLineInStrophe={lineId === 0}
                                 />

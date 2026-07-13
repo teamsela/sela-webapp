@@ -808,7 +808,7 @@ const areWordsContiguous = (words: WordProps[]): boolean => {
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps, ctxReadmeBtnOn } = useContext(FormatContext);
+  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
   let hasWordSelected = (ctxSelectedWords.length > 0);
@@ -865,9 +865,6 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
       (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1) &&
       areStrophesContiguous(ctxSelectedStrophes);
   }
-
-  // Reader mode locks the passage to the Bible's own layout — structure edits off.
-  if (ctxReadmeBtnOn) buttonEnabled = false;
 
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 

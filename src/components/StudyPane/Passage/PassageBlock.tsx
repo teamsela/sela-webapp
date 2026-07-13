@@ -54,7 +54,7 @@ export const PassageBlock = ({
       : 'w-[100%] max-w-[100%]';
   const stanzaLayoutClass = shouldStackStanzas
     ? `flex-col ${stackedWidthClass} gap-2`
-    : `flex-row ${ctxReadmeBtnOn ? 'w-full max-w-full' : 'max-w-[600px]'}`;
+    : `flex-row max-w-[600px]`;
   const passageWidthClass = ctxReadmeBtnOn && !isParallel
     ? `w-full min-w-0 ${isNonEnglish ? 'hbFont' : ''}`
     : isNonEnglish

@@ -417,9 +417,9 @@ export const mergeData = (
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
-    const startsNewStanza = useReadmeParagraphMode
-      ? false
-      : Boolean(wordProps.metadata?.stanzaDiv);
+    // Honor user-defined stanza divisions in BOTH normal and reader mode so the
+    // strophe/stanza structure is shared (co-edited) across the two views.
+    const startsNewStanza = Boolean(wordProps.metadata?.stanzaDiv);
     if (currentStanzaData === undefined || startsNewStanza) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
@@ -434,9 +434,9 @@ export const mergeData = (
     }
 
     let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
-    const startsNewStrophe = useReadmeParagraphMode
-      ? false
-      : Boolean(wordProps.metadata?.stropheDiv);
+    // Honor user-defined strophe divisions in both normal and reader mode (see
+    // stanza note above).
+    const startsNewStrophe = Boolean(wordProps.metadata?.stropheDiv);
     if (currentStropheData === undefined || startsNewStrophe) {
       passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
       ++currentStropheIdx;
