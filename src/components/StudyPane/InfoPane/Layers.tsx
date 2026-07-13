@@ -29,9 +29,12 @@ const Layers = () => {
     ctxSetColorFill,
     ctxSetBorderColor,
     ctxSetTextColor,
+    ctxNumSelectedLayers,
     ctxSetNumSelectedLayers,
+    ctxNumSelectedWords,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
+    ctxNumSelectedStrophes,
     ctxSetSelectedStrophes,
     ctxSetNumSelectedStrophes,
     ctxStudyId,
@@ -122,21 +125,6 @@ const Layers = () => {
     setNotesExpanded(false);
   }, [ctxActiveLayerId]);
 
-  // Collapse the expanded note when the user clicks anywhere outside it.
-  // A document-level listener (instead of textarea onBlur) avoids the event
-  // race that made an in-note collapse button unreliable.
-  const expandedNoteRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!notesExpanded) return;
-    const onDocMouseDown = (e: MouseEvent) => {
-      if (expandedNoteRef.current && !expandedNoteRef.current.contains(e.target as Node)) {
-        setNotesExpanded(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
-  }, [notesExpanded]);
-
   // State for the "create new layer" box.
   const [creating, setCreating] = useState(false);
   const [newLayerName, setNewLayerName] = useState("");
@@ -144,6 +132,8 @@ const Layers = () => {
   // Drag-and-drop reordering state.
   const dragLayerId = useRef<number | null>(null);
   const [dragOverLayerId, setDragOverLayerId] = useState<number | null>(null);
+  // Whether the drop will land above or below the hovered layer.
+  const [dragOverPos, setDragOverPos] = useState<"above" | "below" | null>(null);
 
   // Next available layer id (initialised from the current max id).
   const nextIdRef = useRef(
@@ -202,6 +192,24 @@ const Layers = () => {
   useEffect(() => {
     return () => { ctxSetNumSelectedLayers(0); };
   }, [ctxSetNumSelectedLayers]);
+
+  // Layer colour selection and word/strophe selection are mutually exclusive:
+  // once the user selects any word or strophe, drop the layer's colour selection
+  // so colour changes target only the words/strophes, not the layer.
+  useEffect(() => {
+    if ((ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0) && selectMode === "color") {
+      setSelectMode("plain");
+      ctxSetNumSelectedLayers(0);
+    }
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, selectMode, ctxSetNumSelectedLayers]);
+
+  // When the layer selection is cleared externally (e.g. clicking the passage
+  // workspace clears ctxNumSelectedLayers), drop this pane's colour selection too.
+  useEffect(() => {
+    if (ctxNumSelectedLayers === 0 && selectMode === "color") {
+      setSelectMode("plain");
+    }
+  }, [ctxNumSelectedLayers, selectMode]);
 
   // Selecting through the select button enables colour customisation via the toolbar.
   const handleSelect = (layerId: number) => {
@@ -298,28 +306,46 @@ const Layers = () => {
 
   const handleDragOver = (event: React.DragEvent, overId: number) => {
     event.preventDefault();
-    if (dragOverLayerId !== overId) setDragOverLayerId(overId);
+    // Don't show an indicator on the row being dragged.
+    if (dragLayerId.current === overId) {
+      if (dragOverLayerId !== null) { setDragOverLayerId(null); setDragOverPos(null); }
+      return;
+    }
+    // Above or below depending on which half of the row the cursor is over.
+    const rect = event.currentTarget.getBoundingClientRect();
+    const pos: "above" | "below" =
+      event.clientY < rect.top + rect.height / 2 ? "above" : "below";
+    if (dragOverLayerId !== overId || dragOverPos !== pos) {
+      setDragOverLayerId(overId);
+      setDragOverPos(pos);
+    }
   };
 
   const handleDrop = (event: React.DragEvent, dropId: number) => {
     event.preventDefault();
     const fromId = dragLayerId.current;
+    const pos = dragOverPos;
     dragLayerId.current = null;
     setDragOverLayerId(null);
+    setDragOverPos(null);
     if (fromId === null || fromId === dropId) return;
 
     const fromIdx = ctxLayers.findIndex((l) => l.id === fromId);
-    const toIdx = ctxLayers.findIndex((l) => l.id === dropId);
-    if (fromIdx === -1 || toIdx === -1) return;
+    if (fromIdx === -1) return;
     const reordered = [...ctxLayers];
     const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, moved);
+    // Recompute the target index after removal, then offset for above/below.
+    let insertIdx = reordered.findIndex((l) => l.id === dropId);
+    if (insertIdx === -1) return;
+    if (pos === "below") insertIdx += 1;
+    reordered.splice(insertIdx, 0, moved);
     ctxSetLayers(reordered);
   };
 
   const handleDragEnd = () => {
     dragLayerId.current = null;
     setDragOverLayerId(null);
+    setDragOverPos(null);
   };
 
   return (
@@ -334,19 +360,15 @@ const Layers = () => {
           // editor can fill the entire sidebar.
           if (notesExpanded && !isSelected) return null;
 
-          let outline: string | undefined;
-          if (isDragOver) {
-            outline = `3px dashed ${SELECT_OUTLINE}`;
-          } else if (isSelected && selectMode === "color") {
-            outline = `3px solid ${SELECT_OUTLINE}`;
-          }
+          const outline =
+            isSelected && selectMode === "color" ? `3px solid ${SELECT_OUTLINE}` : undefined;
 
           const noteValue = layerNotes[String(layer.id)] ?? "";
           const notePeek = noteValue.split("\n")[0].trim();
 
           return (
-            // The whole box (header + note) carries the fill background and the
-            // selection outline, so highlighting the layer highlights its note too.
+            // Wrapper carries the flex sizing and the drop indicator line; the
+            // inner box keeps overflow-hidden so its rounded corners clip content.
             <div
               key={layer.id}
               draggable={editingLayerId !== layer.id}
@@ -356,16 +378,36 @@ const Layers = () => {
               onDragEnd={handleDragEnd}
               // flex-shrink-0 (and a concrete min-height while expanded) keeps the
               // layer name + one-line note peek visible however short the window is.
-              className={`flex cursor-grab flex-col overflow-hidden rounded-xl border-2 transition active:cursor-grabbing ${
+              className={`relative flex flex-col ${
                 isSelected && notesExpanded ? "min-h-[7.5rem] flex-1" : "flex-shrink-0"
               }`}
-              style={{
-                backgroundColor: layer.fill,
-                borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
-                outline,
-                outlineOffset: "2px",
-              }}
             >
+              {/* Reorder indicator: horizontal line showing exactly where the
+                  dragged layer will land (above or below this one). */}
+              {isDragOver && dragOverPos === "above" && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 -top-2 z-10 h-1 rounded-full"
+                  style={{ backgroundColor: SELECT_OUTLINE }}
+                />
+              )}
+              {isDragOver && dragOverPos === "below" && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 -bottom-2 z-10 h-1 rounded-full"
+                  style={{ backgroundColor: SELECT_OUTLINE }}
+                />
+              )}
+
+              <div
+                className={`flex cursor-grab flex-col overflow-hidden rounded-xl border-2 transition active:cursor-grabbing ${
+                  isSelected && notesExpanded ? "min-h-0 flex-1" : ""
+                }`}
+                style={{
+                  backgroundColor: layer.fill,
+                  borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
+                  outline,
+                  outlineOffset: "2px",
+                }}
+              >
               {/* Header row: dot, name, action icons */}
               <div
                 className="flex items-center gap-3 px-5 py-4"
@@ -389,8 +431,7 @@ const Layers = () => {
                       if (e.key === "Enter") commitRename(layer.id);
                       if (e.key === "Escape") setEditingLayerId(null);
                     }}
-                    className="flex-1 bg-transparent text-left text-lg outline-none"
-                    style={{ color: layer.text }}
+                    className="flex-1 rounded-md border border-stroke bg-white px-2 py-1 text-left text-lg text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
                   />
                 ) : (
                   <span
@@ -428,20 +469,17 @@ const Layers = () => {
                   top-right button or by clicking outside the note. */}
               {isSelected && (
                 notesExpanded ? (
-                  <div
-                    ref={expandedNoteRef}
-                    className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
-                  >
+                  <div className="relative flex min-h-0 flex-1 flex-col px-3 pb-3">
                     <textarea
                       autoFocus
                       value={noteValue}
                       onChange={(e) => handleNoteChange(layer.id, e.target.value)}
                       placeholder="Click here to add notes"
-                      className="min-h-0 w-full flex-1 resize-none rounded-lg bg-white px-4 py-2 pr-10 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
+                      className="min-h-0 w-full flex-1 resize-none rounded-lg bg-white px-4 py-2 pr-14 text-sm text-black outline-none dark:bg-boxdark dark:text-white"
                     />
                     <button
                       title="Collapse notes"
-                      className="absolute right-5 top-2 hover:opacity-70"
+                      className="absolute right-8 top-2 hover:opacity-70"
                       style={{ color: "#656565" }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -466,6 +504,7 @@ const Layers = () => {
                   </div>
                 )
               )}
+              </div>
             </div>
           );
         })}

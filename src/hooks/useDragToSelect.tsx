@@ -7,7 +7,8 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (passageProps: PassageProps) => {
 
     const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox,
+        ctxSetNumSelectedLayers
     } = useContext(FormatContext)
 
     //drag-to-select module
@@ -124,8 +125,14 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             ctxSetNumSelectedWords(0);
             ctxSetSelectedWords([]);
             ctxSetSelectedStrophes([]);
+            // Clicking the passage workspace also de-selects any active layer.
+            // Scope this to clicks that actually land inside the passage container
+            // so toolbar/color-picker clicks don't spuriously drop the layer.
+            if (containerRef.current && containerRef.current.contains(target)) {
+                ctxSetNumSelectedLayers(0);
+            }
         }
-    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
+    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetNumSelectedLayers]);
 
   
     useEffect(() => {

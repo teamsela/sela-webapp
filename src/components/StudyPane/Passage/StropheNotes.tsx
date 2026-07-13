@@ -42,6 +42,11 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
+  // True only when the current noteValue reflects an unsaved USER edit. This
+  // gates the save effect so that merely switching layers/strophes (which also
+  // changes buildPayload) can't write the previous note into the new bucket —
+  // otherwise notes would leak across layers.
+  const dirtyRef = useRef(false);
 
   // 1) Ensure ctxStudyNotes exists once on mount
   useEffect(() => {
@@ -97,6 +102,8 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
       }
       const combinedValue = combineNoteValue(s?.title ?? "", s?.text ?? "");
       setNoteValue(combinedValue);
+      // Hydrated value is not a user edit — don't let the save effect persist it.
+      dirtyRef.current = false;
       hydratedKeyRef.current = key;
     } catch {
       // ignore parse errors
@@ -171,10 +178,13 @@ async (payload: string, { keepalive = false } = {}) => {
 useEffect(() => {
   if (!ctxStudyNotes) return;
   if (ctxActiveNotesPane !== viewId) return;
+  // Only persist real user edits; ignore layer/strophe context changes.
+  if (!dirtyRef.current) return;
 
   if (timeoutRef.current) clearTimeout(timeoutRef.current);
   const payload = buildPayload();
   pendingPayloadRef.current = payload;
+  dirtyRef.current = false;
 
   // Guard to avoid useless updates:
   if (payload !== ctxStudyNotes) {
@@ -219,6 +229,7 @@ useEffect(() => {
         value={noteValue}
         onChange={(e) => {
           claimActivePane();
+          dirtyRef.current = true;
           setNoteValue(e.target.value);
         }}
         onFocus={claimActivePane}

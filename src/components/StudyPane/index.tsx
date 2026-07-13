@@ -312,10 +312,15 @@ const StudyPane = ({
     commitLayerState(updated, false, { wordsColorMap: new Map() });
   };
 
-  // Update the layer definitions (name/colour changes, reorder). Not separately undoable.
+  // Update the layer definitions (name/colour changes, reorder). Undoable so the
+  // toolbar Undo button can revert layer colour and name changes.
   const handleSetLayers = (newLayers: LayerDef[]) => {
-    const updated: StudyMetadata = { ...studyMetadataRef.current, layerDefs: newLayers };
-    commitLayerState(updated, false);
+    const current = studyMetadataRef.current;
+    // Skip no-op updates (e.g. rename commits fire on both Enter and blur) so we
+    // don't pollute the undo history with duplicate entries.
+    if (JSON.stringify(current.layerDefs) === JSON.stringify(newLayers)) return;
+    const updated: StudyMetadata = { ...current, layerDefs: newLayers };
+    commitLayerState(updated, true);
   };
 
   // Create a new layer, copying the current layer's structural metadata (divisions,
@@ -401,6 +406,17 @@ const StudyPane = ({
 
   useEffect(() => {
     if (selectedWords.length === 0) {
+      // When a layer is selected for colouring, reflect its colours in the
+      // palette (consistent with word/strophe selection).
+      if (numSelectedLayers > 0) {
+        const activeLayer = layerDefs.find((l) => l.id === activeLayerId);
+        if (activeLayer) {
+          setColorFill(activeLayer.fill || DEFAULT_COLOR_FILL);
+          setBorderColor(activeLayer.border || DEFAULT_BORDER_COLOR);
+          setTextColor(activeLayer.text || DEFAULT_TEXT_COLOR);
+          return;
+        }
+      }
       setColorFill(DEFAULT_COLOR_FILL);
       setBorderColor(DEFAULT_BORDER_COLOR);
       setTextColor(DEFAULT_TEXT_COLOR);
@@ -435,7 +451,7 @@ const StudyPane = ({
     setBorderColor(sameBorder ? targetBorder : DEFAULT_BORDER_COLOR);
     setTextColor(sameText ? targetText : DEFAULT_TEXT_COLOR);
 
-  }, [selectedWords, wordsColorMap, studyMetadata]);
+  }, [selectedWords, wordsColorMap, studyMetadata, numSelectedLayers, layerDefs, activeLayerId]);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
