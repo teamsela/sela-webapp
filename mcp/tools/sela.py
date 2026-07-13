@@ -49,17 +49,18 @@ SOUND_PALETTE: dict[str, dict] = {
     "y":     {"hex": "#B3E5FC", "rgb": "rgb(179, 229, 252)", "letters": ["\u05D9"]},                    # י
 }
 
-WORDPLAY_LETTER_RGB = {
-    "bet": "rgb(121, 85, 72)",
-    "qof": "rgb(186, 104, 200)",
-    "resh": "rgb(100, 181, 246)",
+WORDPLAY_SOUND_RGB = {
+    sound_id: SOUND_PALETTE[sound_id]["rgb"]
+    for sound_id in ("b", "v", "k-q", "r")
 }
 
-WORDPLAY_SOUND_RGB = {
-    "b": "rgb(121, 85, 72)",
-    "v": "rgb(161, 136, 127)",
-    "k-q": "rgb(186, 104, 200)",
-    "r": "rgb(100, 181, 246)",
+WORDPLAY_LETTER_RGB = {
+    letter_id: SOUND_PALETTE[sound_id]["rgb"]
+    for letter_id, sound_id in {
+        "bet": "b",
+        "qof": "k-q",
+        "resh": "r",
+    }.items()
 }
 
 # ---------------------------------------------------------------------------

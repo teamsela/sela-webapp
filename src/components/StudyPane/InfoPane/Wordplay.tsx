@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { IconInfoCircle, IconX } from "@tabler/icons-react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
+import InfoModal from "./common/InfoModal";
+import useEscapeToClose from "./common/useEscapeToClose";
 import { LETTER_CHIP_MAP, SOUND_CHIP_MAP } from "@/lib/hebrewHighlights";
 import { WordProps } from "@/lib/data";
 import {
@@ -79,51 +79,6 @@ const TRAIT_LABELS: Record<TraitFilter, string> = {
   opening: "Similar opening",
   ending: "Similar ending",
 };
-
-const WordplayInfoModal = ({
-  title,
-  body,
-  note,
-  onClose,
-}: {
-  title: string;
-  body: string;
-  note: string;
-  onClose: () => void;
-}) =>
-  createPortal(
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300"
-          aria-label="Close"
-        >
-          <IconX size={18} stroke={2} />
-        </button>
-        <div className="flex items-center gap-2 text-primary">
-          <IconInfoCircle size={22} stroke={2.2} />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-        </div>
-        <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          <p>{body}</p>
-          <p className="text-xs italic text-gray-500 dark:text-gray-400">
-            <span className="font-semibold not-italic">Note:</span> {note}
-          </p>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
 
 const SharedChip = ({
   tool,
@@ -257,19 +212,13 @@ const Wordplay = () => {
   } = useWordplayController();
   const [showTooltip, setShowTooltip] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const closeTooltip = useCallback(() => setShowTooltip(false), []);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!showTooltip) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowTooltip(false);
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showTooltip]);
+  useEscapeToClose(showTooltip, closeTooltip);
 
   const copy = TOOL_COPY[tool];
   const tierLabels = TIER_LABELS[tool];
@@ -291,11 +240,11 @@ const Wordplay = () => {
         </div>
 
         {isMounted && showTooltip && (
-          <WordplayInfoModal
+          <InfoModal
             title={copy.title}
             body={copy.tooltipBody}
             note={copy.tooltipNote}
-            onClose={() => setShowTooltip(false)}
+            onClose={closeTooltip}
           />
         )}
 

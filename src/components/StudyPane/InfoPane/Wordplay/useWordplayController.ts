@@ -62,6 +62,29 @@ export const useWordplayController = () => {
     proximity: false,
   });
 
+  const resetHighlightState = useCallback(
+    (clearSelections: boolean) => {
+      ctxSetHighlightRestrictWordIds([]);
+      ctxSetHighlightedSoundChipIds([]);
+      ctxSetSoundHighlightEnabled(false);
+      ctxSetHighlightedLetterChipIds([]);
+      ctxSetLetterHighlightEnabled(false);
+      if (clearSelections) {
+        ctxSetSelectedSoundChipIds([]);
+        ctxSetSelectedLetterChipIds([]);
+      }
+    },
+    [
+      ctxSetHighlightRestrictWordIds,
+      ctxSetHighlightedLetterChipIds,
+      ctxSetHighlightedSoundChipIds,
+      ctxSetLetterHighlightEnabled,
+      ctxSetSelectedLetterChipIds,
+      ctxSetSelectedSoundChipIds,
+      ctxSetSoundHighlightEnabled,
+    ],
+  );
+
   const activeCandidateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     activeCandidateKeyRef.current = activeCandidateKey;
@@ -70,19 +93,9 @@ export const useWordplayController = () => {
   useEffect(
     () => () => {
       if (!activeCandidateKeyRef.current) return;
-      ctxSetHighlightRestrictWordIds([]);
-      ctxSetHighlightedSoundChipIds([]);
-      ctxSetSoundHighlightEnabled(false);
-      ctxSetHighlightedLetterChipIds([]);
-      ctxSetLetterHighlightEnabled(false);
+      resetHighlightState(false);
     },
-    [
-      ctxSetHighlightRestrictWordIds,
-      ctxSetHighlightedLetterChipIds,
-      ctxSetHighlightedSoundChipIds,
-      ctxSetLetterHighlightEnabled,
-      ctxSetSoundHighlightEnabled,
-    ],
+    [resetHighlightState],
   );
 
   const allWords = useMemo(
@@ -157,22 +170,8 @@ export const useWordplayController = () => {
 
   const clearHighlight = useCallback(() => {
     setActiveCandidateKey(null);
-    ctxSetHighlightRestrictWordIds([]);
-    ctxSetHighlightedSoundChipIds([]);
-    ctxSetSoundHighlightEnabled(false);
-    ctxSetSelectedSoundChipIds([]);
-    ctxSetHighlightedLetterChipIds([]);
-    ctxSetLetterHighlightEnabled(false);
-    ctxSetSelectedLetterChipIds([]);
-  }, [
-    ctxSetHighlightRestrictWordIds,
-    ctxSetHighlightedLetterChipIds,
-    ctxSetHighlightedSoundChipIds,
-    ctxSetLetterHighlightEnabled,
-    ctxSetSelectedLetterChipIds,
-    ctxSetSelectedSoundChipIds,
-    ctxSetSoundHighlightEnabled,
-  ]);
+    resetHighlightState(true);
+  }, [resetHighlightState]);
 
   useEffect(() => {
     if (!activeCandidateKey) return;
