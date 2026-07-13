@@ -74,7 +74,7 @@ async def _click_text(text: str, timeout_ms: int = 8000) -> None:
 async def _ss(step: str) -> str:
     page = await _ensure_page()
     path = _screenshot_path(step if step.endswith(".png") else f"{step}.png")
-    await page.screenshot(path=str(path))
+    await page.screenshot(path=str(path), timeout=60_000)
     return str(path)
 
 async def _wordplay_candidate(page, tool: str, strong_a: int, strong_b: int):
