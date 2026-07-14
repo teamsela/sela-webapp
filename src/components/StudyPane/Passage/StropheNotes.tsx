@@ -47,7 +47,11 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const lastSavedPayloadRef = useRef<string | null>(null);
-  const dirtyRef = useRef(false); // set once the user actually edits this strophe
+  // True only when the current noteValue reflects an unsaved USER edit. This
+  // gates the save effect so that merely switching layers/strophes (which also
+  // changes buildPayload) can't write the previous note into the new bucket —
+  // otherwise notes would leak across layers.
+  const dirtyRef = useRef(false);
 
   // 1) Ensure ctxStudyNotes exists once on mount
   useEffect(() => {
@@ -93,6 +97,44 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
     lastNotesStrRef.current = ctxStudyNotes ?? null;
     lastLayerIdRef.current = activeLayerId;
   }
+
+  useEffect(() => {
+    if (!ctxStudyNotes) return;
+
+    const key = `${stropheId}@${ctxActiveLayerId}@${notesVersionRef.current}`;
+    if (hydratedKeyRef.current === key && !ctxNoteMerge) return;
+
+    const isLocalPayload = localPayloadRef.current === ctxStudyNotes;
+    if (!ctxNoteMerge && ctxActiveNotesPane === viewId && isLocalPayload) {
+      hydratedKeyRef.current = key;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(ctxStudyNotes) as Record<string, unknown>;
+      const layerKey = String(ctxActiveLayerId);
+      // Read from layerStrophes[layerId]; fall back to root strophes for layer 0 (migration).
+      const layerStrophes = parsed?.layerStrophes as Record<string, StropheNote[]> | undefined;
+      let s: StropheNote | undefined = layerStrophes?.[layerKey]?.[stropheId];
+      if (!s && ctxActiveLayerId === 0) {
+        s = Array.isArray(parsed?.strophes) ? (parsed.strophes as StropheNote[])[stropheId] : undefined;
+      }
+      const combinedValue = combineNoteValue(s?.title ?? "", s?.text ?? "");
+      setNoteValue(combinedValue);
+      // Hydrated value is not a user edit — don't let the save effect persist it.
+      dirtyRef.current = false;
+      hydratedKeyRef.current = key;
+    } catch {
+      // ignore parse errors
+    } finally {
+      if (ctxNoteMerge) {
+        ctxSetNoteMerge(false);
+      }
+      if (isLocalPayload) {
+        localPayloadRef.current = null;
+      }
+    }
+  }, [ctxStudyNotes, stropheId, viewId, ctxActiveNotesPane, ctxNoteMerge, ctxSetNoteMerge, ctxActiveLayerId]);
 
   const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
@@ -195,11 +237,13 @@ async (payload: string, { keepalive = false } = {}) => {
   if (!editable) return;
   if (!ctxStudyNotes) return;
   if (ctxActiveNotesPane !== viewId) return;
-  if (!dirtyRef.current) return; // only sync/save after a real edit
+  // Only persist real user edits; ignore layer/strophe context changes.
+  if (!dirtyRef.current) return;
 
   if (timeoutRef.current) clearTimeout(timeoutRef.current);
   const payload = buildPayload();
   pendingPayloadRef.current = payload;
+  dirtyRef.current = false;
 
   // Guard to avoid useless updates:
   if (payload !== ctxStudyNotes) {

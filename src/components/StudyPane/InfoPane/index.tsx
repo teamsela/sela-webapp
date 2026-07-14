@@ -90,7 +90,7 @@ const InfoPane = ({
 
   return (
     <aside
-      className="relative right-0 top-0 flex h-full flex-col overflow-y-auto bg-white"
+      className="relative right-0 top-0 flex h-full flex-col overflow-hidden bg-white"
       style={{
         borderColor: "rgb(203 213 225)",
         borderLeftStyle: "solid",
@@ -120,8 +120,9 @@ const InfoPane = ({
         <MdClose size="24px" />
       </button>
 
-      {/* Conditionally render the content based on infoPaneAction */}
-      <div className="h-full pt-4">
+      {/* Scrollable content — kept separate from the aside so the resize handle
+          and close button stay static and don't scroll off screen. */}
+      <div className="h-full overflow-y-auto pt-4">
         {infoPaneAction === InfoPaneActionType.layers && <Layers />}
         {infoPaneAction === InfoPaneActionType.structure && <Structure />}
         {infoPaneAction === InfoPaneActionType.motif && <Motif />}
