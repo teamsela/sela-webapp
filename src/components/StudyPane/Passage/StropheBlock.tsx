@@ -340,7 +340,7 @@ export const StropheBlock = ({
       }
       </div>
       {shouldShowCollapsedTitle && (
-        <div className={`flex w-full items-center ${noteTitleWrapperClass}`}>
+        <div className={`flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
           <span
             className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
             dir="auto"
@@ -369,9 +369,9 @@ export const StropheBlock = ({
               >
                 <div ref={attachWordArea}>
                   {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+                  <div className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
                     <span
-                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+                      className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
                       dir="auto"
                       style={{ color: contrastingForegroundColor }}
                     >
@@ -436,9 +436,9 @@ export const StropheBlock = ({
               >
                 <div ref={attachWordArea}>
                   {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
+                  <div className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
                     <span
-                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
+                      className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
                       dir="auto"
                       style={{ color: contrastingForegroundColor }}
                     >

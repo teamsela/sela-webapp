@@ -165,46 +165,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     };
 
 
-    //pull all word blocks from passageData ////////////////////////////////////////
-    const selectAll = (array: any[]): any[] => {
-        let result: object[] = []
-        const findWordsArrays = (item: object[]) => {
-            for (const [key, value] of Object.entries(item)) {
-                if (Array.isArray(value)) {
-                    if (key === "words") {
-                        for (let i = 0; i < value.length; i++) {
-                            result.push(value[i]);
-                        }
-                    }
-                    else {
-                        value.flatMap(findWordsArrays)
-                    }
-                }
-            }
-        };
-        array.flatMap(findWordsArrays);
-        return result ?? [];
-    }
-    /////////////////////////////////////////////////////////////
-    // ctrl+A////////////////////////////////
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "a") {
-                event.preventDefault(); // Prevent default select all action
-                //select all word blocks
-                let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
-                ctxSetSelectedWords(allWordsArr);
-                ctxSetNumSelectedWords(allWordsArr.length);       
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [ ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
-    ///////////////////////////////////////////////////
-
-
     return {
         isDragging,
         selectionStart,

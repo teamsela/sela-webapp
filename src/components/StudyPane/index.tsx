@@ -409,6 +409,22 @@ const StudyPane = ({
     }
   }, [languageMode, stropheNoteBtnOn]);
 
+  // Suppress Cmd+A / Ctrl+A when focus is NOT inside an editable element so the
+  // browser doesn't select all HTML. The shortcut still works natively inside
+  // text editors, inputs, and contenteditable regions.
+  useEffect(() => {
+    const suppressSelectAll = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey && event.key === "a") && !(event.metaKey && event.key === "a")) return;
+      const target = event.target as HTMLElement;
+      if (target.isContentEditable) return;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (target.closest('[contenteditable]')) return;
+      event.preventDefault();
+    };
+    document.addEventListener("keydown", suppressSelectAll);
+    return () => document.removeEventListener("keydown", suppressSelectAll);
+  }, []);
+
   const updateActiveHighlightId = useCallback(
     (source: ColorSource, highlightId: string | null) => {
       setActiveHighlightIds((prev) => {
