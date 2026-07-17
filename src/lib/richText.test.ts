@@ -267,4 +267,72 @@ describe("sanitizeStudyNotes (API payload gate)", () => {
     expect(() => sanitizeStudyNotes("null")).toThrow();
     expect(() => sanitizeStudyNotes("42")).toThrow();
   });
+
+  it("preserves layerNotes keyed by layer id", () => {
+    const raw = JSON.stringify({
+      main: "",
+      strophes: [],
+      layerNotes: {
+        "1": { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Layer 1 note" }] }] },
+        "2": "plain layer 2 note",
+      },
+    });
+    const out = JSON.parse(sanitizeStudyNotes(raw));
+    expect(out.layerNotes).toBeDefined();
+    expect(out.layerNotes["1"]).toEqual({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Layer 1 note" }] }],
+    });
+    expect(out.layerNotes["2"]).toBe("plain layer 2 note");
+  });
+
+  it("preserves layerStrophes keyed by layer id", () => {
+    const raw = JSON.stringify({
+      main: "",
+      strophes: [],
+      layerStrophes: {
+        "1": [
+          { title: "S1T", text: "S1B", firstWordId: 5, lastWordId: 10 },
+          { title: "S2T", text: "S2B", firstWordId: 11, lastWordId: 20 },
+        ],
+      },
+    });
+    const out = JSON.parse(sanitizeStudyNotes(raw));
+    expect(out.layerStrophes).toBeDefined();
+    expect(out.layerStrophes["1"]).toHaveLength(2);
+    expect(out.layerStrophes["1"][0]).toEqual({ title: "S1T", text: "S1B", firstWordId: 5, lastWordId: 10 });
+    expect(out.layerStrophes["1"][1]).toEqual({ title: "S2T", text: "S2B", firstWordId: 11, lastWordId: 20 });
+  });
+
+  it("sanitizes rich-text bodies inside layerStrophes", () => {
+    const raw = JSON.stringify({
+      main: "",
+      strophes: [],
+      layerStrophes: {
+        "2": [
+          {
+            title: "spoofed",
+            text: {
+              type: "doc",
+              content: [
+                { type: "paragraph", content: [{ type: "text", text: "Real title", marks: [{ type: "evil" }] }] },
+              ],
+            },
+            firstWordId: 1,
+            lastWordId: 2,
+          },
+        ],
+      },
+    });
+    const out = JSON.parse(sanitizeStudyNotes(raw));
+    const note = out.layerStrophes["2"][0];
+    expect(note.title).toBe("Real title"); // derived from sanitized body
+    expect(note.text.content[0].content[0]).toEqual({ type: "text", text: "Real title" }); // mark stripped
+  });
+
+  it("omits layerNotes and layerStrophes from output when absent", () => {
+    const out = JSON.parse(sanitizeStudyNotes(JSON.stringify({ main: "x", strophes: [] })));
+    expect(out.layerNotes).toBeUndefined();
+    expect(out.layerStrophes).toBeUndefined();
+  });
 });
