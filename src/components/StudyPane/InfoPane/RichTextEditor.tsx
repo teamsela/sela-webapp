@@ -370,6 +370,8 @@ const RichTextEditor = ({
   // ancestor transform, so these are true viewport coordinates.
   const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null);
   const cornerRef = useRef<HTMLButtonElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const closeMenu = useCallback(() => setMenuAnchor(null), []);
 
   const openAtEvent = (e: React.MouseEvent) => {
@@ -387,6 +389,21 @@ const RichTextEditor = ({
     if (rect) setMenuAnchor({ x: rect.left, y: rect.top });
     else setMenuAnchor({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
   };
+
+  // Keep the corner button clear of a native scrollbar. Windows/Linux render a
+  // persistent ~15-17px bar that would sit under the button; macOS overlay
+  // scrollbars measure 0, so the button stays flush. offsetWidth - clientWidth
+  // is the real rendered width; the ResizeObserver re-measures whenever the bar
+  // appears/disappears (content grows past the box) or the editor is resized.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setScrollbarWidth(el.offsetWidth - el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [editor]);
 
   // Keep editability in sync if the surrounding view toggles view/edit mode.
   useEffect(() => {
@@ -413,7 +430,12 @@ const RichTextEditor = ({
       } ${className}`}
     >
       <div
-        className={`relative ${fill ? "min-h-0 flex-1 overflow-y-auto" : ""}`}
+        ref={scrollRef}
+        // pb-10 reserves a row of space at the bottom so the last line of text
+        // never scrolls under the corner formatting button (bottom-2 + h-7).
+        className={`relative ${fill ? "min-h-0 flex-1 overflow-y-auto" : ""} ${
+          editable ? "pb-10" : ""
+        }`}
         onContextMenu={allowContextMenu ? openAtEvent : undefined}
       >
         {editable && editor.isEmpty && (
@@ -436,7 +458,8 @@ const RichTextEditor = ({
             e.stopPropagation();
           }}
           onClick={toggleFromCorner}
-          className="absolute bottom-2 right-2 z-20 flex h-7 w-7 items-center justify-center rounded-md border border-stroke bg-white/80 text-black/60 opacity-60 shadow-sm backdrop-blur transition hover:opacity-100 dark:border-strokedark dark:bg-boxdark/80 dark:text-white/70"
+          style={{ right: scrollbarWidth + 12 }}
+          className="absolute bottom-2 z-20 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-stroke bg-white/80 text-black/60 opacity-60 shadow-sm backdrop-blur transition hover:opacity-100 dark:border-strokedark dark:bg-boxdark/80 dark:text-white/70"
         >
           <FaFont size={12} />
         </button>

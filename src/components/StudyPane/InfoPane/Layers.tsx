@@ -1,6 +1,6 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { LuTextSelect, LuChevronsDownUp } from "react-icons/lu";
+import { LuTextSelect } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -398,7 +398,11 @@ const Layers = () => {
             // inner box keeps overflow-hidden so its rounded corners clip content.
             <div
               key={layer.id}
-              draggable={editingLayerId !== layer.id}
+              // Disable native box-dragging while this layer's note is expanded
+              // so mousedown selects text in the editor instead of starting a
+              // drag (the browser resolves drag to the nearest draggable
+              // ancestor, so draggable=false on the note itself won't do it).
+              draggable={editingLayerId !== layer.id && !(isSelected && notesExpanded)}
               onDragStart={() => handleDragStart(layer.id)}
               onDragOver={(e) => handleDragOver(e, layer.id)}
               onDrop={(e) => handleDrop(e, layer.id)}
@@ -492,13 +496,13 @@ const Layers = () => {
               </div>
 
               {/* Note lives inside the box — only for the active layer. Click the
-                  peek to expand into a full-height editor; collapse via the
-                  top-right button or by clicking outside the note. */}
+                  peek to expand into a full-height editor; collapse by clicking
+                  outside the note. */}
               {isSelected && (
                 notesExpanded ? (
                   <div
                     ref={expandedNoteRef}
-                    className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
+                    className="flex min-h-0 flex-1 flex-col px-3 pb-3"
                   >
                     <RichTextEditor
                       value={noteDoc}
@@ -507,19 +511,8 @@ const Layers = () => {
                       placeholder="Click here to add notes"
                       autoFocus
                       fill
-                      className="min-h-0 flex-1 bg-white dark:bg-boxdark"
+                      className="min-h-0 flex-1 cursor-text bg-white dark:bg-boxdark"
                     />
-                    <button
-                      title="Collapse notes"
-                      className="absolute right-3 top-2 z-20 rounded bg-white/80 hover:opacity-70 dark:bg-boxdark/80"
-                      style={{ color: "#656565" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setNotesExpanded(false);
-                      }}
-                    >
-                      <LuChevronsDownUp size={18} style={{ pointerEvents: "none" }} />
-                    </button>
                   </div>
                 ) : (
                   <div className="px-3 pb-3">

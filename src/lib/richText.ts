@@ -233,6 +233,36 @@ function toInt(v: unknown, fallback = -1): number {
  * Per-strophe notes remain plain text in this prototype (rendered as escaped
  * text), so they are only length-capped.
  */
+function sanitizeStropheNote(entry: unknown) {
+  const e = (entry ?? {}) as Record<string, unknown>;
+  const text =
+    e.text && typeof e.text === "object"
+      ? sanitizeRichDoc(e.text)
+      : capString(e.text);
+  const title =
+    typeof text === "object"
+      ? capString(firstLineText(text)).replace(/[\r\n]+/g, " ")
+      : capString(e.title).replace(/[\r\n]+/g, " ");
+  return {
+    title,
+    text,
+    firstWordId: toInt(e.firstWordId),
+    lastWordId: toInt(e.lastWordId),
+  };
+}
+
+function sanitizeStropheArray(arr: unknown): Record<string, unknown>[] {
+  const input = Array.isArray(arr) ? arr : [];
+  return input.slice(0, MAX_STROPHES).map(sanitizeStropheNote);
+}
+
+/**
+ * Sanitize a rich-text doc or legacy string value (used for layerNotes entries).
+ */
+function sanitizeLayerNoteValue(value: unknown): string | RichDoc {
+  return typeof value === "string" ? capString(value) : sanitizeRichDoc(value);
+}
+
 export function sanitizeStudyNotes(raw: string): string {
   let parsed: unknown;
   try {
@@ -244,32 +274,46 @@ export function sanitizeStudyNotes(raw: string): string {
     throw new Error("Invalid notes shape");
   }
 
-  const obj = parsed as { main?: unknown; strophes?: unknown };
+  const obj = parsed as Record<string, unknown>;
 
   const main =
     typeof obj.main === "string" ? capString(obj.main) : sanitizeRichDoc(obj.main);
 
-  const strophesInput = Array.isArray(obj.strophes) ? obj.strophes : [];
-  const strophes = strophesInput.slice(0, MAX_STROPHES).map((s) => {
-    const entry = (s ?? {}) as Record<string, unknown>;
-    // Body is a rich doc after the upgrade; legacy plain text is length-capped.
-    const text =
-      entry.text && typeof entry.text === "object"
-        ? sanitizeRichDoc(entry.text)
-        : capString(entry.text);
-    // Title is derived from the note's first line (for rich bodies) so it can't
-    // drift from — or be spoofed independently of — the body it summarizes.
-    const title =
-      typeof text === "object"
-        ? capString(firstLineText(text)).replace(/[\r\n]+/g, " ")
-        : capString(entry.title).replace(/[\r\n]+/g, " ");
-    return {
-      title,
-      text,
-      firstWordId: toInt(entry.firstWordId),
-      lastWordId: toInt(entry.lastWordId),
-    };
-  });
+  // Root-level strophes (legacy / layer-0 fallback).
+  const strophes = sanitizeStropheArray(obj.strophes);
 
-  return JSON.stringify({ version: RICH_TEXT_VERSION, main, strophes });
+  // Per-layer main notes keyed by layer id string.
+  const layerNotesRaw = obj.layerNotes as Record<string, unknown> | undefined;
+  const layerNotes: Record<string, string | RichDoc> = {};
+  if (layerNotesRaw && typeof layerNotesRaw === "object") {
+    for (const [key, value] of Object.entries(layerNotesRaw)) {
+      layerNotes[key] = sanitizeLayerNoteValue(value);
+    }
+  }
+
+  // Per-layer strophe notes keyed by layer id string.
+  const layerStrophesRaw = obj.layerStrophes as Record<string, unknown[]> | undefined;
+  const layerStrophes: Record<string, Record<string, unknown>[]> = {};
+  if (layerStrophesRaw && typeof layerStrophesRaw === "object") {
+    for (const [key, arr] of Object.entries(layerStrophesRaw)) {
+      const sanitized = sanitizeStropheArray(arr);
+      if (sanitized.length > 0) {
+        layerStrophes[key] = sanitized;
+      }
+    }
+  }
+
+  const result: Record<string, unknown> = {
+    version: RICH_TEXT_VERSION,
+    main,
+    strophes,
+  };
+  if (Object.keys(layerNotes).length > 0) {
+    result.layerNotes = layerNotes;
+  }
+  if (Object.keys(layerStrophes).length > 0) {
+    result.layerStrophes = layerStrophes;
+  }
+
+  return JSON.stringify(result);
 }
