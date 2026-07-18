@@ -77,6 +77,59 @@ const flattenWords = (passageProps?: PassageProps): WordProps[] => {
   return words;
 };
 
+// Build the Smart Highlight payload for a specific set of levels: each colored
+// level fills its fill words and outlines (border only) its border words with
+// the level's hardcoded palette color.
+const buildGroupsForKeys = (
+  keys: CategoryKey[],
+  categories: Record<CategoryKey, CategoryData>,
+): HighlightGroup[] => {
+  const groups: HighlightGroup[] = [];
+  keys.forEach((key) => {
+    const { fillWords, borderWords } = categories[key];
+    const palette = CATEGORY_PALETTE[key];
+    if (fillWords.length > 0) {
+      groups.push({
+        label: `${key}-fill`,
+        words: fillWords,
+        palette: { fill: palette.fill, border: palette.fill, text: palette.text },
+      });
+    }
+    if (borderWords.length > 0) {
+      groups.push({
+        label: `${key}-border`,
+        words: borderWords,
+        palette: { border: palette.fill },
+      });
+    }
+  });
+  return groups;
+};
+
+// The active highlight id encodes exactly which levels are currently colored, so
+// the applied set survives re-renders and history without a parallel piece of
+// state. The bare STRUCTURE_HIGHLIGHT_ID is reserved to mean "all levels" (the
+// highlight-all case).
+const idForKeys = (keys: CategoryKey[]): string =>
+  `${STRUCTURE_HIGHLIGHT_ID}::${keys.join(",")}`;
+
+const keysFromHighlightId = (
+  id: string | null,
+  allKeys: CategoryKey[],
+): CategoryKey[] => {
+  if (!id) {
+    return [];
+  }
+  if (id === STRUCTURE_HIGHLIGHT_ID) {
+    return allKeys;
+  }
+  const prefix = `${STRUCTURE_HIGHLIGHT_ID}::`;
+  const parts = new Set(
+    (id.startsWith(prefix) ? id.slice(prefix.length) : "").split(",").filter(Boolean),
+  );
+  return CATEGORY_KEYS.filter((key) => parts.has(key));
+};
+
 type AccentCategoryButtonProps = {
   label: string;
   count: number;
@@ -347,6 +400,24 @@ const Structure = () => {
     return set;
   }, [ctxSelectedWords]);
 
+  // A category counts as "selected" only when every one of its fill words is in
+  // the shared selection — the same condition that shows a category button as
+  // pressed. This is the single source of truth for both the button state and
+  // the Smart Highlight payload, so the highlighted levels always match the
+  // levels shown as selected.
+  const isCategoryFullySelected = useCallback(
+    (key: CategoryKey) => {
+      const { fillWords } = categories[key];
+      return fillWords.length > 0 && fillWords.every((word) => selectedWordIds.has(word.wordId));
+    },
+    [categories, selectedWordIds],
+  );
+
+  const selectedCategoryKeys = useMemo(
+    () => CATEGORY_KEYS.filter(isCategoryFullySelected),
+    [isCategoryFullySelected],
+  );
+
   const paletteOptions = useMemo(
     () => ({ colorMap: ctxWordsColorMap, metadataMap: ctxStudyMetadata.words }),
     [ctxWordsColorMap, ctxStudyMetadata.words],
@@ -359,19 +430,14 @@ const Structure = () => {
   // are never part of the editable selection.
   useEffect(() => {
     const borderPartners = new Set<number>();
-    CATEGORY_KEYS.forEach((key) => {
-      const { fillWords, borderWords } = categories[key];
-      if (fillWords.length > 0 && fillWords.every((word) => selectedWordIds.has(word.wordId))) {
-        borderWords.forEach((word) => borderPartners.add(word.wordId));
-      }
+    selectedCategoryKeys.forEach((key) => {
+      categories[key].borderWords.forEach((word) => borderPartners.add(word.wordId));
     });
     ctxSetAccentBorderWordIds(Array.from(borderPartners));
-  }, [categories, selectedWordIds, ctxSetAccentBorderWordIds]);
+  }, [categories, selectedCategoryKeys, ctxSetAccentBorderWordIds]);
 
   // Clear the association when the panel is closed / unmounted.
   useEffect(() => () => ctxSetAccentBorderWordIds([]), [ctxSetAccentBorderWordIds]);
-
-  const isHighlightActive = activeHighlightId === STRUCTURE_HIGHLIGHT_ID;
 
   const toggleCategorySelection = (words: WordProps[]) => {
     if (!words.length) {
@@ -398,46 +464,74 @@ const Structure = () => {
     ctxSetSelectedStrophes([]);
   };
 
-  // Smart Highlight colors EVERY category at once (independent of selection):
-  // fill words get the category fill; border words (cross-word lead words and
-  // maqqef units whose accent straddles the maqqef) get the category color as a
-  // border only, leaving their fill untouched.
-  const highlightGroups: HighlightGroup[] = useMemo(() => {
-    const groups: HighlightGroup[] = [];
-    CATEGORY_KEYS.forEach((key) => {
-      const { fillWords, borderWords } = categories[key];
-      const palette = CATEGORY_PALETTE[key];
-      if (fillWords.length > 0) {
-        groups.push({
-          label: `${key}-fill`,
-          words: fillWords,
-          palette: { fill: palette.fill, border: palette.fill, text: palette.text },
-        });
-      }
-      if (borderWords.length > 0) {
-        groups.push({
-          label: `${key}-border`,
-          words: borderWords,
-          palette: { border: palette.fill },
-        });
-      }
-    });
-    return groups;
-  }, [categories]);
+  // Levels that carry any accent (fill or border-only), i.e. the ones eligible to
+  // be colored. "Highlight all" targets exactly this set.
+  const nonEmptyCategoryKeys = useMemo(
+    () =>
+      CATEGORY_KEYS.filter(
+        (key) => categories[key].fillWords.length > 0 || categories[key].borderWords.length > 0,
+      ),
+    [categories],
+  );
 
-  const hasAnyAccent = highlightGroups.length > 0;
+  const hasAnyAccent = nonEmptyCategoryKeys.length > 0;
   const highlightDisabled = ctxInViewMode || !hasAnyAccent;
 
+  // Levels currently colored, recovered from the active highlight id (the bare id
+  // means every level). This is the "applied" tier of the state machine, mirroring
+  // the Sounds tab's `highlightedIds`.
+  const highlightedCategoryKeys = useMemo(
+    () => keysFromHighlightId(activeHighlightId, nonEmptyCategoryKeys),
+    [activeHighlightId, nonEmptyCategoryKeys],
+  );
+
+  // Same rule as Sounds' `highlightActive`: the button clears only when something
+  // is applied AND nothing is staged. While levels are staged (selected) it reads
+  // "Smart Highlight" and the next click applies/adds them.
+  const isHighlightActive = activeHighlightId !== null && selectedCategoryKeys.length === 0;
+
+  const clearStagedSelection = () => {
+    ctxSetSelectedWords([]);
+    ctxSetNumSelectedWords(0);
+    ctxSetSelectedStrophes([]);
+  };
+
+  // Three-branch state machine ported from the Sounds tab's makeToggleHighlight:
+  //   1. Levels staged → merge them into the already-colored set (accumulate),
+  //      re-color the union, then clear the staging.
+  //   2. Nothing staged but something colored → clear all.
+  //   3. Nothing staged and nothing colored → color every level.
   const handleSmartHighlight = () => {
     if (highlightDisabled) {
       return;
     }
-    toggleHighlight(STRUCTURE_HIGHLIGHT_ID, highlightGroups);
+
+    if (selectedCategoryKeys.length > 0) {
+      const nextKeys = CATEGORY_KEYS.filter(
+        (key) =>
+          highlightedCategoryKeys.includes(key) || selectedCategoryKeys.includes(key),
+      );
+      const nextId = idForKeys(nextKeys);
+      // Skip re-applying an identical set (e.g. re-staging already-colored levels);
+      // just drop the staging so the colored levels stay put.
+      if (nextId !== activeHighlightId) {
+        toggleHighlight(nextId, buildGroupsForKeys(nextKeys, categories));
+      }
+      clearStagedSelection();
+    } else if (activeHighlightId !== null) {
+      // Toggling with the active id restores the words to their pre-highlight state.
+      toggleHighlight(activeHighlightId, []);
+    } else {
+      toggleHighlight(
+        STRUCTURE_HIGHLIGHT_ID,
+        buildGroupsForKeys(nonEmptyCategoryKeys, categories),
+      );
+    }
   };
 
   const renderCategoryButton = (key: CategoryKey, label: string) => {
     const { fillWords, count } = categories[key];
-    const selected = fillWords.length > 0 && fillWords.every((word) => selectedWordIds.has(word.wordId));
+    const selected = isCategoryFullySelected(key);
     const uniform = fillWords.length > 0 ? deriveUniformWordPalette(fillWords, paletteOptions) : undefined;
     const activeColors = uniform?.fill
       ? { fill: uniform.fill, border: uniform.border, text: uniform.text }

@@ -15,9 +15,17 @@ import { ACCENT_CODEPOINTS } from "@/lib/poeticAccents";
 import type { PassageProps, WordProps } from "@/lib/data";
 
 // Stub useHighlightManager so we don't pull in server actions / DB code.
-const { toggleHighlightMock } = vi.hoisted(() => ({ toggleHighlightMock: vi.fn() }));
+// `highlightState.activeHighlightId` is mutable so tests can simulate an
+// already-applied highlight and exercise the accumulate / clear branches.
+const { toggleHighlightMock, highlightState } = vi.hoisted(() => ({
+  toggleHighlightMock: vi.fn(),
+  highlightState: { activeHighlightId: null as string | null },
+}));
 vi.mock("./useHighlightManager", () => ({
-  useHighlightManager: () => ({ toggleHighlight: toggleHighlightMock, activeHighlightId: null }),
+  useHighlightManager: () => ({
+    toggleHighlight: toggleHighlightMock,
+    activeHighlightId: highlightState.activeHighlightId,
+  }),
 }));
 
 // Mock the StudyPane index so importing FormatContext is cheap.
@@ -83,6 +91,7 @@ const catButton = (name: RegExp) => screen.getByRole("button", { name });
 describe("Structure panel — Accents in Poetry", () => {
   beforeEach(() => {
     toggleHighlightMock.mockClear();
+    highlightState.activeHighlightId = null;
   });
 
   it("renders the accordion with Disjunctive levels and a Conjunctive All row", () => {
@@ -151,7 +160,7 @@ describe("Structure panel — Accents in Poetry", () => {
     expect(ctxSetNumSelectedWords).toHaveBeenCalledWith(0);
   });
 
-  it("Smart Highlight colors ALL non-empty categories at once with the hardcoded palette", () => {
+  it("Smart Highlight colors ALL non-empty categories at once when nothing is selected", () => {
     setup({
       passage: buildPassage([
         mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ), // level-1
@@ -172,6 +181,101 @@ describe("Structure panel — Accents in Poetry", () => {
     expect(byLabel["level-2-fill"].palette).toMatchObject({ fill: "#D32F2F", text: "#FFFFFF" });
     expect(byLabel["conjunctive-fill"].palette).toMatchObject({ fill: "#C8E6C9" });
     expect(byLabel["level-1-fill"].words.map((w: WordProps) => w.wordId)).toEqual([1]);
+  });
+
+  it("Smart Highlight colors ONLY the selected level when one level is selected", () => {
+    const l1 = mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ); // level-1
+    const l2 = mkWord(2, ACCENT_CODEPOINTS.ETNACHTA); // level-2
+    const conj = mkWord(3, ACCENT_CODEPOINTS.MUNACH); // conjunctive
+    setup({
+      passage: buildPassage([l1, l2, conj]),
+      selectedWords: [l1], // only Level 1's fill word is selected
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+    expect(toggleHighlightMock).toHaveBeenCalledTimes(1);
+    const [highlightId, groups] = toggleHighlightMock.mock.calls[0];
+    // The ID is scoped to the selected set so the next click can extend it.
+    expect(highlightId).toBe("accents-in-poetry::level-1");
+    const byLabel = Object.fromEntries(groups.map((g: any) => [g.label, g]));
+    // Level 2 and the conjunctive row are left untouched.
+    expect(Object.keys(byLabel).sort()).toEqual(["level-1-fill"]);
+    expect(byLabel["level-1-fill"].words.map((w: WordProps) => w.wordId)).toEqual([1]);
+    expect(byLabel["level-1-fill"].palette).toMatchObject({ fill: "#B71C1C", text: "#FFFFFF" });
+  });
+
+  it("Smart Highlight colors every selected level and excludes the unselected ones", () => {
+    const l1 = mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ); // level-1
+    const l2 = mkWord(2, ACCENT_CODEPOINTS.ETNACHTA); // level-2
+    const conj = mkWord(3, ACCENT_CODEPOINTS.MUNACH); // conjunctive
+    setup({
+      passage: buildPassage([l1, l2, conj]),
+      selectedWords: [l1, l2], // Level 1 + Level 2 selected; conjunctive left out
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+    const [highlightId, groups] = toggleHighlightMock.mock.calls[0];
+    // ID encodes both levels (in CATEGORY_KEYS order, not selection order) so that
+    // selecting another level yields a different ID and re-applies instead of
+    // clearing — enabling incremental level-by-level coloring.
+    expect(highlightId).toBe("accents-in-poetry::level-1,level-2");
+    const byLabel = Object.fromEntries(groups.map((g: any) => [g.label, g]));
+    expect(Object.keys(byLabel).sort()).toEqual(["level-1-fill", "level-2-fill"]);
+  });
+
+  it("adds newly staged levels to the already-highlighted set (accumulate)", () => {
+    // Level 1 is already colored; the user now stages Level 2 and applies.
+    highlightState.activeHighlightId = "accents-in-poetry::level-1";
+    const l1 = mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ); // level-1
+    const l2 = mkWord(2, ACCENT_CODEPOINTS.ETNACHTA); // level-2
+    const { ctxSetSelectedWords } = setup({
+      passage: buildPassage([l1, l2]),
+      selectedWords: [l2], // only Level 2 is staged
+    });
+
+    // Button reads "Smart Highlight" (not "Clear") because a level is staged.
+    fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+    const [highlightId, groups] = toggleHighlightMock.mock.calls[0];
+    expect(highlightId).toBe("accents-in-poetry::level-1,level-2");
+    const labels = groups.map((g: any) => g.label).sort();
+    expect(labels).toEqual(["level-1-fill", "level-2-fill"]);
+    // Staging is cleared after applying, like the Sounds tab.
+    expect(ctxSetSelectedWords).toHaveBeenCalledWith([]);
+  });
+
+  it("Clear Highlight clears everything when nothing is staged", () => {
+    highlightState.activeHighlightId = "accents-in-poetry::level-1,level-2";
+    const l1 = mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ);
+    const l2 = mkWord(2, ACCENT_CODEPOINTS.ETNACHTA);
+    setup({
+      passage: buildPassage([l1, l2]),
+      selectedWords: [], // nothing staged → button shows "Clear Highlight"
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Clear Highlight/ }));
+
+    // Toggling with the active id restores the pre-highlight state.
+    const [highlightId] = toggleHighlightMock.mock.calls[0];
+    expect(highlightId).toBe("accents-in-poetry::level-1,level-2");
+  });
+
+  it("re-staging an already-highlighted level does not clear it (no-op apply)", () => {
+    highlightState.activeHighlightId = "accents-in-poetry::level-1";
+    const l1 = mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ);
+    const { ctxSetSelectedWords } = setup({
+      passage: buildPassage([l1]),
+      selectedWords: [l1], // Level 1 staged again while already colored
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Smart Highlight/ }));
+
+    // The union equals the applied set, so no re-apply fires...
+    expect(toggleHighlightMock).not.toHaveBeenCalled();
+    // ...but the staging is still cleared.
+    expect(ctxSetSelectedWords).toHaveBeenCalledWith([]);
   });
 
   it("disables Smart Highlight when there are no accents", () => {
