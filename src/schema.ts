@@ -12,6 +12,7 @@ export const study = pgTable('study', {
   //layers: jsonb('layers').default({ }),
   notes: text('notes'),
   starred: boolean('starred').default(false),
+  scriptura: boolean('scriptura').default(false),
   updatedAt: text('updatedTime'),
   createdAt: text('createdTime'),
 });

@@ -57,6 +57,7 @@ export async function fetchStudyById(studyId: string) {
       passage: row?.passage || "",
       public: row?.public || false,
       model: row?.model || false,
+      scriptura: row?.scriptura || false,
       metadata: (row?.metadata as StudyMetadata) || { words: {} },
       //layers: (row?.layers as LayerData[]) || { },
       notes: row?.notes || "",
@@ -169,6 +170,7 @@ export async function createStudy(passage: string, book: string) {
           public: false,
           model: false,
           starred: false,
+          scriptura: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         })
@@ -204,6 +206,7 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
           public: false,
           model: false,
           starred: false,
+          scriptura: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()          
         })
@@ -340,6 +343,7 @@ export async function fetchRecentStudies(
       passage: row.passage ?? "",
       public: row.public ?? false,
       starred: row.starred ?? false,
+      scriptura: row.scriptura ?? false,
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
@@ -410,6 +414,62 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
   return searchResult;
 }
 
+export async function fetchScripturaStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
+  const PAGINATION_SIZE = 10;
+
+  const searchResult: FetchStudiesResult = { records: [], totalPages: 1 };
+
+  const user = await currentUser();
+
+  const filter = and(
+    eq(study.scriptura, true),
+    or(
+      ilike(study.name, `%${query}%`),
+      ilike(study.book, `%${query}%`),
+      like(study.passage, `%${query}%`),
+    )
+  );
+
+  const sortColumn = SORT_COLUMNS[sortKey as keyof typeof SORT_COLUMNS] ?? study.createdAt;
+  const sortOrder = sortAsc ? asc(sortColumn) : desc(sortColumn);
+
+  const [rows, totalCount] = await Promise.all([
+    db
+      .select()
+      .from(study)
+      .where(filter)
+      .orderBy(sortOrder)
+      .limit(PAGINATION_SIZE)
+      .offset((currentPage - 1) * PAGINATION_SIZE),
+
+    db
+      .select({ count: count() })
+      .from(study)
+      .where(filter)
+      .then((res) => res[0].count),
+  ]);
+
+  rows.map((row) => {
+    searchResult.records.push({
+      id: row.id,
+      name: row.name ?? "",
+      owner: user?.id,
+      book: row.book ?? "",
+      passage: row.passage ?? "",
+      public: row.public ?? false,
+      starred: row.starred ?? false,
+      lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
+      createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
+      metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
+      notes: row.notes ?? "",
+    });
+  });
+
+  searchResult.totalPages = Math.ceil(totalCount / PAGINATION_SIZE);
+
+  return searchResult;
+}
 const createPassageRangeCondition = (passageInfo: PassageInfo): SQL => {
   const bookValue = passageInfo.book ?? "psalms";
 
@@ -462,6 +522,7 @@ export async function fetchPassageData(studyId: string) {
       passage: currentStudy?.passage || "",
       public: currentStudy?.public || false,
       model: currentStudy?.model || false,
+      scriptura: currentStudy?.scriptura || false,
       metadata: (currentStudy?.metadata as StudyMetadata) || {},
       //layers: (currentStudy?.layers) as LayerData[] || {},
       notes: currentStudy?.notes || ""
