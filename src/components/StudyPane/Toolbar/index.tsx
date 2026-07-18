@@ -3,7 +3,7 @@ import { useContext, useState } from "react";
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
   IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
   ClearAllFormatBtn, EditWordBtn, BoxlessBtn,
-  StropheNoteBtn} from "./Buttons";
+  StropheNoteBtn, ReadmeBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayConfig, LanguageMode } from "@/lib/types";
@@ -138,6 +138,7 @@ const Toolbar = ({
                 </div>
               </div>
               <div className="flex flex-row items-center">
+                <ReadmeBtn />
                 <StropheNoteBtn />
                 <LanguageSwitcher />
               </div>

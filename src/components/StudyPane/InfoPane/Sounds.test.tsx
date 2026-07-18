@@ -82,6 +82,11 @@ function Harness({ initial }: { initial?: Partial<CtxState> }) {
 
   const ctx = {
     ctxPassageProps: PASSAGE_PROPS,
+    // Read Aloud (TTS) fields the merged Sounds component reads. No playback
+    // happens in tests; empty selections keep the Read Aloud section inert.
+    ctxSelectedWords: [],
+    ctxSelectedStrophes: [],
+    ctxSetCurrentSpokenWordIds: () => {},
     ctxSelectedSoundChipIds: s.selectedSoundChipIds,
     ctxSetSelectedSoundChipIds: asSetter("selectedSoundChipIds"),
     ctxHighlightedSoundChipIds: s.highlightedSoundChipIds,
@@ -127,6 +132,12 @@ function openLetterSection() {
   fireEvent.click(screen.getByText("Hebrew Letters Distribution"));
 }
 
+// The merged Sounds tab opens the "Read Aloud" section first, so the Sound
+// Distribution body (chips + highlight button) must be expanded explicitly.
+function openSoundSection() {
+  fireEvent.click(screen.getByText("Hebrew Sound Distribution"));
+}
+
 const SOUND_IDS = SOUND_CHIPS.map((c) => c.id);
 const LETTER_GROUP_MEMBERS = LETTER_CHIP_GROUPS.flatMap((g) => g.memberIds);
 
@@ -148,6 +159,7 @@ describe("toggle highlight — sound", () => {
       letterHighlightEnabled: true,
       selectedLetterChipIds: ["nun"],
     });
+    openSoundSection();
 
     fireEvent.click(screen.getByRole("button", { name: "Smart Highlight" }));
 
@@ -163,6 +175,7 @@ describe("toggle highlight — sound", () => {
 
   it("with nothing selected but highlight enabled: clears the highlight (Clear → off)", () => {
     renderHarness({ soundHighlightEnabled: true, highlightedSoundChipIds: ["m", "l"] });
+    openSoundSection();
 
     fireEvent.click(screen.getByRole("button", { name: "Clear Highlight" }));
 
@@ -173,6 +186,7 @@ describe("toggle highlight — sound", () => {
 
   it("with nothing selected and nothing highlighted: highlights ALL sound chips and clears letters", () => {
     renderHarness({ highlightedLetterChipIds: ["mem"], letterHighlightEnabled: true });
+    openSoundSection();
 
     fireEvent.click(screen.getByRole("button", { name: "Smart Highlight" }));
 
@@ -239,6 +253,7 @@ describe("toggle highlight — letter", () => {
 describe("chip selection", () => {
   it("sound chip click toggles its id in selectedSoundChipIds", () => {
     renderHarness();
+    openSoundSection();
     fireEvent.click(chipButton("m"));
     expect(readState().selectedSoundChipIds).toEqual(["m"]);
     fireEvent.click(chipButton("m"));
@@ -262,6 +277,7 @@ describe("chip selection", () => {
 describe("count memos", () => {
   it("sound 'm' chip shows the transliteration occurrence count (2 for 'mama')", () => {
     renderHarness();
+    openSoundSection();
     expect(within(chipButton("m")).getByText("2")).toBeInTheDocument();
   });
 
@@ -341,6 +357,7 @@ describe("Escape closes the tooltip", () => {
 describe("click outside deselects chips", () => {
   it("sound: clicking outside the section clears selectedSoundChipIds", () => {
     renderHarness();
+    openSoundSection();
     fireEvent.click(chipButton("m"));
     expect(readState().selectedSoundChipIds).toEqual(["m"]);
     fireEvent.click(screen.getByTestId("outside"));
@@ -358,6 +375,7 @@ describe("click outside deselects chips", () => {
 
   it("sound: an open tooltip suppresses click-outside deselect", () => {
     renderHarness();
+    openSoundSection();
     fireEvent.click(chipButton("m"));
     fireEvent.click(screen.getByRole("button", { name: "About sound distribution" }));
     // With the tooltip open, an outside click must NOT clear the selection.

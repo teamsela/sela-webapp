@@ -6,7 +6,7 @@ import { BiSolidColorFill, BiFont } from "react-icons/bi";
 import { AiOutlineClear } from "react-icons/ai";
 import { VscClearAll } from "react-icons/vsc";
 import { TbArrowAutofitContent, TbArrowAutofitContentFilled, TbEdit } from "react-icons/tb";
-import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
+import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease, CgEreader } from "react-icons/cg";
 import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
 
 import { SwatchesPicker } from 'react-color';
@@ -144,8 +144,9 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   setColorAction
 }) => {
   const { ctxStudyId, ctxStudyMetadata, ctxColorAction, ctxColorFill, ctxBorderColor, ctxTextColor,
-    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxAddToHistory,
-    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds
+    ctxNumSelectedWords, ctxSelectedWords, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxNumSelectedLayers, ctxAddToHistory,
+    ctxWordsColorMap, ctxSetWordsColorMap, ctxHighlightCacheRef, ctxSetActiveHighlightId, ctxActiveHighlightIds,
+    ctxAccentBorderWordIds
   } = useContext(FormatContext);
 
   const [buttonEnabled, setButtonEnabled] = useState(false);
@@ -159,7 +160,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   }, [colorAction, ctxColorFill, ctxBorderColor, ctxTextColor]);
   
   useEffect(() => {
-    const hasSelectedItems = (ctxNumSelectedWords > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
+    const hasSelectedItems = (ctxNumSelectedWords > 0 || ctxNumSelectedLayers > 0 || (ctxNumSelectedStrophes > 0 && colorAction != ColorActionType.textColor));
     setButtonEnabled(hasSelectedItems);
 
     // make sure the colour picker turns off completely when user de-selects everything
@@ -175,7 +176,7 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     else {
       refreshDisplayColor();
     }
-  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
+  }, [ctxNumSelectedWords, ctxNumSelectedStrophes, ctxNumSelectedLayers, refreshDisplayColor, setColorAction, setSelectedColor, colorAction])
 
   useEffect(() => {
     if (ctxColorAction === ColorActionType.resetColor || ctxColorAction === ColorActionType.resetAllColor) {
@@ -270,6 +271,30 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       }
     });
 
+    // Structure "Accents in Poetry": when a background (fill) color is applied to
+    // the selected ending words, mirror it as a BORDER onto the accent's portion
+    // words (cross-word lead words) — the same fill/border split Smart Highlight
+    // uses. Portion words are never part of the editable selection.
+    const accentBorderIds =
+      colorAction === ColorActionType.colorFill ? (ctxAccentBorderWordIds ?? []) : [];
+    const selectedWordIdSet = new Set(ctxSelectedWords.map((word) => word.wordId));
+    accentBorderIds.forEach((wordId) => {
+      if (selectedWordIdSet.has(wordId)) {
+        return; // a word that is itself selected keeps its fill
+      }
+      const wordMetadata = ctxStudyMetadata.words[wordId];
+      if (!wordMetadata) {
+        ctxStudyMetadata.words[wordId] = { color: { border: color.hex } };
+        isChanged = true;
+        return;
+      }
+      wordMetadata.color ??= {};
+      if (wordMetadata.color.border !== color.hex) {
+        wordMetadata.color.border = color.hex;
+        isChanged = true;
+      }
+    });
+
     if (ctxSelectedStrophes.length > 0) {
 
       // find the index to the first word of the strophe
@@ -316,6 +341,19 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           }
         });
       }
+
+      // Mirror the accent portion (border) words into the color map too.
+      accentBorderIds.forEach((wordId) => {
+        if (selectedWordIdSet.has(wordId)) {
+          return;
+        }
+        const wordMd = ctxStudyMetadata.words[wordId];
+        const { source: _src, ...normalized } = wordMd?.color || {};
+        if (Object.keys(normalized).length > 0) {
+          nextColorMap.set(wordId, { ...normalized });
+          mapChanged = true;
+        }
+      });
 
       if (mapChanged) {
         ctxSetWordsColorMap(nextColorMap);
@@ -901,4 +939,18 @@ export const StropheNoteBtn = () => {
       </button>
     </div>
   )
+}
+
+export const ReadmeBtn = () => {
+  const { ctxReadmeBtnOn, ctxSetReadmeBtnOn } = useContext(FormatContext)
+  return (
+    <div className="p-2">
+      <button
+        className={`${ctxReadmeBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center`}
+        onClick={() => {ctxSetReadmeBtnOn(!ctxReadmeBtnOn)}}
+      >
+        <CgEreader />
+      </button>
+    </div>
+  );
 }

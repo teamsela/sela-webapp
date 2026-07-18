@@ -5,12 +5,12 @@ import { currentUser, clerkClient } from '@clerk/nextjs/server';
 
 import { db } from '../db';
 import { hebBible, lemmaLink, motifLink, stepbibleTbesh, study } from '../schema';
-import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL } from 'drizzle-orm';
+import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL, sql } from 'drizzle-orm';
 
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
-import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
@@ -58,6 +58,7 @@ export async function fetchStudyById(studyId: string) {
       public: row?.public || false,
       model: row?.model || false,
       metadata: (row?.metadata as StudyMetadata) || { words: {} },
+      //layers: (row?.layers as LayerData[]) || { },
       notes: row?.notes || "",
     };
 
@@ -282,6 +283,7 @@ export async function fetchPublicStudies(query: string, currentPage: number, sor
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -341,6 +343,7 @@ export async function fetchRecentStudies(
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -397,6 +400,7 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
+      //layers: row.layers as LayerData[],
       notes: row.notes ?? "",
     });
   });
@@ -459,6 +463,7 @@ export async function fetchPassageData(studyId: string) {
       public: currentStudy?.public || false,
       model: currentStudy?.model || false,
       metadata: (currentStudy?.metadata as StudyMetadata) || {},
+      //layers: (currentStudy?.layers) as LayerData[] || {},
       notes: currentStudy?.notes || ""
     };
 
@@ -486,6 +491,7 @@ export async function fetchPassageData(studyId: string) {
               ETCBCgloss: hebBible.ETCBCgloss,
               morphology: hebBible.morphology,
               BSBnewLine: hebBible.BSBnewLine,
+              BSBstanzaBreak: hebBible.BSBstanzaBreak,
               motifCategories: motifLink.categories,
               relatedStrongCodes: motifLink.relatedStrongCodes,
               motifLemma: lemmaLink.lemma,
@@ -644,11 +650,85 @@ export async function fetchPassageData(studyId: string) {
           };
         };
 
-        const fetchRecordForCode = async (
-          column: "eStrong" | "dStrong" | "uStrong",
+        type StepBibleColumn = "eStrong" | "dStrong" | "uStrong";
+        type StepBibleMatchType = "equals" | "startsWith";
+        type StepBibleRecord = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>;
+
+        const STEP_BIBLE_CODE_BATCH_SIZE = 500;
+        const STEP_BIBLE_COLUMN_ORDER: StepBibleColumn[] = ["eStrong", "dStrong", "uStrong"];
+
+        const stepBibleSelect = {
+          Hebrew: stepbibleTbesh.Hebrew,
+          Transliteration: stepbibleTbesh.Transliteration,
+          Gloss: stepbibleTbesh.Gloss,
+          Meaning: stepbibleTbesh.Meaning,
+          Morph: stepbibleTbesh.Morph,
+          eStrong: stepbibleTbesh.eStrong,
+          dStrong: stepbibleTbesh.dStrong,
+          uStrong: stepbibleTbesh.uStrong,
+        };
+
+        const chunkValues = <T,>(values: T[], size: number) => {
+          const chunks: T[][] = [];
+
+          for (let i = 0; i < values.length; i += size) {
+            chunks.push(values.slice(i, i + size));
+          }
+
+          return chunks;
+        };
+
+        const fetchStepBibleCandidates = async (
+          codes: string[],
+          matchType: StepBibleMatchType
+        ): Promise<StepBibleRecord[]> => {
+          const normalizedCodes = Array.from(
+            new Set(
+              codes
+                .map(normalizeStrongCode)
+                .filter((code) => code.length > 0)
+            )
+          );
+
+          if (normalizedCodes.length === 0) {
+            return [];
+          }
+
+          const records: StepBibleRecord[] = [];
+
+          for (const codeBatch of chunkValues(normalizedCodes, STEP_BIBLE_CODE_BATCH_SIZE)) {
+            const patterns = codeBatch.map((code) => `${code}%`);
+            const codeArray = sql`ARRAY[${sql.join(codeBatch.map((code) => sql`${code}`), sql`, `)}]::text[]`;
+            const patternArray = sql`ARRAY[${sql.join(patterns.map((pattern) => sql`${pattern}`), sql`, `)}]::text[]`;
+            const whereClause = matchType === "equals"
+              ? sql`(
+                  ${stepbibleTbesh.eStrong} = ANY(${codeArray})
+                  OR ${stepbibleTbesh.dStrong} = ANY(${codeArray})
+                  OR ${stepbibleTbesh.uStrong} = ANY(${codeArray})
+                )`
+              : sql`(
+                  ${stepbibleTbesh.eStrong} LIKE ANY(${patternArray})
+                  OR ${stepbibleTbesh.dStrong} LIKE ANY(${patternArray})
+                  OR ${stepbibleTbesh.uStrong} LIKE ANY(${patternArray})
+                )`;
+
+            const batchRecords = await db
+              .select(stepBibleSelect)
+              .from(stepbibleTbesh)
+              .where(whereClause);
+
+            records.push(...batchRecords);
+          }
+
+          return records;
+        };
+
+        const findStepBibleRecord = (
+          candidates: StepBibleRecord[],
+          column: StepBibleColumn,
           code: string,
-          matchType: "equals" | "startsWith" = "equals",
-          baseStrong?: number
+          matchType: StepBibleMatchType,
+          baseStrong: number
         ) => {
           const normalizedCode = normalizeStrongCode(code);
 
@@ -656,131 +736,77 @@ export async function fetchPassageData(studyId: string) {
             return undefined;
           }
 
-          const columnMap = {
-            eStrong: stepbibleTbesh.eStrong,
-            dStrong: stepbibleTbesh.dStrong,
-            uStrong: stepbibleTbesh.uStrong,
-          };
-          const targetColumn = columnMap[column];
-
-          if (matchType === "startsWith") {
-            const records = await db
-              .select({
-                Hebrew: stepbibleTbesh.Hebrew,
-                Transliteration: stepbibleTbesh.Transliteration,
-                Gloss: stepbibleTbesh.Gloss,
-                Meaning: stepbibleTbesh.Meaning,
-                Morph: stepbibleTbesh.Morph,
-                eStrong: stepbibleTbesh.eStrong,
-                dStrong: stepbibleTbesh.dStrong,
-                uStrong: stepbibleTbesh.uStrong,
-              })
-              .from(stepbibleTbesh)
-              .where(like(targetColumn, `${normalizedCode}%`));
-
-            for (const record of records) {
-              const columnValue = record[column]?.trim();
-
-              if (baseStrong !== undefined && getStrongNumericValue(columnValue) !== baseStrong) {
-                continue;
-              }
-
-              return createStepBibleWordInfo(record, normalizedCode, baseStrong);
-            }
-
-            return undefined;
-          }
-
-          const record = await db
-            .select({
-              Hebrew: stepbibleTbesh.Hebrew,
-              Transliteration: stepbibleTbesh.Transliteration,
-              Gloss: stepbibleTbesh.Gloss,
-              Meaning: stepbibleTbesh.Meaning,
-              Morph: stepbibleTbesh.Morph,
-              eStrong: stepbibleTbesh.eStrong,
-              dStrong: stepbibleTbesh.dStrong,
-              uStrong: stepbibleTbesh.uStrong,
-            })
-            .from(stepbibleTbesh)
-            .where(eq(targetColumn, normalizedCode))
-            .limit(1)
-            .then((rows) => rows[0]);
-
-          if (!record) {
-            return undefined;
-          }
-
-          if (baseStrong !== undefined) {
+          return candidates.find((record) => {
             const columnValue = record[column]?.trim();
-            if (getStrongNumericValue(columnValue) !== baseStrong) {
-              return undefined;
-            }
-          }
 
-          return createStepBibleWordInfo(record, normalizedCode, baseStrong);
+            if (getStrongNumericValue(columnValue) !== baseStrong) {
+              return false;
+            }
+
+            const normalizedColumnValue = normalizeStrongCode(columnValue ?? "");
+
+            return matchType === "equals"
+              ? normalizedColumnValue === normalizedCode
+              : normalizedColumnValue.startsWith(normalizedCode);
+          });
         };
 
-        const fetchStepBibleRecord = async (strongNumber: number) => {
+        const selectStepBibleRecord = (
+          candidates: StepBibleRecord[],
+          strongNumber: number,
+          matchType: StepBibleMatchType
+        ) => {
           const strongCodes = getStrongCodeVariants(strongNumber);
           const baseStrong = Math.trunc(strongNumber);
 
           for (const code of strongCodes) {
-            const record =
-              (await fetchRecordForCode("eStrong", code, "equals", baseStrong)) ||
-              (await fetchRecordForCode("dStrong", code, "equals", baseStrong)) ||
-              (await fetchRecordForCode("uStrong", code, "equals", baseStrong));
+            for (const column of STEP_BIBLE_COLUMN_ORDER) {
+              const record = findStepBibleRecord(candidates, column, code, matchType, baseStrong);
 
-            if (record) {
-              return record;
-            }
-          }
-
-          for (const code of strongCodes) {
-            const record =
-              (await fetchRecordForCode("eStrong", code, "startsWith", baseStrong)) ||
-              (await fetchRecordForCode("dStrong", code, "startsWith", baseStrong)) ||
-              (await fetchRecordForCode("uStrong", code, "startsWith", baseStrong));
-
-            if (record) {
-              return record;
+              if (record) {
+                return createStepBibleWordInfo(record, normalizeStrongCode(code), baseStrong);
+              }
             }
           }
 
           return undefined;
         };
 
-        await Promise.all(
-          Array.from(uniqueStrongNumbers).map(async (strongNumber) => {
-            const preferredRecord = await fetchStepBibleRecord(strongNumber);
+        const uniqueStrongNumberList = Array.from(uniqueStrongNumbers);
+        const strongCodesForNumbers = (strongNumbers: number[]) =>
+          Array.from(new Set(strongNumbers.flatMap(getStrongCodeVariants)));
+
+        const exactCandidates = await fetchStepBibleCandidates(
+          strongCodesForNumbers(uniqueStrongNumberList),
+          "equals"
+        );
+        const unresolvedStrongNumbers: number[] = [];
+
+        uniqueStrongNumberList.forEach((strongNumber) => {
+          const preferredRecord = selectStepBibleRecord(exactCandidates, strongNumber, "equals");
+
+          if (!preferredRecord) {
+            unresolvedStrongNumbers.push(strongNumber);
+            return;
+          }
+
+          stepBibleMap.set(strongNumber, preferredRecord);
+        });
+
+        if (unresolvedStrongNumbers.length > 0) {
+          const prefixCandidates = await fetchStepBibleCandidates(
+            strongCodesForNumbers(unresolvedStrongNumbers),
+            "startsWith"
+          );
+
+          unresolvedStrongNumbers.forEach((strongNumber) => {
+            const preferredRecord = selectStepBibleRecord(prefixCandidates, strongNumber, "startsWith");
 
             if (preferredRecord) {
-              const {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              } = preferredRecord;
-
-              stepBibleMap.set(strongNumber, {
-                Hebrew,
-                Transliteration,
-                Gloss,
-                Meaning,
-                Morph,
-                eStrong,
-                dStrong,
-                uStrong,
-                preferredStrong,
-              });
+              stepBibleMap.set(strongNumber, preferredRecord);
             }
-          })
-        );
+          });
+        }
 
         // The wlcWord column may store Hebrew text as HTML numeric entities
         // (e.g. "&#1497;&#1463;" instead of "יַ") depending on the database branch.
@@ -806,6 +832,9 @@ export async function fetchPassageData(studyId: string) {
           hebWord.morphology = word.morphology?.trim() || "";
           hebWord.showVerseNum = false;
           hebWord.newLine = (word.BSBnewLine) || false;
+          hebWord.BSBnewLine = (word.BSBnewLine) || false;
+          hebWord.newVerse = false;
+          hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
 
           if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
             const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))

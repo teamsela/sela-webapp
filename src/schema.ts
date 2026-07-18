@@ -9,6 +9,7 @@ export const study = pgTable('study', {
   public: boolean('public').default(false),
   model: boolean('model').default(false),
   metadata: jsonb('metadata').default({ words: [] }),
+  //layers: jsonb('layers').default({ }),
   notes: text('notes'),
   starred: boolean('starred').default(false),
   updatedAt: text('updatedTime'),
@@ -28,6 +29,7 @@ export const hebBible = pgTable('heb_bible_test', {
   ETCBCgloss: text('ETCBCgloss'),
   morphology: text('morphology'),
   BSBnewLine: boolean('BSBnewLine'),
+  BSBstanzaBreak: boolean('BSBstanzaBreak'),
   motifLinkId: text('motifLink'), // FK to motif_link
 });
 
