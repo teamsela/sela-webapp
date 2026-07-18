@@ -167,6 +167,7 @@ export interface StudyData {
     public: boolean;
     starred?: boolean;
     model?: boolean;
+    scriptura?: boolean;
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata; // to be deprecated
