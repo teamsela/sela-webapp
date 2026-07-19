@@ -66,11 +66,6 @@ const PausalInfoModal = ({ onClose }: { onClose: () => void }) =>
           cantillation accents, so a pausal form is located by the accent it carries.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          <strong>Smart Highlight</strong> clears any existing colors on the page, then fills every
-          word carrying a catalogued pausal-form accent with yellow. The count shows how many words
-          are highlighted.
-        </p>
-        <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
           The catalogue covers <strong>Psalms</strong> only, so the tool is enabled when a Psalms
           study is open.
         </p>
