@@ -4,8 +4,17 @@
  * with optional trailing editorial markers (* ? !). Parse with
  * parsePausalCatalogue() in @/lib/pausalForms.
  *
- * Source: originally public/pausal_forms.txt. To regenerate after editing the
- * source text, replace the string below with the file contents verbatim.
+ * Data source (attribution):
+ *   E. J. Revell, "A List of Pausal Forms in the TeNaK," Pericope: Scripture as
+ *   Written and Read in Antiquity,
+ *   http://www.pericope.net/Assets/pericope_texts/Pausal_Forms_Revell/PausalTNK.pdf
+ *   — the companion dataset to E. J. Revell, The Pausal System: Divisions in the
+ *   Hebrew Biblical Text as Marked by Voweling and Stress Position, ed. Raymond
+ *   de Hoop and Paul Sanders, Pericope 10 (Sheffield: Sheffield Phoenix Press,
+ *   2015).
+ *
+ * To regenerate after editing the source text, replace the string below with the
+ * file contents verbatim.
  */
 export const PAUSAL_FORMS_RAW = `
 Ps 1:1 Etnachta

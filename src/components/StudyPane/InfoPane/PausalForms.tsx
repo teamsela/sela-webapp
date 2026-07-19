@@ -69,6 +69,22 @@ const PausalInfoModal = ({ onClose }: { onClose: () => void }) =>
           The catalogue covers <strong>Psalms</strong> only, so the tool is enabled when a Psalms
           study is open.
         </p>
+
+        <p className="mt-5 border-t border-gray-200 pt-3 text-xs leading-relaxed text-gray-500 dark:border-gray-700 dark:text-gray-400">
+          Source: E. J. Revell,{" "}
+          <a
+            href="http://www.pericope.net/Assets/pericope_texts/Pausal_Forms_Revell/PausalTNK.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-primary"
+          >
+            &ldquo;A List of Pausal Forms in the TeNaK&rdquo;
+          </a>{" "}
+          (Pericope: Scripture as Written and Read in Antiquity), accompanying E. J. Revell,{" "}
+          <em>The Pausal System: Divisions in the Hebrew Biblical Text as Marked by Voweling and
+          Stress Position</em>, ed. R. de Hoop and P. Sanders, Pericope 10 (Sheffield: Sheffield
+          Phoenix Press, 2015).
+        </p>
       </div>
     </div>,
     document.body,
