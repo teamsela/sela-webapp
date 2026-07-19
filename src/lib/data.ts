@@ -1,6 +1,6 @@
 import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
 
-export type ColorSource = "syntax" | "motif" | "structure";
+export type ColorSource = "syntax" | "motif" | "structure" | "pausal";
 
 export type ColorData = {
     fill?: string;

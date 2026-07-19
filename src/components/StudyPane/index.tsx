@@ -101,7 +101,7 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightIds: { syntax: null, motif: null, structure: null } as Record<ColorSource, string | null>,
+  ctxActiveHighlightIds: { syntax: null, motif: null, structure: null, pausal: null } as Record<ColorSource, string | null>,
   ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
@@ -232,6 +232,7 @@ const StudyPane = ({
     syntax: null,
     motif: null,
     structure: null,
+    pausal: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 

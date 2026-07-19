@@ -34,6 +34,11 @@ vi.mock("..", async () => {
   return { FormatContext: ReactMod.createContext({} as any) };
 });
 
+// The Pausal Forms accordion is a sibling section with its own "Smart Highlight"
+// button and is covered by its own test; stub it out so these Accents-in-Poetry
+// queries stay unambiguous.
+vi.mock("./PausalForms", () => ({ default: () => null }));
+
 import Structure from "./Structure";
 import { FormatContext } from "..";
 
