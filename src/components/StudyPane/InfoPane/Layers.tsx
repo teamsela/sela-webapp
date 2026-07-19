@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { LuTextSelect } from "react-icons/lu";
+import { BiCollapseVertical } from "react-icons/bi";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -134,18 +135,27 @@ const Layers = () => {
     setNotesExpanded(false);
   }, [ctxActiveLayerId]);
 
-  // Collapse the expanded note when the user clicks anywhere outside it.
-  // A document-level listener (instead of textarea onBlur) avoids the event
-  // race that made an in-note collapse button unreliable.
+  // Collapse the expanded note when the user clicks elsewhere INSIDE the layers
+  // sidebar (e.g. the layer header). A document-level listener (instead of
+  // textarea onBlur) avoids the event race that made an in-note collapse button
+  // unreliable. Crucially, clicks OUTSIDE the sidebar must NOT collapse the note:
+  // the user needs to reach the toolbar colour controls and click passage
+  // strophes / words / stanzas (to highlight and reference them) while writing.
+  const paneRef = useRef<HTMLDivElement | null>(null);
   const expandedNoteRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!notesExpanded) return;
     const onDocMouseDown = (e: MouseEvent) => {
       const target = e.target as Node;
+      // Clicks inside the note keep it open.
       if (expandedNoteRef.current?.contains(target)) return;
-      // The rich-text formatting menu is portaled to document.body, so clicks on
-      // it land outside the note wrapper — don't treat those as an outside click.
+      // The rich-text formatting menu (highlight / text-colour pickers) is
+      // portaled to document.body, so its clicks land outside the note wrapper —
+      // don't treat those as an outside click.
       if (target instanceof Element && target.closest('[role="menu"]')) return;
+      // Clicks outside the sidebar (passage, toolbar, other panes) leave the note
+      // open; only a click elsewhere within the sidebar collapses it.
+      if (!paneRef.current?.contains(target)) return;
       setNotesExpanded(false);
     };
     document.addEventListener("mousedown", onDocMouseDown);
@@ -376,7 +386,7 @@ const Layers = () => {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div ref={paneRef} className="flex h-full flex-col">
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 mt-8 p-6.5">
         {ctxLayers.map((layer) => {
@@ -497,12 +507,12 @@ const Layers = () => {
 
               {/* Note lives inside the box — only for the active layer. Click the
                   peek to expand into a full-height editor; collapse by clicking
-                  outside the note. */}
+                  outside the note or the collapse button in the right margin. */}
               {isSelected && (
                 notesExpanded ? (
                   <div
                     ref={expandedNoteRef}
-                    className="flex min-h-0 flex-1 flex-col px-3 pb-3"
+                    className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
                   >
                     <RichTextEditor
                       value={noteDoc}
@@ -513,6 +523,17 @@ const Layers = () => {
                       fill
                       className="min-h-0 flex-1 cursor-text bg-white dark:bg-boxdark"
                     />
+                    {/* Circular collapse button floating over the note box's
+                        top-right corner. */}
+                    <button
+                      type="button"
+                      title="Collapse note"
+                      aria-label="Collapse note"
+                      onClick={() => setNotesExpanded(false)}
+                      className="absolute right-2 top-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-stroke bg-white text-black/60 shadow-sm transition hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-white/70"
+                    >
+                      <BiCollapseVertical size={14} style={{ pointerEvents: "none" }} />
+                    </button>
                   </div>
                 ) : (
                   <div className="px-3 pb-3">
