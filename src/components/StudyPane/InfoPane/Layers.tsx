@@ -414,7 +414,7 @@ const Layers = () => {
               // so mousedown selects text in the editor instead of starting a
               // drag (the browser resolves drag to the nearest draggable
               // ancestor, so draggable=false on the note itself won't do it).
-              draggable={editingLayerId !== layer.id && !(isSelected && notesExpanded)}
+              draggable={editable && editingLayerId !== layer.id && !(isSelected && notesExpanded)}
               onDragStart={() => handleDragStart(layer.id)}
               onDragOver={(e) => handleDragOver(e, layer.id)}
               onDrop={(e) => handleDrop(e, layer.id)}
@@ -441,9 +441,9 @@ const Layers = () => {
               )}
 
               <div
-                className={`flex cursor-grab flex-col overflow-hidden rounded-xl border-2 transition active:cursor-grabbing ${
-                  isSelected && notesExpanded ? "min-h-0 flex-1" : ""
-                }`}
+                className={`flex flex-col overflow-hidden rounded-xl border-2 transition ${
+                  editable ? "cursor-grab active:cursor-grabbing" : ""
+                } ${isSelected && notesExpanded ? "min-h-0 flex-1" : ""}`}
                 style={{
                   backgroundColor: layer.fill,
                   borderColor: layer.border !== DEFAULT_LAYER_BORDER ? layer.border : "transparent",
