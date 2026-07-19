@@ -134,18 +134,27 @@ const Layers = () => {
     setNotesExpanded(false);
   }, [ctxActiveLayerId]);
 
-  // Collapse the expanded note when the user clicks anywhere outside it.
-  // A document-level listener (instead of textarea onBlur) avoids the event
-  // race that made an in-note collapse button unreliable.
+  // Collapse the expanded note when the user clicks elsewhere INSIDE the layers
+  // sidebar (e.g. the layer header). A document-level listener (instead of
+  // textarea onBlur) avoids the event race that made an in-note collapse button
+  // unreliable. Crucially, clicks OUTSIDE the sidebar must NOT collapse the note:
+  // the user needs to reach the toolbar colour controls and click passage
+  // strophes / words / stanzas (to highlight and reference them) while writing.
+  const paneRef = useRef<HTMLDivElement | null>(null);
   const expandedNoteRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!notesExpanded) return;
     const onDocMouseDown = (e: MouseEvent) => {
       const target = e.target as Node;
+      // Clicks inside the note keep it open.
       if (expandedNoteRef.current?.contains(target)) return;
-      // The rich-text formatting menu is portaled to document.body, so clicks on
-      // it land outside the note wrapper — don't treat those as an outside click.
+      // The rich-text formatting menu (highlight / text-colour pickers) is
+      // portaled to document.body, so its clicks land outside the note wrapper —
+      // don't treat those as an outside click.
       if (target instanceof Element && target.closest('[role="menu"]')) return;
+      // Clicks outside the sidebar (passage, toolbar, other panes) leave the note
+      // open; only a click elsewhere within the sidebar collapses it.
+      if (!paneRef.current?.contains(target)) return;
       setNotesExpanded(false);
     };
     document.addEventListener("mousedown", onDocMouseDown);
@@ -376,7 +385,7 @@ const Layers = () => {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div ref={paneRef} className="flex h-full flex-col">
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 mt-8 p-6.5">
         {ctxLayers.map((layer) => {
