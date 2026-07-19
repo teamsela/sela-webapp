@@ -125,6 +125,18 @@ describe("Layers expanded-note collapse", () => {
     expect(isExpanded()).toBe(true);
   });
 
+  it("collapses when the collapse button in the note margin is clicked", () => {
+    renderLayers();
+    // The button only exists once the note is expanded.
+    expect(screen.queryByLabelText("Collapse note")).toBeNull();
+    expandNote();
+
+    fireEvent.click(screen.getByLabelText("Collapse note"));
+
+    expect(isExpanded()).toBe(false);
+    expect(screen.getByText(NOTE_PEEK)).toBeInTheDocument();
+  });
+
   it("still collapses when clicking the layer header inside the sidebar", () => {
     renderLayers();
     expandNote();

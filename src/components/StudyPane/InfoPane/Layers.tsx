@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { LuTextSelect } from "react-icons/lu";
+import { BiCollapseVertical } from "react-icons/bi";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -506,12 +507,12 @@ const Layers = () => {
 
               {/* Note lives inside the box — only for the active layer. Click the
                   peek to expand into a full-height editor; collapse by clicking
-                  outside the note. */}
+                  outside the note or the collapse button in the right margin. */}
               {isSelected && (
                 notesExpanded ? (
                   <div
                     ref={expandedNoteRef}
-                    className="flex min-h-0 flex-1 flex-col px-3 pb-3"
+                    className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
                   >
                     <RichTextEditor
                       value={noteDoc}
@@ -522,6 +523,17 @@ const Layers = () => {
                       fill
                       className="min-h-0 flex-1 cursor-text bg-white dark:bg-boxdark"
                     />
+                    {/* Circular collapse button floating over the note box's
+                        top-right corner. */}
+                    <button
+                      type="button"
+                      title="Collapse note"
+                      aria-label="Collapse note"
+                      onClick={() => setNotesExpanded(false)}
+                      className="absolute right-2 top-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-stroke bg-white text-black/60 shadow-sm transition hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-white/70"
+                    >
+                      <BiCollapseVertical size={14} style={{ pointerEvents: "none" }} />
+                    </button>
                   </div>
                 ) : (
                   <div className="px-3 pb-3">
