@@ -50,7 +50,7 @@ const Toolbar = ({
               <div className="flex h-8 basis-2/3 items-center justify-end gap-3">
                 <LanguageSwitcher />
                 {
-                  (study.model) &&
+                  (study.model || study.scriptura) &&
                   (
                     <StudyBtn setCloneStudyOpen={setCloneStudyOpen} />
                   )

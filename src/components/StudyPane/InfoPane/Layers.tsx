@@ -250,6 +250,7 @@ const Layers = () => {
 
   // Selecting through the select button enables colour customisation via the toolbar.
   const handleSelect = (layerId: number) => {
+    if (!editable) return;
     const layer = ctxLayers.find((l) => l.id === layerId);
     if (!layer) return;
     if (selectMode === "color" && ctxActiveLayerId === layerId) {
@@ -311,6 +312,7 @@ const Layers = () => {
   };
 
   const startEditing = (id: number, currentName: string) => {
+    if (!editable) return;
     setEditingLayerId(id);
     setEditNameValue(currentName);
   };
@@ -476,7 +478,7 @@ const Layers = () => {
                   />
                 ) : (
                   <span
-                    className={`flex-1 text-lg ${isSelected ? "cursor-text" : ""}`}
+                    className={`flex-1 text-lg ${isSelected && editable ? "cursor-text" : ""}`}
                     style={{ color: layer.text }}
                     onDoubleClick={() => startEditing(layer.id, layer.name)}
                   >
@@ -487,20 +489,24 @@ const Layers = () => {
                 {/* Action buttons — horizontal, only for the active layer */}
                 {isSelected && (
                   <div className="flex flex-shrink-0 items-center gap-3" style={{ color: "#656565" }}>
-                    <button
-                      title="Customize layer"
-                      className="hover:opacity-70"
-                      onClick={(e) => { e.stopPropagation(); handleSelect(layer.id); }}
-                    >
-                      <LuTextSelect size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
-                    </button>
-                    <button
-                      title="Delete layer"
-                      className="hover:opacity-70"
-                      onClick={(e) => { e.stopPropagation(); requestDelete(layer.id); }}
-                    >
-                      <IconTrash size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
-                    </button>
+                    {editable && (
+                      <button
+                        title="Customize layer"
+                        className="hover:opacity-70"
+                        onClick={(e) => { e.stopPropagation(); handleSelect(layer.id); }}
+                      >
+                        <LuTextSelect size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
+                      </button>
+                    )}
+                    {editable && (
+                      <button
+                        title="Delete layer"
+                        className="hover:opacity-70"
+                        onClick={(e) => { e.stopPropagation(); requestDelete(layer.id); }}
+                      >
+                        <IconTrash size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -556,8 +562,8 @@ const Layers = () => {
         })}
 
         {/* Create new layer — hidden while a note is expanded so the editor
-            can fill the whole sidebar. */}
-        {!notesExpanded && (
+            can fill the whole sidebar, and in read-only (view) mode. */}
+        {!notesExpanded && editable && (
         <div
           className="flex gap-3 px-5 py-4 cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
           onClick={() => !creating && setCreating(true)}
