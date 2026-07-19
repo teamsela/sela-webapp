@@ -47,6 +47,30 @@ describe("RichTextEditor", () => {
     expect(screen.getByText("Hello notes")).toBeInTheDocument();
   });
 
+  it("lays the highlight palette out in two even rows (5 + 5)", async () => {
+    render(<RichTextEditor value={sampleDoc} onChange={() => {}} editable />);
+    fireEvent.click(await screen.findByLabelText("Formatting options"));
+
+    // Open the highlight swatch dropdown (ToolbarButton fires on mousedown).
+    fireEvent.mouseDown(await screen.findByLabelText("Highlight"));
+
+    // 10 highlight colours arranged in 5 columns → two balanced rows.
+    const grid = (await screen.findByTitle("#FFF176")).parentElement as HTMLElement;
+    expect(grid.querySelectorAll("button")).toHaveLength(10);
+    expect(grid.style.gridTemplateColumns).toBe("repeat(5, 1.25rem)");
+  });
+
+  it("keeps the 12-colour text palette in two even rows (6 + 6)", async () => {
+    render(<RichTextEditor value={sampleDoc} onChange={() => {}} editable />);
+    fireEvent.click(await screen.findByLabelText("Formatting options"));
+
+    fireEvent.mouseDown(await screen.findByLabelText("Text color"));
+
+    const grid = (await screen.findByTitle("#000000")).parentElement as HTMLElement;
+    expect(grid.querySelectorAll("button")).toHaveLength(12);
+    expect(grid.style.gridTemplateColumns).toBe("repeat(6, 1.25rem)");
+  });
+
   it("opens the formatting menu on right-click inside the editor", async () => {
     render(<RichTextEditor value={sampleDoc} onChange={() => {}} editable />);
     await screen.findByText("Hello notes");

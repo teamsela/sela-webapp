@@ -106,6 +106,9 @@ type ColorMenuProps = {
 const ColorMenu = ({ icon, title, palette, onSelect, onClear }: ColorMenuProps) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  // Split the swatches into two balanced rows (e.g. 10 → 5+5, 12 → 6+6) instead
+  // of packing a fixed column count that leaves a ragged final row.
+  const columns = Math.ceil(palette.length / 2);
 
   useEffect(() => {
     if (!open) return;
@@ -124,8 +127,13 @@ const ColorMenu = ({ icon, title, palette, onSelect, onClear }: ColorMenuProps) 
         {icon}
       </ToolbarButton>
       {open && (
-        <div className="absolute left-0 top-9 z-50 w-40 rounded border border-stroke bg-white p-2 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="grid grid-cols-6 gap-1">
+        <div className="absolute left-0 top-9 z-50 w-max rounded border border-stroke bg-white p-2 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div
+            className="grid gap-1"
+            // Fixed tracks sized to the swatch (w-5 = 1.25rem) keep both rows snug
+            // and evenly filled; the popover (w-max) shrink-wraps to match.
+            style={{ gridTemplateColumns: `repeat(${columns}, 1.25rem)` }}
+          >
             {palette.map((hex) => (
               <button
                 key={hex}
