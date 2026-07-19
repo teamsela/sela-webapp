@@ -471,7 +471,46 @@ const Passage = ({
         useSourceStanzaBreaks: ctxReadmeBtnOn,
       });
 
-      const updatedStropheNotes: StropheNote[] = [];
+      // Build a table mapping new strophe index → word range for matching old
+      // notes. Shared by the root `strophes` migration and per-layer migration.
+      const stropheRanges: Array<{ firstWordId: number; lastWordId: number }> = [];
+      updatedPassageProps.stanzaProps.forEach((stanza) => {
+        stanza.strophes.forEach((strophe) => {
+          stropheRanges.push({
+            firstWordId: strophe.lines[0].words[0].wordId,
+            lastWordId: strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0,
+          });
+        });
+      });
+
+      // Migrate a single StropheNote[] (root `strophes` or any `layerStrophes`
+      // entry) by matching old notes to new strophes via word ranges.
+      const migrateStropheArray = (oldArr: StropheNote[]): StropheNote[] => {
+        const updated: StropheNote[] = [];
+        stropheRanges.forEach((range) => {
+          const bodyParts: Array<RichDoc | string> = [];
+          let title = "";
+          (oldArr ?? []).forEach((old) => {
+            if (old.firstWordId >= range.firstWordId && old.firstWordId <= range.lastWordId) {
+              const oldTitle = typeof old.title === "string" ? old.title : "";
+              if (title === "") {
+                title = oldTitle;
+              } else if (oldTitle) {
+                title += " | " + oldTitle;
+              }
+              bodyParts.push(old.text ?? "");
+            }
+          });
+          updated.push({
+            title,
+            text: mergeRichDocs(bodyParts),
+            firstWordId: range.firstWordId,
+            lastWordId: range.lastWordId,
+          });
+        });
+        return updated;
+      };
+
       let oldNotes: StudyNotes = { main: "", strophes: [] };
       try {
         if (ctxStudyNotes) {
@@ -480,30 +519,24 @@ const Passage = ({
       } catch (err) {
         console.warn("Failed to parse study notes; resetting to defaults", err);
       }
-      updatedPassageProps.stanzaProps.forEach((stanza) => {
-        stanza.strophes.forEach((strophe) => {
-          const firstWord = strophe.lines[0].words[0].wordId;
-          const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
-          const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
-          const bodyParts: Array<RichDoc | string> = [];
-          let updatedTitle = "";
-          (oldNotes.strophes ?? []).forEach((oldStrophe) => {
-            if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
-              const oldTitle = typeof oldStrophe.title === "string" ? oldStrophe.title : "";
-              if (updatedTitle === "") {
-                updatedTitle = oldTitle;
-              } else if (oldTitle) {
-                updatedTitle += " | " + oldTitle;
-              }
-              // Bodies may be rich docs or legacy strings — merge structurally.
-              bodyParts.push(oldStrophe.text ?? "");
-            };
-          });
-          updatedStropheNotes[newIndex].title = updatedTitle;
-          updatedStropheNotes[newIndex].text = mergeRichDocs(bodyParts);
-        });
-      });
-      const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
+
+      const updatedStudyNotes: StudyNotes = {
+        ...oldNotes,
+        strophes: migrateStropheArray(oldNotes.strophes ?? []),
+      };
+
+      // Also migrate every layer's strophe notes — otherwise the stale
+      // layerStrophes entries continue to win over the migrated root array
+      // (readLayerStrophe prefers layerStrophes[layerId] over strophes).
+      if (oldNotes.layerStrophes) {
+        const migratedLayers: Record<string, StropheNote[]> = {};
+        for (const [layerKey, layerArr] of Object.entries(oldNotes.layerStrophes)) {
+          if (Array.isArray(layerArr)) {
+            migratedLayers[layerKey] = migrateStropheArray(layerArr);
+          }
+        }
+        updatedStudyNotes.layerStrophes = migratedLayers;
+      }
       ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
       ctxSetNoteMerge(true);
 
