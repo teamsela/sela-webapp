@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { FormatContext, DEFAULT_COLOR_FILL } from "../index";
+import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "../index";
 import { StropheProps } from "@/lib/data";
 import { BoxDisplayStyle } from "@/lib/types";
 import { countLineUnits, readStropheNoteTitle } from "@/lib/counter";
@@ -40,9 +40,15 @@ const TITLE_PLACEHOLDER = "\u00A0";
 export const CounterStropheBlock = ({
   stropheProps,
   stanzaExpanded,
+  bordered = false,
 }: {
   stropheProps: StropheProps;
   stanzaExpanded: boolean;
+  // When true (single-language side-by-side counter stack) the box gets a
+  // visible neutral border so it reads as a strophe box matching the language
+  // stack. When false (parallel counter column) the border matches the fill and
+  // is invisible — the numbers just float on the white column.
+  bordered?: boolean;
 }) => {
   const { ctxBoxDisplayConfig, ctxCounterMode, ctxStudyNotes, ctxActiveLayerId } =
     useContext(FormatContext);
@@ -61,16 +67,19 @@ export const CounterStropheBlock = ({
 
   return (
     <div
-      // Horizontal margin (mx-2) insets the count box from the column edges so it
-      // gets a little breathing room from the neighbouring language columns.
-      // Margin is horizontal-only, so the vertical row alignment with the words
-      // is unaffected.
-      className="relative flex flex-col px-2 py-2 mx-2 my-1 min-h-[45px] rounded border"
+      // Horizontal padding/margin here only inset the box; they are horizontal so
+      // the vertical row alignment with the words is unaffected. The bordered
+      // variant matches StropheBlock's px-5/mx-1 so it looks like a strophe box;
+      // the parallel variant keeps the tighter px-2/mx-2 float.
+      className={`relative flex flex-col py-2 my-1 min-h-[45px] rounded border ${
+        bordered ? "px-5 mx-1" : "px-2 mx-2"
+      }`}
       style={{
         background: DEFAULT_COLOR_FILL,
-        // White border (same as the fill) so the box is invisible but keeps its
-        // 2px footprint — the numbers just sit on the white column background.
-        border: `2px solid ${DEFAULT_COLOR_FILL}`,
+        // Bordered: a light neutral border (DEFAULT_BORDER_COLOR) so the box reads
+        // like an uncolored strophe. Parallel: border matches the fill so the box
+        // is invisible but keeps its 2px footprint for row alignment.
+        border: `2px solid ${bordered ? DEFAULT_BORDER_COLOR : DEFAULT_COLOR_FILL}`,
       }}
     >
       {shouldRender && (

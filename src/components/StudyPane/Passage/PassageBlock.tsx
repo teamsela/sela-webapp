@@ -69,6 +69,16 @@ export const PassageBlock = ({
     ? (ctxInTextCounterOn ? "shrink-0" : "hidden")
     : "";
 
+  // Single-language in-text counter: when the stanzas stack vertically (reader
+  // mode or the strophe-notes view), every stanza's counter column lines up in
+  // the same left gutter, so repeating the WORDS/UNITS pill on each is
+  // redundant — show it only on the first non-collapsed stanza. When the
+  // stanzas sit side by side (normal single mode) each keeps its own pill.
+  const stanzasStacked = !isParallel && (ctxStropheNoteBtnOn || ctxReadmeBtnOn);
+  const firstExpandedStanzaIdx = ctxPassageProps.stanzaProps.findIndex(
+    (stanza) => (stanza.metadata?.expanded ?? true) !== false
+  );
+
   return (
     <LanguageContext.Provider value={languageContextValue}>
     {/* In parallel mode each column uses half the horizontal padding (px-1) so
@@ -85,9 +95,13 @@ export const PassageBlock = ({
                     isFirstStanza={stanzaIdx === 0}
                   />
                 ))
-              : ctxPassageProps.stanzaProps.map((stanza) => {
+              : ctxPassageProps.stanzaProps.map((stanza, stanzaIdx) => {
                   return (
-                      <StanzaBlock stanzaProps={stanza} key={stanza.stanzaId} />
+                      <StanzaBlock
+                        stanzaProps={stanza}
+                        key={stanza.stanzaId}
+                        showCounterLabel={!stanzasStacked || stanzaIdx === firstExpandedStanzaIdx}
+                      />
                   )
                 })
         }

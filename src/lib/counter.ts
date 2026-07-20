@@ -5,16 +5,6 @@ import { StudyNotes } from "./types";
 // In-text counter display mode.
 export type CounterMode = "words" | "units";
 
-// In-text counter gutter geometry for single-language mode. Shared by
-// StropheBlock (the [count | words] grid) and StanzaBlock (the WORDS/UNITS label
-// that sits on the stanza-title line above the gutter) so the two stay aligned.
-export const COUNTER_GUTTER_WIDTH = "4.25rem";
-export const COUNTER_COLUMN_GAP = "0.75rem";
-// Inline-start offset of the count gutter from the stanza's padding edge:
-// the strophe's own margin (mx-1 = 0.25rem) + padding (px-5 = 1.25rem). Used to
-// place the stanza-line label directly above the numbers.
-export const COUNTER_GUTTER_INLINE_START = "1.5rem";
-
 /**
  * The strophe note title shown on a strophe, resolving the same precedence the
  * passage uses: prefer the active layer's per-strophe note, fall back to the

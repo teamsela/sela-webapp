@@ -6,7 +6,7 @@ import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../inde
 import { WordBlock } from './WordBlock';
 import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
-import { countLineUnits, readStropheNoteTitle, COUNTER_GUTTER_WIDTH, COUNTER_COLUMN_GAP } from "@/lib/counter";
+import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
@@ -22,10 +22,6 @@ const getLineRenderKey = (stropheId: number, line: StropheProps["lines"][number]
 const getWordRenderKey = (wordId: number, stanzaId: number, stropheId: number, lineId: number) =>
   `word-${wordId}-stanza-${stanzaId}-strophe-${stropheId}-line-${lineId}`;
 
-// Grid template for the in-text counter [count | words] layout. Column widths
-// come from the shared counter geometry so StanzaBlock's title-line label aligns.
-const COUNTER_GRID_COLUMNS = `${COUNTER_GUTTER_WIDTH} max-content`;
-
 export const StropheBlock = ({
     stropheProps,
     stanzaExpanded,
@@ -40,7 +36,7 @@ export const StropheBlock = ({
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
-    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn, ctxCounterMode,
+    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
 
@@ -274,17 +270,6 @@ export const StropheBlock = ({
 
   const contentWidthClass = "w-full min-w-0";
 
-  // Single-language in-text counter. Parallel view is intentionally left out for
-  // now (that needs the interleaved middle bar).
-  const showLineCounter = ctxInTextCounterOn && ctxLanguageMode !== LanguageMode.Parallel;
-
-  // Shared box model for the header pill cell and the per-line number cells, so
-  // both center on the same axis (dividers on both sides, no asymmetric padding).
-  const gutterCellStyle: React.CSSProperties = {
-    borderInlineStart: "1px solid #E2E8F0",
-    borderInlineEnd: "1px solid #E2E8F0",
-  };
-
   const renderWords = (line: StropheProps["lines"][number], lineId: number) =>
     line.words.map((word) => {
       const wordRenderKey = getWordRenderKey(word.wordId, word.stanzaId, word.stropheId, word.lineId);
@@ -298,24 +283,22 @@ export const StropheBlock = ({
       );
     });
 
-  // Reader mode normally lets a line wrap to fill the reading width. The one case
-  // we suppress wrapping is parallel mode with the in-text counter on: there each
-  // line must stay on a single row so its count stays aligned, breaking only where
-  // the data (or the user) put a line break. With the counter off, keep wrapping.
-  const wrapReaderLines =
-    ctxReadmeBtnOn &&
-    !(ctxLanguageMode === LanguageMode.Parallel && ctxInTextCounterOn);
+  // Reader mode normally lets a line wrap to fill the reading width. When the
+  // in-text counter is on (single or parallel) each line must stay on a single
+  // row so its count box stays aligned, breaking only where the data (or the
+  // user) put a line break. With the counter off, keep wrapping.
+  const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
   const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
     <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
       {renderWords(line, lineId)}
     </div>
   );
 
-  // Strophe-note title for the normal (counter-off) layout. When the counter is
-  // on the title is rendered inside the grid's header row instead (see
-  // renderLines) so it aligns with the word column and the WORDS label row.
+  // Strophe-note title above the word rows. The single-language counter stack
+  // (CounterStropheBlock) reserves matching vertical space for it so the two
+  // stacks stay row-aligned.
   const renderStropheTitle = () => {
-    if (!stropheNoteTitle || !shouldRenderWordArea || showLineCounter) {
+    if (!stropheNoteTitle || !shouldRenderWordArea) {
       return null;
     }
     return (
@@ -331,75 +314,19 @@ export const StropheBlock = ({
     );
   };
 
-  // The strophe's line list. With the in-text counter on it becomes a 2-column
-  // grid [count | words] so each count shares its line's grid row (and height),
-  // keeping them aligned without JS measurement. The count is column 1, which
-  // direction:rtl (the Hebrew word area) flips to the right — giving "left of
-  // English, right of Hebrew".
-  const renderLines = () => {
-    if (!showLineCounter) {
-      return stropheProps.lines.map((line, lineId) => {
-        const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
-        return (
-          <React.Fragment key={lineRenderKey}>
-            {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
-            {renderWordRow(line, lineId)}
-          </React.Fragment>
-        );
-      });
-    }
-
-    return (
-      <div
-        style={{
-          display: "grid",
-          // Fixed gutter width so every strophe/stanza indents its text by the
-          // same amount — the header pill must not widen just the first strophe.
-          gridTemplateColumns: COUNTER_GRID_COLUMNS,
-          // Gutter-to-text spacing lives here (not as cell padding) so the header
-          // and the numbers share an identical box and center on the same axis.
-          columnGap: COUNTER_COLUMN_GAP,
-          alignItems: "stretch",
-        }}
-      >
-        {/* The WORDS/UNITS label now lives on the stanza-title line (StanzaBlock)
-            so it stays visible even when the first strophe is collapsed. Here we
-            only need a header row when this strophe has a note title. */}
-        {Boolean(stropheNoteTitle) && (
-          <React.Fragment key="counter-header">
-            <div className="overflow-hidden pb-1" style={gutterCellStyle} aria-hidden="true" />
-            <div className="flex items-center pb-1">
-              <span
-                className={`whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
-                dir="auto"
-                style={{ color: contrastingForegroundColor }}
-              >
-                {stropheNoteTitle}
-              </span>
-            </div>
-          </React.Fragment>
-        )}
-        {stropheProps.lines.map((line, lineId) => {
-          const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
-          return (
-            <React.Fragment key={lineRenderKey}>
-              {line.paragraphBreakBefore && (
-                <div className="h-6" style={{ gridColumn: "1 / -1" }} aria-hidden="true" />
-              )}
-              <div
-                className="flex select-none items-center justify-center text-sm font-semibold text-body"
-                style={gutterCellStyle}
-                aria-hidden="true"
-              >
-                {countLineUnits(line.words, ctxCounterMode)}
-              </div>
-              {renderWordRow(line, lineId)}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
-  };
+  // The strophe's line list. The in-text counter is rendered as a separate
+  // side-by-side stack (single language: StanzaBlock + CounterStropheBlock;
+  // parallel: the dedicated counter column), so here we only lay out the words.
+  const renderLines = () =>
+    stropheProps.lines.map((line, lineId) => {
+      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
+      return (
+        <React.Fragment key={lineRenderKey}>
+          {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+          {renderWordRow(line, lineId)}
+        </React.Fragment>
+      );
+    });
 
   return (
     <div 

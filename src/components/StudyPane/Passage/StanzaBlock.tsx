@@ -3,16 +3,21 @@ import { StanzaProps } from "@/lib/data";
 import { useContext, useEffect, useState, useRef, useMemo } from "react";
 import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "..";
 import { StropheBlock } from "./StropheBlock";
+import { CounterStropheBlock } from "./CounterStropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateMetadataInDb } from "@/lib/actions";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
-import { COUNTER_GUTTER_WIDTH, COUNTER_GUTTER_INLINE_START } from "@/lib/counter";
 
 export const StanzaBlock = ({
-  stanzaProps
+  stanzaProps,
+  showCounterLabel = true,
 }: {
-  stanzaProps: StanzaProps
+  stanzaProps: StanzaProps,
+  // Whether this stanza's counter stack shows the WORDS/UNITS pill. False for
+  // all but the first non-collapsed stanza when stanzas are stacked vertically
+  // (reader / strophe-notes mode), where one label at the top is enough.
+  showCounterLabel?: boolean,
 }) => {
 
   const { ctxStudyMetadata, ctxSetStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn, ctxInTextCounterOn, ctxCounterMode } = useContext(FormatContext);
@@ -43,12 +48,17 @@ export const StanzaBlock = ({
     ? (ctxIsHebrew ? 'pl-12 pr-2' : 'pr-12 pl-2')
     : (ctxIsHebrew ? 'pl-12 pr-2' : 'pr-12 pl-2');
 
-  // When the single-language in-text counter gutter is showing, inset the stanza
-  // title past the gutter (on the reading-start side) so it sits above the word
-  // text rather than over the count column. Offset ≈ strophe padding + gutter
-  // width + column gap; tune if the gutter width changes.
-  const showCounterGutter = ctxInTextCounterOn && !isParallelMode;
-  const titleInsetInlineStart = showCounterGutter ? "6.5rem" : "0.25rem";
+  // Single-language in-text counter: instead of an inline gutter, the stanza
+  // renders a second stack of (neutral) count boxes side by side with the
+  // language strophes, each strophe box mirrored so rows stay aligned. The
+  // WORDS/UNITS pill sits in the counter stack's own title-row slot.
+  const sideBySideCounter = ctxInTextCounterOn && !isParallelMode;
+  const counterLabelText = ctxCounterMode === "units" ? "Units" : "Words";
+  // Only lay out the two side-by-side columns when the stanza is expanded and
+  // has strophes; a collapsed stanza falls back to the normal single-column
+  // rendering (strophe bars), keeping its pt-10 title reserve.
+  const useCounterColumns =
+    sideBySideCounter && expanded && stanzaProps.strophes.length > 0;
 
   // Sync edit title when external changes occur
   useEffect(() => {
@@ -223,7 +233,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
-      className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
+      className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || useCounterColumns ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
       >
       <div
         className={`z-1 absolute top-0 p-[0.5] m-[0.5] bg-transparent ${stanzaCollapseButtonSideClass}`}
@@ -239,8 +249,10 @@ export const StanzaBlock = ({
 
       </button>
       </div>
-      {/* Expanded title display */}
-      {expanded && stanzaProps.strophes.length > 0 && (
+      {/* Expanded title display (parallel + single-no-counter). In the
+          side-by-side counter layout the title is rendered in-flow inside the
+          language column instead (see below). */}
+      {expanded && stanzaProps.strophes.length > 0 && !useCounterColumns && (
         ctxLanguageMode == LanguageMode.Parallel ? (
           // In parallel mode, title spans full width at top as a flex item
           <div
@@ -250,46 +262,83 @@ export const StanzaBlock = ({
             {renderTitleContent(isEditingTitle)}
           </div>
         ) : (
-          // In single mode, title uses absolute positioning. The start-side inset
-          // clears the in-text counter gutter so the title sits above the words.
+          // In single mode, title uses absolute positioning within the reserved
+          // pt-10 space at the top of the stanza.
           <div
             ref={titleEditorAreaRef}
             className={`absolute top-0 flex h-10 items-center ${ctxIsHebrew ? 'justify-end' : 'justify-start'}`}
-            style={{ insetInlineStart: titleInsetInlineStart, insetInlineEnd: "0.25rem" }}
+            style={{ insetInlineStart: "0.25rem", insetInlineEnd: "0.25rem" }}
           >
             {renderTitleContent(isEditingTitle)}
           </div>
         )
       )}
 
-      {/* WORDS/UNITS counter label — single-language mode only. Rendered on the
-          stanza-title line (over the count gutter) rather than inside the first
-          strophe, so it stays visible when that strophe is collapsed. */}
-      {showCounterGutter && expanded && stanzaProps.strophes.length > 0 && (
-        <div
-          className="absolute top-0 flex h-10 items-center justify-center"
-          style={{ insetInlineStart: COUNTER_GUTTER_INLINE_START, width: COUNTER_GUTTER_WIDTH }}
-          aria-hidden="true"
-        >
-          <span className="select-none rounded-sm bg-primary px-2.5 h-8 inline-flex items-center text-[10px] font-semibold uppercase tracking-wide text-white">
-            {ctxCounterMode === "units" ? "Units" : "Words"}
-          </span>
+      {useCounterColumns ? (
+        // Single-language + counter: two stacks side by side, kept inside the
+        // stanza border. The counter stack is the first child; a plain flex-row
+        // then places it on the reading-start side automatically, because the
+        // passage inherits `direction: rtl` in Hebrew — so the counter sits left
+        // of English text and right of Hebrew text (matching the verse-number
+        // side and the old inline gutter). Do NOT add flex-row-reverse: combined
+        // with the inherited rtl it would cancel out and push the counter back
+        // to the left in Hebrew.
+        <div className="flex flex-row">
+          {/* Counter stack — WORDS/UNITS pill occupies the title-row slot (h-10,
+              matching the language title row) so both stacks' strophes start at
+              the same y and stay row-aligned. */}
+          <div className="flex flex-col shrink-0">
+            {/* h-10 slot always present (keeps the counter column's strophes
+                row-aligned with the language column, whose stanza-title row is
+                also h-10); the pill itself only shows when showCounterLabel. */}
+            <div className="flex h-10 items-center justify-center" aria-hidden="true">
+              {showCounterLabel && (
+                <span className="select-none whitespace-nowrap rounded-sm bg-primary px-2.5 h-8 inline-flex items-center text-[10px] font-semibold uppercase tracking-wide text-white">
+                  {counterLabelText}
+                </span>
+              )}
+            </div>
+            {stanzaProps.strophes.map((strophe) => (
+              <CounterStropheBlock
+                key={strophe.stropheId}
+                stropheProps={strophe}
+                stanzaExpanded={expanded}
+                bordered
+              />
+            ))}
+          </div>
+          {/* Language stack — in-flow stanza title row (h-10) above the strophes. */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <div
+              ref={titleEditorAreaRef}
+              className={`flex h-10 items-center ${ctxIsHebrew ? 'justify-end' : 'justify-start'}`}
+            >
+              {renderTitleContent(isEditingTitle)}
+            </div>
+            {stanzaProps.strophes.map((strophe) => (
+              <StropheBlock
+                stropheProps={strophe}
+                key={strophe.stropheId}
+                stanzaExpanded={expanded}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || shouldStretchReadmeStanza ? 'w-full min-w-0' : ''}`}>
+        {
+            stanzaProps.strophes.map((strophe) => {
+                return (
+                    <StropheBlock
+                    stropheProps={strophe}
+                    key={strophe.stropheId}
+                    stanzaExpanded={expanded}
+                    />
+                )
+            })
+        }
         </div>
       )}
-
-      <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || shouldStretchReadmeStanza ? 'w-full min-w-0' : ''}`}>
-      {
-          stanzaProps.strophes.map((strophe) => {
-              return (
-                  <StropheBlock
-                  stropheProps={strophe}
-                  key={strophe.stropheId}
-                  stanzaExpanded={expanded}
-                  />
-              )
-          })
-      }
-      </div>
       </div>
   )
 }
