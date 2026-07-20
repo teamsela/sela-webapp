@@ -226,7 +226,7 @@ async def sela_auth(base_url: str, user_email: str) -> str:
 
 async def _wait_for_study_ready(page) -> None:
     await page.wait_for_url("**/study/**", timeout=30_000)
-    await page.locator("button", has_text="Notes").first.wait_for(timeout=20_000)
+    await page.locator("button", has_text="Layer").first.wait_for(timeout=20_000)
     parallel_group = page.locator("div.flex.items-stretch", has_text="Aא")
     await parallel_group.locator("span").last.wait_for(timeout=20_000)
 
@@ -1456,13 +1456,15 @@ async def sela_test_distribution_counts(
     record("set_language", await sela_set_language_parallel_transliteration())
     await browser_screenshot("03_parallel_mode.png")
 
-    # 5. Open Sounds tab (Sound Distribution is open by default)
+    # 5. Open Sounds tab, then expand Sound Distribution. Read Aloud is the
+    # default section on current studies.
     record("open_sounds_tab", await sela_open_sounds_tab())
+    record("open_sound_dist", await sela_open_sound_distribution())
     await browser_screenshot("04_sounds_tab.png")
 
     page = await _ensure_page()
 
-    # 6. Sound Distribution audit (panel already open after the Sounds tab)
+    # 6. Sound Distribution audit
     if mode in ("sound", "both"):
         sound_pass, sound_lines = await _audit_distribution_counts(page, "Sound Distribution")
         if not sound_pass:
