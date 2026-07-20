@@ -117,9 +117,11 @@ export const wordSoundIds = (word: WordProps): string[] => {
 
   const transliteration = conjugatedTransliteration(word);
 
-  return splitTransliterationSegments(transliteration)
-    .map((segment) => segment.highlightId)
-    .filter((id): id is string => Boolean(id));
+  return splitTransliterationSegments(transliteration).flatMap((segment) =>
+    segment.highlightId
+      ? Array(segment.occurrences ?? 1).fill(segment.highlightId)
+      : [],
+  );
 };
 
 /**
@@ -187,20 +189,39 @@ const isSameWord = (a: WordProps, b: WordProps): boolean =>
 
 /**
  * Extract the part of speech from an OSHB-style morphology code. Morphology is a
- * language marker (H/A) followed by one or more `/`-separated morphemes, prefixes
- * first (e.g. "HR/Ncmsa" = preposition + common noun). The *word's* POS is the
- * last morpheme, so we read the POS letter from there ("HR/Ncmsa" → "N",
- * "HVqp3ms" → "V").
+ * language marker (H/A) followed by one or more `/`-separated morphemes, with
+ * prefixes first and pronominal suffixes last (e.g. "HR/Ncmsa" = preposition +
+ * common noun, "HNcmsc/Sp3ms" = common noun + suffix).
  */
-const mainMorphology = (morphology?: string): string | null => {
+const parseMorphology = (
+  morphology?: string,
+): { morphemes: string[]; lexicalIndex: number } | null => {
   if (!morphology) return null;
   const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
   const morphemes = body.split("/").filter(Boolean);
-  return morphemes[morphemes.length - 1] || null;
+  if (morphemes.length === 0) return null;
+
+  const isPrefix = (morpheme: string) =>
+    morpheme === "C" || morpheme === "R" || morpheme.startsWith("Td");
+  const lexicalIndex = morphemes.findIndex(
+    (morpheme) => !isPrefix(morpheme) && !morpheme.startsWith("S"),
+  );
+
+  return {
+    morphemes,
+    lexicalIndex:
+      lexicalIndex >= 0
+        ? lexicalIndex
+        : morphemes.findIndex((morpheme) => !morpheme.startsWith("S")),
+  };
 };
 
-const partOfSpeech = (morphology?: string): string | null =>
-  mainMorphology(morphology)?.charAt(0) || null;
+const partOfSpeech = (morphology?: string): string | null => {
+  const parsed = parseMorphology(morphology);
+  return parsed && parsed.lexicalIndex >= 0
+    ? parsed.morphemes[parsed.lexicalIndex]?.charAt(0) || null
+    : null;
+};
 
 /**
  * The leading preposition prefix letter (ב ל כ מ) of the conjugated form, if the
@@ -212,19 +233,19 @@ const partOfSpeech = (morphology?: string): string | null =>
  */
 const prepositionPrefix = (word: WordProps): string | null => {
   const morphology = word.morphology;
-  if (!morphology) return null;
-  const body = /^[HA]/.test(morphology) ? morphology.slice(1) : morphology;
-  const morphemes = body.split("/").filter(Boolean);
-  // A prefixed preposition exists when an "R" morpheme appears among the prefixes
-  // (any morpheme before the final word morpheme).
-  const prefixMorphemes = morphemes.slice(0, -1);
-  if (!prefixMorphemes.some((m) => m.startsWith("R"))) {
+  const parsed = parseMorphology(morphology);
+  if (!parsed || parsed.lexicalIndex < 0) return null;
+
+  const prepositionIndex = parsed.morphemes
+    .slice(0, parsed.lexicalIndex)
+    .findIndex((morpheme) => morpheme === "R");
+  if (prepositionIndex < 0) {
     return null;
   }
 
   const clusters = splitHebrewClusters(word.wlcWord || "");
-  const first = clusters[0]?.text ?? "";
-  const baseLetter = Array.from(first).find((ch) => /\p{Script=Hebrew}/u.test(ch));
+  const cluster = clusters[prepositionIndex]?.text ?? "";
+  const baseLetter = Array.from(cluster).find((ch) => /\p{Script=Hebrew}/u.test(ch));
   return baseLetter && PREPOSITION_LETTERS.has(baseLetter) ? baseLetter : null;
 };
 

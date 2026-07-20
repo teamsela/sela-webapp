@@ -54,6 +54,11 @@ describe("wordSoundIds", () => {
     expect(wordSoundIds(word)).toEqual(["m", "kh-ch", "m", "t"]);
   });
 
+  it("expands adjacent duplicate sounds preserved as merged occurrences", () => {
+    const word = makeWord({ passageTransliteration: "mmmm" });
+    expect(wordSoundIds(word)).toEqual(["m", "m", "m", "m"]);
+  });
+
   it("falls back to pointed Hebrew when no transliteration is present", () => {
     const word = makeWord({ wlcWord: "מָמָ" });
     expect(wordSoundIds(word)).toEqual(["m", "m"]);
@@ -202,6 +207,17 @@ describe("Soundplay — Shared Hebrew Sounds", () => {
     expect(candidates).toHaveLength(1);
     expect(candidates[0].sharedCount).toBeGreaterThanOrEqual(5);
     expect(candidates[0].strongMatch).toBe(true);
+  });
+
+  it("counts merged duplicate sounds toward the candidate threshold", () => {
+    const words = [
+      makeWord({ passageTransliteration: "mmmm", strongNumber: 410 }),
+      makeWord({ passageTransliteration: "mmmm", strongNumber: 411 }),
+    ];
+    const candidates = findSoundplayCandidates(words);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].sharedIds).toEqual(["m", "m", "m", "m"]);
+    expect(candidates[0].sharedCount).toBe(4);
   });
 });
 
@@ -359,6 +375,38 @@ describe("secondary tags", () => {
       makeWord({ passageTransliteration: "u.va.bo.qer", wlcWord: "בֹּקֶר", morphology: "HNcbsa", strongNumber: 1111, stropheId: 0 }),
     ]);
     expect(candidates[0].secondaryTags).not.toContain("same-preposition");
+  });
+
+  it("reads POS from the lexical morpheme before a pronominal suffix", () => {
+    const samePos = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", morphology: "HNcmsc/Sp3ms", strongNumber: 1120 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", morphology: "HNcmsa", strongNumber: 1121 }),
+    ]);
+    expect(samePos[0].secondaryTags).toContain("same-pos");
+
+    const differentPos = findSoundplayCandidates([
+      makeWord({ passageTransliteration: "ba.qe.ver", morphology: "HNcmsc/Sp3ms", strongNumber: 1122 }),
+      makeWord({ passageTransliteration: "u.va.bo.qer", morphology: "HVqp3ms/Sp3ms", strongNumber: 1123 }),
+    ]);
+    expect(differentPos[0].secondaryTags).not.toContain("same-pos");
+  });
+
+  it("maps a preposition morpheme to its matching Hebrew prefix cluster", () => {
+    const candidates = findSoundplayCandidates([
+      makeWord({
+        passageTransliteration: "ba.qe.ver",
+        wlcWord: "וּבְקֶבֶר",
+        morphology: "HC/R/Ncbsa",
+        strongNumber: 1130,
+      }),
+      makeWord({
+        passageTransliteration: "u.va.bo.qer",
+        wlcWord: "בְּבֹקֶר",
+        morphology: "HR/Ncbsa",
+        strongNumber: 1131,
+      }),
+    ]);
+    expect(candidates[0].secondaryTags).toContain("same-preposition");
   });
 });
 

@@ -442,9 +442,13 @@ export const countSoundOccurrences = (word: WordProps, soundId: string): number 
   // matches the highlights visible in transliteration mode.
   const transliteration = word.passageTransliteration || word.wordInformation?.transliteration || "";
   if (transliteration) {
-    return splitTransliterationSegments(transliteration).filter(
-      (segment) => segment.highlightId === soundId,
-    ).length;
+    return splitTransliterationSegments(transliteration).reduce(
+      (count, segment) =>
+        segment.highlightId === soundId
+          ? count + (segment.occurrences ?? 1)
+          : count,
+      0,
+    );
   }
 
   const hebrew = word.wlcWord || "";
