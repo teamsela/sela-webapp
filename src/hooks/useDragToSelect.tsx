@@ -7,7 +7,8 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (passageProps: PassageProps) => {
 
     const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox,
+        ctxSetNumSelectedLayers
     } = useContext(FormatContext)
 
     //drag-to-select module
@@ -124,8 +125,14 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             ctxSetNumSelectedWords(0);
             ctxSetSelectedWords([]);
             ctxSetSelectedStrophes([]);
+            // Clicking the passage workspace also de-selects any active layer.
+            // Scope this to clicks that actually land inside the passage container
+            // so toolbar/color-picker clicks don't spuriously drop the layer.
+            if (containerRef.current && containerRef.current.contains(target)) {
+                ctxSetNumSelectedLayers(0);
+            }
         }
-    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
+    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetNumSelectedLayers]);
 
   
     useEffect(() => {
@@ -156,46 +163,6 @@ export const useDragToSelect = (passageProps: PassageProps) => {
             zIndex: 100,
         };
     };
-
-
-    //pull all word blocks from passageData ////////////////////////////////////////
-    const selectAll = (array: any[]): any[] => {
-        let result: object[] = []
-        const findWordsArrays = (item: object[]) => {
-            for (const [key, value] of Object.entries(item)) {
-                if (Array.isArray(value)) {
-                    if (key === "words") {
-                        for (let i = 0; i < value.length; i++) {
-                            result.push(value[i]);
-                        }
-                    }
-                    else {
-                        value.flatMap(findWordsArrays)
-                    }
-                }
-            }
-        };
-        array.flatMap(findWordsArrays);
-        return result ?? [];
-    }
-    /////////////////////////////////////////////////////////////
-    // ctrl+A////////////////////////////////
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "a") {
-                event.preventDefault(); // Prevent default select all action
-                //select all word blocks
-                let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
-                ctxSetSelectedWords(allWordsArr);
-                ctxSetNumSelectedWords(allWordsArr.length);       
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [ ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
-    ///////////////////////////////////////////////////
 
 
     return {

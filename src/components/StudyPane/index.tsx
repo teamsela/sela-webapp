@@ -8,14 +8,22 @@ import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 
-import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
+import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { mergeData, wordsHasSameColor } from "@/lib/utils";
+import { mergeData } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
-import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
+
+export const INITIAL_LAYER_DEF: LayerDef = {
+  id: 0,
+  name: "Default",
+  fill: DEFAULT_LAYER_FILL,
+  border: DEFAULT_LAYER_BORDER,
+  text: DEFAULT_LAYER_TEXT,
+};
 
 export type HistoryEntry = {
   metadata: StudyMetadata;
@@ -69,10 +77,12 @@ export const FormatContext = createContext({
   ctxSetSelectedWords: (arg: WordProps[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
-  ctxSelectedStrophes: [] as StropheProps[],  
+  ctxSelectedStrophes: [] as StropheProps[],
   ctxSetSelectedStrophes: (arg: StropheProps[]) => {},
   ctxNumSelectedStrophes: 0 as number,
   ctxSetNumSelectedStrophes: (arg: number) => {},
+  ctxNumSelectedLayers: 0 as number,
+  ctxSetNumSelectedLayers: (arg: number) => {},
   ctxColorAction: {} as ColorActionType,
   ctxSetColorAction: (_arg: ColorActionType) => {},
   ctxSelectedColor: "" as string,
@@ -91,7 +101,7 @@ export const FormatContext = createContext({
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
   ctxSetStructureUpdateType: (arg: StructureUpdateType) => {},
-  ctxActiveHighlightIds: { syntax: null, motif: null } as Record<ColorSource, string | null>,
+  ctxActiveHighlightIds: { syntax: null, motif: null, structure: null } as Record<ColorSource, string | null>,
   ctxSetActiveHighlightId: (_source: ColorSource, _id: string | null) => {},
   ctxHighlightCacheRef: null as unknown as MutableRefObject<Map<string, Map<number, ColorData | undefined>>>,
   ctxWordsColorMap: {} as Map<number, ColorData>,
@@ -125,8 +135,44 @@ export const FormatContext = createContext({
   ctxActiveNotesPane: null as "heb" | "eng" | null,
   ctxSetActiveNotesPane: (arg: "heb" | "eng" | null) => {},
   ctxStropheNoteBtnOn: false,
-  ctxSetStropheNoteBtnOn: (arg: boolean) => {}
+  ctxSetStropheNoteBtnOn: (arg: boolean) => {},
+  ctxReadmeBtnOn: false,
+  ctxSetReadmeBtnOn: (arg: boolean) => {},
+  ctxLayers: [INITIAL_LAYER_DEF] as LayerDef[],
+  ctxSetLayers: (_arg: LayerDef[]) => {},
+  ctxActiveLayerId: 0,
+  ctxSwitchLayer: (_id: number) => {},
+  ctxCreateLayer: (_layer: LayerDef) => {},
+  ctxDeleteLayer: (_id: number) => {},
+  ctxCurrentSpokenWordIds: [] as number[],
+  ctxSetCurrentSpokenWordIds: (_arg: number[]) => {},
+  // Accent "portion" words (cross-word lead words) tied to the current Structure
+  // selection; they receive a matching border when a fill color is applied.
+  ctxAccentBorderWordIds: [] as number[],
+  ctxSetAccentBorderWordIds: (_arg: number[]) => {}
 });
+
+// Clone a word map for a new layer, dropping colour and strophe-note data while
+// keeping structural metadata (line/strophe/stanza divisions, indentation, etc.).
+const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
+  const result: WordMap = {};
+  for (const key of Object.keys(words)) {
+    const id = Number(key);
+    const { color, stropheMd, stanzaMd, ...rest } = words[id];
+    // Keep structural divisions (stanzaDiv, stropheDiv, lineBreak, indent) but
+    // strip user-authored content: color, stanza title, strophe color/notes.
+    const cloned: WordMetadata = structuredClone(rest);
+    cloned.stanzaMd = structuredClone({
+      expanded: stanzaMd?.expanded,
+    });
+    if (stropheMd) {
+      const { color: _stropheColor, notes: _stropheNotes, ...stropheRest } = stropheMd;
+      cloned.stropheMd = structuredClone(stropheRest);
+    }
+    result[id] = cloned;
+  }
+  return result;
+};
 
 const StudyPane = ({
   passageData, inViewMode
@@ -137,7 +183,30 @@ const StudyPane = ({
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
-  const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(passageData.study.metadata);
+  // --- Layer initialisation (migration-safe) ---
+  const rawMetadata = passageData.study.metadata;
+  const _initialLayerDefs: LayerDef[] = rawMetadata.layerDefs ?? [INITIAL_LAYER_DEF];
+  const _initialActiveLayerId: number = rawMetadata.activeLayerId ?? 0;
+  // The active layer's words are always authoritative in studyMetadata.words.
+  const _initialLayerWordMaps: Record<string, WordMap> = {
+    ...(rawMetadata.layerWordMaps ?? {}),
+    [String(_initialActiveLayerId)]: rawMetadata.words ?? {},
+  };
+  const _initialStudyMetadata: StudyMetadata = {
+    ...rawMetadata,
+    layerDefs: _initialLayerDefs,
+    layerWordMaps: _initialLayerWordMaps,
+    activeLayerId: _initialActiveLayerId,
+  };
+
+  const [studyMetadata, setStudyMetadata] = useState<StudyMetadata>(_initialStudyMetadata);
+  const [layerDefs, setLayerDefs] = useState<LayerDef[]>(_initialLayerDefs);
+  const [activeLayerId, setActiveLayerId] = useState<number>(_initialActiveLayerId);
+
+  // Ref kept current so callbacks can read latest metadata without stale closures.
+  const studyMetadataRef = useRef<StudyMetadata>(_initialStudyMetadata);
+  useEffect(() => { studyMetadataRef.current = studyMetadata; }, [studyMetadata]);
+
   const [studyNotes, setStudyNotes] = useState<string>(passageData.study.notes);
   const [scaleValue, setScaleValue] = useState(passageData.study.metadata?.scaleValue || DEFAULT_SCALE_VALUE);
   const [isHebrew, setHebrew] = useState(false);
@@ -146,6 +215,7 @@ const StudyPane = ({
   const [selectedWords, setSelectedWords] = useState<WordProps[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheProps[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
+  const [numSelectedLayers, setNumSelectedLayers] = useState(0);
 
   const [colorAction, setColorAction] = useState(ColorActionType.none);
   const [selectedColor, setSelectedColor] = useState("");
@@ -163,6 +233,7 @@ const StudyPane = ({
   const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
     syntax: null,
     motif: null,
+    structure: null,
   });
   const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
 
@@ -198,11 +269,14 @@ const StudyPane = ({
   const [highlightedLetterChipIds, setHighlightedLetterChipIds] = useState<string[]>([]);
   const [letterHighlightEnabled, setLetterHighlightEnabled] = useState(false);
   const [highlightRestrictWordIds, setHighlightRestrictWordIds] = useState<number[]>([]);
+  const [accentBorderWordIds, setAccentBorderWordIds] = useState<number[]>([]);
 
   const [noteBox, setNoteBox] = useState(undefined as undefined|DOMRect);
   const [noteMerge, setNoteMerge] = useState(true);
   const [activeNotesPane, setActiveNotesPane] = useState<"heb" | "eng" | null>(null);
   const [stropheNoteBtnOn, setStropheNoteBtnOn] = useState(false);
+  const [readmeBtnOn, setReadmeBtnOn] = useState(false);
+  const [currentSpokenWordIds, setCurrentSpokenWordIds] = useState<number[]>([]);
 
   const addToHistory = (
     updatedMetadata: StudyMetadata,
@@ -214,11 +288,145 @@ const StudyPane = ({
     setPointer(pointer + 1);
   };
 
+  // Commit a layer-level metadata change. `undoable` controls whether this creates
+  // a new history step (true, e.g. deletion) or simply keeps the current history
+  // entry in sync with the latest state (false, e.g. switching, renaming, recolouring).
+  // Defined as a plain function (not memoized) so it always reads fresh history/pointer.
+  const commitLayerState = (
+    updated: StudyMetadata,
+    undoable: boolean,
+    options?: HistorySnapshotOptions,
+  ) => {
+    setStudyMetadata(updated);
+    setLayerDefs(updated.layerDefs ?? []);
+    setActiveLayerId(updated.activeLayerId ?? 0);
+    if (undoable) {
+      addToHistory(updated, options);
+    } else {
+      setHistory((prev) => {
+        const copy = prev.slice();
+        copy[pointer] = snapshotHistoryEntry(updated, options);
+        return copy;
+      });
+    }
+    updateMetadataInDb(passageData.study.id, updated);
+  };
+
+  // Switch the active layer: saves the current layer's words then loads the new layer's words.
+  const switchLayer = (newId: number) => {
+    if (newId === activeLayerId) return;
+    const current = studyMetadataRef.current;
+    const updatedLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+    };
+    const newWords: WordMap = updatedLayerWordMaps[String(newId)] ?? {};
+    const updated: StudyMetadata = {
+      ...current,
+      words: newWords,
+      layerWordMaps: updatedLayerWordMaps,
+      activeLayerId: newId,
+      layerDefs,
+    };
+    setWordsColorMap(new Map());
+    commitLayerState(updated, false, { wordsColorMap: new Map() });
+  };
+
+  // Update the layer definitions (name/colour changes, reorder). Undoable so the
+  // toolbar Undo button can revert layer colour and name changes.
+  const handleSetLayers = (newLayers: LayerDef[]) => {
+    const current = studyMetadataRef.current;
+    // Skip no-op updates (e.g. rename commits fire on both Enter and blur) so we
+    // don't pollute the undo history with duplicate entries.
+    if (JSON.stringify(current.layerDefs) === JSON.stringify(newLayers)) return;
+    const updated: StudyMetadata = { ...current, layerDefs: newLayers };
+    commitLayerState(updated, true);
+  };
+
+  // Create a new layer, copying the current layer's structural metadata (divisions,
+  // indentation, etc.) but not its colour or notes.
+  const createLayer = (newLayer: LayerDef) => {
+    const current = studyMetadataRef.current;
+    const seededWords = cloneWordMapWithoutColorAndNotes(current.words);
+    const updatedLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+      [String(newLayer.id)]: seededWords,
+    };
+    const updated: StudyMetadata = {
+      ...current,
+      words: seededWords,
+      layerWordMaps: updatedLayerWordMaps,
+      layerDefs: [...layerDefs, newLayer],
+      activeLayerId: newLayer.id,
+    };
+    setWordsColorMap(new Map());
+    commitLayerState(updated, false, { wordsColorMap: new Map() });
+  };
+
+  // Delete a layer. This IS undoable: the pre-deletion state lives at history[pointer],
+  // so pressing undo restores the removed layer (and its metadata).
+  const deleteLayer = (id: number) => {
+    if (layerDefs.length <= 1) return; // always keep at least one layer
+    const current = studyMetadataRef.current;
+    const newLayerDefs = layerDefs.filter((l) => l.id !== id);
+    const newLayerWordMaps: Record<string, WordMap> = {
+      ...(current.layerWordMaps ?? {}),
+      [String(activeLayerId)]: current.words,
+    };
+    delete newLayerWordMaps[String(id)];
+
+    let newActiveId = current.activeLayerId ?? activeLayerId;
+    let newWords = current.words;
+    if (newActiveId === id) {
+      newActiveId = newLayerDefs[0].id;
+      newWords = newLayerWordMaps[String(newActiveId)] ?? {};
+      setWordsColorMap(new Map());
+    }
+
+    const updated: StudyMetadata = {
+      ...current,
+      words: newWords,
+      layerWordMaps: newLayerWordMaps,
+      layerDefs: newLayerDefs,
+      activeLayerId: newActiveId,
+    };
+    commitLayerState(updated, true, newActiveId !== (current.activeLayerId ?? activeLayerId) ? { wordsColorMap: new Map() } : undefined);
+  };
+
+  // Keep the layer UI state in sync when studyMetadata is replaced wholesale
+  // (e.g. by undo/redo, which only sets studyMetadata).
+  useEffect(() => {
+    if (studyMetadata.layerDefs && studyMetadata.layerDefs !== layerDefs) {
+      setLayerDefs(studyMetadata.layerDefs);
+    }
+    if (typeof studyMetadata.activeLayerId === "number" && studyMetadata.activeLayerId !== activeLayerId) {
+      setActiveLayerId(studyMetadata.activeLayerId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studyMetadata]);
+
   useEffect(() => {
     if (languageMode === LanguageMode.Parallel && stropheNoteBtnOn) {
       setStropheNoteBtnOn(false);
     }
   }, [languageMode, stropheNoteBtnOn]);
+
+  // Suppress Cmd+A / Ctrl+A when focus is NOT inside an editable element so the
+  // browser doesn't select all HTML. The shortcut still works natively inside
+  // text editors, inputs, and contenteditable regions.
+  useEffect(() => {
+    const suppressSelectAll = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey && event.key === "a") && !(event.metaKey && event.key === "a")) return;
+      const target = event.target as HTMLElement;
+      if (target.isContentEditable) return;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (target.closest('[contenteditable]')) return;
+      event.preventDefault();
+    };
+    document.addEventListener("keydown", suppressSelectAll);
+    return () => document.removeEventListener("keydown", suppressSelectAll);
+  }, []);
 
   const updateActiveHighlightId = useCallback(
     (source: ColorSource, highlightId: string | null) => {
@@ -234,6 +442,17 @@ const StudyPane = ({
 
   useEffect(() => {
     if (selectedWords.length === 0) {
+      // When a layer is selected for colouring, reflect its colours in the
+      // palette (consistent with word/strophe selection).
+      if (numSelectedLayers > 0) {
+        const activeLayer = layerDefs.find((l) => l.id === activeLayerId);
+        if (activeLayer) {
+          setColorFill(activeLayer.fill || DEFAULT_COLOR_FILL);
+          setBorderColor(activeLayer.border || DEFAULT_BORDER_COLOR);
+          setTextColor(activeLayer.text || DEFAULT_TEXT_COLOR);
+          return;
+        }
+      }
       setColorFill(DEFAULT_COLOR_FILL);
       setBorderColor(DEFAULT_BORDER_COLOR);
       setTextColor(DEFAULT_TEXT_COLOR);
@@ -268,7 +487,7 @@ const StudyPane = ({
     setBorderColor(sameBorder ? targetBorder : DEFAULT_BORDER_COLOR);
     setTextColor(sameText ? targetText : DEFAULT_TEXT_COLOR);
 
-  }, [selectedWords, wordsColorMap, studyMetadata]);
+  }, [selectedWords, wordsColorMap, studyMetadata, numSelectedLayers, layerDefs, activeLayerId]);
 
   const formatContextValue = {
     ctxStudyId: passageData.study.id,
@@ -290,6 +509,8 @@ const StudyPane = ({
     ctxSetSelectedStrophes: setSelectedStrophes,
     ctxNumSelectedStrophes: numSelectedStrophes,
     ctxSetNumSelectedStrophes: setNumSelectedStrophes,
+    ctxNumSelectedLayers: numSelectedLayers,
+    ctxSetNumSelectedLayers: setNumSelectedLayers,
     ctxColorAction: colorAction,
     ctxSetColorAction: setColorAction,
     ctxSelectedColor: selectedColor,
@@ -342,13 +563,29 @@ const StudyPane = ({
     ctxActiveNotesPane: activeNotesPane,
     ctxSetActiveNotesPane: setActiveNotesPane,
     ctxStropheNoteBtnOn: stropheNoteBtnOn,
-    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn
+    ctxSetStropheNoteBtnOn: setStropheNoteBtnOn,
+    ctxReadmeBtnOn: readmeBtnOn,
+    ctxSetReadmeBtnOn: setReadmeBtnOn,
+    ctxLayers: layerDefs,
+    ctxSetLayers: handleSetLayers,
+    ctxActiveLayerId: activeLayerId,
+    ctxSwitchLayer: switchLayer,
+    ctxCreateLayer: createLayer,
+    ctxDeleteLayer: deleteLayer,
+    ctxCurrentSpokenWordIds: currentSpokenWordIds,
+    ctxSetCurrentSpokenWordIds: setCurrentSpokenWordIds,
+    ctxAccentBorderWordIds: accentBorderWordIds,
+    ctxSetAccentBorderWordIds: setAccentBorderWordIds
   };
 
   useEffect(() => {
 
     // merge custom metadata with bible data
-    let initPassageProps : PassageProps = mergeData(passageData.bibleData, studyMetadata);
+    let initPassageProps : PassageProps = mergeData(
+      passageData.bibleData,
+      studyMetadata,
+      { useSourceStanzaBreaks: readmeBtnOn }
+    );
     setPassageProps(initPassageProps);
     
     // Handle migration from old BoxDisplayStyle enum to new BoxDisplayConfig
@@ -374,7 +611,7 @@ const StudyPane = ({
       studyMetadata.nonEnglishDisplayMode ?? NonEnglishDisplayMode.Hebrew,
     );
   
-  }, [passageData.bibleData, studyMetadata]);
+  }, [passageData.bibleData, studyMetadata, readmeBtnOn]);
 
   if (!passageData.study.metadata.words) {
     let emptyStudyMetadata : StudyMetadata = { words: {} };

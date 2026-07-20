@@ -45,6 +45,7 @@ export const WordBlock = ({
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
     ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
+    ctxCurrentSpokenWordIds,
     ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
     ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
     ctxHighlightRestrictWordIds,
@@ -77,6 +78,7 @@ export const WordBlock = ({
 
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
+  const isCurrentSpokenWord = ctxCurrentSpokenWordIds.includes(wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -319,6 +321,10 @@ export const WordBlock = ({
     const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
     return normalizedColor === normalizedDefault;
   };
+  // Use box-shadow instead of outline for the selection ring — avoids layout
+  // shift on wrapping lines in reader mode. contain: paint creates a paint
+  // containment boundary so the shadow doesn't affect adjacent elements.
+  const selectedBoxShadow = selected ? '0 0 0 3px #FFC300' : undefined;
 
   const renderIndents = (times: number) => {
     return (
@@ -438,7 +444,7 @@ export const WordBlock = ({
         data-testid="passage-word"
         data-word-id={wordProps.wordId}
         data-strong-number={wordProps.strongNumber}
-        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} rounded border ${selected ? 'drop-shadow-md' : 'outline-offset-[-4px]'}`}
         style={{
           background: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
             (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
@@ -452,6 +458,8 @@ export const WordBlock = ({
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
           lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
+          boxShadow: selectedBoxShadow,
+          contain: 'paint',
         }}>
         <span
           className={`flex ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''}`}
@@ -471,6 +479,13 @@ export const WordBlock = ({
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
               ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''} relative`}
             data-clicktype="clickable"
+            style={{
+              textDecoration: isCurrentSpokenWord ? 'underline' : 'none',
+              textDecorationThickness: isCurrentSpokenWord ? '3px' : undefined,
+              textUnderlineOffset: isCurrentSpokenWord ? '0.2em' : undefined,
+              textDecorationColor: isCurrentSpokenWord ? '#FFC300' : undefined,
+              transition: 'text-decoration-color 140ms ease-in-out',
+            }}
           >
             {ctxDisplayMode === "gloss" ? (
               isEditingGloss ? (

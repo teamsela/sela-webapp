@@ -1,16 +1,41 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useMemo } from 'react';
 
 import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
 
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
+import { RichDoc, mergeRichDocs } from '@/lib/richText';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
+
+// Line-break helpers shared by the structure-edit logic. In reader mode the
+// "source" break is the Bible's own (BSBnewLine / BSBstanzaBreak); otherwise
+// it's the folded `newLine`.
+const hasReaderSourceBreak = (word: WordProps) =>
+  Boolean(word.BSBnewLine || word.BSBstanzaBreak);
+
+const hasSourceLineBreak = (word: WordProps, useReadmeParagraphMode: boolean) =>
+  useReadmeParagraphMode ? hasReaderSourceBreak(word) : Boolean(word.newLine);
+
+const hasLineBreakCandidate = (
+  word: WordProps,
+  metadata: WordProps["metadata"] | undefined,
+  useReadmeParagraphMode: boolean,
+) =>
+  hasSourceLineBreak(word, useReadmeParagraphMode) || Boolean(metadata?.lineBreak);
+
+const hasActiveLineBreak = (
+  word: WordProps,
+  metadata: WordProps["metadata"] | undefined,
+  useReadmeParagraphMode: boolean,
+) =>
+  Boolean(metadata?.lineBreak) ||
+  (!metadata?.ignoreNewLine && hasSourceLineBreak(word, useReadmeParagraphMode));
 
 const Passage = ({
   bibleData,
@@ -22,7 +47,7 @@ const Passage = ({
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
-    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn,
+    ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
     ctxNonEnglishDisplayMode,
   } = useContext(FormatContext);
 
@@ -34,11 +59,32 @@ const Passage = ({
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
 
+  // Build a map from wordId to stanza index for title merging
+  const getWordToStanzaMap = useMemo(() => {
+    const map = new Map<number, number>();
+    ctxPassageProps.stanzaProps.forEach((stanza, stanzaIdx) => {
+      stanza.strophes.forEach((strophe) => {
+        strophe.lines.forEach((line) => {
+          line.words.forEach((word) => {
+            map.set(word.wordId, stanzaIdx);
+          });
+        });
+      });
+    });
+    return map;
+  }, [ctxPassageProps]);
+
   useEffect(() => {
     if (ctxStructureUpdateType !== StructureUpdateType.none &&
       (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
       const newMetadata = structuredClone(ctxStudyMetadata);
+      const wordById = new Map(bibleData.map((word) => [word.wordId, word]));
+      const getWordMetadata = (wordId: number) => newMetadata.words[wordId];
+      const hasBreakCandidate = (word: WordProps) =>
+        hasLineBreakCandidate(word, getWordMetadata(word.wordId), ctxReadmeBtnOn);
+      const hasVisibleLineBreak = (word: WordProps) =>
+        hasActiveLineBreak(word, getWordMetadata(word.wordId), ctxReadmeBtnOn);
 
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
       const firstSelectedWord = sortedWords[0];
@@ -72,7 +118,7 @@ const Passage = ({
         };
 
         rangeWords.forEach(w => {
-          const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
+          const hasBreak = hasBreakCandidate(w);
           if (hasBreak) {
             newMetadata.words[w.wordId] = {
               ...(newMetadata.words[w.wordId] || {}),
@@ -101,11 +147,7 @@ const Passage = ({
         // Find the break before the selection. Ignore words whose default break
         // has already been suppressed via the ignoreNewLine flag.
         const foundIndex = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId &&
-          (
-            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
-            newMetadata.words[word.wordId]?.lineBreak
-          )
+          word.wordId <= selectedWordId && hasVisibleLineBreak(word)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -117,8 +159,8 @@ const Passage = ({
         }
 
         for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
-          const word = bibleData.find(w => w.wordId === i);
-          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
+          const word = wordById.get(i);
+          if (word && hasBreakCandidate(word)) {
             newMetadata.words[i] = {
               ...(newMetadata.words[i] || {}),
               lineBreak: undefined,
@@ -141,8 +183,7 @@ const Passage = ({
         // start at the beginning of a line, create a break before it so that any
         // words preceding the selection stay on the original line. When the
         // selection already begins a line we leave the break intact.
-        const isLineStart = (firstSelectedWord.newLine && !newMetadata.words[selectedWordId]?.ignoreNewLine)
-          || newMetadata.words[selectedWordId]?.lineBreak;
+        const isLineStart = hasVisibleLineBreak(firstSelectedWord);
         if (!isLineStart) {
           newMetadata.words[selectedWordId] = {
             ...(newMetadata.words[selectedWordId] || {}),
@@ -152,7 +193,7 @@ const Passage = ({
         }
 
         rangeWords.forEach(w => {
-          if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
+          if (hasBreakCandidate(w)) {
             newMetadata.words[w.wordId] = {
               ...(newMetadata.words[w.wordId] || {}),
               lineBreak: undefined,
@@ -164,11 +205,7 @@ const Passage = ({
         // Locate the first real break after the selection. We treat a word as a
         // break only if its default line break isn't already ignored.
         const foundIndex = bibleData.findIndex(word =>
-          word.wordId > lastSelectedWordId &&
-          (
-            (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
-            newMetadata.words[word.wordId]?.lineBreak
-          )
+          word.wordId > lastSelectedWordId && hasVisibleLineBreak(word)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -328,6 +365,28 @@ const Passage = ({
         const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
         const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
 
+        // Merge title from previous stanza — place it on the previous stanza's
+        // first word, because that's where the combined stanza begins.
+        const prevStanzaIdx = getWordToStanzaMap.get(firstWordId);
+        if (prevStanzaIdx !== undefined && prevStanzaIdx > 0) {
+          const prevStanzaIdxMinus1 = prevStanzaIdx - 1;
+          const prevStanza = ctxPassageProps.stanzaProps[prevStanzaIdxMinus1];
+          const currentStanza = ctxPassageProps.stanzaProps[prevStanzaIdx];
+          const prevTitle = prevStanza?.metadata?.title ?? "";
+          const currentTitle = currentStanza?.metadata?.title ?? "";
+          const mergedTitle = [prevTitle, currentTitle].filter(Boolean).join(" | ");
+          if (mergedTitle) {
+            const survivingFirstWordId = prevStanza.strophes[0].lines[0].words[0].wordId;
+            newMetadata.words[survivingFirstWordId] = {
+              ...(newMetadata.words[survivingFirstWordId] || {}),
+              stanzaMd: {
+                ...(newMetadata.words[survivingFirstWordId]?.stanzaMd),
+                title: mergedTitle
+              }
+            };
+          }
+        }
+
         const lastStanzaDiv = bibleData.findLastIndex(word =>
           word.wordId <= firstWordId && newMetadata.words[word.wordId]?.stanzaDiv
         );
@@ -356,6 +415,27 @@ const Passage = ({
         const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
         const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
         const lastWordId = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
+
+        // Merge title from next stanza — the combined stanza survives at
+        // firstWordId (current stanza's first word), so placement is correct.
+        const nextStanzaIdx = getWordToStanzaMap.get(lastWordId);
+        if (nextStanzaIdx !== undefined && nextStanzaIdx < ctxPassageProps.stanzaProps.length - 1) {
+          const nextStanzaIdxPlus1 = nextStanzaIdx + 1;
+          const nextStanza = ctxPassageProps.stanzaProps[nextStanzaIdxPlus1];
+          const currentStanza = ctxPassageProps.stanzaProps[nextStanzaIdx];
+          const currentTitle = currentStanza?.metadata?.title ?? "";
+          const nextTitle = nextStanza?.metadata?.title ?? "";
+          const mergedTitle = [currentTitle, nextTitle].filter(Boolean).join(" | ");
+          if (mergedTitle) {
+            newMetadata.words[firstWordId] = {
+              ...(newMetadata.words[firstWordId] || {}),
+              stanzaMd: {
+                ...(newMetadata.words[firstWordId]?.stanzaMd),
+                title: mergedTitle
+              }
+            };
+          }
+        }
 
         newMetadata.words[firstWordId] = {
           ...(newMetadata.words[firstWordId] || {}),
@@ -387,9 +467,50 @@ const Passage = ({
 
       ctxSetStudyMetadata(newMetadata);
       ctxAddToHistory(newMetadata);
-      const updatedPassageProps = mergeData(bibleData, newMetadata);
+      const updatedPassageProps = mergeData(bibleData, newMetadata, {
+        useSourceStanzaBreaks: ctxReadmeBtnOn,
+      });
 
-      const updatedStropheNotes: StropheNote[] = [];
+      // Build a table mapping new strophe index → word range for matching old
+      // notes. Shared by the root `strophes` migration and per-layer migration.
+      const stropheRanges: Array<{ firstWordId: number; lastWordId: number }> = [];
+      updatedPassageProps.stanzaProps.forEach((stanza) => {
+        stanza.strophes.forEach((strophe) => {
+          stropheRanges.push({
+            firstWordId: strophe.lines[0].words[0].wordId,
+            lastWordId: strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0,
+          });
+        });
+      });
+
+      // Migrate a single StropheNote[] (root `strophes` or any `layerStrophes`
+      // entry) by matching old notes to new strophes via word ranges.
+      const migrateStropheArray = (oldArr: StropheNote[]): StropheNote[] => {
+        const updated: StropheNote[] = [];
+        stropheRanges.forEach((range) => {
+          const bodyParts: Array<RichDoc | string> = [];
+          let title = "";
+          (oldArr ?? []).forEach((old) => {
+            if (old.firstWordId >= range.firstWordId && old.firstWordId <= range.lastWordId) {
+              const oldTitle = typeof old.title === "string" ? old.title : "";
+              if (title === "") {
+                title = oldTitle;
+              } else if (oldTitle) {
+                title += " | " + oldTitle;
+              }
+              bodyParts.push(old.text ?? "");
+            }
+          });
+          updated.push({
+            title,
+            text: mergeRichDocs(bodyParts),
+            firstWordId: range.firstWordId,
+            lastWordId: range.lastWordId,
+          });
+        });
+        return updated;
+      };
+
       let oldNotes: StudyNotes = { main: "", strophes: [] };
       try {
         if (ctxStudyNotes) {
@@ -398,30 +519,24 @@ const Passage = ({
       } catch (err) {
         console.warn("Failed to parse study notes; resetting to defaults", err);
       }
-      updatedPassageProps.stanzaProps.forEach((stanza) => {
-        stanza.strophes.forEach((strophe) => {
-          const firstWord = strophe.lines[0].words[0].wordId;
-          const lastWord = strophe.lines.at(-1)?.words.at(-1)?.wordId ?? 0;
-          const newIndex = updatedStropheNotes.push({title: "", text: "", firstWordId: firstWord, lastWordId: lastWord}) - 1;
-          let updatedText = "";
-          let updatedTitle = "";
-          oldNotes.strophes.forEach((oldStrophe) => {
-            if (oldStrophe.firstWordId >= firstWord && oldStrophe.firstWordId <= lastWord) {
-              if (updatedTitle === "") {
-                updatedTitle += oldStrophe.title;
-                updatedText += oldStrophe.text;
-              }
-              else {
-                updatedTitle += " | " + oldStrophe.title;
-                updatedText += "\n" + oldStrophe.text;
-              }
-            };
-          });
-          updatedStropheNotes[newIndex].title = updatedTitle;
-          updatedStropheNotes[newIndex].text = updatedText;
-        });
-      });
-      const updatedStudyNotes: StudyNotes = { ...oldNotes, strophes: updatedStropheNotes };
+
+      const updatedStudyNotes: StudyNotes = {
+        ...oldNotes,
+        strophes: migrateStropheArray(oldNotes.strophes ?? []),
+      };
+
+      // Also migrate every layer's strophe notes — otherwise the stale
+      // layerStrophes entries continue to win over the migrated root array
+      // (readLayerStrophe prefers layerStrophes[layerId] over strophes).
+      if (oldNotes.layerStrophes) {
+        const migratedLayers: Record<string, StropheNote[]> = {};
+        for (const [layerKey, layerArr] of Object.entries(oldNotes.layerStrophes)) {
+          if (Array.isArray(layerArr)) {
+            migratedLayers[layerKey] = migrateStropheArray(layerArr);
+          }
+        }
+        updatedStudyNotes.layerStrophes = migratedLayers;
+      }
       ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
       ctxSetNoteMerge(true);
 
@@ -429,6 +544,8 @@ const Passage = ({
 
       
       ctxSetPassageProps(updatedPassageProps);
+      ctxSetSelectedWords([]);
+      ctxSetNumSelectedWords(0);
 
       updateMetadataInDb(ctxStudyId, newMetadata);
 
@@ -438,7 +555,7 @@ const Passage = ({
       // Reset the structure update type
       ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType]);
+  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect identical words
@@ -476,12 +593,12 @@ const Passage = ({
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
       {/* selaPassage is causing selection box shifting bug */}
       <div
-        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
+        className={`${ctxLanguageMode == LanguageMode.Parallel ? "Parallel" : "singleLang"} flex flex-row ${ctxReadmeBtnOn ? 'w-full min-w-0' : (ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}
         id='selaPassage'
       >
         { ctxLanguageMode == LanguageMode.English && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-            <PassageBlock displayMode="gloss"/> 
+          <div className={`flex flex-row mx-auto ${ctxReadmeBtnOn ? 'w-full min-w-0' : ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+            <PassageBlock displayMode="gloss"/>
           </div>
         }
         { ctxLanguageMode == LanguageMode.Parallel && 
@@ -491,8 +608,8 @@ const Passage = ({
           </div>
         }
         { ctxLanguageMode == LanguageMode.Hebrew && 
-          <div className={`flex flex-row mx-auto ${ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
-          <PassageBlock displayMode={nonEnglishDisplayMode}/> 
+          <div className={`flex flex-row mx-auto ${ctxReadmeBtnOn ? 'w-full min-w-0' : ctxStropheNoteBtnOn ? 'w-fit min-w-full' : 'w-[100%]'}`}>
+          <PassageBlock displayMode={nonEnglishDisplayMode}/>
           </div>
         }
       </div>
