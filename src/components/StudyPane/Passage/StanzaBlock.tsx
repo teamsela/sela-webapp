@@ -271,7 +271,7 @@ export const StanzaBlock = ({
           style={{ insetInlineStart: COUNTER_GUTTER_INLINE_START, width: COUNTER_GUTTER_WIDTH }}
           aria-hidden="true"
         >
-          <span className="select-none rounded bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+          <span className="select-none rounded-sm bg-primary px-2.5 h-8 inline-flex items-center text-[10px] font-semibold uppercase tracking-wide text-white">
             {ctxCounterMode === "units" ? "Units" : "Words"}
           </span>
         </div>

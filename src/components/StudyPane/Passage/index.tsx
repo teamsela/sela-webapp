@@ -601,8 +601,10 @@ const Passage = ({
             <PassageBlock displayMode="gloss"/>
           </div>
         }
-        { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
+        { ctxLanguageMode == LanguageMode.Parallel &&
+          // px-1 pairs with the columns' px-1 so the outer edges keep the same 8px
+          // as the (now un-doubled) 8px gaps between columns.
+          <div className={`flex flex-row mx-auto px-1 ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
             <PassageBlock displayMode={nonEnglishDisplayMode}/>
             <PassageBlock displayMode="counter"/>
             <PassageBlock displayMode="gloss"/>

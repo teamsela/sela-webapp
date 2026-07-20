@@ -36,7 +36,7 @@ export const CounterStanzaBlock = ({
   return (
     // Mirrors StanzaBlock's root so the counter column tracks each stanza's
     // vertical extent (flex-1 + border) and its strophes stay row-aligned.
-    <div className={`relative flex flex-col ${expanded ? "flex-1" : ""} rounded border`}>
+    <div className={`relative flex flex-col ${expanded ? "flex-1" : ""} rounded border bg-white`}>
       {/* Title row — mirrors the stanza title row (always present when expanded so
           every stanza reserves the same space). Only the FIRST stanza shows the
           visible Words/Units label — a blue pill (bg-primary, like the study
@@ -53,7 +53,10 @@ export const CounterStanzaBlock = ({
         // keeps the pill on the same axis as the numbers below.
         <div className="flex h-8 items-center justify-center">
           <span
-            className={`select-none whitespace-nowrap rounded px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+            // h-8 (32px) matches the stanza-title button height so the pill's
+            // background covers the same vertical space as the title's hover
+            // highlight; inline-flex + items-center keeps the small label centered.
+            className={`select-none whitespace-nowrap rounded-sm px-2.5 h-8 inline-flex items-center text-[10px] font-semibold uppercase tracking-wide ${
               isFirstStanza ? "bg-primary text-white" : ""
             }`}
             style={isFirstStanza ? undefined : { color: "transparent" }}

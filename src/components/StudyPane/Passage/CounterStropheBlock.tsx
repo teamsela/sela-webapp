@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "../index";
+import { FormatContext, DEFAULT_COLOR_FILL } from "../index";
 import { StropheProps } from "@/lib/data";
 import { BoxDisplayStyle } from "@/lib/types";
 import { countLineUnits, readStropheNoteTitle } from "@/lib/counter";
@@ -61,10 +61,16 @@ export const CounterStropheBlock = ({
 
   return (
     <div
-      className="w-full relative flex flex-col px-2 py-2 my-1 min-h-[45px] rounded border"
+      // Horizontal margin (mx-2) insets the count box from the column edges so it
+      // gets a little breathing room from the neighbouring language columns.
+      // Margin is horizontal-only, so the vertical row alignment with the words
+      // is unaffected.
+      className="relative flex flex-col px-2 py-2 mx-2 my-1 min-h-[45px] rounded border"
       style={{
         background: DEFAULT_COLOR_FILL,
-        border: `2px solid ${DEFAULT_BORDER_COLOR}`,
+        // White border (same as the fill) so the box is invisible but keeps its
+        // 2px footprint — the numbers just sit on the white column background.
+        border: `2px solid ${DEFAULT_COLOR_FILL}`,
       }}
     >
       {shouldRender && (

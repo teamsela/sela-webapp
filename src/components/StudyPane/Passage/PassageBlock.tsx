@@ -71,7 +71,10 @@ export const PassageBlock = ({
 
   return (
     <LanguageContext.Provider value={languageContextValue}>
-    <div id={`selaPassage_${displayMode}`} className={`${passageWidthClass} max-w-full flex relative px-2 py-4 ${counterWrapperClass}`}>
+    {/* In parallel mode each column uses half the horizontal padding (px-1) so
+        the gap between two adjacent columns is 8px instead of a doubled 16px; the
+        parallel wrapper adds a matching px-1 so the outer edges stay at 8px too. */}
+    <div id={`selaPassage_${displayMode}`} className={`${passageWidthClass} max-w-full flex relative ${isParallel ? 'px-1' : 'px-2'} py-4 ${counterWrapperClass}`}>
         <div className={`flex ${stanzaLayoutClass}`}>
         {
             displayMode === 'counter'
