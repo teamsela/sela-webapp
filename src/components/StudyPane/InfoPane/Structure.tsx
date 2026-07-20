@@ -7,6 +7,7 @@ import { MdInfoOutline } from "react-icons/md";
 
 import { DEFAULT_BORDER_COLOR } from "@/lib/colors";
 import { PassageProps, WordProps } from "@/lib/data";
+import { countSelectedLines, countSelectedWords } from "@/lib/counter";
 import { getAccentLevel, scanAccents, AccentLevel, AccentToken, ScanResult } from "@/lib/poeticAccents";
 import { deriveUniformWordPalette } from "@/lib/utils";
 
@@ -257,17 +258,36 @@ const Structure = () => {
     ctxSelectedWords,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
+    ctxSelectedStrophes,
     ctxSetSelectedStrophes,
     ctxSetAccentBorderWordIds,
     ctxWordsColorMap,
     ctxStudyMetadata,
     ctxInViewMode,
+    ctxInTextCounterOn,
+    ctxSetInTextCounterOn,
+    ctxCounterMode,
+    ctxSetCounterMode,
   } = useContext(FormatContext);
 
   const { toggleHighlight, activeHighlightId } = useHighlightManager("structure");
   const [isOpen, setIsOpen] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Word and Line Counter. Selected Words/Lines are live off the shared selection;
+  // In-Text Counter on/off + Word/Prosodic mode live in FormatContext so the
+  // passage's in-text gutter can read them.
+  const [isCounterOpen, setIsCounterOpen] = useState(true);
+
+  const selectedWordCount = useMemo(
+    () => countSelectedWords(ctxSelectedWords ?? [], ctxSelectedStrophes ?? []),
+    [ctxSelectedWords, ctxSelectedStrophes],
+  );
+  const selectedLineCount = useMemo(
+    () => countSelectedLines(ctxSelectedWords ?? [], ctxSelectedStrophes ?? []),
+    [ctxSelectedWords, ctxSelectedStrophes],
+  );
 
   const closeInfo = useCallback(() => setShowInfo(false), []);
 
@@ -624,6 +644,109 @@ const Structure = () => {
                   Open a study in one of those books to analyze its cantillation accents.
                 </p>
               )}
+            </div>
+          )}
+        </div>
+
+        <div className="mx-4 border-b border-stroke dark:border-strokedark">
+          <button
+            type="button"
+            className="ClickBlock flex w-full items-center gap-2 py-4 px-2 text-left text-sm font-medium md:text-base"
+            onClick={() => setIsCounterOpen((prev) => !prev)}
+          >
+            <AccordionToggleIcon isOpen={isCounterOpen} />
+            <span className={isCounterOpen ? "text-primary" : "text-black dark:text-white"}>
+              Word and Line Counter
+            </span>
+          </button>
+
+          {isCounterOpen && (
+            <div className="space-y-4 p-4">
+              <div className="flex items-stretch gap-3">
+                <div className="flex w-32 shrink-0 items-center justify-center rounded-md bg-graydark px-3 py-2 text-center text-sm font-medium leading-tight text-white">
+                  Selected Words
+                </div>
+                <div
+                  data-testid="selected-words-count"
+                  className="flex flex-1 items-center justify-center rounded-md border-2 border-stroke bg-white px-4 py-2 text-lg font-semibold text-black dark:border-strokedark"
+                >
+                  {selectedWordCount}
+                </div>
+              </div>
+
+              <div className="flex items-stretch gap-3">
+                <div className="flex w-32 shrink-0 items-center justify-center rounded-md bg-graydark px-3 py-2 text-center text-sm font-medium leading-tight text-white">
+                  Selected Lines
+                </div>
+                <div
+                  data-testid="selected-lines-count"
+                  className="flex flex-1 items-center justify-center rounded-md border-2 border-stroke bg-white px-4 py-2 text-lg font-semibold text-black dark:border-strokedark"
+                >
+                  {selectedLineCount}
+                </div>
+              </div>
+
+              <div className="flex items-stretch gap-3 pt-2">
+                <div className="flex w-32 shrink-0 items-center justify-center rounded-md bg-graydark px-3 py-2 text-center text-sm font-medium leading-tight text-white">
+                  In-Text Counter
+                </div>
+                <div className="flex flex-1 overflow-hidden rounded-md border-2 border-stroke dark:border-strokedark">
+                  <button
+                    type="button"
+                    onClick={() => ctxSetInTextCounterOn(true)}
+                    aria-pressed={ctxInTextCounterOn}
+                    className={`ClickBlock flex-1 px-4 py-2 text-sm font-medium transition ${
+                      ctxInTextCounterOn
+                        ? "bg-primary text-white"
+                        : "bg-white text-black hover:bg-gray"
+                    }`}
+                  >
+                    On
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => ctxSetInTextCounterOn(false)}
+                    aria-pressed={!ctxInTextCounterOn}
+                    className={`ClickBlock flex-1 px-4 py-2 text-sm font-medium transition ${
+                      !ctxInTextCounterOn
+                        ? "bg-primary text-white"
+                        : "bg-white text-black hover:bg-gray"
+                    }`}
+                  >
+                    Off
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-stretch gap-3 pt-2">
+                <div className="w-32 shrink-0" />
+                <div
+                  className={`flex flex-1 overflow-hidden rounded-md border-2 border-stroke dark:border-strokedark ${
+                    ctxInTextCounterOn ? "" : "opacity-50"
+                  }`}
+                >
+                  {[
+                    { mode: "words" as const, label: "Word Count" },
+                    { mode: "units" as const, label: "Prosodic Units" },
+                  ].map(({ mode, label }) => {
+                    const active = ctxInTextCounterOn && ctxCounterMode === mode;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        disabled={!ctxInTextCounterOn}
+                        onClick={() => ctxSetCounterMode(mode)}
+                        aria-pressed={active}
+                        className={`ClickBlock px-4 py-2 text-sm font-medium transition ${
+                          !ctxInTextCounterOn ? "cursor-not-allowed" : ""
+                        } ${active ? "bg-primary text-white" : "bg-white text-black"}`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>

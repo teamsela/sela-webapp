@@ -11,6 +11,7 @@ import { Footer } from "./Footer";
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
+import { CounterMode } from "@/lib/counter";
 import { updateMetadataInDb } from '@/lib/actions';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 
@@ -114,6 +115,10 @@ export const FormatContext = createContext({
   ctxSetLanguageMode: (arg: LanguageMode) => {},
   ctxNonEnglishDisplayMode: NonEnglishDisplayMode.Hebrew,
   ctxSetNonEnglishDisplayMode: (arg: NonEnglishDisplayMode) => {},
+  ctxInTextCounterOn: false,
+  ctxSetInTextCounterOn: (arg: boolean) => {},
+  ctxCounterMode: "words" as CounterMode,
+  ctxSetCounterMode: (arg: CounterMode) => {},
   ctxSelectedSoundChipIds: [] as string[],
   ctxSetSelectedSoundChipIds: (arg: string[]) => {},
   ctxHighlightedSoundChipIds: [] as string[],
@@ -259,6 +264,8 @@ const StudyPane = ({
   const [nonEnglishDisplayMode, setNonEnglishDisplayMode] = useState<NonEnglishDisplayMode>(
     NonEnglishDisplayMode.Hebrew,
   );
+  const [inTextCounterOn, setInTextCounterOn] = useState(false);
+  const [counterMode, setCounterMode] = useState<CounterMode>("words");
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
   const [selectedSoundChipIds, setSelectedSoundChipIds] = useState<string[]>([]);
   const [highlightedSoundChipIds, setHighlightedSoundChipIds] = useState<string[]>([]);
@@ -539,6 +546,10 @@ const StudyPane = ({
     ctxSetLanguageMode: setLanguageMode,
     ctxNonEnglishDisplayMode: nonEnglishDisplayMode,
     ctxSetNonEnglishDisplayMode: setNonEnglishDisplayMode,
+    ctxInTextCounterOn: inTextCounterOn,
+    ctxSetInTextCounterOn: setInTextCounterOn,
+    ctxCounterMode: counterMode,
+    ctxSetCounterMode: setCounterMode,
     ctxSelectedSoundChipIds: selectedSoundChipIds,
     ctxSetSelectedSoundChipIds: setSelectedSoundChipIds,
     ctxHighlightedSoundChipIds: highlightedSoundChipIds,

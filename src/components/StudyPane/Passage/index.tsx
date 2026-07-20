@@ -604,6 +604,7 @@ const Passage = ({
         { ctxLanguageMode == LanguageMode.Parallel && 
           <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
             <PassageBlock displayMode={nonEnglishDisplayMode}/>
+            <PassageBlock displayMode="counter"/>
             <PassageBlock displayMode="gloss"/>
           </div>
         }

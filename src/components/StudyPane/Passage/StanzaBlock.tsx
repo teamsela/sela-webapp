@@ -7,6 +7,7 @@ import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateMetadataInDb } from "@/lib/actions";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
+import { COUNTER_GUTTER_WIDTH, COUNTER_GUTTER_INLINE_START } from "@/lib/counter";
 
 export const StanzaBlock = ({
   stanzaProps
@@ -14,7 +15,7 @@ export const StanzaBlock = ({
   stanzaProps: StanzaProps
 }) => {
 
-  const { ctxStudyMetadata, ctxSetStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn } = useContext(FormatContext);
+  const { ctxStudyMetadata, ctxSetStudyMetadata, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxStudyId, ctxInViewMode, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn, ctxInTextCounterOn, ctxCounterMode } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext);
   const [expanded, setExpanded] = useState(stanzaProps.metadata?.expanded ?? true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -41,6 +42,13 @@ export const StanzaBlock = ({
   const titleReservedSidePaddingClass = isParallelMode
     ? (ctxIsHebrew ? 'pl-12 pr-2' : 'pr-12 pl-2')
     : (ctxIsHebrew ? 'pl-12 pr-2' : 'pr-12 pl-2');
+
+  // When the single-language in-text counter gutter is showing, inset the stanza
+  // title past the gutter (on the reading-start side) so it sits above the word
+  // text rather than over the count column. Offset ≈ strophe padding + gutter
+  // width + column gap; tune if the gutter width changes.
+  const showCounterGutter = ctxInTextCounterOn && !isParallelMode;
+  const titleInsetInlineStart = showCounterGutter ? "6.5rem" : "0.25rem";
 
   // Sync edit title when external changes occur
   useEffect(() => {
@@ -242,14 +250,31 @@ export const StanzaBlock = ({
             {renderTitleContent(isEditingTitle)}
           </div>
         ) : (
-          // In single mode, title uses absolute positioning
+          // In single mode, title uses absolute positioning. The start-side inset
+          // clears the in-text counter gutter so the title sits above the words.
           <div
             ref={titleEditorAreaRef}
-            className={`absolute top-0 left-1 right-1 flex h-10 items-center ${ctxIsHebrew ? 'justify-end' : 'justify-start'}`}
+            className={`absolute top-0 flex h-10 items-center ${ctxIsHebrew ? 'justify-end' : 'justify-start'}`}
+            style={{ insetInlineStart: titleInsetInlineStart, insetInlineEnd: "0.25rem" }}
           >
             {renderTitleContent(isEditingTitle)}
           </div>
         )
+      )}
+
+      {/* WORDS/UNITS counter label — single-language mode only. Rendered on the
+          stanza-title line (over the count gutter) rather than inside the first
+          strophe, so it stays visible when that strophe is collapsed. */}
+      {showCounterGutter && expanded && stanzaProps.strophes.length > 0 && (
+        <div
+          className="absolute top-0 flex h-10 items-center justify-center"
+          style={{ insetInlineStart: COUNTER_GUTTER_INLINE_START, width: COUNTER_GUTTER_WIDTH }}
+          aria-hidden="true"
+        >
+          <span className="select-none rounded bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+            {ctxCounterMode === "units" ? "Units" : "Words"}
+          </span>
+        </div>
       )}
 
       <div className={`flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || shouldStretchReadmeStanza ? 'w-full min-w-0' : ''}`}>

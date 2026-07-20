@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 
 import { ACCENT_CODEPOINTS } from "@/lib/poeticAccents";
-import type { PassageProps, WordProps } from "@/lib/data";
+import type { PassageProps, StropheProps, WordProps } from "@/lib/data";
 
 // Stub useHighlightManager so we don't pull in server actions / DB code.
 // `highlightState.activeHighlightId` is mutable so tests can simulate an
@@ -55,14 +55,27 @@ type Ctx = {
   passage: PassageProps;
   book?: string;
   selectedWords?: WordProps[];
+  selectedStrophes?: StropheProps[];
   inViewMode?: boolean;
+  inTextCounterOn?: boolean;
+  counterMode?: "words" | "units";
 };
 
-const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = false }: Ctx) => {
+const setup = ({
+  passage,
+  book = "psalms",
+  selectedWords = [],
+  selectedStrophes = [],
+  inViewMode = false,
+  inTextCounterOn = false,
+  counterMode = "words",
+}: Ctx) => {
   const ctxSetSelectedWords = vi.fn();
   const ctxSetNumSelectedWords = vi.fn();
   const ctxSetSelectedStrophes = vi.fn();
   const ctxSetAccentBorderWordIds = vi.fn();
+  const ctxSetInTextCounterOn = vi.fn();
+  const ctxSetCounterMode = vi.fn();
 
   const value = {
     ctxPassageProps: passage,
@@ -70,11 +83,16 @@ const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = fals
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
+    ctxSelectedStrophes: selectedStrophes,
     ctxSetSelectedStrophes,
     ctxSetAccentBorderWordIds,
     ctxWordsColorMap: new Map(),
     ctxStudyMetadata: { words: {} },
     ctxInViewMode: inViewMode,
+    ctxInTextCounterOn: inTextCounterOn,
+    ctxSetInTextCounterOn,
+    ctxCounterMode: counterMode,
+    ctxSetCounterMode,
   } as any;
 
   render(
@@ -83,7 +101,14 @@ const setup = ({ passage, book = "psalms", selectedWords = [], inViewMode = fals
     </FormatContext.Provider>,
   );
 
-  return { ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes, ctxSetAccentBorderWordIds };
+  return {
+    ctxSetSelectedWords,
+    ctxSetNumSelectedWords,
+    ctxSetSelectedStrophes,
+    ctxSetAccentBorderWordIds,
+    ctxSetInTextCounterOn,
+    ctxSetCounterMode,
+  };
 };
 
 const catButton = (name: RegExp) => screen.getByRole("button", { name });
@@ -383,5 +408,77 @@ describe("Structure panel — Accents in Poetry", () => {
       const lastCall = ctxSetAccentBorderWordIds.mock.calls.at(-1)?.[0];
       expect(lastCall).toEqual([]);
     });
+  });
+});
+
+describe("Structure panel — Word and Line Counter", () => {
+  // Words with explicit line coordinates so line counting is meaningful.
+  const cWord = (wordId: number, lineId = 0, stropheId = 0, stanzaId = 0): WordProps =>
+    ({ wordId, stanzaId, stropheId, lineId } as WordProps);
+  const cStrophe = (lines: WordProps[][]): StropheProps =>
+    ({ stropheId: 0, metadata: {}, lines: lines.map((words, lineId) => ({ lineId, words })) } as StropheProps);
+
+  it("renders the accordion with its controls", () => {
+    setup({ passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]) });
+    expect(screen.getByText("Word and Line Counter")).toBeInTheDocument();
+    expect(screen.getByText("Selected Words")).toBeInTheDocument();
+    expect(screen.getByText("Selected Lines")).toBeInTheDocument();
+    ["On", "Off", "Word Count", "Prosodic Units"].forEach((label) => {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    });
+  });
+
+  it("shows zero when nothing is selected", () => {
+    setup({ passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]) });
+    expect(screen.getByTestId("selected-words-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("selected-lines-count")).toHaveTextContent("0");
+  });
+
+  it("counts selected words and the distinct lines they touch", () => {
+    setup({
+      passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]),
+      // two words on line 0, one on line 1 -> 3 words across 2 lines
+      selectedWords: [cWord(1, 0), cWord(2, 0), cWord(3, 1)],
+    });
+    expect(screen.getByTestId("selected-words-count")).toHaveTextContent("3");
+    expect(screen.getByTestId("selected-lines-count")).toHaveTextContent("2");
+  });
+
+  it("counts words and lines from a selected strophe", () => {
+    setup({
+      passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]),
+      selectedStrophes: [cStrophe([[cWord(1, 0), cWord(2, 0)], [cWord(3, 1)]])],
+    });
+    expect(screen.getByTestId("selected-words-count")).toHaveTextContent("3");
+    expect(screen.getByTestId("selected-lines-count")).toHaveTextContent("2");
+  });
+
+  it("greys out Word Count / Prosodic Units while the counter is off", () => {
+    setup({ passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]), inTextCounterOn: false });
+    expect(screen.getByRole("button", { name: "Word Count" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Prosodic Units" })).toBeDisabled();
+  });
+
+  it("enables Word Count / Prosodic Units when the counter is on", () => {
+    setup({ passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]), inTextCounterOn: true });
+    expect(screen.getByRole("button", { name: "Word Count" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Prosodic Units" })).toBeEnabled();
+  });
+
+  it("toggles the in-text counter through context", () => {
+    const { ctxSetInTextCounterOn } = setup({ passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]) });
+    fireEvent.click(screen.getByRole("button", { name: "On" }));
+    expect(ctxSetInTextCounterOn).toHaveBeenCalledWith(true);
+    fireEvent.click(screen.getByRole("button", { name: "Off" }));
+    expect(ctxSetInTextCounterOn).toHaveBeenCalledWith(false);
+  });
+
+  it("switches the mode to prosodic units when the counter is on", () => {
+    const { ctxSetCounterMode } = setup({
+      passage: buildPassage([mkWord(1, ACCENT_CODEPOINTS.SOF_PASUQ)]),
+      inTextCounterOn: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Prosodic Units" }));
+    expect(ctxSetCounterMode).toHaveBeenCalledWith("units");
   });
 });
