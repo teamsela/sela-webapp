@@ -53,7 +53,7 @@ export const StanzaBlock = ({
   // language strophes, each strophe box mirrored so rows stay aligned. The
   // WORDS/UNITS pill sits in the counter stack's own title-row slot.
   const sideBySideCounter = ctxInTextCounterOn && !isParallelMode;
-  const counterLabelText = ctxCounterMode === "units" ? "Units" : "Words";
+  const counterShowsUnits = ctxCounterMode === "units";
   // Only lay out the two side-by-side columns when the stanza is expanded and
   // has strophes; a collapsed stanza falls back to the normal single-column
   // rendering (strophe bars), keeping its pt-10 title reserve.
@@ -293,8 +293,12 @@ export const StanzaBlock = ({
                 also h-10); the pill itself only shows when showCounterLabel. */}
             <div className="flex h-10 items-center justify-center" aria-hidden="true">
               {showCounterLabel && (
-                <span className="select-none whitespace-nowrap rounded-sm bg-primary px-2.5 h-8 inline-flex items-center text-[10px] font-semibold uppercase tracking-wide text-white">
-                  {counterLabelText}
+                // Both labels share one grid cell so the blue pill always sizes
+                // to the wider word (WORDS); only the active mode is visible, so
+                // toggling Words/Units keeps the pill width fixed.
+                <span className="select-none rounded-sm bg-primary px-2.5 h-8 grid place-items-center text-[10px] font-semibold uppercase tracking-wide text-white">
+                  <span className={`col-start-1 row-start-1 whitespace-nowrap ${counterShowsUnits ? "" : "invisible"}`}>Units</span>
+                  <span className={`col-start-1 row-start-1 whitespace-nowrap ${counterShowsUnits ? "invisible" : ""}`}>Words</span>
                 </span>
               )}
             </div>

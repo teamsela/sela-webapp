@@ -74,6 +74,9 @@ export const PassageBlock = ({
   // the same left gutter, so repeating the WORDS/UNITS pill on each is
   // redundant — show it only on the first non-collapsed stanza. When the
   // stanzas sit side by side (normal single mode) each keeps its own pill.
+  // The parallel-mode counter column (CounterStanzaBlock) also uses this index
+  // so the single visible pill lands on the first expanded stanza — otherwise a
+  // collapsed first stanza would hide the label entirely.
   const stanzasStacked = !isParallel && (ctxStropheNoteBtnOn || ctxReadmeBtnOn);
   const firstExpandedStanzaIdx = ctxPassageProps.stanzaProps.findIndex(
     (stanza) => (stanza.metadata?.expanded ?? true) !== false
@@ -92,7 +95,7 @@ export const PassageBlock = ({
                   <CounterStanzaBlock
                     key={stanza.stanzaId}
                     stanzaProps={stanza}
-                    isFirstStanza={stanzaIdx === 0}
+                    showLabel={stanzaIdx === firstExpandedStanzaIdx}
                   />
                 ))
               : ctxPassageProps.stanzaProps.map((stanza, stanzaIdx) => {

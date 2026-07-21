@@ -737,7 +737,7 @@ const Structure = () => {
                         disabled={!ctxInTextCounterOn}
                         onClick={() => ctxSetCounterMode(mode)}
                         aria-pressed={active}
-                        className={`ClickBlock px-4 py-2 text-sm font-medium transition ${
+                        className={`ClickBlock flex-1 px-4 py-2 text-sm font-medium transition ${
                           !ctxInTextCounterOn ? "cursor-not-allowed" : ""
                         } ${active ? "bg-primary text-white" : "bg-white text-black"}`}
                       >
