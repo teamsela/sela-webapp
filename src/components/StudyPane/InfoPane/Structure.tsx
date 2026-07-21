@@ -12,6 +12,7 @@ import { deriveUniformWordPalette } from "@/lib/utils";
 
 import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
+import PausalForms from "./PausalForms";
 import { HighlightGroup, useHighlightManager } from "./useHighlightManager";
 
 const STRUCTURE_HIGHLIGHT_ID = "accents-in-poetry";
@@ -627,6 +628,8 @@ const Structure = () => {
             </div>
           )}
         </div>
+
+        <PausalForms allWords={allWords} scan={scan} />
       </div>
     </div>
   );
