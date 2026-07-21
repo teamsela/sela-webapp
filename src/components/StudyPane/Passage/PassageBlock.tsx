@@ -13,8 +13,16 @@ export const LanguageContext = createContext({
 
 export const PassageBlock = ({
   displayMode,
+  columnRef,
+  sharedMinWidth,
 }: {
   displayMode: PassageDisplayMode;
+  // Set by Passage on the two parallel language columns: a callback ref to the
+  // stanza container (for measuring its natural width) and the shared min-width
+  // to apply so both language columns are the same width and a strophe-note
+  // title wraps identically in each. Undefined for single-language columns.
+  columnRef?: (node: HTMLDivElement | null) => void;
+  sharedMinWidth?: number | null;
 }) => {
 
   const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn } = useContext(FormatContext);
@@ -64,7 +72,12 @@ export const PassageBlock = ({
   return (
     <LanguageContext.Provider value={languageContextValue}>
     <div id={`selaPassage_${displayMode}`} className={`${passageWidthClass} max-w-full flex relative px-2 py-4`}>
-        <div className={`flex ${stanzaLayoutClass}`}>
+        {/* min-width equalizes the two parallel language columns. Both the
+            measuring ref and the min-width live on THIS shrink-to-content (w-fit)
+            container so measure and constraint use the same box (converges instead
+            of drifting); its StanzaBlock children stretch, so the strophe boxes
+            widen and a strophe-note title wraps at the same width in both. */}
+        <div ref={columnRef} className={`flex ${stanzaLayoutClass}`} style={sharedMinWidth ? { minWidth: sharedMinWidth } : undefined}>
         {
             ctxPassageProps.stanzaProps.map((stanza) => {
             return (
