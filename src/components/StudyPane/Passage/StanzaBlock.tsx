@@ -287,7 +287,7 @@ export const StanzaBlock = ({
           {/* Counter stack — WORDS/UNITS pill occupies the title-row slot (h-10,
               matching the language title row) so both stacks' strophes start at
               the same y and stay row-aligned. */}
-          <div className="flex flex-col shrink-0">
+          <div className="flex flex-col shrink-0 ms-1">
             {/* h-10 slot always present (keeps the counter column's strophes
                 row-aligned with the language column, whose stanza-title row is
                 also h-10); the pill itself only shows when showCounterLabel. */}

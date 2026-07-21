@@ -73,12 +73,14 @@ export const CounterStropheBlock = ({
 
   return (
     <div
-      // Horizontal padding/margin here only inset the box; they are horizontal so
-      // the vertical row alignment with the words is unaffected. The bordered
-      // variant matches StropheBlock's px-5/mx-1 so it looks like a strophe box;
-      // the parallel variant keeps the tighter px-2/mx-2 float.
-      className={`relative flex flex-col py-2 my-1 min-h-[45px] rounded border ${
-        bordered ? "px-5 mx-1" : "px-2 mx-2"
+      // w-full + min-w-0 make the box stretch to (and never exceed) the counter
+      // column's width, which is set solely by the WORDS/UNITS pill above — so the
+      // whole counter column is only as wide as that pill in both single-language
+      // and parallel mode. Horizontal padding only insets the number; it stays
+      // inside the box (border-box) so it can't widen the column. Vertical spacing
+      // (py-2 my-1 min-h) is what keeps counts row-aligned with the words.
+      className={`relative flex flex-col py-2 my-1 min-h-[45px] w-full min-w-0 rounded border ${
+        bordered ? "px-2" : "px-1"
       }`}
       style={{
         background: DEFAULT_COLOR_FILL,
