@@ -1,7 +1,6 @@
 'use client'
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { LuTextSelect } from "react-icons/lu";
-import { BiCollapseVertical } from "react-icons/bi";
+import { LuTextSelect, LuChevronUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
 import { ColorActionType } from "@/lib/types";
@@ -520,26 +519,27 @@ const Layers = () => {
                     ref={expandedNoteRef}
                     className="relative flex min-h-0 flex-1 flex-col px-3 pb-3"
                   >
-                    <RichTextEditor
-                      value={noteDoc}
-                      onChange={(doc) => handleNoteChange(layer.id, doc)}
-                      editable={editable}
-                      placeholder="Click here to add notes"
-                      autoFocus
-                      fill
-                      className="min-h-0 flex-1 cursor-text bg-white dark:bg-boxdark"
-                    />
-                    {/* Circular collapse button floating over the note box's
-                        top-right corner. */}
-                    <button
-                      type="button"
-                      title="Collapse note"
-                      aria-label="Collapse note"
-                      onClick={() => setNotesExpanded(false)}
-                      className="absolute right-2 top-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-stroke bg-white text-black/60 shadow-sm transition hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-white/70"
-                    >
-                      <BiCollapseVertical size={14} style={{ pointerEvents: "none" }} />
-                    </button>
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg bg-white dark:bg-boxdark">
+                      <RichTextEditor
+                        value={noteDoc}
+                        onChange={(doc) => handleNoteChange(layer.id, doc)}
+                        editable={editable}
+                        placeholder="Click here to add notes"
+                        autoFocus
+                        fill
+                        className="min-h-0 flex-1 cursor-text bg-white dark:bg-boxdark"
+                      />
+                      {/* Slim collapse bar pinned to the bottom of the note box. */}
+                      <button
+                        type="button"
+                        title="Collapse note"
+                        aria-label="Collapse note"
+                        onClick={() => setNotesExpanded(false)}
+                        className="flex w-full items-center justify-center border-t border-stroke py-1 text-black/50 transition hover:text-black dark:border-strokedark dark:text-white/60 dark:hover:text-white"
+                      >
+                        <LuChevronUp size={16} style={{ pointerEvents: "none" }} />
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="px-3 pb-3">
