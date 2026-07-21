@@ -194,6 +194,24 @@ export const StanzaBlock = ({
       );
     }
 
+    // Read-only users can't edit the title, so never show the "Add stanza
+    // title..." affordance. Render an existing title as plain text; render
+    // nothing when there's no title.
+    if (ctxInViewMode) {
+      if (!hasTitle) {
+        return null;
+      }
+      return (
+        <span
+          className={`block w-full truncate py-1 text-base font-semibold ${ctxIsHebrew ? 'text-right' : 'text-left'} ${titleReservedSidePaddingClass}`}
+          dir="auto"
+          style={{ color: contrastingForegroundColor }}
+        >
+          {stanzaProps.metadata?.title}
+        </span>
+      );
+    }
+
     return (
       <button
         type="button"

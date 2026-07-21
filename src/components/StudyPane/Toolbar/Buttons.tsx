@@ -906,7 +906,7 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   );
 };
 
-export const StudyBtn = ({
+export const CloneStudyBtn = ({
   setCloneStudyOpen
 }: {
   setCloneStudyOpen: (arg: boolean) => void;

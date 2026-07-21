@@ -299,6 +299,9 @@ export const StropheBlock = ({
       <div
         className={actionButtonWrapperClass}
         >
+      {
+      /* The select icon only enables color editing, so hide it for read-only users. */
+      !ctxInViewMode &&
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
         className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
@@ -311,8 +314,9 @@ export const StropheBlock = ({
           style={{pointerEvents:'none'}}
         />
       </button>
+      }
       {
-      expanded && stanzaExpanded && !ctxStropheNoteBtnOn ?
+      expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
         className={`mx-[0.5] hover:bg-theme active:bg-transparent`}

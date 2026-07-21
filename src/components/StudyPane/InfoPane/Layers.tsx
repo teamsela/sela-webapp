@@ -499,8 +499,9 @@ const Layers = () => {
                     )}
                     {editable && (
                       <button
-                        title="Delete layer"
-                        className="hover:opacity-70"
+                        title={ctxLayers.length <= 1 ? "At least one layer must exist" : "Delete layer"}
+                        className={ctxLayers.length <= 1 ? "cursor-default opacity-40" : "hover:opacity-70"}
+                        disabled={ctxLayers.length <= 1}
                         onClick={(e) => { e.stopPropagation(); requestDelete(layer.id); }}
                       >
                         <IconTrash size={ACTION_ICON_SIZE} style={{ pointerEvents: "none" }} />

@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 
 import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
-  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
+  IndentBtn, UniformWidthBtn, StructureUpdateBtn, CloneStudyBtn, 
   ClearAllFormatBtn, EditWordBtn, BoxlessBtn,
   StropheNoteBtn, ReadmeBtn} from "./Buttons";
 import ScaleDropDown from "./ScaleDropDown";
@@ -52,7 +52,7 @@ const Toolbar = ({
                 {
                   (study.model || study.scriptura) &&
                   (
-                    <StudyBtn setCloneStudyOpen={setCloneStudyOpen} />
+                    <CloneStudyBtn setCloneStudyOpen={setCloneStudyOpen} />
                   )
                 }
               </div>
