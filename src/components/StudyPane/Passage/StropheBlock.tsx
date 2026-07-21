@@ -10,6 +10,7 @@ import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
+import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
@@ -39,6 +40,7 @@ export const StropheBlock = ({
     ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
+  const stropheAlign = useContext(StropheAlignContext);
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
@@ -268,6 +270,36 @@ export const StropheBlock = ({
     };
   }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, wordAreaSignature, syncWordAreaHeight]);
 
+  // Report the rendered title height to the counter column (via context) so it
+  // reserves matching vertical space instead of a single placeholder line. Height
+  // is divided by the zoom scale (like syncWordAreaHeight) since the counter
+  // applies it in the same scaled subtree. Both parallel language columns report
+  // for the same stropheId; because they share a width their heights match.
+  const reportTitleHeight = stropheAlign?.reportTitleHeight;
+  const stropheId = stropheProps.stropheId;
+  const measureTitleHeight = useCallback((node: HTMLElement) => {
+    if (!reportTitleHeight) return;
+    const rect = node.getBoundingClientRect();
+    if (rect.height <= 0) return;
+    const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+    reportTitleHeight(stropheId, Math.ceil(rect.height / scale));
+  }, [reportTitleHeight, stropheId, ctxScaleValue]);
+  const titleAreaObserverRef = useRef<ResizeObserver | null>(null);
+  const attachTitleArea = useCallback((node: HTMLDivElement | null) => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+    if (node && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => measureTitleHeight(node));
+      observer.observe(node);
+      titleAreaObserverRef.current = observer;
+      measureTitleHeight(node);
+    }
+  }, [measureTitleHeight]);
+  useEffect(() => () => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+  }, []);
+
   const contentWidthClass = "w-full min-w-0";
 
   const renderWords = (line: StropheProps["lines"][number], lineId: number) =>
@@ -302,7 +334,7 @@ export const StropheBlock = ({
       return null;
     }
     return (
-      <div className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
+      <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
         <span
           className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
           dir="auto"

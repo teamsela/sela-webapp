@@ -1,7 +1,8 @@
-import React, { useEffect, useContext, useMemo } from 'react';
+import React, { useEffect, useContext, useMemo, useCallback, useLayoutEffect } from 'react';
 
 import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
+import { StropheAlignContext } from './stropheAlign';
 
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
@@ -48,7 +49,7 @@ const Passage = ({
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
     ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
-    ctxNonEnglishDisplayMode,
+    ctxNonEnglishDisplayMode, ctxActiveLayerId,
   } = useContext(FormatContext);
 
   const nonEnglishDisplayMode =
@@ -58,6 +59,90 @@ const Passage = ({
       : "hebrew";
 
   const { isDragging, handleMouseDown, containerRef, getSelectionBoxStyle } = useDragToSelect(ctxPassageProps);
+
+  const isParallel = ctxLanguageMode === LanguageMode.Parallel;
+
+  // --- Parallel-mode title alignment ---------------------------------------
+  // The two language columns are independent DOM subtrees sized to their own
+  // content (w-fit), so a long strophe-note title wraps to a different number of
+  // lines in each, giving the columns different heights and knocking their rows
+  // out of alignment. Fix: measure each column's natural width and apply the max
+  // as a min-width to both, so the title wraps identically in each. Font, size
+  // and padding already match across columns, so equal width => equal wrapping.
+  //
+  // Skip it entirely (parallel layout untouched) when no strophe has a title, so
+  // views without titles don't get the trailing whitespace equalization adds.
+  const hasAnyStropheTitle = useMemo(() => {
+    if (!ctxStudyNotes) return false;
+    let parsed: Partial<StudyNotes> | null;
+    try {
+      parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
+    } catch {
+      return false;
+    }
+    if (!parsed) return false;
+    const layerStrophes = parsed.layerStrophes?.[String(ctxActiveLayerId)];
+    const rootStrophes = ctxActiveLayerId === 0 && Array.isArray(parsed.strophes) ? parsed.strophes : undefined;
+    const hasTitle = (note: StropheNote | undefined) =>
+      Boolean(note && typeof note.title === "string" && note.title.trim().length > 0);
+    return ctxPassageProps.stanzaProps.some((stanza) =>
+      stanza.strophes.some((strophe) =>
+        hasTitle(layerStrophes?.[strophe.stropheId] ?? rootStrophes?.[strophe.stropheId])
+      )
+    );
+  }, [ctxStudyNotes, ctxActiveLayerId, ctxPassageProps]);
+
+  const [hebColNode, setHebColNode] = useState<HTMLDivElement | null>(null);
+  const [glossColNode, setGlossColNode] = useState<HTMLDivElement | null>(null);
+  const [sharedColWidth, setSharedColWidth] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (!isParallel || !hasAnyStropheTitle || !hebColNode || !glossColNode) {
+      setSharedColWidth(null);
+      return;
+    }
+    // Reset to natural widths first so measurement reflects real content (a stale
+    // min-width would otherwise pin both columns and never shrink).
+    setSharedColWidth(null);
+    let frame = 0;
+    const measure = () => {
+      const next = Math.max(hebColNode.offsetWidth, glossColNode.offsetWidth);
+      // Once the min-width is applied both columns report `next`, so this settles
+      // after one extra observer callback instead of oscillating.
+      setSharedColWidth((prev) => (prev !== null && Math.abs(prev - next) < 1 ? prev : next));
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    schedule();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(hebColNode);
+    observer.observe(glossColNode);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+    // Recompute from scratch when anything that changes natural width changes.
+  }, [isParallel, hasAnyStropheTitle, hebColNode, glossColNode, ctxPassageProps, ctxStropheNoteBtnOn, ctxReadmeBtnOn, nonEnglishDisplayMode]);
+
+  // Per-strophe measured title height, reported by the language StropheBlock and
+  // consumed by the counter column so it reserves matching vertical space instead
+  // of a single placeholder line (a long title can wrap to several lines).
+  const [titleHeights, setTitleHeights] = useState<Record<number, number>>({});
+  const reportTitleHeight = useCallback((stropheId: number, height: number) => {
+    setTitleHeights((prev) => {
+      const cur = prev[stropheId];
+      // The two language columns share a width, so they report the same height;
+      // last-writer-wins is fine and lets the value shrink on zoom-out.
+      if (cur !== undefined && Math.abs(cur - height) < 0.5) return prev;
+      return { ...prev, [stropheId]: height };
+    });
+  }, []);
+  const alignContextValue = useMemo(
+    () => ({ titleHeights, reportTitleHeight }),
+    [titleHeights, reportTitleHeight]
+  );
 
   // Build a map from wordId to stanza index for title merging
   const getWordToStanzaMap = useMemo(() => {
@@ -580,8 +665,8 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  return (  
-    
+  return (
+    <StropheAlignContext.Provider value={alignContextValue}>
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
@@ -605,9 +690,9 @@ const Passage = ({
           // px-1 pairs with the columns' px-1 so the outer edges keep the same 8px
           // as the (now un-doubled) 8px gaps between columns.
           <div className={`flex flex-row mx-auto px-1 ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
-            <PassageBlock displayMode={nonEnglishDisplayMode}/>
+            <PassageBlock displayMode={nonEnglishDisplayMode} columnRef={setHebColNode} sharedMinWidth={sharedColWidth}/>
             <PassageBlock displayMode="counter"/>
-            <PassageBlock displayMode="gloss"/>
+            <PassageBlock displayMode="gloss" columnRef={setGlossColNode} sharedMinWidth={sharedColWidth}/>
           </div>
         }
         { ctxLanguageMode == LanguageMode.Hebrew && 
@@ -619,7 +704,7 @@ const Passage = ({
       
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
-    
+    </StropheAlignContext.Provider>
   );
 };
 

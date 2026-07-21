@@ -3,6 +3,7 @@ import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "../inde
 import { StropheProps } from "@/lib/data";
 import { BoxDisplayStyle } from "@/lib/types";
 import { countLineUnits, readStropheNoteTitle } from "@/lib/counter";
+import { StropheAlignContext } from "./stropheAlign";
 
 // Vertical geometry of a single word cell, mirrored from WordBlock + StropheBlock
 // so a count sits at exactly the same height as the word row beside it. The count
@@ -52,6 +53,7 @@ export const CounterStropheBlock = ({
 }) => {
   const { ctxBoxDisplayConfig, ctxCounterMode, ctxStudyNotes, ctxActiveLayerId } =
     useContext(FormatContext);
+  const stropheAlign = useContext(StropheAlignContext);
 
   const expanded = stropheProps.metadata?.expanded ?? true;
   const shouldRender = expanded && stanzaExpanded;
@@ -62,6 +64,10 @@ export const CounterStropheBlock = ({
   const hasStropheTitle = Boolean(
     readStropheNoteTitle(ctxStudyNotes, ctxActiveLayerId, stropheProps.stropheId)
   );
+  // The real, measured title height reported by the language StropheBlock. When
+  // available we reserve exactly that (a long title can wrap to several lines);
+  // until it arrives, fall back to a single placeholder line.
+  const measuredTitleHeight = stropheAlign?.titleHeights[stropheProps.stropheId];
 
   const cell = buildCellGeometry(ctxBoxDisplayConfig.style);
 
@@ -96,15 +102,23 @@ export const CounterStropheBlock = ({
             <div className="min-w-0 overflow-x-auto">
               <div>
                 {hasStropheTitle && (
-                  <div className="mb-2 flex w-full items-center justify-center">
-                    <span
-                      className="block text-base font-semibold"
-                      style={{ color: DEFAULT_COLOR_FILL }}
+                  measuredTitleHeight ? (
+                    <div
+                      className="mb-2 w-full"
+                      style={{ height: measuredTitleHeight }}
                       aria-hidden="true"
-                    >
-                      {TITLE_PLACEHOLDER}
-                    </span>
-                  </div>
+                    />
+                  ) : (
+                    <div className="mb-2 flex w-full items-center justify-center">
+                      <span
+                        className="block text-base font-semibold"
+                        style={{ color: DEFAULT_COLOR_FILL }}
+                        aria-hidden="true"
+                      >
+                        {TITLE_PLACEHOLDER}
+                      </span>
+                    </div>
+                  )
                 )}
                 {stropheProps.lines.map((line, lineId) => {
                   const lineKey = `counter-strophe-${stropheProps.stropheId}-line-${lineId}`;
