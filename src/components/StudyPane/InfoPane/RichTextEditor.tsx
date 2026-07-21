@@ -433,7 +433,7 @@ const RichTextEditor = ({
 
   return (
     <div
-      className={`relative rounded-lg border-[1.5px] border-stroke bg-transparent focus-within:border-primary dark:border-form-strokedark ${
+      className={`relative rounded-lg bg-transparent focus-within:border-primary dark:border-form-strokedark ${
         fill ? "flex h-full flex-col" : ""
       } ${className}`}
     >
