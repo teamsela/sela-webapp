@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useMemo, useCallback, useLayoutEffect } f
 
 import { FormatContext } from '../index';
 import { PassageBlock } from './PassageBlock';
+import { StropheAlignContext } from './stropheAlign';
 
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
@@ -124,6 +125,24 @@ const Passage = ({
     };
     // Recompute from scratch when anything that changes natural width changes.
   }, [isParallel, hasAnyStropheTitle, hebColNode, glossColNode, ctxPassageProps, ctxStropheNoteBtnOn, ctxReadmeBtnOn, nonEnglishDisplayMode]);
+
+  // Per-strophe measured title height, reported by the language StropheBlock and
+  // consumed by the counter column so it reserves matching vertical space instead
+  // of a single placeholder line (a long title can wrap to several lines).
+  const [titleHeights, setTitleHeights] = useState<Record<number, number>>({});
+  const reportTitleHeight = useCallback((stropheId: number, height: number) => {
+    setTitleHeights((prev) => {
+      const cur = prev[stropheId];
+      // The two language columns share a width, so they report the same height;
+      // last-writer-wins is fine and lets the value shrink on zoom-out.
+      if (cur !== undefined && Math.abs(cur - height) < 0.5) return prev;
+      return { ...prev, [stropheId]: height };
+    });
+  }, []);
+  const alignContextValue = useMemo(
+    () => ({ titleHeights, reportTitleHeight }),
+    [titleHeights, reportTitleHeight]
+  );
 
   // Build a map from wordId to stanza index for title merging
   const getWordToStanzaMap = useMemo(() => {
@@ -646,8 +665,8 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  return (  
-    
+  return (
+    <StropheAlignContext.Provider value={alignContextValue}>
     <div
       key={`passage`}
       onMouseDown={handleMouseDown}
@@ -667,9 +686,12 @@ const Passage = ({
             <PassageBlock displayMode="gloss"/>
           </div>
         }
-        { ctxLanguageMode == LanguageMode.Parallel && 
-          <div className={`flex flex-row mx-auto ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
+        { ctxLanguageMode == LanguageMode.Parallel &&
+          // px-1 pairs with the columns' px-1 so the outer edges keep the same 8px
+          // as the (now un-doubled) 8px gaps between columns.
+          <div className={`flex flex-row mx-auto px-1 ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>
             <PassageBlock displayMode={nonEnglishDisplayMode} columnRef={setHebColNode} sharedMinWidth={sharedColWidth}/>
+            <PassageBlock displayMode="counter"/>
             <PassageBlock displayMode="gloss" columnRef={setGlossColNode} sharedMinWidth={sharedColWidth}/>
           </div>
         }
@@ -682,7 +704,7 @@ const Passage = ({
       
       {isDragging && <div style={getSelectionBoxStyle()} />}
     </div>
-    
+    </StropheAlignContext.Provider>
   );
 };
 

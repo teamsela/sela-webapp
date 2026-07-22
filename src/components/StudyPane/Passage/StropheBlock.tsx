@@ -4,11 +4,13 @@ import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/i
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType, StudyNotes, BoxDisplayStyle, LanguageMode } from "@/lib/types";
+import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
+import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
+import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
 
@@ -35,9 +37,10 @@ export const StropheBlock = ({
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
-    ctxActiveLayerId, ctxReadmeBtnOn,
+    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
+  const stropheAlign = useContext(StropheAlignContext);
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
@@ -58,26 +61,10 @@ export const StropheBlock = ({
     [colorFillLocal]
   );
 
-  const stropheNoteTitle = useMemo(() => {
-    if (!ctxStudyNotes) return "";
-    try {
-      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
-      const layerKey = String(ctxActiveLayerId);
-      // Prefer per-layer strophes; fall back to root strophes for layer 0 (migration).
-      const layerStrophe = parsed?.layerStrophes?.[layerKey]?.[stropheProps.stropheId];
-      const rootStrophe =
-        ctxActiveLayerId === 0 && Array.isArray(parsed?.strophes)
-          ? (parsed!.strophes!)[stropheProps.stropheId]
-          : undefined;
-      const note = layerStrophe ?? rootStrophe;
-      if (note && typeof note.title === "string" && note.title.trim().length > 0) {
-        return note.title;
-      }
-    } catch {
-      // ignore malformed study notes payloads
-    }
-    return "";
-  }, [ctxStudyNotes, stropheProps.stropheId, ctxActiveLayerId]);
+  const stropheNoteTitle = useMemo(
+    () => readStropheNoteTitle(ctxStudyNotes, ctxActiveLayerId, stropheProps.stropheId),
+    [ctxStudyNotes, stropheProps.stropheId, ctxActiveLayerId]
+  );
 
   const noteTitleWrapperClass = useMemo(
     () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),
@@ -283,7 +270,95 @@ export const StropheBlock = ({
     };
   }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, wordAreaSignature, syncWordAreaHeight]);
 
+  // Report the rendered title height to the counter column (via context) so it
+  // reserves matching vertical space instead of a single placeholder line. Height
+  // is divided by the zoom scale (like syncWordAreaHeight) since the counter
+  // applies it in the same scaled subtree. Both parallel language columns report
+  // for the same stropheId; because they share a width their heights match.
+  const reportTitleHeight = stropheAlign?.reportTitleHeight;
+  const stropheId = stropheProps.stropheId;
+  const measureTitleHeight = useCallback((node: HTMLElement) => {
+    if (!reportTitleHeight) return;
+    const rect = node.getBoundingClientRect();
+    if (rect.height <= 0) return;
+    const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+    reportTitleHeight(stropheId, Math.ceil(rect.height / scale));
+  }, [reportTitleHeight, stropheId, ctxScaleValue]);
+  const titleAreaObserverRef = useRef<ResizeObserver | null>(null);
+  const attachTitleArea = useCallback((node: HTMLDivElement | null) => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+    if (node && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => measureTitleHeight(node));
+      observer.observe(node);
+      titleAreaObserverRef.current = observer;
+      measureTitleHeight(node);
+    }
+  }, [measureTitleHeight]);
+  useEffect(() => () => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+  }, []);
+
   const contentWidthClass = "w-full min-w-0";
+
+  const renderWords = (line: StropheProps["lines"][number], lineId: number) =>
+    line.words.map((word) => {
+      const wordRenderKey = getWordRenderKey(word.wordId, word.stanzaId, word.stropheId, word.lineId);
+      return (
+        <div
+          className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+          key={wordRenderKey}
+        >
+          <WordBlock key={wordRenderKey} wordProps={word} isFirstLineInStrophe={lineId === 0} />
+        </div>
+      );
+    });
+
+  // Reader mode normally lets a line wrap to fill the reading width. When the
+  // in-text counter is on (single or parallel) each line must stay on a single
+  // row so its count box stays aligned, breaking only where the data (or the
+  // user) put a line break. With the counter off, keep wrapping.
+  const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
+  const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
+    <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+      {renderWords(line, lineId)}
+    </div>
+  );
+
+  // Strophe-note title above the word rows. The single-language counter stack
+  // (CounterStropheBlock) reserves matching vertical space for it so the two
+  // stacks stay row-aligned.
+  const renderStropheTitle = () => {
+    if (!stropheNoteTitle || !shouldRenderWordArea) {
+      return null;
+    }
+    return (
+      <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
+        <span
+          className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
+          dir="auto"
+          style={{ color: contrastingForegroundColor }}
+        >
+          {stropheNoteTitle}
+        </span>
+      </div>
+    );
+  };
+
+  // The strophe's line list. The in-text counter is rendered as a separate
+  // side-by-side stack (single language: StanzaBlock + CounterStropheBlock;
+  // parallel: the dedicated counter column), so here we only lay out the words.
+  const renderLines = () =>
+    stropheProps.lines.map((line, lineId) => {
+      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
+      return (
+        <React.Fragment key={lineRenderKey}>
+          {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+          {renderWordRow(line, lineId)}
+        </React.Fragment>
+      );
+    });
 
   return (
     <div 
@@ -372,54 +447,8 @@ export const StropheBlock = ({
                 className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
               >
                 <div ref={attachWordArea}>
-                  {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
-                    <span
-                      className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
-                      dir="auto"
-                      style={{ color: contrastingForegroundColor }}
-                    >
-                      {stropheNoteTitle}
-                    </span>
-                  </div>
-                  )}
-                  {
-                    stropheProps.lines.map((line, lineId) => {
-                      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
-                      return (
-                        <React.Fragment key={lineRenderKey}>
-                        {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
-                        <div
-                          data-strophe-line="true"
-                          className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
-                        >
-                        {
-                          line.words.map((word) => {
-                            const wordRenderKey = getWordRenderKey(
-                              word.wordId,
-                              word.stanzaId,
-                              word.stropheId,
-                              word.lineId,
-                            );
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={wordRenderKey}
-                              >
-                                <WordBlock
-                                  key={wordRenderKey}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
-                        </React.Fragment>
-                      )
-                    })
-                  }
+                  {renderStropheTitle()}
+                  {renderLines()}
                 </div>
               </div>
             {
@@ -439,55 +468,9 @@ export const StropheBlock = ({
                 className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
               >
                 <div ref={attachWordArea}>
-                  {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
-                    <span
-                      className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
-                      dir="auto"
-                      style={{ color: contrastingForegroundColor }}
-                    >
-                      {stropheNoteTitle}
-                    </span>
-                  </div>
-                  )}
+                  {renderStropheTitle()}
                   
-                  {
-                    stropheProps.lines.map((line, lineId) => {
-                      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
-                      return (
-                        <React.Fragment key={lineRenderKey}>
-                        {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
-                        <div
-                          data-strophe-line="true"
-                          className={`flex my-1 ${ctxReadmeBtnOn ? 'flex-wrap' : ''}`}
-                        >
-                        {
-                          line.words.map((word) => {
-                            const wordRenderKey = getWordRenderKey(
-                              word.wordId,
-                              word.stanzaId,
-                              word.stropheId,
-                              word.lineId,
-                            );
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={wordRenderKey}
-                              >
-                                <WordBlock
-                                  key={wordRenderKey}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
-                        </React.Fragment>
-                      )
-                    })
-                  }
+                  {renderLines()}
                 </div>
               </div>
               {
