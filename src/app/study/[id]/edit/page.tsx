@@ -29,17 +29,22 @@ export default async function StudyPage({ params }: { params: Promise<{ id: stri
     fetchPassageData(studyId)
   ]);
 
+  if (!result.study) {
+    notFound();
+  }
+
   /*
     Authorization check
-    Only the owner has write access to this study. Users will be redirected to the view page if the study is public.
+    Only the owner has write access to this study. Any other user — including
+    those opening a public / pre-marked / scriptura study — is redirected to the
+    read-only view page, which runs its own access check.
   */
-  if (!result.study || (thisUser?.id != result.study.owner && !result.study.public)) {
-    notFound();
+  if (thisUser?.id != result.study.owner) {
     return redirect(`/study/${id}/view`);
   }
 
   return (
       <StudyPane passageData={result} inViewMode={false}/>
-  );  
+  );
 
 }

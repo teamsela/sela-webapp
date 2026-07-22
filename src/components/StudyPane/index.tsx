@@ -598,7 +598,9 @@ const StudyPane = ({
       }
       // Update the metadata with the new format
       studyMetadata.boxStyle = boxConfig;
-      updateMetadataInDb(passageData.study.id, studyMetadata);
+      if (!inViewMode) {
+        updateMetadataInDb(passageData.study.id, studyMetadata);
+      }
     }
     
     setBoxDisplayConfig(boxConfig || { style: BoxDisplayStyle.box });
@@ -609,13 +611,20 @@ const StudyPane = ({
   
   }, [passageData.bibleData, studyMetadata, readmeBtnOn]);
 
-  if (!passageData.study.metadata.words) {
-    let emptyStudyMetadata : StudyMetadata = { words: {} };
-    passageData.study.metadata = emptyStudyMetadata;
-    setStudyMetadata(emptyStudyMetadata);
-    setPointer(0);
-    updateMetadataInDb(passageData.study.id, emptyStudyMetadata);
-  }
+  // Initialise metadata for studies that have no `words` map yet. This runs as
+  // an effect (never during render) to avoid setState-in-render, and only
+  // persists for owners — read-only viewers must not write to the DB.
+  useEffect(() => {
+    if (!passageData.study.metadata.words) {
+      const emptyStudyMetadata: StudyMetadata = { words: {} };
+      passageData.study.metadata = emptyStudyMetadata;
+      setStudyMetadata(emptyStudyMetadata);
+      setPointer(0);
+      if (!inViewMode) {
+        updateMetadataInDb(passageData.study.id, emptyStudyMetadata);
+      }
+    }
+  }, [passageData.study, inViewMode]);
 
   return (
 

@@ -40,6 +40,26 @@ const formatStrongNumberForDisplay = (value: string) => {
 };
 
 
+/*
+  Server-side write guard. Server actions are directly invocable by any signed-in
+  client, so gating the UI is not enough: every action that mutates an existing
+  study must confirm the caller owns it. Returns true only when the current user
+  is the study's owner. Queries just the owner column to keep the check cheap.
+*/
+async function isStudyOwner(studyId: string): Promise<boolean> {
+  const user = await currentUser();
+  if (!user) return false;
+
+  const row = await db
+    .select({ owner: study.owner })
+    .from(study)
+    .where(eq(study.id, studyId))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  return !!row && row.owner === user.id;
+}
+
 export async function fetchStudyById(studyId: string) {
   try {
     const row = await db
@@ -71,6 +91,9 @@ export async function fetchStudyById(studyId: string) {
 }
 
 export async function updateStudyName(id: string, studyName: string) {
+  if (!(await isStudyOwner(id))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
   try {
     const result = await db
       .update(study)
@@ -98,6 +121,9 @@ export async function updateStudyNotes(id: string, content: string) {
 }
 
 export async function updatePublic(studyId: string, publicAccess: boolean) {
+  if (!(await isStudyOwner(studyId))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
   try {
     await db
       .update(study)
@@ -109,6 +135,9 @@ export async function updatePublic(studyId: string, publicAccess: boolean) {
 }
 
 export async function updateStar(studyId: string, isStarred: boolean) {
+  if (!(await isStudyOwner(studyId))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
   try {
     await db
       .update(study)
@@ -121,6 +150,10 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 
 export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
+
+  if (!(await isStudyOwner(studyId))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
 
   try {
     const metadataJson = JSON.stringify(studyMetadata);
@@ -137,6 +170,9 @@ export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMe
 }
 
 export async function deleteStudy(studyId: string) {
+  if (!(await isStudyOwner(studyId))) {
+    return { message: 'Unauthorized: You do not have permission to delete this study.' };
+  }
   try {
     const result = await db
       .delete(study)
@@ -203,6 +239,7 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
           passage: originalStudy.passage,
           owner: user.id,
           metadata: originalStudy.metadata,
+          notes: originalStudy.notes,
           public: false,
           model: false,
           starred: false,
