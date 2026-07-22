@@ -9,10 +9,11 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
+import InfoModal from "./common/InfoModal";
+import useEscapeToClose from "./common/useEscapeToClose";
 import {
   countLetterOccurrences,
   countSoundOccurrences,
@@ -20,6 +21,7 @@ import {
   LETTER_CHIPS,
   SOUND_CHIPS,
 } from "@/lib/hebrewHighlights";
+import { flattenPassageWords } from "@/lib/passage";
 
 // All accordion sections rendered in the Sounds tab. "read-aloud" and
 // "wordplays" power the text-to-speech tools; "sound-distribution" and
@@ -259,6 +261,7 @@ const DistributionChip = ({
   text,
   isSelected,
   isHighlighted,
+  memberIds,
   onClick,
 }: {
   label: string;
@@ -268,6 +271,7 @@ const DistributionChip = ({
   text?: string;
   isSelected: boolean;
   isHighlighted: boolean;
+  memberIds: string[];
   onClick: () => void;
 }) => {
   // Yellow outline shows whenever the chip is selected (pending Smart Highlight).
@@ -286,6 +290,8 @@ const DistributionChip = ({
       <button
         type="button"
         onClick={onClick}
+        data-testid="distribution-chip"
+        data-member-ids={memberIds.join(",")}
         className={`wordBlock flex w-full rounded border ${statusClassName}`}
         style={{
           background: chipFill,
@@ -329,68 +335,6 @@ const SoundsHighlightButton = ({
     {active ? "Clear Highlight" : "Smart Highlight"}
   </button>
 );
-
-// Tooltip modal shared by both distributions — identical markup, different copy.
-const DistributionInfoModal = ({
-  titleId,
-  title,
-  body,
-  note,
-  onClose,
-}: {
-  titleId: string;
-  title: string;
-  body: string;
-  note: string;
-  onClose: () => void;
-}) =>
-  createPortal(
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          aria-label="Close"
-        >
-          <IconX size={18} stroke={2} />
-        </button>
-        <div className="flex items-center gap-2 text-primary">
-          <IconInfoCircle size={22} stroke={2.2} />
-          <h3 id={titleId} className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {title}
-          </h3>
-        </div>
-        <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          <p>{body}</p>
-          <p className="text-xs italic text-gray-500 dark:text-gray-400">
-            <span className="font-semibold not-italic">Note:</span> {note}
-          </p>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-
-// Close the tooltip on Escape while it is open. Shared by both sections.
-const useEscapeToClose = (isOpen: boolean, close: () => void) => {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, close]);
-};
 
 // Deselect a section's chips when the user clicks outside it. Uses "click" (not
 // "mousedown") to avoid racing with useDragToSelect's mousedown→mouseup
@@ -506,7 +450,7 @@ const DistributionSection = ({
       </button>
 
       {isMounted && showTooltip && (
-        <DistributionInfoModal
+        <InfoModal
           titleId={config.modalTitleId}
           title={config.title}
           body={config.tooltipBody}
@@ -540,6 +484,7 @@ const DistributionSection = ({
                   text={chip.palette.text}
                   isSelected={isSelected}
                   isHighlighted={isHighlighted}
+                  memberIds={chip.memberIds}
                   onClick={() => config.onToggleChip(chip.memberIds)}
                 />
               );
@@ -583,6 +528,7 @@ const Sounds = () => {
     ctxSetLetterHighlightEnabled,
     ctxSetSelectedWords,
     ctxSetNumSelectedWords,
+    ctxSetHighlightRestrictWordIds,
   } = useContext(FormatContext);
   const [openSection, setOpenSection] = useState<SoundsSectionId | null>(
     "read-aloud",
@@ -1242,19 +1188,10 @@ const Sounds = () => {
     };
   }, [isSpeedSelectorOpen]);
 
-  const allWords = useMemo(() => {
-    const words = [];
-    for (const stanza of ctxPassageProps.stanzaProps) {
-      for (const strophe of stanza.strophes) {
-        for (const line of strophe.lines) {
-          for (const word of line.words) {
-            words.push(word);
-          }
-        }
-      }
-    }
-    return words;
-  }, [ctxPassageProps]);
+  const allWords = useMemo(
+    () => flattenPassageWords(ctxPassageProps),
+    [ctxPassageProps],
+  );
 
   // Per-id occurrence counts for both distributions (mirror memos unified).
   const soundCounts = useOccurrenceCounts(
@@ -1323,6 +1260,9 @@ const Sounds = () => {
   ) => () => {
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
+    // Distribution highlights apply passage-wide, so drop any Wordplay pair
+    // restriction that may still be active.
+    ctxSetHighlightRestrictWordIds([]);
     if (self.selected.length > 0) {
       self.setHighlighted([...new Set([...self.highlighted, ...self.selected])]);
       self.setEnabled(true);

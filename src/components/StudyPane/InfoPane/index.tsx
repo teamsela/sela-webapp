@@ -5,6 +5,7 @@ import Structure from "./Structure";
 import Motif from "./Motif/index";
 import Syntax from "./Syntax/index";
 import Sounds from "./Sounds";
+import Wordplay from "./Wordplay";
 import Layers from "./Layers";
 import { InfoPaneActionType } from "@/lib/types";
 
@@ -128,6 +129,7 @@ const InfoPane = ({
         {infoPaneAction === InfoPaneActionType.motif && <Motif />}
         {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}
         {infoPaneAction === InfoPaneActionType.sounds && <Sounds />}
+        {infoPaneAction === InfoPaneActionType.wordplay && <Wordplay />}
       </div>
     </aside>
   );
