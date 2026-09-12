@@ -29,7 +29,17 @@ export default async function StudyPage({ params }: { params: Promise<{ id: stri
     fetchPassageData(studyId)
   ]);
 
-  if (!result.study || (thisUser?.id != result.study.owner && !result.study.public)) {
+  /*
+    Authorization check
+    A study is readable by anyone when it is listed on one of the browsable
+    dashboards: public, pre-marked (model) or scriptura. Checking `public`
+    alone 404s pre-marked / scriptura studies that were never flagged public,
+    even though those dashboards link straight here.
+  */
+  const isSharedStudy =
+    !!result.study && (result.study.public || result.study.model || result.study.scriptura);
+
+  if (!result.study || (thisUser?.id != result.study.owner && !isSharedStudy)) {
     notFound();
   }
   else if (thisUser?.id == result.study.owner) {
