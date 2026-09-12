@@ -62,13 +62,22 @@ export const Tabs = ({
         Syntax
       </button>
       <button
-        className={`inline-flex rounded-r-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
           ${
             infoPaneAction === InfoPaneActionType.sounds ? activeClasses : inactiveClasses
           }`}
         onClick={() => handleClick(InfoPaneActionType.sounds)}
       >
         Sounds
+      </button>
+      <button
+        className={`inline-flex rounded-r-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+          ${
+            infoPaneAction === InfoPaneActionType.wordplay ? activeClasses : inactiveClasses
+          }`}
+        onClick={() => handleClick(InfoPaneActionType.wordplay)}
+      >
+        Wordplay
       </button>
     </div>
   );

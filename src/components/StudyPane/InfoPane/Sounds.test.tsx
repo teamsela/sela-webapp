@@ -48,8 +48,8 @@ const EMPTY_STATE: CtxState = {
   numSelectedWords: 0,
 };
 
-// A tiny passage: the word מָמָ (two mem) transliterated "mama" (two m). Lets us
-// exercise both count memos from a single known word.
+// A tiny passage with adjacent duplicate transliterated sounds and two Hebrew
+// mem. This exercises merged occurrence metadata in both count memos.
 const PASSAGE_PROPS = {
   stanzaProps: [
     {
@@ -58,7 +58,7 @@ const PASSAGE_PROPS = {
           lines: [
             {
               words: [
-                { wlcWord: "מָמָ", passageTransliteration: "mama" },
+                { wlcWord: "מָמָ", passageTransliteration: "mm" },
               ],
             },
           ],
@@ -101,6 +101,7 @@ function Harness({ initial }: { initial?: Partial<CtxState> }) {
     ctxSetLetterHighlightEnabled: asSetter("letterHighlightEnabled"),
     ctxSetSelectedWords: () => patch({}),
     ctxSetNumSelectedWords: asSetter("numSelectedWords"),
+    ctxSetHighlightRestrictWordIds: () => {},
   };
 
   return (
@@ -275,7 +276,7 @@ describe("chip selection", () => {
 // ===========================================================================
 
 describe("count memos", () => {
-  it("sound 'm' chip shows the transliteration occurrence count (2 for 'mama')", () => {
+  it("sound 'm' chip counts adjacent merged occurrences individually", () => {
     renderHarness();
     openSoundSection();
     expect(within(chipButton("m")).getByText("2")).toBeInTheDocument();

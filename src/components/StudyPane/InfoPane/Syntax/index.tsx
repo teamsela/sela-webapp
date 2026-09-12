@@ -1,7 +1,8 @@
 import React, { useContext, useMemo, useState } from "react";
 
 import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, clampPaletteToUserColors } from "@/lib/colors";
-import { ColorData, PassageProps, WordProps } from "@/lib/data";
+import { ColorData, WordProps } from "@/lib/data";
+import { flattenPassageWords } from "@/lib/passage";
 import { SyntaxType } from "@/lib/types";
 import { deriveUniformWordPalette, deriveUniformFill } from "@/lib/utils";
 
@@ -526,25 +527,6 @@ const allLabelDefinitions: SyntaxLabelDefinition[] = syntaxSections.flatMap((sec
     : section.labels ?? [],
 );
 
-const flattenWords = (passageProps?: PassageProps): WordProps[] => {
-  if (!passageProps) {
-    return [];
-  }
-
-  const words: WordProps[] = [];
-  passageProps.stanzaProps.forEach((stanza) => {
-    stanza.strophes.forEach((strophe) => {
-      strophe.lines.forEach((line) => {
-        line.words.forEach((word) => {
-          words.push(word);
-        });
-      });
-    });
-  });
-
-  return words;
-};
-
 export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | null => {
   if (!morphology) {
     return null;
@@ -708,7 +690,10 @@ const Syntax = () => {
     return ids;
   }, [ctxSelectedWords]);
 
-  const allWords = useMemo(() => flattenWords(ctxPassageProps), [ctxPassageProps]);
+  const allWords = useMemo(
+    () => flattenPassageWords(ctxPassageProps),
+    [ctxPassageProps],
+  );
 
   const labelWordMap = useMemo(() => {
     const map = new Map<string, WordProps[]>();

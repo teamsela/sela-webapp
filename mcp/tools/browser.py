@@ -218,8 +218,29 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
 
         # Navigate to the sign-in page so Clerk JS initialises.
         sign_in_url = f"{base_url.rstrip('/')}/sign-in"
-        await page.goto(sign_in_url, timeout=30_000, wait_until="networkidle")
-        await page.wait_for_function("window.Clerk !== undefined", timeout=10_000)
+        await page.goto(sign_in_url, timeout=30_000, wait_until="domcontentloaded")
+        await page.wait_for_function(
+            "window.Clerk?.loaded && window.Clerk.client?.signIn",
+            timeout=15_000,
+        )
+
+        active_user_id = await page.evaluate(
+            "() => window.Clerk.user?.id || window.Clerk.session?.user?.id || null"
+        )
+        if active_user_id == user_id:
+            await page.goto(
+                base_url.rstrip("/") + "/",
+                timeout=30_000,
+                wait_until="domcontentloaded",
+            )
+            await page.wait_for_timeout(1500)
+            return (
+                f"Already authenticated as '{user_email}' (user_id={user_id}).\n"
+                f"Current URL: {page.url}\n"
+                f"Title: {await page.title()}"
+            )
+        if active_user_id:
+            await page.evaluate("async () => { await window.Clerk.signOut(); }")
 
         # Use the Clerk JS SDK to authenticate via the sign-in token.
         js_result = await page.evaluate(
@@ -244,7 +265,11 @@ async def browser_auth_clerk(base_url: str, user_email: str) -> str:
         await page.wait_for_timeout(1500)
 
         # Navigate to the app root now that we're authenticated.
-        await page.goto(base_url.rstrip("/") + "/", timeout=30_000, wait_until="networkidle")
+        await page.goto(
+            base_url.rstrip("/") + "/",
+            timeout=30_000,
+            wait_until="domcontentloaded",
+        )
         await page.wait_for_timeout(1500)
         title = await page.title()
         return (

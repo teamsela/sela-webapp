@@ -1016,11 +1016,11 @@ export async function fetchPassageData(studyId: string) {
             return stepMorph && stepMorph.length > 0 ? stepMorph : "";
           })();
 
+          const stepBibleHebrew = wordInfo?.Hebrew?.trim() || "";
           const hebrewWord = (() => {
             // Use StepBible Hebrew as primary source — it is the lexical/dictionary citation form
             // (without context-specific prefixes/suffixes), appropriate for word information display.
-            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
-            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
+            if (stepBibleHebrew.length > 0) {
               return stepBibleHebrew;
             }
             // Fall back to WLC passage text if no lexical form is available.
@@ -1077,6 +1077,7 @@ export async function fetchPassageData(studyId: string) {
 
           hebWord.wordInformation = {
             hebrew: hebrewWord,
+            hebrewSource: stepBibleHebrew ? "lexical" : "passage-fallback",
             transliteration,
             gloss: cleanGlossValue(gloss),
             morphology: preferredMorphology,
