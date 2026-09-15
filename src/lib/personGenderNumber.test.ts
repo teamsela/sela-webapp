@@ -9,6 +9,7 @@ import {
 } from "./personGenderNumber";
 import { StudyMetadata, WordProps } from "./data";
 import { clearAllFormattingState } from "./formatting";
+import { deriveUniformFill, deriveUniformWordPalette } from "./utils";
 
 describe("Person, Gender, Number specification (pages 121-126)", () => {
   it("keeps the ten chips in the mockup's row-major order with the exact fill/font hex values", () => {
@@ -70,6 +71,26 @@ describe("Person, Gender, Number specification (pages 121-126)", () => {
       expect(getPersonGenderNumberHighlightState(saved, [word])).toBeUndefined();
       delete saved.words[1].color;
       expect(getPersonGenderNumberHighlightState(saved, [word])).toBeUndefined();
+    });
+
+    it("does not revive stale embedded colors when the authoritative word map was cleared", () => {
+      const staleWord = { ...word, metadata: { color: { fill: "#FFF9C4", text: "#666666" } } };
+      const options = { metadataMap: {}, colorMap: new Map() };
+      expect(deriveUniformWordPalette([staleWord], options)).toBeUndefined();
+      expect(deriveUniformFill([staleWord], options)).toBeUndefined();
+    });
+
+    it("does not revive cleared font or border fields from embedded word metadata", () => {
+      const staleWord = { ...word, metadata: { color: { fill: "#FFF9C4", text: "#666666", border: "#000000" } } };
+      expect(deriveUniformWordPalette([staleWord], {
+        metadataMap: { 1: { color: { fill: "#FFFFFF" } } },
+      })).toEqual({ fill: "#FFFFFF" });
+    });
+
+    it("still uses embedded colors when no authoritative metadata map is supplied", () => {
+      const staleWord = { ...word, metadata: { color: { fill: "#FFF9C4", text: "#666666" } } };
+      expect(deriveUniformWordPalette([staleWord])).toEqual(staleWord.metadata.color);
+      expect(deriveUniformFill([staleWord])).toBe("#FFF9C4");
     });
 
     it("saves and clears only the active layer's scope", () => {

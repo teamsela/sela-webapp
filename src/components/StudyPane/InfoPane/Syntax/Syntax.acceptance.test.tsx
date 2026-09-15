@@ -148,6 +148,7 @@ type HarnessOptions = {
   colorMap?: Map<number, ColorData>;
   selectedWords?: WordProps[];
   inViewMode?: boolean;
+  keepEmbeddedWordMetadata?: boolean;
 };
 
 function PassageWithDragSelection({ words }: { words: WordProps[] }) {
@@ -166,6 +167,7 @@ function Harness({
   colorMap: initialColorMap = new Map(),
   selectedWords: initialSelectedWords = [],
   inViewMode = false,
+  keepEmbeddedWordMetadata = false,
   onContext,
   onHistory,
 }: HarnessOptions & {
@@ -206,8 +208,11 @@ function Harness({
 
   // StudyPane merges the latest metadata into passage words on state changes.
   const renderedWords = useMemo(
-    () => words.map((word) => ({ ...word, metadata: metadata.words[word.wordId] ?? {} })),
-    [words, metadata],
+    () => words.map((word) => ({
+      ...word,
+      metadata: metadata.words[word.wordId] ?? (keepEmbeddedWordMetadata ? word.metadata : {}),
+    })),
+    [words, metadata, keepEmbeddedWordMetadata],
   );
   const passage = useMemo(() => makePassage(renderedWords), [renderedWords]);
 
@@ -817,6 +822,26 @@ describe("Person, Gender, Number acceptance", () => {
     expect(chip("3fp")).toHaveClass("opacity-60");
     expectPalette(chip("3fp"), "#FFFFFF", "#666666");
     expect(saveMetadata).not.toHaveBeenCalled();
+  });
+
+  it("Clear removes visible chip and word colors even when embedded word metadata is stale", async () => {
+    const color = { fill: "#BBDEFB", text: "#666666", border: "#D9D9D9" };
+    const { user, context } = renderHarness({
+      words: [{ ...makeWord(1, "Pro-3ms"), metadata: { color } }],
+      metadata: {
+        words: { 1: { color } },
+        personGenderNumberHighlights: { "0": ["3ms"] },
+      },
+      keepEmbeddedWordMetadata: true,
+    });
+    await openPerson(user);
+    expectPalette(wordBlock(1), "#BBDEFB", "#666666");
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    expect(context().ctxStudyMetadata).toEqual({ words: {} });
+    expect(context().ctxWordsColorMap.size).toBe(0);
+    expectDefaultWord(1);
+    expectPalette(chip("3ms"), "#FFFFFF", "#666666");
+    expect(lastSavedMetadata()).toEqual({ words: {} });
   });
 
   it("clears back to normal colors and repeats the same scoped highlight deterministically", async () => {

@@ -81,6 +81,9 @@ remain visible, with unavailable zero-count chips lighter and uncolored.
 - The existing custom-color preservation feature flag is unchanged. Non-color
   metadata and the other Syntax sections are preserved. View-only studies cannot
   select or highlight these chips.
+- Clear uses the current study color map/metadata as authoritative for both word
+  boxes and chip palettes. Stale embedded word colors cannot make a cleared
+  highlight remain visible after switching tools.
 - The info dialog includes the complete Overview, Legend, and Disclaimer from
   page 123. Its native modal behavior supports keyboard focus containment,
   Escape, a close button, and backdrop dismissal.
@@ -128,7 +131,7 @@ the verification explicitly calls for the real browser or existing data loader.
 | 2. Color ambiguous verbs by their first code | Partition words by the first exact code before creating highlight groups. Thus `1cs \| 2ms` is yellow `#FFF9C4`; subject colors take precedence over following object suffixes. | Test both code orders, subject-plus-suffix examples, and a selected secondary chip whose word must still use the first code's color. |
 | 3. Highlight selected chips and their words only | Build the union of selected chip matches, color each selected chip with its preset, and color its words by their primary code. | Test each individual code, multiple overlapping chips, unrelated pre-selected words, mouse-up selection preservation, and tab/reload scope retention. |
 | 4. With no selected chips, highlight all | Use all ten codes as the scope and color all matching passage words; per page 127, color only chips that have matches. | Assert every available chip and matched word, with zero chips/unmatched words uncolored; empty/missing-morphology passages safely disable the action. |
-| 5. Change Smart Highlight to Clear Highlight | Reuse the existing Syntax button/highlight manager; Clear removes the active highlight and permits reapplication. | Test label/state changes, mouse and keyboard activation, deterministic clear/reapply, changed selections, reload, and undo/redo. |
+| 5. Change Smart Highlight to Clear Highlight | Reuse the existing Syntax button/highlight manager; Clear removes the active highlight and permits reapplication. | Test label/state changes, mouse and keyboard activation, deterministic clear/reapply, changed selections, reload, undo/redo, and stale embedded word colors after clearing authoritative metadata. |
 
 ### Page 127: Refinements
 
