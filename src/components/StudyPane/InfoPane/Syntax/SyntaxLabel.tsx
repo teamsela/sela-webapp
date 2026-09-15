@@ -35,7 +35,7 @@ const SyntaxLabel = ({
   };
 
   const fill = palette?.fill || DEFAULT_COLOR_FILL;
-  const border = palette?.border || DEFAULT_BORDER_COLOR;
+  const border = palette?.border || (gloss ? "#B7B7B7" : DEFAULT_BORDER_COLOR);
   const text = palette?.text || (gloss ? "#666666" : DEFAULT_TEXT_COLOR);
 
   const statusClassName = isActive
@@ -48,7 +48,7 @@ const SyntaxLabel = ({
     "wordBlock",
     gloss ? "w-full" : "mx-1",
     "ClickBlock",
-    "rounded",
+    gloss ? "rounded-lg" : "rounded",
     "border",
     disabled ? (gloss ? "cursor-default" : "opacity-60 cursor-default") : "cursor-pointer",
     statusClassName,
@@ -65,7 +65,7 @@ const SyntaxLabel = ({
         aria-label={gloss ? `${label} ${gloss}, ${wordCount} occurrences` : undefined}
         style={{
           background: fill,
-          border: `2px solid ${border}`,
+          border: `${gloss ? 1 : 2}px solid ${border}`,
           color: text,
         }}
       >

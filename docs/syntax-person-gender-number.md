@@ -26,6 +26,11 @@ matched against page 126's hex table. These presets deliberately bypass user-swa
 clamping: the specified gray font is **#666666**, not the app's default #525252.
 The colors apply equally to chips and passage word boxes.
 
+The chip outlines use page 124's embedded **#B7B7B7** stroke, and counters retain
+its **#EFEFEF** fill. Page 124's rendered `3fs`/`3fp` text is #595959, whereas
+page 126 explicitly specifies #666666 for both. The implementation follows the
+explicit page 126 font table for those two chips, rather than mixing the grays.
+
 | Code | Gloss | Fill | Font |
 | --- | --- | --- | --- |
 | 3ms | He Him His | #BBDEFB | #666666 |

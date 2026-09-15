@@ -452,6 +452,7 @@ describe("Person, Gender, Number acceptance", () => {
       expect(button).toHaveAttribute("type", "button");
       expect(button).toHaveAttribute("aria-pressed", "false");
       expect(within(button).getByText(gloss)).toHaveClass("whitespace-nowrap");
+      expect(button).toHaveStyle({ border: "1px solid #B7B7B7" });
       expect(within(button).getByText(code, { exact: true })).toHaveClass("text-lg", "font-bold");
       expect(within(button).getByText(String(counts[index]), { exact: true })).toBeVisible();
       expectPalette(button, "#FFFFFF", "#666666");
