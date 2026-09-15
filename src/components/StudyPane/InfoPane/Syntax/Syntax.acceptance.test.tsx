@@ -452,7 +452,9 @@ describe("Person, Gender, Number acceptance", () => {
       expect(button).toHaveAttribute("type", "button");
       expect(button).toHaveAttribute("aria-pressed", "false");
       expect(within(button).getByText(gloss)).toHaveClass("whitespace-nowrap");
-      expect(button).toHaveStyle({ border: "1px solid #B7B7B7" });
+      expect(button).toHaveStyle({ border: "2px solid #D9D9D9" });
+      expect(button).toHaveClass("rounded");
+      expect(button).not.toHaveClass("rounded-lg");
       expect(within(button).getByText(code, { exact: true })).toHaveClass("text-lg", "font-bold");
       expect(within(button).getByText(String(counts[index]), { exact: true })).toBeVisible();
       expectPalette(button, "#FFFFFF", "#666666");
@@ -538,9 +540,15 @@ describe("Person, Gender, Number acceptance", () => {
     expect(saveMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it("retains disabled zero-count chips at full preset colors when highlighting all", async () => {
+  it("keeps zero-count chips lighter and uncolored before, during, and after Smart Highlight (127.1-2)", async () => {
     const { user, context } = renderHarness({ words: [makeWord(1, "Pro-3ms")] });
     await openPerson(user);
+    PRESETS.forEach(({ code }) => {
+      if (code !== "3ms") {
+        expect(chip(code)).toHaveClass("opacity-60");
+        expectPalette(chip(code), "#FFFFFF", "#666666");
+      }
+    });
     await user.click(chip("3mp"));
     expectSelection(context(), []);
     await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
@@ -548,14 +556,22 @@ describe("Person, Gender, Number acceptance", () => {
     PRESETS.forEach(({ code, fill, text }) => {
       const button = chip(code);
       expect(button).toHaveAccessibleName(new RegExp(`, ${code === "3ms" ? 1 : 0} occurrences$`));
-      if (code === "3ms") expect(button).toBeEnabled();
-      else expect(button).toBeDisabled();
-      expect(button.className).not.toMatch(/(?:^|\s)(?:disabled:)?opacity-/);
-      expect(button.style.opacity).not.toBe("0.6");
-      expectPalette(button, fill, text);
+      if (code === "3ms") {
+        expect(button).toBeEnabled();
+        expect(button).not.toHaveClass("opacity-60");
+        expectPalette(button, fill, text);
+      } else {
+        expect(button).toBeDisabled();
+        expect(button).toHaveClass("opacity-60");
+        expectPalette(button, "#FFFFFF", "#666666");
+      }
     });
     expectPalette(wordBlock(1), "#BBDEFB", "#666666");
     expect(saveMetadata).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    expect(chip("3mp")).toHaveClass("opacity-60");
+    expectPalette(chip("3mp"), "#FFFFFF", "#666666");
+    expectDefaultWord(1);
   });
 
   it.each([
@@ -736,7 +752,7 @@ describe("Person, Gender, Number acceptance", () => {
     expect(saveMetadata).toHaveBeenCalledTimes(2);
   });
 
-  it("JSON reload retains all ten highlighted chip presets, including disabled zero-count codes", async () => {
+  it("JSON reload leaves zero-match chips uncolored even when saved scope includes them (127.2)", async () => {
     const words = [makeWord(1, "Pro-3ms")];
     const first = renderHarness({ words });
     await openPerson(first.user);
@@ -751,11 +767,14 @@ describe("Person, Gender, Number acceptance", () => {
     await openPerson(second.user);
     expect(second.context().ctxActiveHighlightIds.syntax).toBe(ALL_SCOPE);
     PRESETS.forEach(({ code, fill, text }) => {
-      expectPalette(chip(code), fill, text);
-      expect(chip(code).className).not.toMatch(/(?:^|\s)(?:disabled:)?opacity-/);
       if (code !== "3ms") {
         expect(chip(code)).toBeDisabled();
+        expect(chip(code)).toHaveClass("opacity-60");
+        expectPalette(chip(code), "#FFFFFF", "#666666");
         expect(chip(code)).toHaveAccessibleName(/, 0 occurrences$/);
+      } else {
+        expectPalette(chip(code), fill, text);
+        expect(chip(code)).not.toHaveClass("opacity-60");
       }
     });
     expectPalette(wordBlock(1), "#BBDEFB", "#666666");
@@ -764,6 +783,40 @@ describe("Person, Gender, Number acceptance", () => {
     PRESETS.forEach(({ code }) => expectPalette(chip(code), "#FFFFFF", "#666666"));
     expectDefaultWord(1);
     expect(lastSavedMetadata()).toEqual({ words: {} });
+  });
+
+  it("undo/redo keeps unavailable chips muted and uncolored (127.1-2)", async () => {
+    const { user } = renderHarness({ words: [makeWord(1, "Pro-3ms")] });
+    await openPerson(user);
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    await user.click(screen.getByRole("button", { name: "Restore previous snapshot" }));
+    expectPalette(chip("3ms"), "#BBDEFB", "#666666");
+    expectPalette(chip("3fp"), "#FFFFFF", "#666666");
+    expect(chip("3fp")).toHaveClass("opacity-60");
+    await user.click(screen.getByRole("button", { name: "Restore next snapshot" }));
+    expectPalette(chip("3ms"), "#FFFFFF", "#666666");
+    expectPalette(chip("3fp"), "#FFFFFF", "#666666");
+    expect(chip("3fp")).toHaveClass("opacity-60");
+  });
+
+  it("only fades zero-match chips, not valid highlighted chips in a view-only study (127.1)", async () => {
+    const { user } = renderHarness({
+      words: [makeWord(1, "Pro-3ms")],
+      inViewMode: true,
+      metadata: {
+        words: { 1: { color: { fill: "#BBDEFB", text: "#666666", border: "#D9D9D9" } } },
+        personGenderNumberHighlights: { "0": ["3ms", "3fp"] },
+      },
+    });
+    await openPerson(user);
+    expect(chip("3ms")).toBeDisabled();
+    expect(chip("3ms")).not.toHaveClass("opacity-60");
+    expectPalette(chip("3ms"), "#BBDEFB", "#666666");
+    expect(chip("3fp")).toBeDisabled();
+    expect(chip("3fp")).toHaveClass("opacity-60");
+    expectPalette(chip("3fp"), "#FFFFFF", "#666666");
+    expect(saveMetadata).not.toHaveBeenCalled();
   });
 
   it("clears back to normal colors and repeats the same scoped highlight deterministically", async () => {
@@ -1033,8 +1086,17 @@ describe("Person, Gender, Number acceptance", () => {
     const { user } = renderHarness();
     const info = screen.getByRole("button", { name: "About Person, Gender, Number" });
     expect(info).toHaveAttribute("aria-haspopup", "dialog");
+    expect(info.tagName).toBe("BUTTON");
+    expect(info).toHaveClass("text-primary");
+    expect(info.querySelector("svg")).toHaveAttribute("width", "18px");
+    expect(info.querySelector("svg")).toHaveAttribute("height", "18px");
+    expect(info.parentElement?.closest("button")).toBeNull();
+    const heading = screen.getByRole("button", { name: "Person, Gender, Number" });
+    expect(heading.nextElementSibling).toBe(info);
+    expect(heading).not.toHaveClass("flex-1");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await user.click(info);
+    expect(heading).toHaveAttribute("aria-expanded", "false");
     const dialog = screen.getByRole("dialog", { name: "Person, Gender, Number" });
     expect(dialog.tagName).toBe("DIALOG");
     expect(dialog).toHaveAttribute("open");

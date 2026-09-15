@@ -110,10 +110,10 @@ const PersonGenderNumber = ({
 
   return (
     <div className="mx-4 border-b border-stroke dark:border-strokedark">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-2 py-4">
         <button
           type="button"
-          className="ClickBlock flex flex-1 items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
+          className="ClickBlock flex min-w-0 items-center gap-2 text-left text-sm font-medium md:text-base"
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={onToggle}
@@ -126,14 +126,14 @@ const PersonGenderNumber = ({
         <PersonGenderNumberInfo />
       </div>
       {isOpen && (
-        <div id={panelId} className="space-y-4 px-2 pb-4">
+        <div id={panelId} className="space-y-4 px-1 pb-4">
           <div
-            className="mx-auto grid max-w-[36rem] gap-x-3 gap-y-2"
-            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))" }}
+            className="mx-auto grid max-w-[25rem] gap-2"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 8.25rem), 1fr))" }}
           >
             {PERSON_GENDER_NUMBER_CHIPS.map((chip) => {
               const matches = wordsByCode.get(chip.code) ?? [];
-              const palette = activeId
+              const palette = matches.length === 0 ? undefined : activeId
                 ? highlightedCodes.has(chip.code) ? { fill: chip.fill, text: chip.text } : undefined
                 : deriveUniformWordPalette(matches, {
                     colorMap: ctxWordsColorMap,

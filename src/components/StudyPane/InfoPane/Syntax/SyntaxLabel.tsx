@@ -35,7 +35,7 @@ const SyntaxLabel = ({
   };
 
   const fill = palette?.fill || DEFAULT_COLOR_FILL;
-  const border = palette?.border || (gloss ? "#B7B7B7" : DEFAULT_BORDER_COLOR);
+  const border = palette?.border || DEFAULT_BORDER_COLOR;
   const text = palette?.text || (gloss ? "#666666" : DEFAULT_TEXT_COLOR);
 
   const statusClassName = isActive
@@ -48,9 +48,9 @@ const SyntaxLabel = ({
     "wordBlock",
     gloss ? "w-full" : "mx-1",
     "ClickBlock",
-    gloss ? "rounded-lg" : "rounded",
+    "rounded",
     "border",
-    disabled ? (gloss ? "cursor-default" : "opacity-60 cursor-default") : "cursor-pointer",
+    disabled ? (gloss && wordCount > 0 ? "cursor-default" : "opacity-60 cursor-default") : "cursor-pointer",
     statusClassName,
   ].join(" ");
 
@@ -65,18 +65,18 @@ const SyntaxLabel = ({
         aria-label={gloss ? `${label} ${gloss}, ${wordCount} occurrences` : undefined}
         style={{
           background: fill,
-          border: `${gloss ? 1 : 2}px solid ${border}`,
+          border: `2px solid ${border}`,
           color: text,
         }}
       >
         <span
-          className="flex items-center mx-1 my-1"
+          className={`flex items-center my-1 ${gloss ? "mx-0.5 gap-0.5" : "mx-1"}`}
         >
-          <span className="flex flex-1 flex-col select-none px-2 py-1 items-center justify-center text-center leading-none text-base">
+          <span className={`flex flex-1 flex-col select-none py-1 items-center justify-center text-center leading-none text-base ${gloss ? "min-w-0" : "px-2"}`}>
             {gloss && <span className="whitespace-nowrap text-xs leading-4">{gloss}</span>}
             <span className={gloss ? "text-lg font-bold leading-5" : undefined}>{label}</span>
           </span>
-          <span className={`flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-sm ${gloss ? "text-[#666666]" : "text-black"}`}>
+          <span className={`flex shrink-0 items-center justify-center rounded-full bg-[#EFEFEF] ${gloss ? "h-5 min-w-5 px-0.5 text-xs text-[#666666]" : "h-6.5 w-full min-w-6.5 max-w-6.5 text-sm text-black"}`}>
             {wordCount}
           </span>
         </span>

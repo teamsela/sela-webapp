@@ -1,6 +1,6 @@
 import { useId, useRef } from "react";
 import { IconX } from "@tabler/icons-react";
-import { MdInfoOutline } from "react-icons/md";
+import InfoButton from "../common/InfoButton";
 
 const PersonGenderNumberInfo = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -8,15 +8,10 @@ const PersonGenderNumberInfo = () => {
 
   return (
     <>
-      <button
-        type="button"
-        className="ClickBlock shrink-0 rounded-full p-1 text-slate-500 hover:text-primary focus-visible:outline-primary"
-        aria-label="About Person, Gender, Number"
-        aria-haspopup="dialog"
+      <InfoButton
+        label="About Person, Gender, Number"
         onClick={() => dialogRef.current?.showModal()}
-      >
-        <MdInfoOutline size={20} />
-      </button>
+      />
       <dialog
         ref={dialogRef}
         aria-labelledby={titleId}

@@ -31,4 +31,4 @@ for type checking, and `npm run lint` for lint checks. These checks also run on
 pull requests through GitHub Actions; Vercel builds the PR preview separately.
 
 The revised Syntax tool's [Person, Gender, Number specification](docs/syntax-person-gender-number.md)
-includes the extracted six-page PDF, exact color table, and acceptance contract.
+includes the extracted seven-page PDF (121-127), exact color table, and acceptance contract.
