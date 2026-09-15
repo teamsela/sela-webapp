@@ -14,6 +14,7 @@ import { mergeData } from "@/lib/utils";
 import { CounterMode } from "@/lib/counter";
 import { updateMetadataInDb } from '@/lib/actions';
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
+import { getPersonGenderNumberHighlightState, PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
 export const DEFAULT_SCALE_VALUE: number = 1;
 export { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR } from "@/lib/colors";
@@ -76,6 +77,8 @@ export const FormatContext = createContext({
   ctxSetIsHebrew: (arg: boolean) => {},
   ctxSelectedWords: [] as WordProps[],
   ctxSetSelectedWords: (arg: WordProps[]) => {},
+  ctxSelectedPersonGenderNumberCodes: [] as PersonGenderNumberCode[],
+  ctxSetSelectedPersonGenderNumberCodes: (_arg: PersonGenderNumberCode[]) => {},
   ctxNumSelectedWords: 0 as number,
   ctxSetNumSelectedWords: (arg: number) => {},
   ctxSelectedStrophes: [] as StropheProps[],
@@ -216,6 +219,7 @@ const StudyPane = ({
 
   const [numSelectedWords, setNumSelectedWords] = useState(0);
   const [selectedWords, setSelectedWords] = useState<WordProps[]>([]);
+  const [selectedPersonGenderNumberCodes, setSelectedPersonGenderNumberCodes] = useState<PersonGenderNumberCode[]>([]);
   const [selectedStrophes, setSelectedStrophes] = useState<StropheProps[]>([]);
   const [numSelectedStrophes, setNumSelectedStrophes] = useState(0);
   const [numSelectedLayers, setNumSelectedLayers] = useState(0);
@@ -232,14 +236,23 @@ const StudyPane = ({
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [infoPaneWidth, setInfoPaneWidth] = useState(360);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
-  const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(new Map());
+  const [initialPgnHighlight] = useState(() =>
+    getPersonGenderNumberHighlightState(_initialStudyMetadata, passageData.bibleData),
+  );
+  const [wordsColorMap, setWordsColorMap] = useState<Map<number, ColorData>>(
+    initialPgnHighlight?.wordsColorMap ?? new Map(),
+  );
   const [activeHighlightIds, setActiveHighlightIds] = useState<Record<ColorSource, string | null>>({
-    syntax: null,
+    syntax: initialPgnHighlight?.highlightId ?? null,
     motif: null,
     structure: null,
     pausal: null,
   });
-  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(new Map());
+  const highlightCacheRef = useRef<Map<string, Map<number, ColorData | undefined>>>(
+    initialPgnHighlight
+      ? new Map([[`syntax::${initialPgnHighlight.highlightId}`, initialPgnHighlight.originalColors]])
+      : new Map(),
+  );
 
   const snapshotHistoryEntry = (
     metadata: StudyMetadata,
@@ -317,6 +330,20 @@ const StudyPane = ({
     updateMetadataInDb(passageData.study.id, updated);
   };
 
+  const loadLayerHighlightState = (metadata: StudyMetadata): HistorySnapshotOptions => {
+    const saved = getPersonGenderNumberHighlightState(metadata, passageData.bibleData);
+    const nextColors = saved?.wordsColorMap ?? new Map<number, ColorData>();
+    const nextActiveIds = { syntax: saved?.highlightId ?? null, motif: null, structure: null, pausal: null };
+    const nextCache = saved
+      ? new Map([[`syntax::${saved.highlightId}`, saved.originalColors]])
+      : new Map<string, Map<number, ColorData | undefined>>();
+    setWordsColorMap(nextColors);
+    setActiveHighlightIds(nextActiveIds);
+    highlightCacheRef.current = nextCache;
+    setSelectedPersonGenderNumberCodes([]);
+    return { wordsColorMap: nextColors, activeHighlightIds: nextActiveIds, highlightCache: nextCache };
+  };
+
   // Switch the active layer: saves the current layer's words then loads the new layer's words.
   const switchLayer = (newId: number) => {
     if (newId === activeLayerId) return;
@@ -333,8 +360,7 @@ const StudyPane = ({
       activeLayerId: newId,
       layerDefs,
     };
-    setWordsColorMap(new Map());
-    commitLayerState(updated, false, { wordsColorMap: new Map() });
+    commitLayerState(updated, false, loadLayerHighlightState(updated));
   };
 
   // Update the layer definitions (name/colour changes, reorder). Undoable so the
@@ -365,8 +391,7 @@ const StudyPane = ({
       layerDefs: [...layerDefs, newLayer],
       activeLayerId: newLayer.id,
     };
-    setWordsColorMap(new Map());
-    commitLayerState(updated, false, { wordsColorMap: new Map() });
+    commitLayerState(updated, false, loadLayerHighlightState(updated));
   };
 
   // Delete a layer. This IS undoable: the pre-deletion state lives at history[pointer],
@@ -386,7 +411,6 @@ const StudyPane = ({
     if (newActiveId === id) {
       newActiveId = newLayerDefs[0].id;
       newWords = newLayerWordMaps[String(newActiveId)] ?? {};
-      setWordsColorMap(new Map());
     }
 
     const updated: StudyMetadata = {
@@ -396,7 +420,13 @@ const StudyPane = ({
       layerDefs: newLayerDefs,
       activeLayerId: newActiveId,
     };
-    commitLayerState(updated, true, newActiveId !== (current.activeLayerId ?? activeLayerId) ? { wordsColorMap: new Map() } : undefined);
+    if (updated.personGenderNumberHighlights) {
+      updated.personGenderNumberHighlights = { ...updated.personGenderNumberHighlights };
+      delete updated.personGenderNumberHighlights[String(id)];
+    }
+    commitLayerState(updated, true, newActiveId !== (current.activeLayerId ?? activeLayerId)
+      ? loadLayerHighlightState(updated)
+      : undefined);
   };
 
   // Keep the layer UI state in sync when studyMetadata is replaced wholesale
@@ -508,6 +538,8 @@ const StudyPane = ({
     ctxSetIsHebrew: setHebrew,
     ctxSelectedWords: selectedWords,
     ctxSetSelectedWords: setSelectedWords,
+    ctxSelectedPersonGenderNumberCodes: selectedPersonGenderNumberCodes,
+    ctxSetSelectedPersonGenderNumberCodes: setSelectedPersonGenderNumberCodes,
     ctxNumSelectedWords: numSelectedWords,
     ctxSetNumSelectedWords: setNumSelectedWords,
     ctxSelectedStrophes: selectedStrophes,

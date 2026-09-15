@@ -11,19 +11,12 @@ import SyntaxLabel, { LabelPalette } from "./SyntaxLabel";
 import SyntaxSmartHighlight from "./SmartHighlight";
 import { HighlightGroup, useHighlightManager } from "../useHighlightManager";
 import { PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT } from "@/lib/featureFlags";
-
-type PersonCode = "1" | "2" | "3";
-type GenderCode = "M" | "F" | "C";
-type NumberCode = "S" | "D" | "P";
+import PersonGenderNumber from "./PersonGenderNumber";
 
 export type MorphFeatures = {
   tokens: Set<string>;
   orderedTokens: string[];
   normalizedSegments: string[];
-  persons: Set<PersonCode>;
-  genders: Set<GenderCode>;
-  numbers: Set<NumberCode>;
-  genderNumberCombos: Set<string>;
 };
 
 type SyntaxLabelDefinition = {
@@ -34,18 +27,11 @@ type SyntaxLabelDefinition = {
   highlightable?: boolean;
 };
 
-type SyntaxSubSection = {
-  id: string;
-  title: string;
-  labels: SyntaxLabelDefinition[];
-};
-
 type SyntaxSectionDefinition = {
   id: string;
   type: SyntaxType;
   title: string;
-  labels?: SyntaxLabelDefinition[];
-  subSections?: SyntaxSubSection[];
+  labels: SyntaxLabelDefinition[];
   highlightable?: boolean;
 };
 
@@ -85,24 +71,6 @@ const verbalStemPalette: Record<string, LabelPalette> = {
   "vs-hifil": toUserPalette({ fill: "#DCEDC8", border: DEFAULT_BORDER_COLOR, text: "#000000" }),
   "vs-hofal": toUserPalette({ fill: "#4CAF50", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
   "vs-hitpael": toUserPalette({ fill: "#388E3C", border: DEFAULT_BORDER_COLOR, text: "#FFFFFF" }),
-};
-
-const personPalette: Record<string, LabelPalette> = {
-  "pgn-person-1": toUserPalette({ fill: "#E0F2FE", border: "#42A5F5", text: "#0D47A1" }),
-  "pgn-person-2": toUserPalette({ fill: "#E8F5E9", border: "#66BB6A", text: "#1B5E20" }),
-  "pgn-person-3": toUserPalette({ fill: "#F3E5F5", border: "#BA68C8", text: "#4A148C" }),
-};
-
-const genderPalette: Record<string, LabelPalette> = {
-  "pgn-gender-m": toUserPalette({ fill: "#E0F2F1", border: "#4DB6AC", text: "#004D40" }),
-  "pgn-gender-f": toUserPalette({ fill: "#FCE4EC", border: "#F48FB1", text: "#880E4F" }),
-  "pgn-gender-c": toUserPalette({ fill: "#FFF8E1", border: "#FFE082", text: "#8D6E63" }),
-};
-
-const numberPalette: Record<string, LabelPalette> = {
-  "pgn-number-s": toUserPalette({ fill: "#F1F8E9", border: "#AED581", text: "#33691E" }),
-  "pgn-number-d": toUserPalette({ fill: "#EDE7F6", border: "#9575CD", text: "#4527A0" }),
-  "pgn-number-p": toUserPalette({ fill: "#E3F2FD", border: "#64B5F6", text: "#0D47A1" }),
 };
 
 const derivedMorphTokenPatterns = [
@@ -393,86 +361,6 @@ const verbalStemLabels: SyntaxLabelDefinition[] = [
   },
 ];
 
-const personLabels: SyntaxLabelDefinition[] = [
-  {
-    id: "pgn-person-1",
-    label: "1st Person",
-    palette: personPalette["pgn-person-1"],
-    predicate: (features) => features.persons.has("1"),
-  },
-  {
-    id: "pgn-person-2",
-    label: "2nd Person",
-    palette: personPalette["pgn-person-2"],
-    predicate: (features) => features.persons.has("2"),
-  },
-  {
-    id: "pgn-person-3",
-    label: "3rd Person",
-    palette: personPalette["pgn-person-3"],
-    predicate: (features) => features.persons.has("3"),
-  },
-];
-
-const genderLabels: SyntaxLabelDefinition[] = [
-  {
-    id: "pgn-gender-m",
-    label: "Masculine",
-    palette: genderPalette["pgn-gender-m"],
-    predicate: (features) =>
-      features.genders.has("M") ||
-      Array.from(features.genderNumberCombos).some((value) => value.startsWith("M")),
-  },
-  {
-    id: "pgn-gender-f",
-    label: "Feminine",
-    palette: genderPalette["pgn-gender-f"],
-    predicate: (features) =>
-      features.genders.has("F") ||
-      Array.from(features.genderNumberCombos).some((value) => value.startsWith("F")),
-  },
-  {
-    id: "pgn-gender-c",
-    label: "Common",
-    palette: genderPalette["pgn-gender-c"],
-    predicate: (features) =>
-      features.genders.has("C") ||
-      Array.from(features.genderNumberCombos).some((value) => value.startsWith("C")),
-  },
-];
-
-const numberLabels: SyntaxLabelDefinition[] = [
-  {
-    id: "pgn-number-s",
-    label: "Singular",
-    palette: numberPalette["pgn-number-s"],
-    predicate: (features) =>
-      features.numbers.has("S") ||
-      features.genderNumberCombos.has("MS") ||
-      features.genderNumberCombos.has("FS") ||
-      features.genderNumberCombos.has("CS"),
-  },
-  {
-    id: "pgn-number-d",
-    label: "Dual",
-    palette: numberPalette["pgn-number-d"],
-    predicate: (features) =>
-      features.numbers.has("D") ||
-      features.genderNumberCombos.has("MD") ||
-      features.genderNumberCombos.has("FD"),
-  },
-  {
-    id: "pgn-number-p",
-    label: "Plural",
-    palette: numberPalette["pgn-number-p"],
-    predicate: (features) =>
-      features.numbers.has("P") ||
-      features.genderNumberCombos.has("MP") ||
-      features.genderNumberCombos.has("FP") ||
-      features.genderNumberCombos.has("CP"),
-  },
-];
-
 const syntaxSections: SyntaxSectionDefinition[] = [
   {
     id: "parts-of-speech",
@@ -495,35 +383,10 @@ const syntaxSections: SyntaxSectionDefinition[] = [
     labels: verbalStemLabels,
     highlightable: true,
   },
-  {
-    id: "person-gender-number",
-    type: SyntaxType.personsGenderNumber,
-    title: "Person, Gender, Number",
-    subSections: [
-      {
-        id: "person",
-        title: "Person",
-        labels: personLabels,
-      },
-      {
-        id: "gender",
-        title: "Gender",
-        labels: genderLabels,
-      },
-      {
-        id: "number",
-        title: "Number",
-        labels: numberLabels,
-      },
-    ],
-    highlightable: false,
-  },
 ];
 
 const allLabelDefinitions: SyntaxLabelDefinition[] = syntaxSections.flatMap((section) =>
-  section.subSections
-    ? section.subSections.flatMap((subSection) => subSection.labels)
-    : section.labels ?? [],
+  section.labels,
 );
 
 const flattenWords = (passageProps?: PassageProps): WordProps[] => {
@@ -562,10 +425,6 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
   const tokens = new Set<string>();
   const orderedTokens: string[] = [];
   const normalizedSegments: string[] = [];
-  const persons = new Set<PersonCode>();
-  const genders = new Set<GenderCode>();
-  const numbers = new Set<NumberCode>();
-  const genderNumberCombos = new Set<string>();
 
   segments.forEach((segment) => {
     const trimmed = segment.trim();
@@ -597,34 +456,6 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
       const upperToken = token.toUpperCase();
       tokens.add(upperToken);
       addDerivedTokens(upperToken, tokens);
-
-      const personMatch = upperToken.match(/^([123])(ST|ND|RD)?([MFC])?([SPD])?/);
-      if (personMatch) {
-        const person = personMatch[1] as PersonCode;
-        persons.add(person);
-
-        const gender = personMatch[3] as GenderCode | undefined;
-        const number = personMatch[4] as NumberCode | undefined;
-
-        if (gender) {
-          genders.add(gender);
-        }
-        if (number) {
-          numbers.add(number);
-        }
-        if (gender && number) {
-          genderNumberCombos.add(`${gender}${number}`);
-        }
-      }
-
-      const genderNumberMatch = upperToken.match(/^([MFC])([SPD])/);
-      if (genderNumberMatch) {
-        const gender = genderNumberMatch[1] as GenderCode;
-        const number = genderNumberMatch[2] as NumberCode;
-        genders.add(gender);
-        numbers.add(number);
-        genderNumberCombos.add(`${gender}${number}`);
-      }
     });
   });
 
@@ -632,10 +463,6 @@ export const buildMorphFeatures = (morphology?: string | null): MorphFeatures | 
     tokens,
     orderedTokens,
     normalizedSegments,
-    persons,
-    genders,
-    numbers,
-    genderNumberCombos,
   };
 };
 
@@ -681,11 +508,6 @@ const getLabelDisplayPalette = (
   // Mixed or partial coverage should keep chips blank.
   return undefined;
 };
-
-const collectSectionLabels = (section: SyntaxSectionDefinition): SyntaxLabelDefinition[] =>
-  section.subSections
-    ? section.subSections.flatMap((sub) => sub.labels)
-    : section.labels ?? [];
 
 const Syntax = () => {
   const {
@@ -736,14 +558,6 @@ const Syntax = () => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const sectionLabelMap = useMemo(() => {
-    const map = new Map<string, SyntaxLabelDefinition[]>();
-    syntaxSections.forEach((section) => {
-      map.set(section.id, collectSectionLabels(section));
-    });
-    return map;
-  }, []);
-
   const handleHighlightToggle = (highlightId: string, groups: HighlightGroup[]) => {
     toggleHighlight(
       highlightId,
@@ -751,7 +565,7 @@ const Syntax = () => {
     );
   };
 
-  const handleLabelSelectionToggle = (words: WordProps[], isMultiSelect: boolean) => {
+  const handleLabelSelectionToggle = (words: WordProps[]) => {
     if (!words.length) {
       return;
     }
@@ -782,60 +596,21 @@ const Syntax = () => {
       <div className="accordion">
         {syntaxSections.map((section) => {
           const isOpen = openSection === section.type;
-          const sectionHighlightLabels = collectSectionLabels(section).filter(
+          const sectionHighlightLabels = section.labels.filter(
             (label) => label.highlightable !== false,
           );
-          const sectionGroups = section.highlightable
-            ? sectionHighlightLabels
-                .map((label) => {
-                  const words = labelWordMap.get(label.id) || [];
-                  const uniformPalette = deriveUniformWordPalette(words, {
-                    colorMap: ctxWordsColorMap,
-                    metadataMap: ctxStudyMetadata.words,
-                  });
-                  return {
-                    label: label.label,
-                    words,
-                    palette: label.palette,
-                    displayPalette: getLabelDisplayPalette(
-                      words,
-                      uniformPalette,
-                      label.palette,
-                      activeHighlightId,
-                      section.id,
-                      ctxWordsColorMap,
-                      ctxStudyMetadata.words,
-                    ),
-                  };
-                })
-                .filter((group) => group.words.length > 0)
-            : [];
           const sectionGroupsForToggle = section.highlightable
             ? sectionHighlightLabels
                 .map((label) => {
                   const words = labelWordMap.get(label.id) || [];
-                  const uniformPalette = deriveUniformWordPalette(words, {
-                    colorMap: ctxWordsColorMap,
-                    metadataMap: ctxStudyMetadata.words,
-                  });
                   return {
                     label: label.label,
                     words,
                     palette: label.palette,
-                    displayPalette: getLabelDisplayPalette(
-                      words,
-                      uniformPalette,
-                      label.palette,
-                      activeHighlightId,
-                      section.id,
-                      ctxWordsColorMap,
-                      ctxStudyMetadata.words,
-                    ),
                   };
                 })
                 .filter((group) => group.words.length > 0)
             : [];
-          const sectionHasActiveHighlight = activeHighlightId === section.id;
           return (
             <div
               key={section.id}
@@ -854,88 +629,39 @@ const Syntax = () => {
 
               {isOpen && (
                 <div className="space-y-4 p-4">
-                  {section.subSections ? (
-                    section.subSections.map((subSection) => (
-                      <div key={subSection.id}>
-                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                          {subSection.title}
-                        </h3>
-                        <div className="flex flex-wrap">
-                          {subSection.labels.map((label) => {
-                            const words = labelWordMap.get(label.id) || [];
-                            const uniformPalette = deriveUniformWordPalette(words, {
-                              colorMap: ctxWordsColorMap,
-                              metadataMap: ctxStudyMetadata.words,
-                            });
-                            const displayPalette = getLabelDisplayPalette(
-                              words,
-                              uniformPalette,
-                              label.palette,
-                              activeHighlightId,
-                              section.id,
-                              ctxWordsColorMap,
-                              ctxStudyMetadata.words,
-                            );
-                            const highlightId = `${section.id}__${label.id}`;
-                            const isSelected =
-                              words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
+                  <div className="flex flex-wrap">
+                    {section.labels.map((label) => {
+                      const words = labelWordMap.get(label.id) || [];
+                      const uniformPalette = deriveUniformWordPalette(words, {
+                        colorMap: ctxWordsColorMap,
+                        metadataMap: ctxStudyMetadata.words,
+                      });
+                      const displayPalette = getLabelDisplayPalette(
+                        words,
+                        uniformPalette,
+                        label.palette,
+                        activeHighlightId,
+                        section.id,
+                        ctxWordsColorMap,
+                        ctxStudyMetadata.words,
+                      );
+                      const highlightId = `${section.id}__${label.id}`;
+                      const isSelected =
+                        words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
 
-                            return (
-                              <SyntaxLabel
-                                key={label.id}
-                                label={label.label}
-                                wordCount={words.length}
-                                palette={displayPalette}
-                                isActive={activeHighlightId === highlightId}
-                                isSelected={isSelected}
-                                onToggleSelection={(isMultiSelect) =>
-                                  handleLabelSelectionToggle(words, isMultiSelect)
-                                }
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap">
-                        {section.labels?.map((label) => {
-                          const words = labelWordMap.get(label.id) || [];
-                          const uniformPalette = deriveUniformWordPalette(words, {
-                            colorMap: ctxWordsColorMap,
-                            metadataMap: ctxStudyMetadata.words,
-                          });
-                          const displayPalette = getLabelDisplayPalette(
-                            words,
-                            uniformPalette,
-                            label.palette,
-                            activeHighlightId,
-                            section.id,
-                            ctxWordsColorMap,
-                            ctxStudyMetadata.words,
-                          );
-                          const highlightId = `${section.id}__${label.id}`;
-                          const isSelected =
-                            words.length > 0 && words.every((word) => selectedWordIds.has(word.wordId));
-
-                          return (
-                            <SyntaxLabel
-                              key={label.id}
-                              label={label.label}
-                              wordCount={words.length}
-                              palette={displayPalette}
-                              isActive={activeHighlightId === highlightId}
-                              isSelected={isSelected}
-                              onToggleSelection={(isMultiSelect) =>
-                                handleLabelSelectionToggle(words, isMultiSelect)
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
+                      return (
+                        <SyntaxLabel
+                          key={label.id}
+                          label={label.label}
+                          wordCount={words.length}
+                          palette={displayPalette}
+                          isActive={activeHighlightId === highlightId}
+                          isSelected={isSelected}
+                          onToggleSelection={() => handleLabelSelectionToggle(words)}
+                        />
+                      );
+                    })}
+                  </div>
                   {section.highlightable && (
                     <div className="flex justify-center pt-2">
                       <SyntaxSmartHighlight
@@ -951,6 +677,13 @@ const Syntax = () => {
             </div>
           );
         })}
+        <PersonGenderNumber
+          words={allWords}
+          isOpen={openSection === SyntaxType.personsGenderNumber}
+          onToggle={() => toggleSection(SyntaxType.personsGenderNumber)}
+          activeHighlightId={activeHighlightId}
+          onHighlight={handleHighlightToggle}
+        />
       </div>
     </div>
   );
