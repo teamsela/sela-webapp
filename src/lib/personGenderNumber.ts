@@ -1,3 +1,5 @@
+import type { ColorData, StudyMetadata, WordProps } from "./data";
+
 // Exact fills and font colors from Sela Mockup - 2026, pages 124 and 126.
 // Do not clamp these presets to the user swatches (notably #666666).
 export const PERSON_GENDER_NUMBER_CHIPS = [
@@ -84,4 +86,3 @@ export const getPersonGenderNumberHighlightState = (
     originalColors,
   };
 };
-import type { ColorData, StudyMetadata, WordProps } from "./data";

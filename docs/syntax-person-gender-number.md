@@ -62,6 +62,11 @@ All ten chips and their counters remain visible, including disabled zero counts.
   is part of the highlight ID so undo/redo restores the correct chip colors, and
   is saved per layer in the existing JSON metadata. Reloading restores the explicit
   scope rather than incorrectly inferring it from an ambiguous verb's color.
+- Like the existing Syntax tools, applying highlights retains the selection.
+  Selecting additional chips while a highlight is active does not recolor words
+  immediately or change the button back to Smart Highlight: clear the current
+  highlight, then apply the updated selection. This intentionally does not adopt
+  Sounds/Letters' additive highlighting interaction.
 - Staged chip selection lives in the shared study context, so switching tool tabs
   does not silently broaden the scope. The Smart Highlight button uses the same
   `ClickBlock` marker as other selection-preserving controls.
@@ -82,3 +87,33 @@ updates with only server/browser boundaries mocked.
 The `Tests` GitHub Actions workflow runs the full suite, TypeScript, and lint on
 every pull request. Vercel's existing Git integration builds the PR preview;
 preview deployment does not require merging into `main`.
+
+## PDF requirement checklist
+
+Each row is covered by `src/lib/personGenderNumber.test.ts` and/or
+`src/components/StudyPane/InfoPane/Syntax/Syntax.acceptance.test.tsx`, except where
+the verification explicitly calls for the real browser or existing data loader.
+
+### Page 125: Notes
+
+| Note | Implementation | Verification |
+| --- | --- | --- |
+| 1. Replace the previous version | Remove the separate person/gender/number groups; render the revised section in the existing Syntax accordion. | Assert exactly ten chips and absence of the old groups; regression tests retain all other Syntax sections. |
+| 2. Use the existing Hebrew Bible morphology data | Read passage `word.morphology` from the existing `hebBible.morphology` query; preserve the loader and its existing fallback. | Trace `src/schema.ts` and `src/lib/actions.ts`; conflicting gloss/word-information codes do not affect chip counts. Browser counts are checked against actual passage morphology. |
+| 3. Match complete codes only | Tokenize morphology and look up only complete supported codes, never prefixes or fragments. | Positive/negative cases for every code, including `3msX`, `X3ms`, `3msp`, missing data, and unsupported combinations. |
+| 4. Keep each gloss on one line | Use `whitespace-nowrap` and a responsive two-column grid that becomes one column in a narrow pane. | Assert the no-wrap class; browser checks computed layout and overflow at wide/narrow widths. |
+| 5. Make codes larger and bold | Render codes with `text-lg font-bold`, above the smaller gloss font size. | Assert typography classes; browser compares computed font size and weight. |
+| 6. Provide exactly the ten listed chips | Define a typed ten-entry preset list in the mockup's row-major order. | Compare the complete literal list, order, labels, fills, and fonts. |
+| 7. Count both matches on ambiguous verbs | Retain unique codes in source order; a word can belong to both chip groups. | The PDF's `1cs | 2ms` example counts in both; overlapping selections never duplicate a word. |
+| 8. Include occurrence counters | Display the number of matching words per code, including zero; repeated codes within one word count once. | Assert every counter and stable counts before/after highlight/clear; compare real Psalm 23 counts in the browser. |
+| 9. Add the info popup and supplied copy | Include the full page 123 Overview, Legend, and subject/object Disclaimer in an accessible modal. | Assert the complete text and open/close behavior; browser checks Escape, backdrop dismissal, and modal focus isolation. |
+
+### Page 126: Smart Highlighter
+
+| Rule | Implementation | Verification |
+| --- | --- | --- |
+| 1. Use the supplied hex table | Apply the exact fill/font presets without swatch clamping; see the palette and documented page 124/126 gray discrepancy above. | Assert all ten literal chip, rendered-word, and persisted palettes; browser checks computed colors, including zero-count chips. |
+| 2. Color ambiguous verbs by their first code | Partition words by the first exact code before creating highlight groups. Thus `1cs | 2ms` is yellow `#FFF9C4`; subject colors take precedence over following object suffixes. | Test both code orders, subject-plus-suffix examples, and a selected secondary chip whose word must still use the first code's color. |
+| 3. Highlight selected chips and their words only | Build the union of selected chip matches, color each selected chip with its preset, and color its words by their primary code. | Test each individual code, multiple overlapping chips, unrelated pre-selected words, mouse-up selection preservation, and tab/reload scope retention. |
+| 4. With no selected chips, highlight all | Use all ten codes as the scope and color all matching passage words. | Assert all chip presets and every matched word, with unmatched words unchanged; empty/missing-morphology passages safely disable the action. |
+| 5. Change Smart Highlight to Clear Highlight | Reuse the existing Syntax button/highlight manager; Clear removes the active highlight and permits reapplication. | Test label/state changes, mouse and keyboard activation, deterministic clear/reapply, changed selections, reload, and undo/redo. |

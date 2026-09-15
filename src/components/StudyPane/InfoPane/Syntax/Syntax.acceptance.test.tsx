@@ -558,6 +558,60 @@ describe("Person, Gender, Number acceptance", () => {
     expect(saveMetadata).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    { morphology: "V-Piel-Imperf.h-1cs | 2ms", fill: "#FFF9C4", text: "#666666" },
+    { morphology: "V-Piel-Imperf.h-2ms | 1cs", fill: "#3F51B5", text: "#FFFFFF" },
+  ])("uses the first source code in $morphology without changing either occurrence count", async ({ morphology, fill, text }) => {
+    const { user } = renderHarness({
+      words: [makeWord(1, "Pro-1cs"), makeWord(2, "Pro-2ms"), makeWord(3, morphology)],
+    });
+    await openPerson(user);
+    const expectCounts = () => {
+      expect(chip("1cs")).toHaveAccessibleName(/, 2 occurrences$/);
+      expect(chip("2ms")).toHaveAccessibleName(/, 2 occurrences$/);
+    };
+    expectCounts();
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    expectPalette(wordBlock(3), fill, text);
+    expect(lastSavedMetadata().words[3].color).toEqual({ fill, text, border: "#D9D9D9" });
+    expectCounts();
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    expectDefaultWord(3);
+    expectCounts();
+  });
+
+  it("keeps the existing Syntax Clear-then-reapply interaction when selection changes during a highlight", async () => {
+    const { user, context } = renderHarness({
+      words: [makeWord(1, "Pro-3ms"), makeWord(2, "Pro-2ms")],
+    });
+    await openPerson(user);
+    await user.click(chip("3ms"));
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    await user.click(chip("2ms"));
+
+    expectSelection(context(), [1, 2]);
+    expect(screen.queryByRole("button", { name: "Smart Highlight" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear Highlight" })).toBeEnabled();
+    expectPalette(wordBlock(1), "#BBDEFB", "#666666");
+    expectDefaultWord(2);
+    expectPalette(chip("2ms"), "#FFFFFF", "#666666");
+    expect(saveMetadata).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    expectSelection(context(), [1, 2]);
+    expect(chip("3ms")).toHaveAttribute("aria-pressed", "true");
+    expect(chip("2ms")).toHaveAttribute("aria-pressed", "true");
+    expectDefaultWord(1);
+    expectDefaultWord(2);
+
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    expect(context().ctxActiveHighlightIds.syntax).toBe("person-gender-number__3ms,2ms");
+    expectPalette(wordBlock(1), "#BBDEFB", "#666666");
+    expectPalette(wordBlock(2), "#3F51B5", "#FFFFFF");
+    expectPalette(chip("2ms"), "#3F51B5", "#FFFFFF");
+    expect(saveMetadata).toHaveBeenCalledTimes(3);
+  });
+
   it("unions overlapping selections without duplicates and retains shared words when a chip is deselected", async () => {
     const { user, context } = renderHarness();
     await openPerson(user);
