@@ -10,6 +10,7 @@
 import React, { useState } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 // Mock the StudyPane index (".." from Sounds.tsx) so importing FormatContext does
 // NOT pull in the heavy StudyPane module (DB server actions, Passage, etc.).
@@ -293,6 +294,39 @@ describe("count memos", () => {
 // ===========================================================================
 
 describe("tooltip modal — open / content / close", () => {
+  it.each([
+    { title: "Hebrew Sound Distribution", label: "About sound distribution" },
+    { title: "Hebrew Letters Distribution", label: "About letter distribution" },
+  ])("$title uses the shared blue info icon without toggling the section (127.5)", async ({ title, label }) => {
+    renderHarness();
+    const user = userEvent.setup();
+    const header = screen.getByRole("button", { name: title });
+    const info = screen.getByRole("button", { name: label });
+    expect(info.tagName).toBe("BUTTON");
+    expect(info).toHaveAttribute("aria-haspopup", "dialog");
+    expect(info).toHaveClass("text-primary");
+    expect(info.querySelector("svg")).toHaveAttribute("width", "18px");
+    expect(info.querySelector("svg")).toHaveAttribute("height", "18px");
+    expect(info.parentElement?.closest("button")).toBeNull();
+    expect(header.nextElementSibling).toBe(info);
+    expect(header).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(info);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(header).toHaveAttribute("aria-expanded", "false");
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Close" }));
+
+    await user.click(header);
+    expect(header).toHaveAttribute("aria-expanded", "true");
+    info.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(header).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(header).toHaveAttribute("aria-expanded", "true");
+  });
+
   it("sound: info button opens dialog with the sound title; X closes it", () => {
     renderHarness();
     fireEvent.click(screen.getByRole("button", { name: "About sound distribution" }));

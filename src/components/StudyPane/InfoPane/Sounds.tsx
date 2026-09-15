@@ -13,6 +13,7 @@ import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { FormatContext } from "..";
 import AccordionToggleIcon from "./common/AccordionToggleIcon";
+import InfoButton from "./common/InfoButton";
 import {
   countLetterOccurrences,
   countSoundOccurrences,
@@ -485,25 +486,18 @@ const DistributionSection = ({
 
   return (
     <div ref={sectionRef} className="ClickBlock mx-4 border-b border-stroke dark:border-strokedark">
-      <button
-        type="button"
-        className="ClickBlock flex w-full items-center gap-2 px-2 py-4 text-left text-sm font-medium md:text-base"
-        onClick={() => onToggleSection(config.sectionId)}
-      >
-        <AccordionToggleIcon isOpen={isOpen} />
-        <span className={isOpen ? "text-primary" : "text-black dark:text-white"}>{config.title}</span>
-        <span
-          className="relative ml-1 inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowTooltip(true);
-          }}
-          role="button"
-          aria-label={config.infoAriaLabel}
+      <div className="flex items-center gap-2 px-2 py-4">
+        <button
+          type="button"
+          className="ClickBlock flex min-w-0 items-center gap-2 text-left text-sm font-medium md:text-base"
+          aria-expanded={isOpen}
+          onClick={() => onToggleSection(config.sectionId)}
         >
-          i
-        </span>
-      </button>
+          <AccordionToggleIcon isOpen={isOpen} />
+          <span className={isOpen ? "text-primary" : "text-black dark:text-white"}>{config.title}</span>
+        </button>
+        <InfoButton label={config.infoAriaLabel} onClick={() => setShowTooltip(true)} />
+      </div>
 
       {isMounted && showTooltip && (
         <DistributionInfoModal
