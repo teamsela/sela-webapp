@@ -1,4 +1,5 @@
 import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
+import type { PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
 export type ColorSource = "syntax" | "motif" | "structure" | "pausal";
 
@@ -61,6 +62,7 @@ export type StudyMetadata = {
     layerDefs?: LayerDef[];
     layerWordMaps?: Record<string, WordMap>;
     activeLayerId?: number;
+    personGenderNumberHighlights?: Record<string, PersonGenderNumberCode[]>;
 }
 
 export interface StudyProps {

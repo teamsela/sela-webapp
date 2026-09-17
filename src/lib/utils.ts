@@ -272,10 +272,8 @@ const resolveWordColorValue = (
     const metadataEntry =
       (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
       (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
-    const colorFromMetadata = metadataEntry?.color?.[key];
-    if (colorFromMetadata !== undefined) {
-      return colorFromMetadata;
-    }
+    // An explicit map is authoritative after Clear, even if embedded word data is stale.
+    return metadataEntry?.color?.[key];
   }
 
   return word.metadata?.color?.[key];

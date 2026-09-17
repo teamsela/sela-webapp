@@ -22,7 +22,7 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
 }) => {
   const { ctxInViewMode } = React.useContext(FormatContext);
   const isActive = activeHighlightId === highlightId;
-  const disabled = (groups.length === 0 || ctxInViewMode);
+  const disabled = ((!isActive && groups.length === 0) || ctxInViewMode);
   const handleClick = () => {
     if (disabled) {
       return;
@@ -35,7 +35,7 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
       type="button"
       onClick={handleClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-center font-medium transition lg:px-8 xl:px-10 ${
+      className={`ClickBlock inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-center font-medium transition lg:px-8 xl:px-10 ${
         disabled
           ? "cursor-not-allowed bg-slate-200 text-slate-500"
           : isActive

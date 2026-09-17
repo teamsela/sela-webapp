@@ -69,7 +69,7 @@ export const WordBlock = ({
         : currentGlossValue;
 
   const mapColor = ctxWordsColorMap.get(wordProps.wordId);
-  const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color ?? wordProps.metadata?.color;
+  const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color;
 
   const colorFillLocal = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
   const borderColorLocal = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;

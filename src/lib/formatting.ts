@@ -1,4 +1,5 @@
 import { ColorData, StudyMetadata } from "@/lib/data";
+import { setPersonGenderNumberHighlightScope } from "@/lib/personGenderNumber";
 
 const hasEntries = (record: object) => Object.keys(record).length > 0;
 
@@ -35,6 +36,10 @@ export const clearAllFormattingState = (
   }
 
   metadata.words = words;
+  if (metadata.personGenderNumberHighlights?.[String(metadata.activeLayerId ?? 0)]?.length) {
+    changed = true;
+  }
+  setPersonGenderNumberHighlightScope(metadata, []);
 
   return changed;
 };

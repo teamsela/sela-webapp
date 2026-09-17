@@ -23,3 +23,12 @@ Follow the steps below to add your change:
 5. create a PR to merge your working branch into main in GitHub
 6. resolve comments from other team members and merge conflicts (if any)
 7. after your PR passes the check and is approved, it is ready to merge. Usually the admin will merge it for you. 
+
+## Automated checks and feature specifications
+
+Run `npm test` for unit, regression, and acceptance coverage, `npx tsc --noEmit`
+for type checking, and `npm run lint` for lint checks. These checks also run on
+pull requests through GitHub Actions; Vercel builds the PR preview separately.
+
+The revised Syntax tool's [Person, Gender, Number specification](docs/syntax-person-gender-number.md)
+includes the extracted seven-page PDF (121-127), exact color table, and acceptance contract.
