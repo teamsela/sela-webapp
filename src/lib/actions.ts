@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 import { currentUser, clerkClient } from '@clerk/nextjs/server';
 
 import { db } from '../db';
@@ -542,6 +543,561 @@ const createPassageRangeCondition = (passageInfo: PassageInfo): SQL => {
   return and(eq(hebBible.book, bookValue), or(...chapterConditions)) as SQL;
 };
 
+/*
+  The reference-data half of a study page: the Hebrew text for a passage plus
+  its motif links and StepBible lexicon entries.
+
+  Split out of fetchPassageData so it can be cached. It is a pure function of
+  (book, passage) - nothing in here reads the study row - and heb_bible_test,
+  motif_test, lexicon_test and stepbible_tbesh are immutable reference data, so
+  the same passage produces the same result for every user, forever.
+*/
+async function loadBibleData(book: string, passage: string): Promise<WordProps[]> {
+  const bibleData: WordProps[] = [];
+  const passageInfo = parsePassageInfo(passage, book);
+
+  if (passageInfo instanceof Error) {
+    return bibleData;
+  }
+
+  const passageCondition = createPassageRangeCondition(passageInfo);
+
+  // Build a query with the OHB hebUnicode column if it exists, else fall back without it.
+  const buildPassageQuery = (includeHebUnicode: boolean) =>
+    db
+      .select({
+        hebId: hebBible.hebId,
+        chapter: hebBible.chapter,
+        verse: hebBible.verse,
+        strongNumber: hebBible.strongNumber,
+        wlcWord: hebBible.wlcWord,
+        ...(includeHebUnicode ? { hebUnicode: hebBible.hebUnicode } : {}),
+        gloss: hebBible.gloss,
+        ETCBCgloss: hebBible.ETCBCgloss,
+        morphology: hebBible.morphology,
+        BSBnewLine: hebBible.BSBnewLine,
+        BSBstanzaBreak: hebBible.BSBstanzaBreak,
+        motifCategories: motifLink.categories,
+        relatedStrongCodes: motifLink.relatedStrongCodes,
+        motifLemma: lemmaLink.lemma,
+      })
+      .from(hebBible)
+      .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
+      .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
+      .where(passageCondition)
+      .orderBy(asc(hebBible.hebId));
+
+  let passageContent: Awaited<ReturnType<typeof buildPassageQuery>>;
+  try {
+    passageContent = await buildPassageQuery(true);
+  } catch (queryErr: unknown) {
+    const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
+    if (msg.includes("hebUnicode") || msg.includes("column")) {
+      // hebUnicode column doesn't exist yet — fall back without it
+      passageContent = await buildPassageQuery(false) as typeof passageContent;
+    } else {
+      throw queryErr;
+    }
+  }
+
+  const uniqueStrongNumbers = new Set<number>();
+  passageContent.forEach((word) => {
+    if (word.strongNumber) {
+      uniqueStrongNumbers.add(word.strongNumber);
+    }
+  });
+
+  type StepBibleWordInfo = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]> & {
+    preferredStrong?: string;
+  };
+
+  const stepBibleMap = new Map<number, StepBibleWordInfo>();
+
+  const getStrongSuffix = (strongNumber: number) => {
+    const [, fractional] = strongNumber.toString().split(".");
+    let alphabetIndex = -1;
+
+    if (fractional) {
+      const cleanedFraction = fractional.replace(/0+$/, "");
+      const numericValue = parseInt(cleanedFraction, 10);
+
+      if (Number.isFinite(numericValue) && numericValue > 0) {
+        alphabetIndex = numericValue - 1;
+      }
+    }
+
+    if (alphabetIndex < 0 || alphabetIndex >= 26) {
+      const fractionalPortion = Math.abs(strongNumber - Math.trunc(strongNumber));
+      const approximatedIndex = Math.round(fractionalPortion * 10) - 1;
+
+      if (approximatedIndex >= 0 && approximatedIndex < 26) {
+        alphabetIndex = approximatedIndex;
+      }
+    }
+
+    if (alphabetIndex < 0 || alphabetIndex >= 26) {
+      return "";
+    }
+
+    return String.fromCharCode("a".charCodeAt(0) + alphabetIndex);
+  };
+
+  const formatStrongCode = (strongNumber: number) => {
+    const base = Math.trunc(strongNumber).toString().padStart(4, "0");
+    const suffix = getStrongSuffix(strongNumber);
+    return `H${base}${suffix}`;
+  };
+
+  const getStrongCodeVariants = (strongNumber: number) => {
+    const truncated = Math.trunc(strongNumber);
+    const numeric = truncated.toString();
+    const suffix = getStrongSuffix(strongNumber);
+
+    const baseCodes = [`H${numeric}`, `H${numeric.padStart(4, "0")}`, `H${numeric.padStart(5, "0")}`];
+
+    const suffixedCodes = suffix
+      ? baseCodes.map((code) => `${code}${suffix}`)
+      : [];
+
+    return Array.from(new Set([...suffixedCodes, ...baseCodes]));
+  };
+
+  const normalizeStrongCode = (code: string) => code.trim().toUpperCase();
+
+  const getStrongNumericValue = (code?: string) => {
+    if (!code) {
+      return undefined;
+    }
+
+    const numericMatch = code.toUpperCase().match(/H?0*(\d{1,5})/);
+
+    if (!numericMatch) {
+      return undefined;
+    }
+
+    return parseInt(numericMatch[1], 10);
+  };
+
+  const selectPreferredStrong = (
+    codes: Array<string | undefined>,
+    baseStrong?: number,
+    fallback?: string
+  ) => {
+    const trimmedCodes = codes
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value && value.length > 0));
+
+    if (trimmedCodes.length === 0) {
+      return fallback;
+    }
+
+    if (baseStrong === undefined) {
+      return trimmedCodes[0];
+    }
+
+    const matchingCodes = trimmedCodes.filter(
+      (value) => getStrongNumericValue(value) === baseStrong
+    );
+
+    if (matchingCodes.length === 0) {
+      return trimmedCodes[0];
+    }
+
+    return matchingCodes.sort((a, b) => b.length - a.length)[0];
+  };
+
+  const createStepBibleWordInfo = (
+    record: Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>,
+    normalizedCode: string,
+    baseStrong?: number
+  ): StepBibleWordInfo => {
+    const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } = record;
+
+    const strongCodes: Array<string | undefined> = [
+      eStrong ?? undefined,
+      dStrong ?? undefined,
+      uStrong ?? undefined,
+    ];
+
+    const preferredStrong =
+      selectPreferredStrong(strongCodes, baseStrong, normalizedCode) ?? normalizedCode;
+
+    return {
+      Hebrew,
+      Transliteration,
+      Gloss,
+      Meaning,
+      Morph,
+      eStrong,
+      dStrong,
+      uStrong,
+      preferredStrong,
+    };
+  };
+
+  type StepBibleColumn = "eStrong" | "dStrong" | "uStrong";
+  type StepBibleMatchType = "equals" | "startsWith";
+  type StepBibleRecord = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>;
+
+  const STEP_BIBLE_CODE_BATCH_SIZE = 500;
+  const STEP_BIBLE_COLUMN_ORDER: StepBibleColumn[] = ["eStrong", "dStrong", "uStrong"];
+
+  const stepBibleSelect = {
+    Hebrew: stepbibleTbesh.Hebrew,
+    Transliteration: stepbibleTbesh.Transliteration,
+    Gloss: stepbibleTbesh.Gloss,
+    Meaning: stepbibleTbesh.Meaning,
+    Morph: stepbibleTbesh.Morph,
+    eStrong: stepbibleTbesh.eStrong,
+    dStrong: stepbibleTbesh.dStrong,
+    uStrong: stepbibleTbesh.uStrong,
+  };
+
+  const chunkValues = <T,>(values: T[], size: number) => {
+    const chunks: T[][] = [];
+
+    for (let i = 0; i < values.length; i += size) {
+      chunks.push(values.slice(i, i + size));
+    }
+
+    return chunks;
+  };
+
+  const fetchStepBibleCandidates = async (
+    codes: string[],
+    matchType: StepBibleMatchType
+  ): Promise<StepBibleRecord[]> => {
+    const normalizedCodes = Array.from(
+      new Set(
+        codes
+          .map(normalizeStrongCode)
+          .filter((code) => code.length > 0)
+      )
+    );
+
+    if (normalizedCodes.length === 0) {
+      return [];
+    }
+
+    const records: StepBibleRecord[] = [];
+
+    for (const codeBatch of chunkValues(normalizedCodes, STEP_BIBLE_CODE_BATCH_SIZE)) {
+      const patterns = codeBatch.map((code) => `${code}%`);
+      const codeArray = sql`ARRAY[${sql.join(codeBatch.map((code) => sql`${code}`), sql`, `)}]::text[]`;
+      const patternArray = sql`ARRAY[${sql.join(patterns.map((pattern) => sql`${pattern}`), sql`, `)}]::text[]`;
+      const whereClause = matchType === "equals"
+        ? sql`(
+            ${stepbibleTbesh.eStrong} = ANY(${codeArray})
+            OR ${stepbibleTbesh.dStrong} = ANY(${codeArray})
+            OR ${stepbibleTbesh.uStrong} = ANY(${codeArray})
+          )`
+        : sql`(
+            ${stepbibleTbesh.eStrong} LIKE ANY(${patternArray})
+            OR ${stepbibleTbesh.dStrong} LIKE ANY(${patternArray})
+            OR ${stepbibleTbesh.uStrong} LIKE ANY(${patternArray})
+          )`;
+
+      const batchRecords = await db
+        .select(stepBibleSelect)
+        .from(stepbibleTbesh)
+        .where(whereClause);
+
+      records.push(...batchRecords);
+    }
+
+    return records;
+  };
+
+  const findStepBibleRecord = (
+    candidates: StepBibleRecord[],
+    column: StepBibleColumn,
+    code: string,
+    matchType: StepBibleMatchType,
+    baseStrong: number
+  ) => {
+    const normalizedCode = normalizeStrongCode(code);
+
+    if (!normalizedCode) {
+      return undefined;
+    }
+
+    return candidates.find((record) => {
+      const columnValue = record[column]?.trim();
+
+      if (getStrongNumericValue(columnValue) !== baseStrong) {
+        return false;
+      }
+
+      const normalizedColumnValue = normalizeStrongCode(columnValue ?? "");
+
+      return matchType === "equals"
+        ? normalizedColumnValue === normalizedCode
+        : normalizedColumnValue.startsWith(normalizedCode);
+    });
+  };
+
+  const selectStepBibleRecord = (
+    candidates: StepBibleRecord[],
+    strongNumber: number,
+    matchType: StepBibleMatchType
+  ) => {
+    const strongCodes = getStrongCodeVariants(strongNumber);
+    const baseStrong = Math.trunc(strongNumber);
+
+    for (const code of strongCodes) {
+      for (const column of STEP_BIBLE_COLUMN_ORDER) {
+        const record = findStepBibleRecord(candidates, column, code, matchType, baseStrong);
+
+        if (record) {
+          return createStepBibleWordInfo(record, normalizeStrongCode(code), baseStrong);
+        }
+      }
+    }
+
+    return undefined;
+  };
+
+  const uniqueStrongNumberList = Array.from(uniqueStrongNumbers);
+  const strongCodesForNumbers = (strongNumbers: number[]) =>
+    Array.from(new Set(strongNumbers.flatMap(getStrongCodeVariants)));
+
+  const exactCandidates = await fetchStepBibleCandidates(
+    strongCodesForNumbers(uniqueStrongNumberList),
+    "equals"
+  );
+  const unresolvedStrongNumbers: number[] = [];
+
+  uniqueStrongNumberList.forEach((strongNumber) => {
+    const preferredRecord = selectStepBibleRecord(exactCandidates, strongNumber, "equals");
+
+    if (!preferredRecord) {
+      unresolvedStrongNumbers.push(strongNumber);
+      return;
+    }
+
+    stepBibleMap.set(strongNumber, preferredRecord);
+  });
+
+  if (unresolvedStrongNumbers.length > 0) {
+    const prefixCandidates = await fetchStepBibleCandidates(
+      strongCodesForNumbers(unresolvedStrongNumbers),
+      "startsWith"
+    );
+
+    unresolvedStrongNumbers.forEach((strongNumber) => {
+      const preferredRecord = selectStepBibleRecord(prefixCandidates, strongNumber, "startsWith");
+
+      if (preferredRecord) {
+        stepBibleMap.set(strongNumber, preferredRecord);
+      }
+    });
+  }
+
+  // The wlcWord column may store Hebrew text as HTML numeric entities
+  // (e.g. "&#1497;&#1463;" instead of "יַ") depending on the database branch.
+  // Decode them to actual Unicode so React renders Hebrew glyphs, not entity strings.
+  const decodeHtmlEntities = (str: string | null | undefined): string => {
+    if (!str) return "";
+    return str.replace(/&#(\d+);/g, (_, code: string) =>
+      String.fromCodePoint(parseInt(code, 10))
+    );
+  };
+
+  const strongNumberSet = new Set<number>();
+  passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
+  passageContent.forEach(word => {
+    let hebWord = {} as WordProps;
+    hebWord.wordId = word.hebId || 0;
+    hebWord.chapter = word.chapter || 0;
+    hebWord.verse = word.verse || 0;
+    hebWord.strongNumber = word.strongNumber || 0;
+    hebWord.wlcWord = decodeHtmlEntities(word.wlcWord);
+    hebWord.gloss = word.gloss?.trim() || "";
+    hebWord.ETCBCgloss = word.ETCBCgloss || "";
+    hebWord.morphology = word.morphology?.trim() || "";
+    hebWord.showVerseNum = false;
+    hebWord.newLine = (word.BSBnewLine) || false;
+    hebWord.BSBnewLine = (word.BSBnewLine) || false;
+    hebWord.newVerse = false;
+    hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
+
+    if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
+      const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))
+                                  .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
+      hebWord.motifData = {
+        lemma: word.motifLemma || "",
+        relatedStrongNums: relatedStrongNums || [],
+        categories: word.motifCategories || []
+      }
+      //console.log(hebWord.motifData);
+    }
+
+    const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
+    const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
+
+    const extractStrongCode = (value: string | null | undefined) => {
+      if (!value) {
+        return "";
+      }
+
+      const trimmed = value.trim();
+      const match = trimmed.match(/H\d{3,5}[A-Za-z]?/i);
+
+      if (!match) {
+        return trimmed.toUpperCase();
+      }
+
+      const matched = match[0];
+      const head = matched.slice(0, 1).toUpperCase();
+      const rest = matched.slice(1);
+      return `${head}${rest}`;
+    };
+
+    const cleanGlossValue = (value: string | null | undefined) => {
+      if (!value) {
+        return "";
+      }
+
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return "";
+      }
+
+      const colonIndex = trimmed.indexOf(":");
+      if (colonIndex === -1) {
+        return trimmed;
+      }
+
+      return trimmed.slice(0, colonIndex).trim();
+    };
+
+    const cleanMeaningValue = (value: string | null | undefined) => {
+      if (!value) {
+        return "";
+      }
+
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return "";
+      }
+
+      const lower = trimmed.toLowerCase();
+      const colonIndex = trimmed.indexOf(":");
+      const brIndex = lower.indexOf("<br");
+
+      if (colonIndex !== -1 && brIndex !== -1 && colonIndex < brIndex) {
+        const afterBreak = trimmed.slice(brIndex);
+        const withoutFirstBreak = afterBreak.replace(/^<br\s*\/?>(\s*)?/i, "");
+        return withoutFirstBreak.trim();
+      }
+
+      return trimmed;
+    };
+
+    const preferredMorphology = (() => {
+      const hebMorph = word.morphology?.trim();
+      if (hebMorph && hebMorph.length > 0) {
+        return hebMorph;
+      }
+      const stepMorph = wordInfo?.Morph?.trim();
+      return stepMorph && stepMorph.length > 0 ? stepMorph : "";
+    })();
+
+    const hebrewWord = (() => {
+      // Use StepBible Hebrew as primary source — it is the lexical/dictionary citation form
+      // (without context-specific prefixes/suffixes), appropriate for word information display.
+      const stepBibleHebrew = wordInfo?.Hebrew?.trim();
+      if (stepBibleHebrew && stepBibleHebrew.length > 0) {
+        return stepBibleHebrew;
+      }
+      // Fall back to WLC passage text if no lexical form is available.
+      const wlcHebrew = hebWord.wlcWord?.trim();
+      return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
+    })();
+
+    const gloss = (() => {
+      const stepBibleGloss = wordInfo?.Gloss?.trim();
+      if (stepBibleGloss && stepBibleGloss.length > 0) {
+        return stepBibleGloss;
+      }
+      const passageGloss = hebWord.gloss?.trim();
+      return passageGloss && passageGloss.length > 0 ? passageGloss : "";
+    })();
+
+    hebWord.morphology = preferredMorphology;
+    const strongValue =
+      extractStrongCode(wordInfo?.preferredStrong) ||
+      extractStrongCode(wordInfo?.eStrong) ||
+      extractStrongCode(wordInfo?.dStrong) ||
+      extractStrongCode(wordInfo?.uStrong) ||
+      defaultStrong;
+
+    const strongNumberForDisplay = strongValue
+      ? formatStrongNumberForDisplay(strongValue)
+      : "";
+
+    // Passage transliteration: transliterates the actual passage text (with prefixes/suffixes)
+    // from heb_bible. H3068 is always "a.do.nai" (qere perpetuum).
+    // Used by the passage display in transliteration mode — separate from wordInformation.
+    const passageTransliteration = (() => {
+      if (Math.trunc(word.strongNumber || 0) === 3068) {
+        return "a.do.nai";
+      }
+      const ohbText = decodeHtmlEntities(word.hebUnicode);
+      if (ohbText && ohbText.length > 0) {
+        const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
+        const result = isHebrew ? transliterateHebrew(ohbText) : ohbText;
+        if (result) return result;
+      }
+      return transliterateHebrew(hebWord.wlcWord) || "";
+    })();
+    hebWord.passageTransliteration = passageTransliteration;
+
+    // Word information transliteration: uses the lexical/dictionary form (StepBible).
+    // H3068 is always "a.do.nai".
+    let transliteration = "";
+    if (Math.trunc(word.strongNumber || 0) === 3068) {
+      transliteration = "a.do.nai";
+    } else {
+      transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
+    }
+
+    hebWord.wordInformation = {
+      hebrew: hebrewWord,
+      transliteration,
+      gloss: cleanGlossValue(gloss),
+      morphology: preferredMorphology,
+      strongsNumber: strongNumberForDisplay,
+      meaning: cleanMeaningValue(wordInfo?.Meaning),
+    };
+
+    bibleData.push(hebWord);
+  })
+
+  return bibleData;
+}
+
+/*
+  Cached passage lookup.
+
+  Uses the Next.js Data Cache rather than a module-level Map because the load
+  pattern that hurts is a burst - several people opening study pages at the same
+  moment - and those requests land on different instances, so an in-process
+  cache would miss on every one of them. The Data Cache is shared across
+  instances and survives cold starts.
+
+  revalidate: false because the underlying tables never change. If the Hebrew
+  Bible or lexicon tables are ever reloaded, call revalidateTag('bible-data').
+
+  Entries are well inside the 2MB-per-entry limit: the largest passage anyone
+  has a study for (Psalm 119, 1064 words) serializes to ~870KB.
+*/
+const getBibleData = unstable_cache(
+  loadBibleData,
+  ['bible-data'],
+  { revalidate: false, tags: ['bible-data'] }
+);
+
 export async function fetchPassageData(studyId: string) {
   try {
     const currentStudy = await db
@@ -551,7 +1107,7 @@ export async function fetchPassageData(studyId: string) {
       .limit(1)
       .then((rows) => rows[0] ?? null);
 
-    let studyData : StudyData = {
+    const studyData: StudyData = {
       id: studyId,
       name: currentStudy?.name || "",
       owner: currentStudy?.owner || "",
@@ -561,534 +1117,16 @@ export async function fetchPassageData(studyId: string) {
       model: currentStudy?.model || false,
       scriptura: currentStudy?.scriptura || false,
       metadata: (currentStudy?.metadata as StudyMetadata) || {},
-      //layers: (currentStudy?.layers) as LayerData[] || {},
       notes: currentStudy?.notes || ""
     };
 
-    let passageData : PassageStaticData = { study: studyData, bibleData: [] as WordProps[] };
-
-    if (currentStudy)
-    {
-      const passageInfo = parsePassageInfo(currentStudy.passage || '', currentStudy.book || 'psalms');
-      console.log(passageInfo)
-      if (passageInfo instanceof Error === false)
-      {
-        const passageCondition = createPassageRangeCondition(passageInfo);
-
-        // Build a query with the OHB hebUnicode column if it exists, else fall back without it.
-        const buildPassageQuery = (includeHebUnicode: boolean) =>
-          db
-            .select({
-              hebId: hebBible.hebId,
-              chapter: hebBible.chapter,
-              verse: hebBible.verse,
-              strongNumber: hebBible.strongNumber,
-              wlcWord: hebBible.wlcWord,
-              ...(includeHebUnicode ? { hebUnicode: hebBible.hebUnicode } : {}),
-              gloss: hebBible.gloss,
-              ETCBCgloss: hebBible.ETCBCgloss,
-              morphology: hebBible.morphology,
-              BSBnewLine: hebBible.BSBnewLine,
-              BSBstanzaBreak: hebBible.BSBstanzaBreak,
-              motifCategories: motifLink.categories,
-              relatedStrongCodes: motifLink.relatedStrongCodes,
-              motifLemma: lemmaLink.lemma,
-            })
-            .from(hebBible)
-            .leftJoin(motifLink, eq(hebBible.motifLinkId, motifLink.id))
-            .leftJoin(lemmaLink, eq(motifLink.lemmaLinkId, lemmaLink.id))
-            .where(passageCondition)
-            .orderBy(asc(hebBible.hebId));
-
-        let passageContent: Awaited<ReturnType<typeof buildPassageQuery>>;
-        try {
-          passageContent = await buildPassageQuery(true);
-        } catch (queryErr: unknown) {
-          const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
-          if (msg.includes("hebUnicode") || msg.includes("column")) {
-            // hebUnicode column doesn't exist yet — fall back without it
-            passageContent = await buildPassageQuery(false) as typeof passageContent;
-          } else {
-            throw queryErr;
-          }
-        }
-
-        const uniqueStrongNumbers = new Set<number>();
-        passageContent.forEach((word) => {
-          if (word.strongNumber) {
-            uniqueStrongNumbers.add(word.strongNumber);
-          }
-        });
-
-        type StepBibleWordInfo = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]> & {
-          preferredStrong?: string;
-        };
-
-        const stepBibleMap = new Map<number, StepBibleWordInfo>();
-
-        const getStrongSuffix = (strongNumber: number) => {
-          const [, fractional] = strongNumber.toString().split(".");
-          let alphabetIndex = -1;
-
-          if (fractional) {
-            const cleanedFraction = fractional.replace(/0+$/, "");
-            const numericValue = parseInt(cleanedFraction, 10);
-
-            if (Number.isFinite(numericValue) && numericValue > 0) {
-              alphabetIndex = numericValue - 1;
-            }
-          }
-
-          if (alphabetIndex < 0 || alphabetIndex >= 26) {
-            const fractionalPortion = Math.abs(strongNumber - Math.trunc(strongNumber));
-            const approximatedIndex = Math.round(fractionalPortion * 10) - 1;
-
-            if (approximatedIndex >= 0 && approximatedIndex < 26) {
-              alphabetIndex = approximatedIndex;
-            }
-          }
-
-          if (alphabetIndex < 0 || alphabetIndex >= 26) {
-            return "";
-          }
-
-          return String.fromCharCode("a".charCodeAt(0) + alphabetIndex);
-        };
-
-        const formatStrongCode = (strongNumber: number) => {
-          const base = Math.trunc(strongNumber).toString().padStart(4, "0");
-          const suffix = getStrongSuffix(strongNumber);
-          return `H${base}${suffix}`;
-        };
-
-        const getStrongCodeVariants = (strongNumber: number) => {
-          const truncated = Math.trunc(strongNumber);
-          const numeric = truncated.toString();
-          const suffix = getStrongSuffix(strongNumber);
-
-          const baseCodes = [`H${numeric}`, `H${numeric.padStart(4, "0")}`, `H${numeric.padStart(5, "0")}`];
-
-          const suffixedCodes = suffix
-            ? baseCodes.map((code) => `${code}${suffix}`)
-            : [];
-
-          return Array.from(new Set([...suffixedCodes, ...baseCodes]));
-        };
-
-        const normalizeStrongCode = (code: string) => code.trim().toUpperCase();
-
-        const getStrongNumericValue = (code?: string) => {
-          if (!code) {
-            return undefined;
-          }
-
-          const numericMatch = code.toUpperCase().match(/H?0*(\d{1,5})/);
-
-          if (!numericMatch) {
-            return undefined;
-          }
-
-          return parseInt(numericMatch[1], 10);
-        };
-
-        const selectPreferredStrong = (
-          codes: Array<string | undefined>,
-          baseStrong?: number,
-          fallback?: string
-        ) => {
-          const trimmedCodes = codes
-            .map((value) => value?.trim())
-            .filter((value): value is string => Boolean(value && value.length > 0));
-
-          if (trimmedCodes.length === 0) {
-            return fallback;
-          }
-
-          if (baseStrong === undefined) {
-            return trimmedCodes[0];
-          }
-
-          const matchingCodes = trimmedCodes.filter(
-            (value) => getStrongNumericValue(value) === baseStrong
-          );
-
-          if (matchingCodes.length === 0) {
-            return trimmedCodes[0];
-          }
-
-          return matchingCodes.sort((a, b) => b.length - a.length)[0];
-        };
-
-        const createStepBibleWordInfo = (
-          record: Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>,
-          normalizedCode: string,
-          baseStrong?: number
-        ): StepBibleWordInfo => {
-          const { Hebrew, Transliteration, Gloss, Meaning, Morph, eStrong, dStrong, uStrong } = record;
-
-          const strongCodes: Array<string | undefined> = [
-            eStrong ?? undefined,
-            dStrong ?? undefined,
-            uStrong ?? undefined,
-          ];
-
-          const preferredStrong =
-            selectPreferredStrong(strongCodes, baseStrong, normalizedCode) ?? normalizedCode;
-
-          return {
-            Hebrew,
-            Transliteration,
-            Gloss,
-            Meaning,
-            Morph,
-            eStrong,
-            dStrong,
-            uStrong,
-            preferredStrong,
-          };
-        };
-
-        type StepBibleColumn = "eStrong" | "dStrong" | "uStrong";
-        type StepBibleMatchType = "equals" | "startsWith";
-        type StepBibleRecord = Pick<typeof stepbibleTbesh.$inferSelect, (typeof STEP_BIBLE_SELECT_COLUMNS)[number]>;
-
-        const STEP_BIBLE_CODE_BATCH_SIZE = 500;
-        const STEP_BIBLE_COLUMN_ORDER: StepBibleColumn[] = ["eStrong", "dStrong", "uStrong"];
-
-        const stepBibleSelect = {
-          Hebrew: stepbibleTbesh.Hebrew,
-          Transliteration: stepbibleTbesh.Transliteration,
-          Gloss: stepbibleTbesh.Gloss,
-          Meaning: stepbibleTbesh.Meaning,
-          Morph: stepbibleTbesh.Morph,
-          eStrong: stepbibleTbesh.eStrong,
-          dStrong: stepbibleTbesh.dStrong,
-          uStrong: stepbibleTbesh.uStrong,
-        };
-
-        const chunkValues = <T,>(values: T[], size: number) => {
-          const chunks: T[][] = [];
-
-          for (let i = 0; i < values.length; i += size) {
-            chunks.push(values.slice(i, i + size));
-          }
-
-          return chunks;
-        };
-
-        const fetchStepBibleCandidates = async (
-          codes: string[],
-          matchType: StepBibleMatchType
-        ): Promise<StepBibleRecord[]> => {
-          const normalizedCodes = Array.from(
-            new Set(
-              codes
-                .map(normalizeStrongCode)
-                .filter((code) => code.length > 0)
-            )
-          );
-
-          if (normalizedCodes.length === 0) {
-            return [];
-          }
-
-          const records: StepBibleRecord[] = [];
-
-          for (const codeBatch of chunkValues(normalizedCodes, STEP_BIBLE_CODE_BATCH_SIZE)) {
-            const patterns = codeBatch.map((code) => `${code}%`);
-            const codeArray = sql`ARRAY[${sql.join(codeBatch.map((code) => sql`${code}`), sql`, `)}]::text[]`;
-            const patternArray = sql`ARRAY[${sql.join(patterns.map((pattern) => sql`${pattern}`), sql`, `)}]::text[]`;
-            const whereClause = matchType === "equals"
-              ? sql`(
-                  ${stepbibleTbesh.eStrong} = ANY(${codeArray})
-                  OR ${stepbibleTbesh.dStrong} = ANY(${codeArray})
-                  OR ${stepbibleTbesh.uStrong} = ANY(${codeArray})
-                )`
-              : sql`(
-                  ${stepbibleTbesh.eStrong} LIKE ANY(${patternArray})
-                  OR ${stepbibleTbesh.dStrong} LIKE ANY(${patternArray})
-                  OR ${stepbibleTbesh.uStrong} LIKE ANY(${patternArray})
-                )`;
-
-            const batchRecords = await db
-              .select(stepBibleSelect)
-              .from(stepbibleTbesh)
-              .where(whereClause);
-
-            records.push(...batchRecords);
-          }
-
-          return records;
-        };
-
-        const findStepBibleRecord = (
-          candidates: StepBibleRecord[],
-          column: StepBibleColumn,
-          code: string,
-          matchType: StepBibleMatchType,
-          baseStrong: number
-        ) => {
-          const normalizedCode = normalizeStrongCode(code);
-
-          if (!normalizedCode) {
-            return undefined;
-          }
-
-          return candidates.find((record) => {
-            const columnValue = record[column]?.trim();
-
-            if (getStrongNumericValue(columnValue) !== baseStrong) {
-              return false;
-            }
-
-            const normalizedColumnValue = normalizeStrongCode(columnValue ?? "");
-
-            return matchType === "equals"
-              ? normalizedColumnValue === normalizedCode
-              : normalizedColumnValue.startsWith(normalizedCode);
-          });
-        };
-
-        const selectStepBibleRecord = (
-          candidates: StepBibleRecord[],
-          strongNumber: number,
-          matchType: StepBibleMatchType
-        ) => {
-          const strongCodes = getStrongCodeVariants(strongNumber);
-          const baseStrong = Math.trunc(strongNumber);
-
-          for (const code of strongCodes) {
-            for (const column of STEP_BIBLE_COLUMN_ORDER) {
-              const record = findStepBibleRecord(candidates, column, code, matchType, baseStrong);
-
-              if (record) {
-                return createStepBibleWordInfo(record, normalizeStrongCode(code), baseStrong);
-              }
-            }
-          }
-
-          return undefined;
-        };
-
-        const uniqueStrongNumberList = Array.from(uniqueStrongNumbers);
-        const strongCodesForNumbers = (strongNumbers: number[]) =>
-          Array.from(new Set(strongNumbers.flatMap(getStrongCodeVariants)));
-
-        const exactCandidates = await fetchStepBibleCandidates(
-          strongCodesForNumbers(uniqueStrongNumberList),
-          "equals"
-        );
-        const unresolvedStrongNumbers: number[] = [];
-
-        uniqueStrongNumberList.forEach((strongNumber) => {
-          const preferredRecord = selectStepBibleRecord(exactCandidates, strongNumber, "equals");
-
-          if (!preferredRecord) {
-            unresolvedStrongNumbers.push(strongNumber);
-            return;
-          }
-
-          stepBibleMap.set(strongNumber, preferredRecord);
-        });
-
-        if (unresolvedStrongNumbers.length > 0) {
-          const prefixCandidates = await fetchStepBibleCandidates(
-            strongCodesForNumbers(unresolvedStrongNumbers),
-            "startsWith"
-          );
-
-          unresolvedStrongNumbers.forEach((strongNumber) => {
-            const preferredRecord = selectStepBibleRecord(prefixCandidates, strongNumber, "startsWith");
-
-            if (preferredRecord) {
-              stepBibleMap.set(strongNumber, preferredRecord);
-            }
-          });
-        }
-
-        // The wlcWord column may store Hebrew text as HTML numeric entities
-        // (e.g. "&#1497;&#1463;" instead of "יַ") depending on the database branch.
-        // Decode them to actual Unicode so React renders Hebrew glyphs, not entity strings.
-        const decodeHtmlEntities = (str: string | null | undefined): string => {
-          if (!str) return "";
-          return str.replace(/&#(\d+);/g, (_, code: string) =>
-            String.fromCodePoint(parseInt(code, 10))
-          );
-        };
-
-        const strongNumberSet = new Set<number>();
-        passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
-        passageContent.forEach(word => {
-          let hebWord = {} as WordProps;
-          hebWord.wordId = word.hebId || 0;
-          hebWord.chapter = word.chapter || 0;
-          hebWord.verse = word.verse || 0;
-          hebWord.strongNumber = word.strongNumber || 0;
-          hebWord.wlcWord = decodeHtmlEntities(word.wlcWord);
-          hebWord.gloss = word.gloss?.trim() || "";
-          hebWord.ETCBCgloss = word.ETCBCgloss || "";
-          hebWord.morphology = word.morphology?.trim() || "";
-          hebWord.showVerseNum = false;
-          hebWord.newLine = (word.BSBnewLine) || false;
-          hebWord.BSBnewLine = (word.BSBnewLine) || false;
-          hebWord.newVerse = false;
-          hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
-
-          if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
-            const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))
-                                        .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
-            hebWord.motifData = {
-              lemma: word.motifLemma || "",
-              relatedStrongNums: relatedStrongNums || [],
-              categories: word.motifCategories || []
-            }
-            //console.log(hebWord.motifData);
-          }
-
-          const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
-          const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
-
-          const extractStrongCode = (value: string | null | undefined) => {
-            if (!value) {
-              return "";
-            }
-
-            const trimmed = value.trim();
-            const match = trimmed.match(/H\d{3,5}[A-Za-z]?/i);
-
-            if (!match) {
-              return trimmed.toUpperCase();
-            }
-
-            const matched = match[0];
-            const head = matched.slice(0, 1).toUpperCase();
-            const rest = matched.slice(1);
-            return `${head}${rest}`;
-          };
-
-          const cleanGlossValue = (value: string | null | undefined) => {
-            if (!value) {
-              return "";
-            }
-
-            const trimmed = value.trim();
-            if (!trimmed) {
-              return "";
-            }
-
-            const colonIndex = trimmed.indexOf(":");
-            if (colonIndex === -1) {
-              return trimmed;
-            }
-
-            return trimmed.slice(0, colonIndex).trim();
-          };
-
-          const cleanMeaningValue = (value: string | null | undefined) => {
-            if (!value) {
-              return "";
-            }
-
-            const trimmed = value.trim();
-            if (!trimmed) {
-              return "";
-            }
-
-            const lower = trimmed.toLowerCase();
-            const colonIndex = trimmed.indexOf(":");
-            const brIndex = lower.indexOf("<br");
-
-            if (colonIndex !== -1 && brIndex !== -1 && colonIndex < brIndex) {
-              const afterBreak = trimmed.slice(brIndex);
-              const withoutFirstBreak = afterBreak.replace(/^<br\s*\/?>(\s*)?/i, "");
-              return withoutFirstBreak.trim();
-            }
-
-            return trimmed;
-          };
-
-          const preferredMorphology = (() => {
-            const hebMorph = word.morphology?.trim();
-            if (hebMorph && hebMorph.length > 0) {
-              return hebMorph;
-            }
-            const stepMorph = wordInfo?.Morph?.trim();
-            return stepMorph && stepMorph.length > 0 ? stepMorph : "";
-          })();
-
-          const hebrewWord = (() => {
-            // Use StepBible Hebrew as primary source — it is the lexical/dictionary citation form
-            // (without context-specific prefixes/suffixes), appropriate for word information display.
-            const stepBibleHebrew = wordInfo?.Hebrew?.trim();
-            if (stepBibleHebrew && stepBibleHebrew.length > 0) {
-              return stepBibleHebrew;
-            }
-            // Fall back to WLC passage text if no lexical form is available.
-            const wlcHebrew = hebWord.wlcWord?.trim();
-            return wlcHebrew && wlcHebrew.length > 0 ? wlcHebrew : "";
-          })();
-
-          const gloss = (() => {
-            const stepBibleGloss = wordInfo?.Gloss?.trim();
-            if (stepBibleGloss && stepBibleGloss.length > 0) {
-              return stepBibleGloss;
-            }
-            const passageGloss = hebWord.gloss?.trim();
-            return passageGloss && passageGloss.length > 0 ? passageGloss : "";
-          })();
-
-          hebWord.morphology = preferredMorphology;
-          const strongValue =
-            extractStrongCode(wordInfo?.preferredStrong) ||
-            extractStrongCode(wordInfo?.eStrong) ||
-            extractStrongCode(wordInfo?.dStrong) ||
-            extractStrongCode(wordInfo?.uStrong) ||
-            defaultStrong;
-
-          const strongNumberForDisplay = strongValue
-            ? formatStrongNumberForDisplay(strongValue)
-            : "";
-
-          // Passage transliteration: transliterates the actual passage text (with prefixes/suffixes)
-          // from heb_bible. H3068 is always "a.do.nai" (qere perpetuum).
-          // Used by the passage display in transliteration mode — separate from wordInformation.
-          const passageTransliteration = (() => {
-            if (Math.trunc(word.strongNumber || 0) === 3068) {
-              return "a.do.nai";
-            }
-            const ohbText = decodeHtmlEntities(word.hebUnicode);
-            if (ohbText && ohbText.length > 0) {
-              const isHebrew = /[\u05D0-\u05EA]/.test(ohbText);
-              const result = isHebrew ? transliterateHebrew(ohbText) : ohbText;
-              if (result) return result;
-            }
-            return transliterateHebrew(hebWord.wlcWord) || "";
-          })();
-          hebWord.passageTransliteration = passageTransliteration;
-
-          // Word information transliteration: uses the lexical/dictionary form (StepBible).
-          // H3068 is always "a.do.nai".
-          let transliteration = "";
-          if (Math.trunc(word.strongNumber || 0) === 3068) {
-            transliteration = "a.do.nai";
-          } else {
-            transliteration = transliterateHebrew(hebrewWord) || wordInfo?.Transliteration?.trim() || "";
-          }
-
-          hebWord.wordInformation = {
-            hebrew: hebrewWord,
-            transliteration,
-            gloss: cleanGlossValue(gloss),
-            morphology: preferredMorphology,
-            strongsNumber: strongNumberForDisplay,
-            meaning: cleanMeaningValue(wordInfo?.Meaning),
-          };
-
-          passageData.bibleData.push(hebWord);
-        })
-      }
-    }
-//    console.log(wordsInPassage);
+    // The study row is per-user and mutable, so it is never cached. Only the
+    // passage's reference data goes through getBibleData.
+    const bibleData = currentStudy
+      ? await getBibleData(currentStudy.book || 'psalms', currentStudy.passage || '')
+      : [];
+
+    const passageData: PassageStaticData = { study: studyData, bibleData };
     return passageData;
   }
   catch (error) {
