@@ -258,6 +258,97 @@ describe("Sinnorit Merkha", () => {
     expect(r.counts["sinnorit"]).toBe(0);
     expect(r.spans["paseq"][0].claims).toHaveLength(3);
   });
+
+  it("one-word form + Paseq on the NEXT word → labeled paseq only", () => {
+    const r = scanAccents([token(word(C.TSINNORIT, C.MERKHA), 1), token(word(C.PASEQ), 1)]);
+    expect(r.counts["paseq"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    expect(r.counts["sinnorit"]).toBe(0);
+    expect(r.spans["paseq"][0].claims).toHaveLength(3);
+  });
+
+  it("cross-word form + word-final Paseq on the Merkha's word → labeled paseq only", () => {
+    const r = scanAccents([
+      token(word(C.TSINNORIT), 1),
+      token(word(C.MERKHA, C.PASEQ), 1),
+    ]);
+    expect(r.counts["paseq"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    expect(r.counts["sinnorit"]).toBe(0);
+    const occ = r.spans["paseq"][0];
+    expect(occ.claims).toHaveLength(3);
+    // Cross-word shape: the Tsinnorit's word leads, the Merkha's word heads.
+    expect(occ.lead).toEqual([0]);
+    expect(occ.head).toEqual([1]);
+    expect(r.underIds[0]).toContain("paseq");
+    expect(r.ids[1]).toContain("paseq");
+    // The Merkha's word is conjunctive ONLY — never also Level 3.
+    expect(tokenCategory(r.ids[1])).toBe("conjunctive");
+  });
+
+  it("cross-word form + Paseq on the FOLLOWING word → labeled paseq only", () => {
+    const r = scanAccents([
+      token(word(C.TSINNORIT), 1),
+      token(word(C.MERKHA), 1),
+      token(word(C.PASEQ), 1),
+    ]);
+    expect(r.counts["paseq"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    expect(r.counts["sinnorit"]).toBe(0);
+    expect(r.spans["paseq"][0].claims).toHaveLength(3);
+  });
+
+  it("cross-word form over a maqqef unit (Psalm 5:4 shape) → plain paseq", () => {
+    // אֵֽל־חָפֵ֘ץ רֶ֥שַׁע׀ — Tsinnorit on the second token of the maqqef unit,
+    // Merkha + word-final Paseq on the next prosodic word.
+    const r = scanAccents([
+      token(word() + String.fromCharCode(C.MAQQEF), 1), // maqqef leaner, no marks
+      token(word(C.TSINNORIT), 1),
+      token(word(C.MERKHA, C.PASEQ), 1),
+    ]);
+    expect(r.counts["paseq"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    expect(r.counts["sinnorit"]).toBe(0);
+    const occ = r.spans["paseq"][0];
+    expect(occ.lead).toEqual([0, 1]); // the whole maqqef unit leads
+    expect(occ.head).toEqual([2]);
+    expect(occ.claims.map((c) => c.t).sort((a, b) => a - b)).toEqual([1, 2, 2]);
+    expect(r.ids[2]).toEqual(["paseq"]);
+    expect(r.ids[0]).toEqual([]); // the leaner carries no mark of its own
+    expect(r.ids[1]).toEqual([]);
+    expect(tokenCategory(r.ids[2])).toBe("conjunctive");
+  });
+
+  it("the trailing Paseq must be in the same verse as the pair", () => {
+    const r = scanAccents([
+      token(word(C.TSINNORIT), 1),
+      token(word(C.MERKHA), 1),
+      token(word(C.PASEQ), 2), // next verse — not "followed by" the pair
+    ]);
+    expect(r.counts["sinnorit-merkha"]).toBe(1);
+    expect(r.counts["paseq"]).toBe(1); // the verse-2 Paseq stays a bare conjunctive
+  });
+
+  it("one-word form whose trailing Paseq belongs to a Legarmeh → NOT pre-empted", () => {
+    const r = scanAccents([token(word(C.TSINNORIT, C.MERKHA, C.QADMA, C.PASEQ))]);
+    expect(r.counts["azla-legarmeh"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(1);
+    expect(r.counts["paseq"]).toBe(0);
+  });
+
+  it("cross-word form whose trailing Paseq belongs to a Legarmeh → NOT pre-empted", () => {
+    const r = scanAccents([
+      token(word(C.TSINNORIT), 1),
+      token(word(C.MERKHA, C.QADMA, C.PASEQ), 1),
+    ]);
+    expect(r.counts["azla-legarmeh"]).toBe(1);
+    expect(r.counts["sinnorit-merkha"]).toBe(1);
+    expect(r.counts["paseq"]).toBe(0);
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -291,6 +382,82 @@ describe("Ole VeYored", () => {
     const r = scanAccents([token(word(C.OLE, C.MERKHA))]);
     expect(r.counts["merkha"]).toBe(0);
     expect(r.counts["sinnorit-merkha"]).toBe(0);
+  });
+
+  it("Galgal + Ole + Merkha same word → ole-veyored only; galgal absorbed (Psalm 5:10)", () => {
+    const r = scanAccents([token(word(C.GALGAL, C.OLE, C.MERKHA))]);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["galgal"]).toBe(0);
+    expect(r.counts["ole"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    expect(r.ids[0]).toEqual(["ole-veyored"]);
+    expect(tokenCategory(r.ids[0])).toBe(2);
+    // all three marks are claimed by the single occurrence
+    expect(r.spans["ole-veyored"][0].claims).toHaveLength(3);
+  });
+
+  it("Mahpakh + Ole + Merkha same word → ole-veyored only; mahpakh absorbed", () => {
+    const r = scanAccents([token(word(C.MAHAPAKH, C.OLE, C.MERKHA))]);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["mahpakh"]).toBe(0);
+    expect(r.ids[0]).toEqual(["ole-veyored"]);
+    expect(r.spans["ole-veyored"][0].claims).toHaveLength(3);
+  });
+
+  it("cross-word: Galgal + Ole (lead word) → lead labeled ole-veyored only (Job 3:6)", () => {
+    const r = scanAccents([token(word(C.GALGAL, C.OLE), 1), token(word(C.MERKHA), 1)]);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["galgal"]).toBe(0);
+    expect(r.counts["ole"]).toBe(0);
+    expect(r.counts["merkha"]).toBe(0);
+    const occ = r.spans["ole-veyored"][0];
+    expect(occ.lead).toEqual([0]);
+    expect(occ.head).toEqual([1]);
+    expect(occ.claims).toHaveLength(3);
+    expect(r.underIds[0]).toEqual(["ole-veyored"]);
+    expect(r.ids[1]).toEqual(["ole-veyored"]);
+  });
+
+  it("cross-word: Mahpakh on the lead word is absorbed (Psalm 53:4)", () => {
+    const r = scanAccents([token(word(C.MAHAPAKH, C.OLE), 1), token(word(C.MERKHA), 1)]);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["mahpakh"]).toBe(0);
+    expect(r.underIds[0]).toEqual(["ole-veyored"]);
+  });
+
+  it("cross-word: Galgal on the Merkha's (head) word is absorbed", () => {
+    const r = scanAccents([token(word(C.OLE), 1), token(word(C.MERKHA, C.GALGAL), 1)]);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["galgal"]).toBe(0);
+    expect(r.ids[1]).toEqual(["ole-veyored"]);
+  });
+
+  it("absorption requires the Ole VeYored to form: Galgal + Ole with no Merkha → both bare", () => {
+    const r = scanAccents([token(word(C.GALGAL, C.OLE), 1), token(word(C.MUNACH), 1)]);
+    expect(r.counts["ole-veyored"]).toBe(0);
+    expect(r.counts["galgal"]).toBe(1);
+    expect(r.counts["ole"]).toBe(1);
+  });
+
+  it("a Mahpakh already committed to a Legarmeh is NOT stolen by a nearby Ole VeYored", () => {
+    const r = scanAccents([
+      token(word(C.MAHAPAKH, C.PASEQ), 1),
+      token(word(C.OLE), 1),
+      token(word(C.MERKHA), 1),
+    ]);
+    expect(r.counts["mahpakh-legarmeh"]).toBe(1);
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["mahpakh"]).toBe(0);
+    expect(r.counts["paseq"]).toBe(0);
+  });
+
+  it("on one word, a Legarmeh-committed Mahpakh stays with the Legarmeh (boundary)", () => {
+    const r = scanAccents([token(word(C.MAHAPAKH, C.OLE, C.MERKHA, C.PASEQ))]);
+    expect(r.counts["mahpakh-legarmeh"]).toBe(1); // pass 8 commits Mahpakh + Paseq first
+    expect(r.counts["ole-veyored"]).toBe(1);
+    expect(r.counts["mahpakh"]).toBe(0);
+    expect(r.counts["paseq"]).toBe(0);
+    expect(r.ids[0].sort()).toEqual(["mahpakh-legarmeh", "ole-veyored"]);
   });
 });
 
