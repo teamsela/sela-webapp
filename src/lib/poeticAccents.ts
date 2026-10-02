@@ -18,6 +18,10 @@
  *      marks no compound claimed.
  *   4. `emit()` is atomic: it refuses if ANY of the marks it would claim is
  *      already taken — guaranteeing no double counting.
+ *   5. An occurrence may claim marks beyond its own signature, absorbing them
+ *      (Dechi absorbs a following Munach/Merkha/Revia; Ole VeYored absorbs a
+ *      Galgal/Mahpakh on the words it touches, so those words are labeled by
+ *      the Ole VeYored alone).
  *
  * A "prosodic word" is one or more tokens joined by maqqef (U+05BE). Compounds
  * that span "two adjacent words" span two adjacent prosodic words in the same
@@ -292,13 +296,24 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
    * Two-mark accent over the same or the immediately-next word in the verse.
    * Claims left-to-right; on the same word the second mark must follow the
    * first. When `sameWordOnly`, never reaches into the next word.
+   *
+   * When `absorbCps` is given, every FREE mark of those codepoints on the
+   * word(s) the occurrence touches is claimed BY this occurrence as well —
+   * those marks are relegated: the word is labeled by this accent only, never
+   * also by the absorbed one(s). Absorbed marks that an EARLIER pass already
+   * committed (e.g. a Mahpakh owned by a Legarmeh) stay with that pass.
    */
   const pairScan = (
     id: string,
     firstCp: number,
     secondCp: number,
-    opts: { sameWordOnly?: boolean } = {},
+    opts: { sameWordOnly?: boolean; absorbCps?: number[] } = {},
   ): void => {
+    const absorb = (words: number[]): MarkPos[] =>
+      (opts.absorbCps ?? [])
+        .flatMap((cp) => words.flatMap((wd) => freeMarksInWord(wd, cp)))
+        .sort(posCmp);
+
     for (let w = 0; w < prosodicWords.length; w++) {
       for (const first of marksInWord(w, firstCp)) {
         if (!isFree(first)) continue;
@@ -306,7 +321,7 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
         // Same word: earliest free `secondCp` strictly after the first mark.
         const sameWord = freeMarksInWord(w, secondCp).filter((m) => posLess(first, m));
         if (sameWord.length) {
-          emit(id, [], wordTokens(w), [first, sameWord[0]]);
+          emit(id, [], wordTokens(w), [first, sameWord[0], ...absorb([w])]);
           continue;
         }
         if (opts.sameWordOnly) continue;
@@ -316,7 +331,7 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
         if (nw === null) continue;
         const nextWord = freeMarksInWord(nw, secondCp);
         if (nextWord.length) {
-          emit(id, wordTokens(w), wordTokens(nw), [first, nextWord[0]]);
+          emit(id, wordTokens(w), wordTokens(nw), [first, nextWord[0], ...absorb([w, nw])]);
         }
       }
     }
@@ -400,22 +415,46 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
     }
   };
 
-  // Pass 9: one-word Sinnorit Merkha (Tsinnorit before Merkha, same word)
-  // followed by a word-final Paseq on the same or next word → plain Paseq.
+  // Pass 9: a Sinnorit Merkha — Tsinnorit before Merkha on the same word, or
+  // the Tsinnorit on one word and the Merkha on the immediately following word
+  // — that is FOLLOWED by a word-final Paseq (on the Merkha's word or the next
+  // word in the verse) → the whole sequence labels as plain Paseq, claiming
+  // all three marks. Runs AFTER the Legarmeh family (pass 8) so a Paseq owned
+  // by a Legarmeh is never eaten here, and BEFORE the pair scans (passes
+  // 10–18) so the pre-empted marks are already taken.
   const scanPaseqAfterSinnoritMerkha = (): void => {
     for (let w = 0; w < prosodicWords.length; w++) {
-      const tsinnorit = freeMarksInWord(w, CP.TSINNORIT)[0];
-      if (!tsinnorit) continue;
-      const merkha = freeMarksInWord(w, CP.MERKHA).filter((m) => posLess(tsinnorit, m))[0];
-      if (!merkha) continue;
+      for (const tsinnorit of marksInWord(w, CP.TSINNORIT)) {
+        if (!isFree(tsinnorit)) continue;
 
-      let paseq = wordFinalPaseqPos(w);
-      if (!paseq || !isFree(paseq)) {
-        const nw = nextWordSameVerse(w);
-        paseq = nw === null ? null : wordFinalPaseqPos(nw);
-      }
-      if (paseq && isFree(paseq)) {
-        emit("paseq", [], wordTokens(w), [tsinnorit, merkha, paseq]);
+        // The Merkha this Tsinnorit pairs with: same word (strictly after the
+        // Tsinnorit), else the first free Merkha of the next word in the verse.
+        // This mirrors pairScan("sinnorit-merkha") exactly, so the pre-emption
+        // claims precisely the pair that pass 14 would otherwise form.
+        const sameWord = freeMarksInWord(w, CP.MERKHA).filter((m) => posLess(tsinnorit, m));
+        let merkha: MarkPos;
+        let headWord = w;
+        if (sameWord.length) {
+          merkha = sameWord[0];
+        } else {
+          const nw = nextWordSameVerse(w);
+          if (nw === null) continue;
+          const next = freeMarksInWord(nw, CP.MERKHA);
+          if (!next.length) continue;
+          merkha = next[0];
+          headWord = nw;
+        }
+
+        // Followed by a word-final Paseq on the Merkha's word or the next word.
+        let paseq = wordFinalPaseqPos(headWord);
+        if (!paseq || !isFree(paseq)) {
+          const after = nextWordSameVerse(headWord);
+          paseq = after === null ? null : wordFinalPaseqPos(after);
+        }
+        if (!paseq || !isFree(paseq)) continue;
+
+        const lead = headWord === w ? [] : wordTokens(w);
+        emit("paseq", lead, wordTokens(headWord), [tsinnorit, merkha, paseq]);
       }
     }
   };
@@ -435,7 +474,13 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
     () => bareScan("pazer", CP.PAZER), // 7  L4
     scanLegarmehFamily, // 8  L2/L4
     scanPaseqAfterSinnoritMerkha, // 9  conjunctive paseq
-    () => pairScan("ole-veyored", CP.OLE, CP.MERKHA, { sameWordOnly: true }), // 10 L2 (same word)
+    // Ole VeYored absorbs any free Galgal/Mahpakh on its word, so the word is
+    // labeled Ole VeYored ONLY (Psalm 5:10 shape: Galgal + Ole + Merkha).
+    () =>
+      pairScan("ole-veyored", CP.OLE, CP.MERKHA, {
+        sameWordOnly: true,
+        absorbCps: [CP.GALGAL, CP.MAHAPAKH],
+      }), // 10 L2 (same word)
     () => pairScan("azla-illuy", CP.QADMA, CP.ILUY), // 11 L2
     () => pairScan("illuy-illuy", CP.ILUY, CP.ILUY), // 12 L2
     () => pairScan("tarcha-munach", CP.TARCHA, CP.MUNACH), // 13 L2
@@ -443,7 +488,12 @@ export function scanAccents(tokens: AccentToken[]): ScanResult {
     () => pairScan("azla-tarcha", CP.QADMA, CP.TARCHA), // 15 L3
     () => pairScan("munach-munach", CP.MUNACH, CP.MUNACH), // 16 L3
     () => pairScan("sinnorit-mahpakh", CP.TSINNORIT, CP.MAHAPAKH, { sameWordOnly: true }), // 17 conj
-    () => pairScan("ole-veyored", CP.OLE, CP.MERKHA), // 18 L2 (cross word)
+    // Cross-word: same absorption on both the Ole's word (lead) and the
+    // Merkha's word (head) — the Ole VeYored trumps a Galgal/Mahpakh there.
+    () =>
+      pairScan("ole-veyored", CP.OLE, CP.MERKHA, {
+        absorbCps: [CP.GALGAL, CP.MAHAPAKH],
+      }), // 18 L2 (cross word)
     () => bareScan("munach", CP.MUNACH), // 19
     () => bareScan("merkha", CP.MERKHA), // 20
     () => bareScan("tarcha", CP.TARCHA), // 21
