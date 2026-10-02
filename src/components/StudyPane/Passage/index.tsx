@@ -605,22 +605,24 @@ const Passage = ({
         console.warn("Failed to parse study notes; resetting to defaults", err);
       }
 
-      const updatedStudyNotes: StudyNotes = {
-        ...oldNotes,
-        strophes: migrateStropheArray(oldNotes.strophes ?? []),
-      };
+      // Each layer has its own structure (layerWordMaps), and stropheRanges
+      // describes only the active layer's new structure. Migrate just the
+      // active layer's notes; other layers' strophes haven't changed, so
+      // re-mapping them here would merge/split their titles to match this one.
+      const activeLayerKey = String(ctxActiveLayerId ?? 0);
+      const updatedStudyNotes: StudyNotes = { ...oldNotes };
 
-      // Also migrate every layer's strophe notes — otherwise the stale
-      // layerStrophes entries continue to win over the migrated root array
-      // (readLayerStrophe prefers layerStrophes[layerId] over strophes).
-      if (oldNotes.layerStrophes) {
-        const migratedLayers: Record<string, StropheNote[]> = {};
-        for (const [layerKey, layerArr] of Object.entries(oldNotes.layerStrophes)) {
-          if (Array.isArray(layerArr)) {
-            migratedLayers[layerKey] = migrateStropheArray(layerArr);
-          }
-        }
-        updatedStudyNotes.layerStrophes = migratedLayers;
+      // The root `strophes` array is only read as layer 0's legacy fallback.
+      if ((ctxActiveLayerId ?? 0) === 0) {
+        updatedStudyNotes.strophes = migrateStropheArray(oldNotes.strophes ?? []);
+      }
+
+      const activeLayerArr = oldNotes.layerStrophes?.[activeLayerKey];
+      if (Array.isArray(activeLayerArr)) {
+        updatedStudyNotes.layerStrophes = {
+          ...oldNotes.layerStrophes,
+          [activeLayerKey]: migrateStropheArray(activeLayerArr),
+        };
       }
       ctxSetStudyNotes(JSON.stringify(updatedStudyNotes));
       ctxSetNoteMerge(true);
@@ -640,7 +642,7 @@ const Passage = ({
       // Reset the structure update type
       ctxSetStructureUpdateType(StructureUpdateType.none);
     }
-  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn]);
+  }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn, ctxActiveLayerId]);
 
   const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect identical words
