@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LuTextSelect, LuChevronUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
 import { FormatContext } from "..";
@@ -159,6 +159,25 @@ const Layers = () => {
     };
     document.addEventListener("mousedown", onDocMouseDown);
     return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [notesExpanded]);
+
+  // Expanding a note unmounts the other layers, which shrinks the scrollable
+  // sidebar and makes the browser clamp its scroll position to the top. Remember
+  // the position when the note opens and restore it once the note collapses.
+  const savedScrollRef = useRef<{ el: HTMLElement; top: number } | null>(null);
+
+  const expandNotes = () => {
+    let el: HTMLElement | null = paneRef.current?.parentElement ?? null;
+    while (el && el.scrollHeight <= el.clientHeight) el = el.parentElement;
+    savedScrollRef.current = el ? { el, top: el.scrollTop } : null;
+    setNotesExpanded(true);
+  };
+
+  useLayoutEffect(() => {
+    if (notesExpanded || !savedScrollRef.current) return;
+    const { el, top } = savedScrollRef.current;
+    savedScrollRef.current = null;
+    el.scrollTop = top;
   }, [notesExpanded]);
 
   // State for the "create new layer" box.
@@ -546,7 +565,7 @@ const Layers = () => {
                   <div className="px-3 pb-3">
                     <div
                       className="w-full cursor-text overflow-hidden text-ellipsis whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm dark:bg-boxdark"
-                      onClick={() => setNotesExpanded(true)}
+                      onClick={expandNotes}
                     >
                       {notePeek ? (
                         <span className="text-black dark:text-white">{notePeek}</span>
