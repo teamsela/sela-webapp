@@ -515,10 +515,13 @@ export const StropheBlock = ({
     // (w-0 min-w-full, so it adds no width of its own) fills whatever width the row
     // ends up with. A long title stops widening the stanza at the cap, yet still
     // shows in full when wider sibling strophes have made the row wider.
+    // The sizer must use overflow-clip, not overflow-hidden: a hidden-overflow box
+    // has a zero min-content width, and default-view stanzas are flex-1 (basis 0),
+    // so they size to min-content and the strophe would collapse to its buttons.
     return (
       <div ref={collapsedTitleRowRef} className="grid w-full items-center">
         <span
-          className={`invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap px-1 text-base font-semibold ${stropheNoteTitle ? '' : 'italic'}`}
+          className={`invisible col-start-1 row-start-1 h-0 overflow-clip whitespace-nowrap px-1 text-base font-semibold ${stropheNoteTitle ? '' : 'italic'}`}
           style={{ maxWidth: COLLAPSED_TITLE_MAX_WIDTH }}
           aria-hidden="true"
         >
