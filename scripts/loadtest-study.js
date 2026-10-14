@@ -149,9 +149,9 @@ const passageQuery = (where) => `
   SELECT h."hebId", h.chapter, h.verse, h."strongNumber", h."wlcWord", h."hebUnicode",
          h.gloss, h."ETCBCgloss", h.morphology, h."BSBnewLine", h."BSBstanzaBreak",
          m.categories, m."relatedStrongCodes", l.lemma
-  FROM heb_bible_test h
-  LEFT JOIN motif_test m ON h."motifLink" = m.xata_id
-  LEFT JOIN lexicon_test l ON m."lemmaLink" = l.xata_id
+  FROM heb_bible h
+  LEFT JOIN motif m ON h."motifLink" = m.xata_id
+  LEFT JOIN lexicon l ON m."lemmaLink" = l.xata_id
   WHERE ${where}
   ORDER BY h."hebId" ASC`;
 
@@ -618,7 +618,7 @@ async function main() {
   const first = results[0];
   console.log('\nPer-phase p95 at highest concurrency (VUs=' + last.concurrency + '):');
   if (last.insert)      console.log(`  INSERT study .............. ${ms(last.insert.p95)}`);
-  if (last.passageJoin) console.log(`  heb_bible_test join ....... ${ms(last.passageJoin.p95)}   (${last.words} words)`);
+  if (last.passageJoin) console.log(`  heb_bible join ............ ${ms(last.passageJoin.p95)}   (${last.words} words)`);
   if (last.stepBible)   console.log(`  stepbible_tbesh lookups ... ${ms(last.stepBible.p95)}` +
                                     (last.strongs ? `   (${last.strongs} strongs, ${last.unresolved} needing the LIKE fallback)` : ''));
   console.log(`  pool checkout wait ........ ${ms(last.poolWait.p95)}`);

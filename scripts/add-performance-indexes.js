@@ -3,7 +3,7 @@
   Adds the indexes the hot read path needs, and collects the planner statistics
   that have never been gathered on the reference tables.
 
-  Context: heb_bible_test (305k rows / 190 MB), stepbible_tbesh and motif_test
+  Context: heb_bible (305k rows / 190 MB), stepbible_tbesh and motif
   carried no index other than the xata_id primary key and had never been
   ANALYZEd, so every study page load ran a parallel sequential scan over the
   whole Hebrew Bible table. See scripts/loadtest-study.js for the measurements.
@@ -21,9 +21,9 @@ const { Client } = require('pg');
 
 const INDEXES = [
   // The passage range filter: book + chapter + verse, ordered by hebId.
-  ['heb_bible_test_passage_idx',
-   `CREATE INDEX CONCURRENTLY IF NOT EXISTS heb_bible_test_passage_idx
-      ON heb_bible_test (book, chapter, verse, "hebId")`],
+  ['heb_bible_passage_idx',
+   `CREATE INDEX CONCURRENTLY IF NOT EXISTS heb_bible_passage_idx
+      ON heb_bible (book, chapter, verse, "hebId")`],
 
   /*
     text_pattern_ops on the three StepBible code columns. These serve BOTH
@@ -46,7 +46,7 @@ const INDEXES = [
    `CREATE INDEX CONCURRENTLY IF NOT EXISTS study_owner_idx ON study (owner)`],
 ];
 
-const ANALYZE = ['heb_bible_test', 'stepbible_tbesh', 'motif_test', 'lexicon_test', 'study'];
+const ANALYZE = ['heb_bible', 'stepbible_tbesh', 'motif', 'lexicon', 'study'];
 
 /*
   Created by an earlier version of this script and since measured as never used

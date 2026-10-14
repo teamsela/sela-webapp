@@ -548,8 +548,8 @@ const createPassageRangeCondition = (passageInfo: PassageInfo): SQL => {
   its motif links and StepBible lexicon entries.
 
   Split out of fetchPassageData so it can be cached. It is a pure function of
-  (book, passage) - nothing in here reads the study row - and heb_bible_test,
-  motif_test, lexicon_test and stepbible_tbesh are immutable reference data, so
+  (book, passage) - nothing in here reads the study row - and heb_bible,
+  motif, lexicon and stepbible_tbesh are immutable reference data, so
   the same passage produces the same result for every user, forever.
 */
 async function loadBibleData(book: string, passage: string): Promise<WordProps[]> {

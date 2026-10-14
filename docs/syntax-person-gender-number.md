@@ -11,7 +11,7 @@ text- and pixel-identical to the previous PDF.
 
 The revised section replaces the separate Person, Gender, and Number chips.
 It uses the existing passage `word.morphology` data path: the application's
-`hebBible.morphology` mapping (`heb_bible_test`, the current equivalent of the
+`hebBible.morphology` mapping (`heb_bible`, the current equivalent of the
 mockup's Xata `Heb_Bible` table). No additional database request or migration is
 needed. The existing passage loader's StepBible fallback is unchanged.
 
