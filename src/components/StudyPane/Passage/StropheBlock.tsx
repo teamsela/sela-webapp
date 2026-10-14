@@ -9,7 +9,7 @@ import { ColorData, StropheProps } from '@/lib/data';
 import { readStropheNoteTitle } from "@/lib/counter";
 import { combineNoteDoc, replaceFirstLine } from "@/lib/richText";
 import { buildStropheNotesPayload, readLayerStrophe, saveStudyNotes } from "@/lib/stropheNotes";
-import { strophesHasSameColor } from "@/lib/utils";
+import { focusAtEnd, strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
 import { StropheAlignContext } from './stropheAlign';
@@ -97,7 +97,7 @@ export const StropheBlock = ({
     titleEditClosedRef.current = false;
     setIsEditingTitle(true);
     // Focus the textarea after it mounts
-    setTimeout(() => titleInputRef.current?.focus(), 0);
+    setTimeout(() => focusAtEnd(titleInputRef.current), 0);
   };
 
   const cancelEditingTitle = () => {
