@@ -34,6 +34,7 @@ export const StropheBlock = ({
   }) => {
 
   const ACTION_ICON_SIZE = 22;
+  const COLLAPSED_TITLE_MAX_WIDTH = "28rem";
   const NOTE_PANEL_WIDTH = 360;
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
@@ -494,7 +495,7 @@ export const StropheBlock = ({
         <div
           ref={titleEditorAreaRef}
           className="flex w-full min-w-[12rem] items-center"
-          style={collapsedEditorWidth ? { minWidth: `max(12rem, ${collapsedEditorWidth}px)` } : undefined}
+          style={collapsedEditorWidth ? { minWidth: `clamp(12rem, ${collapsedEditorWidth}px, ${COLLAPSED_TITLE_MAX_WIDTH})` } : undefined}
         >
           {renderTitleTextarea("h-7 py-px")}
         </div>
@@ -509,19 +510,33 @@ export const StropheBlock = ({
         {stropheNoteTitle || "Add strophe title..."}
       </span>
     );
+    // The row is a one-cell grid: an invisible copy of the title, capped at
+    // COLLAPSED_TITLE_MAX_WIDTH, sets the strophe's width, while the visible title
+    // (w-0 min-w-full, so it adds no width of its own) fills whatever width the row
+    // ends up with. A long title stops widening the stanza at the cap, yet still
+    // shows in full when wider sibling strophes have made the row wider.
     return (
-      <div ref={collapsedTitleRowRef} className="flex w-full items-center">
+      <div ref={collapsedTitleRowRef} className="grid w-full items-center">
+        <span
+          className={`invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap px-1 text-base font-semibold ${stropheNoteTitle ? '' : 'italic'}`}
+          style={{ maxWidth: COLLAPSED_TITLE_MAX_WIDTH }}
+          aria-hidden="true"
+        >
+          {stropheNoteTitle || "Add strophe title..."}
+        </span>
         {canEditTitle ? (
           <button
             type="button"
             onClick={startEditingTitle}
             onMouseDown={(e) => e.stopPropagation()}
-            className="group flex h-7 w-full items-center rounded px-1 transition-colors hover:bg-theme active:bg-transparent"
+            className="group col-start-1 row-start-1 flex h-7 w-0 min-w-full items-center rounded px-1 transition-colors hover:bg-theme active:bg-transparent"
             aria-label={stropheNoteTitle ? "Edit strophe title" : "Add strophe title"}
           >
             {text}
           </button>
-        ) : text}
+        ) : (
+          <div className="col-start-1 row-start-1 w-0 min-w-full px-1">{text}</div>
+        )}
       </div>
     );
   };
