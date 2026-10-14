@@ -81,8 +81,17 @@ export const StropheBlock = ({
   const titleEditClosedRef = useRef(true);
   const canEditTitle = !ctxInViewMode;
 
+  // The collapsed title row sizes the (wordless) collapsed strophe. Its width is
+  // captured when editing starts so the editor keeps that width instead of
+  // snapping to the textarea's default size.
+  const collapsedTitleRowRef = useRef<HTMLDivElement | null>(null);
+  const [collapsedEditorWidth, setCollapsedEditorWidth] = useState<number | undefined>(undefined);
+
   const startEditingTitle = () => {
     if (!canEditTitle) return;
+    const rowWidth = collapsedTitleRowRef.current?.getBoundingClientRect().width;
+    const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+    setCollapsedEditorWidth(rowWidth ? rowWidth / scale : undefined);
     setEditTitleValue(stropheNoteTitle);
     titleEditClosedRef.current = false;
     setIsEditingTitle(true);
@@ -473,15 +482,20 @@ export const StropheBlock = ({
     );
   };
 
-  // A collapsed strophe shows its title on one line in place of the words, using
-  // the full width beside the action buttons (the outer padding already clears
-  // them). Editors can click it — or the empty row — to edit, with the same yellow
+  // A collapsed strophe shows its title on one line in place of the words. With no
+  // words to size the box, the title's natural (unwrapped) width sets it — unlike
+  // the expanded title's w-0 min-w-full, which would let the strophe collapse to
+  // just its buttons. Wider sibling strophes still stretch it to full width. Editors can click it — or the empty row — to edit, with the same yellow
   // hover as an expanded strophe. h-7 keeps the box inside its 45px min height so
   // the counter column beside it stays aligned.
   const renderCollapsedTitle = () => {
     if (isEditingTitle) {
       return (
-        <div ref={titleEditorAreaRef} className="flex w-0 min-w-full items-center">
+        <div
+          ref={titleEditorAreaRef}
+          className="flex w-full min-w-[12rem] items-center"
+          style={collapsedEditorWidth ? { minWidth: `max(12rem, ${collapsedEditorWidth}px)` } : undefined}
+        >
           {renderTitleTextarea("h-7 py-px")}
         </div>
       );
@@ -496,7 +510,7 @@ export const StropheBlock = ({
       </span>
     );
     return (
-      <div className="flex w-0 min-w-full items-center">
+      <div ref={collapsedTitleRowRef} className="flex w-full items-center">
         {canEditTitle ? (
           <button
             type="button"
