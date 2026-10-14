@@ -446,15 +446,17 @@ export const StropheBlock = ({
         {stropheNoteTitle}
       </span>
     );
+    // Editors get a full-width button styled like the "Add strophe title..." hover
+    // strip (yellow on hover, h-8 min to match the editor so nothing shifts on click).
     return (
-      <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
+      <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${canEditTitle ? '' : noteTitleWrapperClass}`}>
         {canEditTitle ? (
           <button
             type="button"
             onClick={startEditingTitle}
             onMouseDown={(e) => e.stopPropagation()}
-            className="w-full rounded hover:bg-black/5 active:bg-transparent"
-            title="Edit title"
+            className={`flex min-h-8 w-full items-center rounded px-1 transition-colors hover:bg-theme active:bg-transparent ${noteTitleWrapperClass}`}
+            aria-label="Edit strophe title"
           >
             {titleText}
           </button>
