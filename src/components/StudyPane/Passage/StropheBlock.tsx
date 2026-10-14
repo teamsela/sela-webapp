@@ -268,7 +268,8 @@ export const StropheBlock = ({
   const showOverlayNote = shouldShowNote && !ctxStropheNoteBtnOn;
   const shouldRenderWordArea = expanded && stanzaExpanded;
   const renderSideBySide = ctxStropheNoteBtnOn && shouldShowNote && shouldShowWords;
-  const shouldShowCollapsedTitle = !expanded && stanzaExpanded && Boolean(stropheNoteTitle);
+  // Editors always get the collapsed title row so they can add a title there too.
+  const shouldShowCollapsedTitle = !expanded && stanzaExpanded && (Boolean(stropheNoteTitle) || !ctxInViewMode);
   const notePanelStyle = useMemo(() => {
     if (!ctxStropheNoteBtnOn) {
       return undefined;
@@ -398,6 +399,35 @@ export const StropheBlock = ({
     </div>
   );
 
+  // Title editor, shared by the expanded title row (h-8) and the collapsed one
+  // (h-7). `sizeClass` sets height + vertical padding so the editor matches the
+  // row it replaces and the words/counters don't move when it opens.
+  const renderTitleTextarea = (sizeClass: string) => (
+    <textarea
+      ref={titleInputRef}
+      rows={1}
+      value={editTitleValue}
+      onChange={(e) => setEditTitleValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveTitle();
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelEditingTitle();
+        }
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onBlur={saveTitle}
+      dir="auto"
+      className={`block ${sizeClass} w-full resize-none overflow-hidden rounded border border-primary bg-transparent px-1 leading-6 text-base font-semibold outline-none ${noteTitleTextClass}`}
+      style={{ color: contrastingForegroundColor }}
+      placeholder="Add strophe title..."
+    />
+  );
+
   // Strophe-note title above the word rows. The single-language counter stack
   // (CounterStropheBlock) reserves matching vertical space for it so the two
   // stacks stay row-aligned. Editors can click the title to edit it in place.
@@ -411,29 +441,7 @@ export const StropheBlock = ({
           ref={(node) => { titleEditorAreaRef.current = node; attachTitleArea(node); }}
           className="mb-2 flex w-0 min-w-full items-center"
         >
-          <textarea
-            ref={titleInputRef}
-            rows={1}
-            value={editTitleValue}
-            onChange={(e) => setEditTitleValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                saveTitle();
-              }
-              if (e.key === 'Escape') {
-                e.preventDefault();
-                cancelEditingTitle();
-              }
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onBlur={saveTitle}
-            dir="auto"
-            className={`block h-8 w-full resize-none overflow-hidden rounded border border-primary bg-transparent px-1 py-[3px] leading-6 text-base font-semibold outline-none ${noteTitleTextClass}`}
-            style={{ color: contrastingForegroundColor }}
-            placeholder="Add strophe title..."
-          />
+          {renderTitleTextarea("h-8 py-[3px]")}
         </div>
       );
     }
@@ -461,6 +469,45 @@ export const StropheBlock = ({
             {titleText}
           </button>
         ) : titleText}
+      </div>
+    );
+  };
+
+  // A collapsed strophe shows its title on one line in place of the words, using
+  // the full width beside the action buttons (the outer padding already clears
+  // them). Editors can click it — or the empty row — to edit, with the same yellow
+  // hover as an expanded strophe. h-7 keeps the box inside its 45px min height so
+  // the counter column beside it stays aligned.
+  const renderCollapsedTitle = () => {
+    if (isEditingTitle) {
+      return (
+        <div ref={titleEditorAreaRef} className="flex w-0 min-w-full items-center">
+          {renderTitleTextarea("h-7 py-px")}
+        </div>
+      );
+    }
+    const text = (
+      <span
+        className={`block w-full truncate text-base font-semibold ${noteTitleTextClass} ${stropheNoteTitle ? '' : 'italic opacity-0 transition-opacity group-hover:opacity-50'}`}
+        dir="auto"
+        style={{ color: contrastingForegroundColor }}
+      >
+        {stropheNoteTitle || "Add strophe title..."}
+      </span>
+    );
+    return (
+      <div className="flex w-0 min-w-full items-center">
+        {canEditTitle ? (
+          <button
+            type="button"
+            onClick={startEditingTitle}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="group flex h-7 w-full items-center rounded px-1 transition-colors hover:bg-theme active:bg-transparent"
+            aria-label={stropheNoteTitle ? "Edit strophe title" : "Add strophe title"}
+          >
+            {text}
+          </button>
+        ) : text}
       </div>
     );
   };
@@ -571,17 +618,7 @@ export const StropheBlock = ({
         <></>
       }
       </div>
-      {shouldShowCollapsedTitle && (
-        <div className={`flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
-          <span
-            className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
-            dir="auto"
-            style={{ color: contrastingForegroundColor }}
-          >
-            {stropheNoteTitle}
-          </span>
-        </div>
-      )}
+      {shouldShowCollapsedTitle && renderCollapsedTitle()}
       <div className={`${contentWidthClass} ${renderSideBySide ? 'flex flex-row gap-5' : 'flex flex-col gap-5'} ${ctxIsHebrew && renderSideBySide ? 'flex-row-reverse' : ''}`}>
         {
           ctxStropheNoteBtnOn ? (
