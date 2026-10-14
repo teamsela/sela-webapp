@@ -7,6 +7,8 @@ import { WordBlock } from './WordBlock';
 import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { readStropheNoteTitle } from "@/lib/counter";
+import { combineNoteDoc, replaceFirstLine } from "@/lib/richText";
+import { buildStropheNotesPayload, readLayerStrophe, saveStudyNotes } from "@/lib/stropheNotes";
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
@@ -37,7 +39,7 @@ export const StropheBlock = ({
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
-    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
+    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn, ctxSetStudyNotes,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
   const stropheAlign = useContext(StropheAlignContext);
@@ -65,6 +67,76 @@ export const StropheBlock = ({
     () => readStropheNoteTitle(ctxStudyNotes, ctxActiveLayerId, stropheProps.stropheId),
     [ctxStudyNotes, stropheProps.stropheId, ctxActiveLayerId]
   );
+
+  // Inline title editing. The title IS the strophe note's first line, so saving
+  // rewrites that line of the note (on the active layer) rather than a separate
+  // field — the note panel and the title can never disagree.
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState("");
+  const titleInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const titleEditorAreaRef = useRef<HTMLDivElement | null>(null);
+  const saveTitleRef = useRef<() => void>(() => {});
+  // Set once an edit is saved or cancelled, so the blur that follows unmounting
+  // the textarea (Enter / Escape) can't save it a second time.
+  const titleEditClosedRef = useRef(true);
+  const canEditTitle = !ctxInViewMode;
+
+  const startEditingTitle = () => {
+    if (!canEditTitle) return;
+    setEditTitleValue(stropheNoteTitle);
+    titleEditClosedRef.current = false;
+    setIsEditingTitle(true);
+    // Focus the textarea after it mounts
+    setTimeout(() => titleInputRef.current?.focus(), 0);
+  };
+
+  const cancelEditingTitle = () => {
+    titleEditClosedRef.current = true;
+    setIsEditingTitle(false);
+  };
+
+  const saveTitle = () => {
+    if (titleEditClosedRef.current) return;
+    titleEditClosedRef.current = true;
+    setIsEditingTitle(false);
+    const newTitle = editTitleValue.replace(/\s+/g, " ").trim();
+    if (!canEditTitle || newTitle === stropheNoteTitle) return;
+    const activeLayerId = ctxActiveLayerId ?? 0;
+    let note;
+    try {
+      note = ctxStudyNotes ? readLayerStrophe(JSON.parse(ctxStudyNotes), activeLayerId, stropheProps.stropheId) : undefined;
+    } catch {
+      note = undefined;
+    }
+    const noteDoc = replaceFirstLine(combineNoteDoc(note?.title, note?.text), newTitle);
+    const payload = buildStropheNotesPayload(ctxStudyNotes, activeLayerId, stropheProps.stropheId, noteDoc, firstWordId, lastWordId);
+    ctxSetStudyNotes(payload);
+    if (ctxStudyId) {
+      void saveStudyNotes(ctxStudyId, payload);
+    }
+  };
+
+  saveTitleRef.current = saveTitle;
+
+  // Save when the user clicks anywhere outside the title editor.
+  useEffect(() => {
+    if (!isEditingTitle) return;
+
+    const handleOutsidePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (titleEditorAreaRef.current?.contains(target)) return;
+      saveTitleRef.current();
+    };
+
+    document.addEventListener("mousedown", handleOutsidePointerDown);
+    document.addEventListener("touchstart", handleOutsidePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsidePointerDown);
+      document.removeEventListener("touchstart", handleOutsidePointerDown);
+    };
+  }, [isEditingTitle]);
 
   const noteTitleWrapperClass = useMemo(
     () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),
@@ -328,23 +400,101 @@ export const StropheBlock = ({
 
   // Strophe-note title above the word rows. The single-language counter stack
   // (CounterStropheBlock) reserves matching vertical space for it so the two
-  // stacks stay row-aligned.
+  // stacks stay row-aligned. Editors can click the title to edit it in place.
   const renderStropheTitle = () => {
-    if (!stropheNoteTitle || !shouldRenderWordArea) {
+    if (!shouldRenderWordArea || (!stropheNoteTitle && !isEditingTitle)) {
       return null;
     }
+    if (isEditingTitle) {
+      return (
+        <div
+          ref={(node) => { titleEditorAreaRef.current = node; attachTitleArea(node); }}
+          className="mb-2 flex w-0 min-w-full items-center"
+        >
+          <textarea
+            ref={titleInputRef}
+            rows={1}
+            value={editTitleValue}
+            onChange={(e) => setEditTitleValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                saveTitle();
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEditingTitle();
+              }
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onBlur={saveTitle}
+            dir="auto"
+            className={`block h-8 w-full resize-none overflow-hidden rounded border border-primary bg-transparent px-1 py-[3px] leading-6 text-base font-semibold outline-none ${noteTitleTextClass}`}
+            style={{ color: contrastingForegroundColor }}
+            placeholder="Add strophe title..."
+          />
+        </div>
+      );
+    }
+    const titleText = (
+      <span
+        className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
+        dir="auto"
+        style={{ color: contrastingForegroundColor }}
+      >
+        {stropheNoteTitle}
+      </span>
+    );
     return (
       <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
-        <span
-          className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
-          dir="auto"
-          style={{ color: contrastingForegroundColor }}
-        >
-          {stropheNoteTitle}
-        </span>
+        {canEditTitle ? (
+          <button
+            type="button"
+            onClick={startEditingTitle}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="w-full rounded hover:bg-black/5 active:bg-transparent"
+            title="Edit title"
+          >
+            {titleText}
+          </button>
+        ) : titleText}
       </div>
     );
   };
+
+  // Hover strip along the strophe's top padding for adding a title when there is
+  // none. At rest the wrapper sits inside the padding (-mt-2 cancels its h-2), so
+  // it takes no layout space and word rows stay aligned with the counter column.
+  // On hover the wrapper grows from the strophe's top edge (so it stays under the
+  // pointer and can't flicker) while the yellow bar inside starts below the
+  // padding, keeping the same top gap as a real title — like the stanza title.
+  // The bar matches the h-8 title editor, and pb-1 plus the first line row's own
+  // spacing equals the editor's mb-2 gap, so the words don't move on click.
+  const shouldShowAddTitleStrip =
+    canEditTitle && shouldRenderWordArea && !stropheNoteTitle && !isEditingTitle && !showOverlayNote;
+  const renderAddTitleStrip = () => (
+    <div
+      className="group -mt-2 h-2 w-full shrink-0 cursor-pointer transition-all duration-150 hover:h-11 hover:pb-1 hover:pt-2"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={startEditingTitle}
+      data-clicktype={'clickable'}
+    >
+      <button
+        type="button"
+        className={`flex h-full w-full items-center overflow-hidden rounded px-1 transition-colors group-hover:bg-theme ${noteTitleWrapperClass}`}
+        aria-label="Add strophe title"
+      >
+        <span
+          className={`block w-full truncate text-base font-semibold italic opacity-0 transition-opacity group-hover:opacity-50 ${noteTitleTextClass}`}
+          dir="auto"
+          style={{ color: contrastingForegroundColor }}
+        >
+          Add strophe title...
+        </span>
+      </button>
+    </div>
+  );
 
   // The strophe's line list. The in-text counter is rendered as a separate
   // side-by-side stack (single language: StanzaBlock + CounterStropheBlock;
@@ -371,6 +521,7 @@ export const StropheBlock = ({
         }
       }
     >
+      {shouldShowAddTitleStrip && renderAddTitleStrip()}
       <div
         className={actionButtonWrapperClass}
         >
