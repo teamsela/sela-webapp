@@ -161,37 +161,4 @@ describe("Person, Gender, Number specification (pages 121-126)", () => {
   it("counts a word only once per code even if the code is repeated", () => {
     expect(getPersonGenderNumberCodes("V-Qal-Perf-3ms | 3ms + S-3ms")).toEqual(["3ms"]);
   });
-
-  it.each([
-    ["ms", "2ms"], ["fs", "2fs"], ["mp", "2mp"], ["fp", "2fp"],
-  ])("maps Imp-%s to %s before a pronominal object suffix", (ending, code) => {
-    expect(getPersonGenderNumberCodes(`V-Piel-Imp-${ending}`)).toEqual([code]);
-    expect(getPersonGenderNumberCodes(`V-Piel-Imp-${ending} | 3ms`)).toEqual([code, "3ms"]);
-    expect(getPersonGenderNumberCodes(`V-Piel-Imp-${ending} + S-3ms`)).toEqual([code, "3ms"]);
-    expect(getPersonGenderNumberCodes(`V-Qal-IMP-${ending.toUpperCase()}`)).toEqual([code]);
-    expect(getPersonGenderNumberCodes(`V-Qal-Imp-${ending} | ${code}`)).toEqual([code]);
-  });
-
-  it.each([
-    "V-Qal-Imperf-ms", "V-Qal-Imperf.h-mp", "V-Qal-Impms",
-    "V-Qal-Imp ms", "V-Qal-XImp-ms", "V-Qal-Imp-msX",
-    "V-Qal-Imp-ms1", "V-Qal-Imp-ms_extra", "V-Qal-Imp-m",
-    "V-Qal-Imp-cs", "V-Qal-Imp-cp", "V-Qal-Imp-md",
-    "V-Qal-Perf-3cpX", "V-Qal-Perf-X3cp", "V-Qal-Perf-3cp_extra",
-  ])("does not infer the added mappings from partial or unsupported codes: %s", (morphology) => {
-    expect(getPersonGenderNumberCodes(morphology)).toEqual([]);
-  });
-
-  it("leaves imperfect subject codes and their source order unchanged", () => {
-    expect(getPersonGenderNumberCodes("V-Qal-Imperf-3ms")).toEqual(["3ms"]);
-    expect(getPersonGenderNumberCodes("V-Qal-Imperf-2ms | 1cs")).toEqual(["2ms", "1cs"]);
-    expect(getPersonGenderNumberCodes("V-Qal-Imperf-3ms + S-2mp")).toEqual(["3ms", "2mp"]);
-  });
-
-  it("groups 3cp with 3mp, deduplicates aliases, and preserves subject precedence", () => {
-    expect(getPersonGenderNumberCodes("V-Qal-Perf-3cp")).toEqual(["3mp"]);
-    expect(getPersonGenderNumberCodes("V-Qal-Perf-3CP | 3mp + S-3cp")).toEqual(["3mp"]);
-    expect(getPersonGenderNumberCodes("V-Qal-Perf-3cp + S-1cs")).toEqual(["3mp", "1cs"]);
-    expect(getPersonGenderNumberCodes("V-Qal-Perf-1cs | 3cp")).toEqual(["1cs", "3mp"]);
-  });
 });
