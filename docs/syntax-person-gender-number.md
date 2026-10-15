@@ -7,6 +7,10 @@ Smart Highlight rules. Page 127 adds the September 15 refinements and supersedes
 the earlier appearance/highlighting rules for zero-match chips. Pages 121-126 are
 text- and pixel-identical to the previous PDF.
 
+The October 14, 2026 revision slides supersede the PDF's morphology coverage,
+`3mp` display label, and info-dialog copy as described below. All other palette,
+selection, highlighting, and persistence rules remain unchanged.
+
 ## Data and matching
 
 The revised section replaces the separate Person, Gender, and Number chips.
@@ -15,11 +19,31 @@ It uses the existing passage `word.morphology` data path: the application's
 mockup's Xata `Heb_Bible` table). No additional database request or migration is
 needed. The existing passage loader's StepBible fallback is unchanged.
 
-Only complete morphology tokens in the ten-code list match; a noun's `ms` alone,
+Only complete supported morphology tokens match; a noun's `ms` alone,
 partial matches, or unsupported combinations do not. Each word contributes once
 to each matching chip. `V-Piel-Imperf.h-1cs | 2ms` counts in both chips, but its
 word box uses the first code's yellow. A subject followed by a pronominal object
 suffix likewise uses the subject's color.
+
+The October revision adds these mappings without adding chips:
+
+| Morphology | Chip |
+| --- | --- |
+| Imp-ms | 2ms |
+| Imp-fs | 2fs |
+| Imp-mp | 2mp |
+| Imp-fp | 2fp |
+| 3cp | 3mp / 3cp |
+
+Imperatives require the literal `Imp-` and a complete gender/number ending.
+`Imperf` is never treated as an imperative: its explicit person/gender/number
+codes still match normally. An imperative preceding an object suffix supplies
+the primary color (for example, `V-Piel-Imp-mp | 3ms` is pink `2mp`, not blue
+`3ms`). The `3mp / 3cp` chip counts both forms, once per word, and retains `3mp`
+as its internal key so existing saved selections/highlights remain compatible.
+The info dialog includes imperatives in the overview, defines common gender as
+unmarked, and explains imperative/3cp grouping and subject-only coloring in
+three disclaimer bullets.
 
 ## Exact palette
 
@@ -39,7 +63,7 @@ explicit page 126 font table for those two chips, rather than mixing the grays.
 | Code | Gloss | Fill | Font |
 | --- | --- | --- | --- |
 | 3ms | He Him His | #BBDEFB | #666666 |
-| 3mp | They Them Their | #F8BBD0 | #666666 |
+| 3mp / 3cp | They Them Their | #F8BBD0 | #666666 |
 | 2ms | You Your | #3F51B5 | #FFFFFF |
 | 2mp | You Your | #E91E63 | #FFFFFF |
 | 1cs | I Me My | #FFF9C4 | #666666 |
@@ -85,7 +109,7 @@ remain visible, with unavailable zero-count chips lighter and uncolored.
   boxes and chip palettes. Stale embedded word colors cannot make a cleared
   highlight remain visible after switching tools.
 - The info dialog includes the complete Overview, Legend, and Disclaimer from
-  page 123. Its native modal behavior supports keyboard focus containment,
+  the October revision slides (superseding page 123). Its native modal behavior supports keyboard focus containment,
   Escape, a close button, and backdrop dismissal.
 - PGN and both Sounds distributions reuse `common/InfoButton.tsx`: the same blue
   18px Material info icon as Structure/Pausal Forms, immediately after the heading.
