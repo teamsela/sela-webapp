@@ -452,16 +452,15 @@ describe("Person, Gender, Number acceptance", () => {
     expect(buttons).toHaveLength(10);
     PRESETS.forEach(({ code, gloss }, index) => {
       const button = buttons[index];
-      const label = code === "3mp" ? "3mp / 3cp" : code;
       expect(button).toBe(chip(code));
-      expect(button).toHaveAccessibleName(`${label} ${gloss}, ${counts[index]} occurrences`);
+      expect(button).toHaveAccessibleName(`${code} ${gloss}, ${counts[index]} occurrences`);
       expect(button).toHaveAttribute("type", "button");
       expect(button).toHaveAttribute("aria-pressed", "false");
       expect(within(button).getByText(gloss)).toHaveClass("whitespace-nowrap");
       expect(button).toHaveStyle({ border: "2px solid #D9D9D9" });
       expect(button).toHaveClass("rounded");
       expect(button).not.toHaveClass("rounded-lg");
-      expect(within(button).getByText(label, { exact: true })).toHaveClass("text-lg", "font-bold");
+      expect(within(button).getByText(code, { exact: true })).toHaveClass("text-lg", "font-bold");
       expect(within(button).getByText(String(counts[index]), { exact: true })).toBeVisible();
       expectPalette(button, "#FFFFFF", "#666666");
     });
@@ -476,100 +475,6 @@ describe("Person, Gender, Number acceptance", () => {
     expect(context().ctxPassageProps.stanzaCount).toBe(2);
     expect(context().ctxPassageProps.stropheCount).toBe(4);
     expect(saveMetadata).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    { morphology: "V-Qal-Imp-ms", code: "2ms", fill: "#3F51B5", text: "#FFFFFF" },
-    { morphology: "V-Qal-Imp-fs", code: "2fs", fill: "#9C27B0", text: "#FFFFFF" },
-    { morphology: "V-Piel-Imp-mp", code: "2mp", fill: "#E91E63", text: "#FFFFFF" },
-    { morphology: "V-Qal-Imp-fp", code: "2fp", fill: "#607D8B", text: "#FFFFFF" },
-    { morphology: "V-Qal-Perf-3cp", code: "3mp", fill: "#F8BBD0", text: "#666666" },
-  ] as const)("counts, selects, colors, persists and reloads $morphology under $code", async ({
-    morphology, code, fill, text,
-  }) => {
-    const words = [
-      makeWord(1, morphology),
-      makeWord(2, `${morphology} | 3ms`),
-      makeWord(3, `${morphology} + S-3ms`),
-      makeWord(4, `${morphology} | ${code}`),
-      makeWord(5, "V-Qal-Imperf-3ms"),
-      makeWord(6, "N-ms"),
-    ];
-    const first = renderHarness({ words });
-    await openPerson(first.user);
-    expect(chip(code)).toHaveAccessibleName(/, 4 occurrences$/);
-    expect(chip("3ms")).toHaveAccessibleName(/, 3 occurrences$/);
-    await first.user.click(chip(code));
-    expectSelection(first.context(), [1, 2, 3, 4]);
-    await first.user.click(screen.getByRole("button", { name: "Smart Highlight" }));
-    const saved = structuredClone(lastSavedMetadata());
-    expect(saved.personGenderNumberHighlights).toEqual({ "0": [code] });
-    for (const id of [1, 2, 3, 4]) {
-      expectPalette(wordBlock(id), fill, text);
-      expect(saved.words[id].color).toEqual({ fill, text, border: "#D9D9D9" });
-    }
-    expectDefaultWord(5);
-    expectDefaultWord(6);
-    expectPalette(chip("3ms"), "#FFFFFF", "#666666");
-    first.unmount();
-
-    const second = renderHarness({ words, metadata: JSON.parse(JSON.stringify(saved)) });
-    await openPerson(second.user);
-    expect(second.context().ctxActiveHighlightIds.syntax).toBe(`person-gender-number__${code}`);
-    expectPalette(chip(code), fill, text);
-    for (const id of [1, 2, 3, 4]) expectPalette(wordBlock(id), fill, text);
-    await second.user.click(screen.getByRole("button", { name: "Clear Highlight" }));
-    for (const id of [1, 2, 3, 4]) expectDefaultWord(id);
-    expect(lastSavedMetadata()).toEqual({ words: {} });
-  });
-
-  it("uses the imperative subject color even when only its object suffix is selected", async () => {
-    const { user, context } = renderHarness({
-      words: [makeWord(1, "V-Piel-Imp-mp | 3ms"), makeWord(2, "Pro-3ms")],
-    });
-    await openPerson(user);
-    await user.click(chip("3ms"));
-    expectSelection(context(), [1, 2]);
-    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
-    expectPalette(wordBlock(1), "#E91E63", "#FFFFFF");
-    expectPalette(wordBlock(2), "#BBDEFB", "#666666");
-    expectPalette(chip("3ms"), "#BBDEFB", "#666666");
-    expectPalette(chip("2mp"), "#FFFFFF", "#666666");
-  });
-
-  it("includes new mappings in whole-section highlighting, undo/redo and deterministic reapplication", async () => {
-    const { user, context } = renderHarness({
-      words: [
-        makeWord(1, "V-Qal-Imp-ms"), makeWord(2, "V-Piel-Imp-mp | 3ms"),
-        makeWord(3, "V-Qal-Imp-fs"), makeWord(4, "V-Qal-Imp-fp"),
-        makeWord(5, "V-Qal-Perf-3cp | 3mp"), makeWord(6, "V-Qal-Imperf-3ms"),
-        makeWord(7, "V-Qal-Imperf-2ms"), makeWord(8, "N-ms"),
-      ],
-    });
-    await openPerson(user);
-    expect(chip("2ms")).toHaveAccessibleName(/, 2 occurrences$/);
-    expect(chip("3mp")).toHaveAccessibleName("3mp / 3cp They Them Their, 1 occurrences");
-    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
-    const saved = structuredClone(lastSavedMetadata());
-    expect(context().ctxWordsColorMap.size).toBe(7);
-    expectPalette(wordBlock(1), "#3F51B5", "#FFFFFF");
-    expectPalette(wordBlock(2), "#E91E63", "#FFFFFF");
-    expectPalette(wordBlock(3), "#9C27B0", "#FFFFFF");
-    expectPalette(wordBlock(4), "#607D8B", "#FFFFFF");
-    expectPalette(wordBlock(5), "#F8BBD0", "#666666");
-    expectPalette(wordBlock(6), "#BBDEFB", "#666666");
-    expectPalette(wordBlock(7), "#3F51B5", "#FFFFFF");
-    expectDefaultWord(8);
-    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
-    for (let id = 1; id <= 8; id++) expectDefaultWord(id);
-    await user.click(screen.getByRole("button", { name: "Restore previous snapshot" }));
-    expect(context().ctxStudyMetadata).toEqual(saved);
-    expectPalette(wordBlock(2), "#E91E63", "#FFFFFF");
-    expectPalette(wordBlock(5), "#F8BBD0", "#666666");
-    await user.click(screen.getByRole("button", { name: "Restore next snapshot" }));
-    expect(context().ctxWordsColorMap.size).toBe(0);
-    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
-    expect(lastSavedMetadata()).toEqual(saved);
   });
 
   it("highlights every exact match once using all ten literal chip/word palettes and persists the same colors", async () => {
@@ -1225,22 +1130,15 @@ describe("Person, Gender, Number acceptance", () => {
       expect(within(dialog).getByRole("heading", { name: heading })).toBeVisible();
     }
     expect(dialog).toHaveTextContent(
-      'This tool highlights every word carrying grammatical person (verb conjugation, imperative, pronominal suffix, or independent pronoun) to surface person and number shifts, a structural device in Hebrew poetry that often marks strophe and stanza boundaries. Common patterns include address shifting between speaker and community ("I will praise" to "let us praise"), and address to YHWH shifting from direct ("you") to descriptive ("he"), a classic hymnic pivot.',
+      'This tool highlights every word carrying grammatical person (verb conjugation, pronominal suffix, or independent pronoun) to surface person and number shifts, a structural device in Hebrew poetry that often marks strophe and stanza boundaries. Common patterns include address shifting between speaker and community ("I will praise" to "let us praise"), and address to YHWH shifting from direct ("you") to descriptive ("he") \u2014 a classic hymnic pivot.',
     );
     expect(dialog).toHaveTextContent("Each code is Person, Gender, Number.");
     expect(dialog).toHaveTextContent("Person: 1st (speaker), 2nd (addressee), 3rd (other)");
-    expect(dialog).toHaveTextContent("Gender: m (masculine), f (feminine), c (common, unmarked for gender)");
+    expect(dialog).toHaveTextContent("Gender: m (masculine), f (feminine), c (common \u2014 1st person only)");
     expect(dialog).toHaveTextContent("Number: s (singular), p (plural)");
-    expect(dialog).toHaveTextContent('For example, 2ms means 2nd person, masculine, singular: "you," addressing one person.');
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+    expect(dialog).toHaveTextContent('For example, 2ms means 2nd person, masculine, singular \u2014 "you," addressing one person.');
     expect(dialog).toHaveTextContent(
-      'Imperatives are included under 2nd person, since commands always address "you" (e.g., Imp-ms appears under 2ms).',
-    );
-    expect(dialog).toHaveTextContent(
-      "3cp (3rd person common plural, used in perfect verbs) is grouped with 3mp and may include feminine subjects.",
-    );
-    expect(dialog).toHaveTextContent(
-      'When a verb or imperative also carries a pronominal object suffix (e.g., "he will bless us," "praise him"), the smart highlighter colors the word by subject only, to reflect who is acting rather than who is receiving the action.',
+      'When a verb is conjugated with both a subject and a pronominal object suffix (e.g. "he will bless us"), the smart highlighter colors the word by subject only to reflect who is acting, not who is receiving the action.',
     );
     await user.click(within(dialog).getByRole("heading", { name: "Overview" }));
     expect(dialog).toHaveAttribute("open");

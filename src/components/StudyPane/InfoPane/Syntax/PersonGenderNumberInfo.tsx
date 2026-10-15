@@ -35,41 +35,30 @@ const PersonGenderNumberInfo = () => {
           </h2>
           <h3 className="mt-4 font-semibold">Overview</h3>
           <p className="mt-2 text-sm leading-relaxed">
-            This tool highlights every word carrying grammatical person (verb conjugation, imperative,
+            This tool highlights every word carrying grammatical person (verb conjugation,
             pronominal suffix, or independent pronoun) to surface person and number shifts,
             a structural device in Hebrew poetry that often marks strophe and stanza boundaries.
             Common patterns include address shifting between speaker and community
             (&quot;I will praise&quot; to &quot;let us praise&quot;), and address to YHWH shifting
-            from direct (&quot;you&quot;) to descriptive (&quot;he&quot;), a classic hymnic pivot.
+            from direct (&quot;you&quot;) to descriptive (&quot;he&quot;) &mdash; a classic hymnic pivot.
           </p>
           <h3 className="mt-4 font-semibold">Legend</h3>
           <div className="mt-2 space-y-1 text-sm leading-relaxed">
             <p>Each code is Person, Gender, Number.</p>
             <p>Person: 1st (speaker), 2nd (addressee), 3rd (other)</p>
-            <p>Gender: m (masculine), f (feminine), c (common, unmarked for gender)</p>
+            <p>Gender: m (masculine), f (feminine), c (common &mdash; 1st person only)</p>
             <p>Number: s (singular), p (plural)</p>
             <p>
-              For example, 2ms means 2nd person, masculine, singular:
+              For example, 2ms means 2nd person, masculine, singular &mdash;
               &quot;you,&quot; addressing one person.
             </p>
           </div>
           <h3 className="mt-4 font-semibold">Disclaimer</h3>
-          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-relaxed">
-            <li>
-              Imperatives are included under 2nd person, since commands always address
-              &quot;you&quot; (e.g., Imp-ms appears under 2ms).
-            </li>
-            <li>
-              3cp (3rd person common plural, used in perfect verbs) is grouped with 3mp
-              and may include feminine subjects.
-            </li>
-            <li>
-              When a verb or imperative also carries a pronominal object suffix
-              (e.g., &quot;he will bless us,&quot; &quot;praise him&quot;), the smart highlighter
-              colors the word by subject only, to reflect who is acting rather than
-              who is receiving the action.
-            </li>
-          </ul>
+          <p className="mt-2 text-sm leading-relaxed">
+            When a verb is conjugated with both a subject and a pronominal object suffix
+            (e.g. &quot;he will bless us&quot;), the smart highlighter colors the word by subject
+            only to reflect who is acting, not who is receiving the action.
+          </p>
         </div>
       </dialog>
     </>
