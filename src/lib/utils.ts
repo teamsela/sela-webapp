@@ -515,3 +515,11 @@ export const formatBookAndPassage = (book:string, passage:string):string => {
   const formattedBook = book.charAt(0).toUpperCase()+book.slice(1);
   return `${formattedBook} ${passage}`;
 }
+
+/** Focus a text field with the caret at the end of its value (not the start). */
+export const focusAtEnd = (el: HTMLInputElement | HTMLTextAreaElement | null) => {
+  if (!el) return;
+  el.focus();
+  const end = el.value.length;
+  el.setSelectionRange(end, end);
+};

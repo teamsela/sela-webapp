@@ -134,6 +134,28 @@ export function combineNoteDoc(title: string | undefined, text: unknown): RichDo
   };
 }
 
+/**
+ * Set the note's title (its first line) to `title`, leaving the rest of the note
+ * untouched. Used by the inline strophe-title editor so the title and the note's
+ * first line stay one and the same. A leading paragraph is replaced in place;
+ * anything else at the top (e.g. a list) is kept and the title is prepended, so
+ * no note content is ever lost. Returns the original doc when nothing changes,
+ * which preserves any formatting on an unedited title.
+ */
+export function replaceFirstLine(doc: RichDoc | string | undefined, title: string): RichDoc {
+  const d = toRichDoc(doc);
+  const t = title.replace(/\s+/g, " ").trim();
+  if (firstLineText(d) === t) return d;
+  const titleNode: RichNode = t
+    ? { type: "paragraph", content: [{ type: "text", text: t }] }
+    : { type: "paragraph" };
+  const [first, ...rest] = d.content;
+  if (!first || first.type === "paragraph") {
+    return { type: "doc", content: [{ ...titleNode, ...(first?.attrs ? { attrs: first.attrs } : {}) }, ...rest] };
+  }
+  return { type: "doc", content: [titleNode, ...d.content] };
+}
+
 // ---------------------------------------------------------------------------
 // Sanitizer — the server-side allow-list gate
 // ---------------------------------------------------------------------------
