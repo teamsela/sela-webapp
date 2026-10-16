@@ -13,6 +13,7 @@ const SyntaxLabel = ({
   isActive,
   isSelected,
   isDisabled = false,
+  fullWidth = false,
   onToggleSelection,
 }: {
   label: string;
@@ -22,6 +23,7 @@ const SyntaxLabel = ({
   isActive: boolean;
   isSelected: boolean;
   isDisabled?: boolean;
+  fullWidth?: boolean;
   onToggleSelection?: (isMultiSelect: boolean) => void;
 }) => {
   const disabled = isDisabled || wordCount === 0 || !onToggleSelection;
@@ -46,7 +48,7 @@ const SyntaxLabel = ({
 
   const containerClassName = [
     "wordBlock",
-    gloss ? "w-full" : "mx-1",
+    gloss || fullWidth ? "w-full" : "mx-1",
     "ClickBlock",
     "rounded",
     "border",
@@ -55,7 +57,7 @@ const SyntaxLabel = ({
   ].join(" ");
 
   return (
-    <div className={gloss ? "flex" : "flex my-1"}>
+    <div className={gloss || fullWidth ? "flex min-w-0" : "flex my-1"}>
       <button
         type="button"
         className={containerClassName}
@@ -72,7 +74,7 @@ const SyntaxLabel = ({
         <span
           className={`flex items-center my-1 ${gloss ? "mx-0.5 gap-0.5" : "mx-1"}`}
         >
-          <span className={`flex flex-1 flex-col select-none py-1 items-center justify-center text-center leading-none text-base ${gloss ? "min-w-0" : "px-2"}`}>
+          <span className={`flex flex-1 flex-col select-none py-1 items-center justify-center text-center leading-none ${fullWidth ? "min-w-0 text-sm" : "text-base"} ${gloss ? "min-w-0" : "px-2"}`}>
             {gloss && <span className="whitespace-nowrap text-xs leading-4">{gloss}</span>}
             <span className={gloss ? "text-lg font-bold leading-5" : undefined}>{label}</span>
           </span>
