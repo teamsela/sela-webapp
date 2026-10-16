@@ -11,6 +11,27 @@ The October 14, 2026 revision slides supersede the PDF's morphology coverage,
 `3mp` display label, and info-dialog copy as described below. All other palette,
 selection, highlighting, and persistence rules remain unchanged.
 
+## Related Verbal Conjugation refinement (October 15, 2026)
+
+The existing Syntax Verbal Conjugation tool adds **Consecutive Imperfect**
+(`ConsecImperf`) directly below Perfect, using Perfect's existing pink palette,
+and **Consecutive Perfect** (`ConjPerf`) directly below Imperfect, using
+Imperfect's existing blue palette. The nine chips use a two-column grid; the
+remaining five chips keep their order and behavior.
+
+Consecutive forms no longer contribute to the ordinary Perfect/Imperfect chips.
+Classification is exclusive across these four chips, including compound codes
+and pronominal suffixes. `ConjImperf` remains Imperfect; for example,
+`V-Piel-ConjImperf.Cohort-1cs` still also matches the existing Cohortative chip.
+That existing overlap is outside the four exclusive tense chips and unchanged.
+Selection remains additive, and Smart Highlight retains its existing
+whole-section behavior, history, saved colors, and clear/reapply interaction.
+
+Acceptance/regression tests cover the six supplied passage/code examples,
+case-insensitive matching, empty/unrelated codes, exact chip order, exclusive
+selections, shared palettes, persisted word/chip colors, undo/redo, reapplication,
+and switching to PGN without changing imperative or 3cp behavior.
+
 ## Data and matching
 
 The revised section replaces the separate Person, Gender, and Number chips.

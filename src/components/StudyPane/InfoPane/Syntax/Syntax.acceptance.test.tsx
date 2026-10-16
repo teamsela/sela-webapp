@@ -53,7 +53,7 @@ import { useDragToSelect } from "@/hooks/useDragToSelect";
 import { getPersonGenderNumberHighlightState } from "@/lib/personGenderNumber";
 import { FormatContext } from "../..";
 import { WordBlock } from "../../Passage/WordBlock";
-import Syntax from ".";
+import Syntax, { buildMorphFeatures, verbConjugationLabels } from ".";
 
 type FormatState = ContextType<typeof FormatContext>;
 
@@ -1258,6 +1258,113 @@ describe("Person, Gender, Number acceptance", () => {
 });
 
 describe("existing Syntax section regressions", () => {
+  it.each([
+    ["Psalm 1:3", "V-Qal-ConjPerf-3ms", "Consecutive Perfect"],
+    ["Genesis 2:24", "V-Qal-ConjPerf-3ms", "Consecutive Perfect"],
+    ["Genesis 1:3", "V-Qal-ConsecImperf-3ms", "Consecutive Imperfect"],
+    ["Genesis 1:1", "V-Qal-Perf-3ms", "Perfect"],
+    ["Psalm 1:2", "V-Qal-Imperf-3ms", "Imperfect"],
+    ["Genesis 12:2", "V-Piel-ConjImperf.Cohort-1cs", "Imperfect"],
+    ["case-insensitive", "v-qal-consecimperf-3ms", "Consecutive Imperfect"],
+    ["case-insensitive", "V-QAL-CONJPERF-3MS", "Consecutive Perfect"],
+    ["conjunction prefix", "Conj-w | V-Qal-ConsecImperf-3ms | 1cs", "Consecutive Imperfect"],
+    ["legacy perfect", "V-Qal-Perfect-3ms", "Perfect"],
+    ["legacy imperfect", "V-Qal-Imperfect-3ms", "Imperfect"],
+  ])("classifies %s (%s) under exactly one of the four tense chips", (_, morphology, expected) => {
+    const features = buildMorphFeatures(morphology)!;
+    expect(verbConjugationLabels.slice(0, 4)
+      .filter((label) => label.predicate(features)).map((label) => label.label)).toEqual([expected]);
+  });
+
+  it.each([undefined, "", "N-ms", "V-Qal-Imp-ms", "V-Qal-Inf", "V-Qal-Prtcpl-ms"])(
+    "does not put unrelated morphology into the four tense chips: %s",
+    (morphology) => {
+      const features = buildMorphFeatures(morphology);
+      expect(features ? verbConjugationLabels.slice(0, 4).filter((label) => label.predicate(features)) : [])
+        .toEqual([]);
+    },
+  );
+
+  it("renders nine conjugation chips in the requested two-column order and keeps their word groups exclusive", async () => {
+    const morphologies = [
+      "V-Qal-Perf-3ms", "V-Qal-Imperf-3ms",
+      "V-Qal-ConsecImperf-3ms", "V-Qal-ConjPerf-3ms",
+      "V-Qal-Prtcpl-ms", "V-Qal-Inf", "V-Qal-Imp-ms",
+      "V-Piel-ConjImperf.Cohort-1cs", "V-Qal-Jus-3ms",
+    ];
+    const { user, context } = renderHarness({
+      words: morphologies.map((morphology, i) => makeWord(i + 1, morphology)),
+    });
+    await user.click(screen.getByRole("button", { name: "Verb Conjugations" }));
+    const labels = [
+      ["Perfect", 1], ["Imperfect", 2],
+      ["Consecutive Imperfect", 1], ["Consecutive Perfect", 1],
+      ["Participle", 1], ["Infinitive", 1], ["Imperative", 1],
+      ["Cohortative", 1], ["Jussive", 1],
+    ] as const;
+    const buttons = labels.map(([label, count]) => legacyChip(label, count));
+    expect(buttons[0].parentElement?.parentElement).toHaveClass("grid", "grid-cols-2");
+    expect([...buttons[0].parentElement!.parentElement!.querySelectorAll("button")]).toEqual(buttons);
+    for (const [label, ids] of [
+      ["Perfect", [1]], ["Imperfect", [2, 8]],
+      ["Consecutive Imperfect", [3]], ["Consecutive Perfect", [4]],
+    ] as const) {
+      await user.click(legacyChip(label, ids.length));
+      expectSelection(context(), [...ids]);
+      await user.click(legacyChip(label, ids.length));
+      expectSelection(context(), []);
+    }
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    expect(context().ctxWordsColorMap.size).toBe(9);
+    const saved = structuredClone(lastSavedMetadata());
+    expect(saved.words[3].color).toEqual(saved.words[1].color);
+    expect(saved.words[4].color).toEqual(saved.words[2].color);
+    expect(saved.words[8].color).toEqual(saved.words[7].color);
+    expect(saved.words[1].color?.fill).not.toBe(saved.words[2].color?.fill);
+    for (const id of [1, 2, 3, 4]) {
+      const color = saved.words[id].color!;
+      expectPalette(wordBlock(id), color.fill!, color.text!);
+    }
+    expectPalette(legacyChip("Consecutive Imperfect", 1),
+      saved.words[1].color!.fill!, saved.words[1].color!.text!);
+    expectPalette(legacyChip("Consecutive Perfect", 1),
+      saved.words[2].color!.fill!, saved.words[2].color!.text!);
+    await user.click(screen.getByRole("button", { name: "Clear Highlight" }));
+    for (let id = 1; id <= 9; id++) expectDefaultWord(id);
+    await user.click(screen.getByRole("button", { name: "Restore previous snapshot" }));
+    expect(context().ctxStudyMetadata).toEqual(saved);
+    await user.click(screen.getByRole("button", { name: "Restore next snapshot" }));
+    expect(context().ctxWordsColorMap.size).toBe(0);
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    expect(lastSavedMetadata()).toEqual(saved);
+    await openPerson(user);
+    await user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    expectPalette(wordBlock(7), "#3F51B5", "#FFFFFF");
+    expectPalette(wordBlock(8), "#FFF9C4", "#666666");
+    expect(context().ctxActiveHighlightIds.syntax).toContain("person-gender-number__");
+  });
+
+  it("restores persisted consecutive word/chip colors after reload without changing PGN counts", async () => {
+    const words = [makeWord(1, "V-Qal-ConsecImperf-3ms"), makeWord(2, "V-Qal-ConjPerf-3cp")];
+    const first = renderHarness({ words });
+    await first.user.click(screen.getByRole("button", { name: "Verb Conjugations" }));
+    expect(legacyChip("Perfect", 0)).toBeDisabled();
+    expect(legacyChip("Imperfect", 0)).toBeDisabled();
+    await first.user.click(screen.getByRole("button", { name: "Smart Highlight" }));
+    const saved = structuredClone(lastSavedMetadata());
+    first.unmount();
+    const second = renderHarness({ words, metadata: JSON.parse(JSON.stringify(saved)) });
+    await second.user.click(screen.getByRole("button", { name: "Verb Conjugations" }));
+    for (const [label, id] of [["Consecutive Imperfect", 1], ["Consecutive Perfect", 2]] as const) {
+      const color = saved.words[id].color!;
+      expectPalette(legacyChip(label, 1), color.fill!, color.text!);
+      expectPalette(wordBlock(id), color.fill!, color.text!);
+    }
+    await openPerson(second.user);
+    expect(chip("3ms")).toHaveAccessibleName(/, 1 occurrences$/);
+    expect(chip("3mp")).toHaveAccessibleName(/, 1 occurrences$/);
+  });
+
   it("preserves all parts-of-speech counts, additive selections, whole-section highlighting and clear", async () => {
     const morphologies = [
       "V-Qal-Perf-3ms", "N-ms", "Adj-ms", "Adv-NegPrt", "Adv",
