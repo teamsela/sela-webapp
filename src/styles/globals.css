@@ -181,3 +181,41 @@ span.flatpickr-weekday,
 .hbFontExemption{
   direction: ltr !important;
 }
+
+/* Rich-text notes editor (Tiptap). Tailwind preflight strips list markers and
+   block margins, so re-enable them scoped to the editor content. */
+.tiptap-prose {
+  line-height: 1.5;
+  color: inherit;
+  word-break: break-word;
+}
+.tiptap-prose:focus {
+  outline: none;
+}
+.tiptap-prose p {
+  margin: 0 0 0.5rem;
+}
+.tiptap-prose p:last-child {
+  margin-bottom: 0;
+}
+.tiptap-prose ul,
+.tiptap-prose ol {
+  margin: 0 0 0.5rem;
+  padding-left: 1.5rem;
+}
+.tiptap-prose ul {
+  list-style-type: disc;
+}
+.tiptap-prose ol {
+  list-style-type: decimal;
+}
+.tiptap-prose li {
+  margin: 0.125rem 0;
+}
+.tiptap-prose li > p {
+  margin: 0;
+}
+.tiptap-prose mark {
+  border-radius: 0.2em;
+  padding: 0 0.1em;
+}

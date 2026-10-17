@@ -9,20 +9,21 @@ export const metadata: Metadata = {
   // other metadata
 };
 
-const PremarkedPage = ({
+const PremarkedPage = async ({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     query?: string;
     page?: string;
     sortBy?: string;
     sortAsc?: string;
-  };
+  }>;
 }) => {
-  const query = searchParams?.query || '';
-  const currentPage = Number(searchParams?.page) || 1;
-  const sortBy = searchParams?.sortBy || '';
-  const sortAsc = Boolean(searchParams?.sortAsc);
+  const sp = (await searchParams) ?? {};
+  const query = sp.query || '';
+  const currentPage = Number(sp.page) || 1;
+  const sortBy = sp.sortBy || '';
+  const sortAsc = Boolean(sp.sortAsc);
     
   return (
     <>

@@ -7,7 +7,8 @@ import { ColorActionType, StructureUpdateType } from '@/lib/types';
 export const useDragToSelect = (passageProps: PassageProps) => {
 
     const { ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedStrophes,
-        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox
+        ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxNoteBox, ctxSetNoteBox,
+        ctxSetNumSelectedLayers
     } = useContext(FormatContext)
 
     //drag-to-select module
@@ -16,7 +17,8 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [selectionStart, setSelectionStart] = useState<{ x: number, y: number } | null>(null);
     const [selectionEnd, setSelectionEnd] = useState<{ x: number, y: number } | null>(null);
-    const [clickToDeSelect, setClickToDeSelect] = useState(true);
+    // Use a ref (not state) so handleMouseUp always reads the current value without stale closure.
+    const clickToDeSelectRef = useRef(true);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -40,10 +42,11 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         setSelectionEnd(null);
         //click to de-select
         //if clicked on wordBlock, set status here so de-select function doesnt fire
-        //const target used to get rid of error Property 'getAttribute' does not exist on type 'EventTarget'.ts(2339)
+        // Use closest() so clicks on inner child spans (e.g. Hebrew highlight
+        // segments) correctly resolve the clickable ancestor, not just the direct target.
         const target = event.target as HTMLElement;
-        const clickedTarget = target.getAttribute('data-clickType');
-        clickedTarget == "clickable" ? setClickToDeSelect(false) : setClickToDeSelect(true);
+        const clickableAncestor = target.closest('[data-clicktype="clickable"]');
+        clickToDeSelectRef.current = !clickableAncestor;
     };
 
     let rects;
@@ -118,12 +121,18 @@ export const useDragToSelect = (passageProps: PassageProps) => {
         if (shouldSkip) {
             return;
         }
-        if (!selectionEnd && clickToDeSelect) {
+        if (!selectionEnd && clickToDeSelectRef.current) {
             ctxSetNumSelectedWords(0);
             ctxSetSelectedWords([]);
             ctxSetSelectedStrophes([]);
+            // Clicking the passage workspace also de-selects any active layer.
+            // Scope this to clicks that actually land inside the passage container
+            // so toolbar/color-picker clicks don't spuriously drop the layer.
+            if (containerRef.current && containerRef.current.contains(target)) {
+                ctxSetNumSelectedLayers(0);
+            }
         }
-    }, [selectionEnd, clickToDeSelect, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes]);
+    }, [selectionEnd, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetSelectedStrophes, ctxSetNumSelectedLayers]);
 
   
     useEffect(() => {
@@ -156,54 +165,14 @@ export const useDragToSelect = (passageProps: PassageProps) => {
     };
 
 
-    //pull all word blocks from passageData ////////////////////////////////////////
-    const selectAll = (array: any[]): any[] => {
-        let result: object[] = []
-        const findWordsArrays = (item: object[]) => {
-            for (const [key, value] of Object.entries(item)) {
-                if (Array.isArray(value)) {
-                    if (key === "words") {
-                        for (let i = 0; i < value.length; i++) {
-                            result.push(value[i]);
-                        }
-                    }
-                    else {
-                        value.flatMap(findWordsArrays)
-                    }
-                }
-            }
-        };
-        array.flatMap(findWordsArrays);
-        return result ?? [];
-    }
-    /////////////////////////////////////////////////////////////
-    // ctrl+A////////////////////////////////
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "a") {
-                event.preventDefault(); // Prevent default select all action
-                //select all word blocks
-                let allWordsArr: any[] = selectAll(passageProps.stanzaProps);
-                ctxSetSelectedWords(allWordsArr);
-                ctxSetNumSelectedWords(allWordsArr.length);       
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [ ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetBorderColor, ctxSetColorFill, ctxSetTextColor]);
-    ///////////////////////////////////////////////////
-
-
     return {
         isDragging,
         selectionStart,
         selectionEnd,
-        clickToDeSelect,
+        clickToDeSelect: clickToDeSelectRef.current,
         handleMouseDown,
         handleMouseUp,
-        setClickToDeSelect,
+        setClickToDeSelect: (val: boolean) => { clickToDeSelectRef.current = val; },
         containerRef,
         getSelectionBoxStyle
     };

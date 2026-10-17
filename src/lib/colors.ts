@@ -1,6 +1,12 @@
+// Per-word color defaults.
 export const DEFAULT_COLOR_FILL = "#FFFFFF";
 export const DEFAULT_BORDER_COLOR = "#D9D9D9";
 export const DEFAULT_TEXT_COLOR = "#525252";
+
+// Per-layer color defaults.
+export const DEFAULT_LAYER_FILL = "#D9D9D9";
+export const DEFAULT_LAYER_BORDER = "transparent";
+export const DEFAULT_LAYER_TEXT = "#000000";
 
 export const FALLBACK_SWATCH_GROUPS: string[][] = [
   ["#B71C1C", "#D32F2F", "#F44336", "#E57373", "#FFCDD2", "#FFE6E9"],

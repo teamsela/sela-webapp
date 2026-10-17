@@ -1,9 +1,15 @@
 import { ColorData, PassageProps, StropheProps, WordProps, StudyMetadata, WordMetadata } from "./data";
-import { psalmBook, genesisBook, isaiahBook, jonahBook } from "./chapterCounts";
+import { psalmBook, genesisBook, isaiahBook, jonahBook, proverbsBook, ecclesiastesBook, songsBook, exodusBook, leviticusBook, numbersBook, deuteronomyBook, joshuaBook, judgesBook, ruthBook, firstSamuelBook, secondSamuelBook, firstKingsBook, secondKingsBook, firstChroniclesBook, secondChroniclesBook, ezraBook, nehemiahBook, estherBook, jobBook, jeremiahBook, lamentationsBook, ezekielBook, danielBook, hoseaBook, joelBook, amosBook, obadiahBook, micahBook, nahumBook, habakkukBook, zephaniahBook, haggaiBook, zechariahBook, malachiBook } from "./chapterCounts";
 import { ColorActionType, StropheNote } from "./types";
 import { z } from 'zod';
 
-const otBookSchema = z.enum(['genesis', 'psalms', 'isaiah', 'jonah'])
+const otBookSchema = z.enum(['genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy', 
+  'joshua', 'judges', 'ruth', '1 samuel', '2 samuel', 
+  '1 kings', '2 kings', '1 chronicles', '2 chronicles', 
+  'ezra', 'nehemiah', 'esther', 'job', 'psalms', 'proverbs', 
+  'ecclesiastes', 'songs', 'isaiah', 'jeremiah', 'lamentations', 
+  'ezekiel', 'daniel', 'hosea', 'joel', 'amos', 'obadiah', 'jonah', 
+  'micah', 'nahum', 'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'])
 
 export type PassageInfo = {
     book: string|null|undefined,
@@ -26,11 +32,45 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
   const [, strStartChapter, , strStartVerse, , strEndChapter, , strEndVerse] = match;
   const bookMap = {
     genesis: genesisBook,
+    exodus: exodusBook,
+    leviticus: leviticusBook,
+    numbers: numbersBook,
+    deuteronomy: deuteronomyBook,
+    joshua: joshuaBook,
+    judges: judgesBook,
+    ruth: ruthBook,
+    '1 samuel': firstSamuelBook,
+    '2 samuel': secondSamuelBook,
+    '1 kings': firstKingsBook,
+    '2 kings': secondKingsBook,
+    '1 chronicles': firstChroniclesBook,
+    '2 chronicles': secondChroniclesBook,
+    ezra: ezraBook,
+    nehemiah: nehemiahBook,
+    esther: estherBook,
+    job: jobBook,
     psalms: psalmBook,
+    proverbs: proverbsBook,
+    ecclesiastes: ecclesiastesBook,
+    songs: songsBook,
     isaiah: isaiahBook,
+    jeremiah: jeremiahBook,
+    lamentations: lamentationsBook,
+    ezekiel: ezekielBook,
+    daniel: danielBook,
+    hosea: hoseaBook,
+    joel: joelBook,
+    amos: amosBook,
+    obadiah: obadiahBook,
     jonah: jonahBook,
+    micah: micahBook,
+    nahum: nahumBook,
+    habakkuk: habakkukBook,
+    zephaniah: zephaniahBook,
+    haggai: haggaiBook,
+    zechariah: zechariahBook,
+    malachi: malachiBook
   }[book];
-  const totalChapters = Object.keys(bookMap).length;
   const startChapter = parseInt(strStartChapter, 10);
   const startChapterVerseCount = bookMap[startChapter];
 
@@ -73,9 +113,11 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
       }
       endVerse = parseInt(strEndVerse, 10);
     } else {
-      // Decide if the trailing number is referencing a chapter or verse.
+      // With a start verse and no explicit end verse (e.g. "2:10-3"), infer
+      // chapter range when the trailing number cannot be a valid same-chapter
+      // end verse.
       const treatAsChapter =
-        rawEndNumber > startChapterVerseCount || rawEndNumber <= totalChapters;
+        rawEndNumber > startChapterVerseCount || rawEndNumber < startVerse;
       if (treatAsChapter) {
         endChapter = rawEndNumber;
         const endChapterVerseCount = bookMap[endChapter];
@@ -96,7 +138,6 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
     endChapter,
     endVerse,
   };
-  console.log(result);
 
   const endChapterVerseCount = bookMap[result.endChapter];
 
@@ -231,10 +272,8 @@ const resolveWordColorValue = (
     const metadataEntry =
       (metadataMap as Record<number, WordMetadata | undefined>)[word.wordId] ??
       (metadataMap as Record<string, WordMetadata | undefined>)[word.wordId.toString()];
-    const colorFromMetadata = metadataEntry?.color?.[key];
-    if (colorFromMetadata !== undefined) {
-      return colorFromMetadata;
-    }
+    // An explicit map is authoritative after Clear, even if embedded word data is stale.
+    return metadataEntry?.color?.[key];
   }
 
   return word.metadata?.color?.[key];
@@ -341,7 +380,11 @@ export function strophesHasSameColor(strophes: StropheProps[], actionType: Color
   return true;
 }
 
-export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata) : PassageProps => {
+export const mergeData = (
+  bibleData: WordProps[],
+  studyMetadata : StudyMetadata,
+  options?: { useSourceStanzaBreaks?: boolean }
+) : PassageProps => {
 
   let passageProps : PassageProps = { stanzaProps: [], stanzaCount: 0, stropheCount: 0 }
 
@@ -350,6 +393,9 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
   let runningStropheIdx = -1;
   let currentLineIdx = -1;
   let prevVerseNum = 0;
+  // Reader mode: lay the passage out by the Bible's own (BSB) source breaks
+  // instead of the user's custom strophe/stanza/line divisions.
+  const useReadmeParagraphMode = options?.useSourceStanzaBreaks === true;
 
   bibleData.forEach((wordProps) => {
 
@@ -369,7 +415,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
     }
 
     let currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
-    if (currentStanzaData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stanzaDiv)) {
+    // Honor user-defined stanza divisions in BOTH normal and reader mode so the
+    // strophe/stanza structure is shared (co-edited) across the two views.
+    const startsNewStanza = Boolean(wordProps.metadata?.stanzaDiv);
+    if (currentStanzaData === undefined || startsNewStanza) {
       passageProps.stanzaProps.push({stanzaId: ++currentStanzaIdx, strophes:[], metadata: {}});
       currentStanzaData = passageProps.stanzaProps[currentStanzaIdx];
 
@@ -383,7 +432,10 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
     }
 
     let currentStropheData = currentStanzaData.strophes[currentStropheIdx];
-    if (currentStropheData === undefined || (wordProps.metadata !== undefined && wordProps.metadata.stropheDiv)) {
+    // Honor user-defined strophe divisions in both normal and reader mode (see
+    // stanza note above).
+    const startsNewStrophe = Boolean(wordProps.metadata?.stropheDiv);
+    if (currentStropheData === undefined || startsNewStrophe) {
       passageProps.stanzaProps[currentStanzaIdx].strophes.push({stropheId: ++runningStropheIdx, lines: [], metadata: {}});
       ++currentStropheIdx;
       currentStropheData = passageProps.stanzaProps[currentStanzaIdx].strophes[currentStropheIdx];
@@ -401,8 +453,29 @@ export const mergeData = (bibleData: WordProps[], studyMetadata : StudyMetadata)
 
     let currentLineData = currentStropheData.lines[currentLineIdx];
     let ignoreNewLine = wordProps.metadata?.ignoreNewLine || false;
-    if (currentLineData === undefined || (!ignoreNewLine && (wordProps.newLine || (wordProps.metadata && wordProps.metadata.lineBreak)))) {
-      currentStropheData.lines.push({lineId: ++currentLineIdx, words: []})
+    wordProps.newVerse = prevVerseNum !== 0 && prevVerseNum !== wordProps.verse;
+    const hasSourceLineBreak = useReadmeParagraphMode ? wordProps.BSBnewLine : wordProps.newLine;
+    const hasManualLineBreak = Boolean(wordProps.metadata?.lineBreak);
+    // A BSB source stanza break becomes an extra paragraph gap in reader mode,
+    // unless the word already begins a user-defined strophe/stanza (whose own
+    // spacing takes over) — avoids a redundant blank line.
+    const startsNewParagraph = useReadmeParagraphMode
+      && !ignoreNewLine
+      && Boolean(wordProps.BSBstanzaBreak)
+      && currentLineData !== undefined
+      && currentLineData.words.length > 0
+      && !startsNewStrophe
+      && !startsNewStanza;
+    if (
+      currentLineData === undefined
+      || startsNewParagraph
+      || (!ignoreNewLine && (hasSourceLineBreak || hasManualLineBreak))
+    ) {
+      currentStropheData.lines.push({
+        lineId: ++currentLineIdx,
+        words: [],
+        paragraphBreakBefore: startsNewParagraph,
+      })
       currentLineData = currentStropheData.lines[currentLineIdx];
     }
 

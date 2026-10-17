@@ -9,8 +9,10 @@ export const study = pgTable('study', {
   public: boolean('public').default(false),
   model: boolean('model').default(false),
   metadata: jsonb('metadata').default({ words: [] }),
+  //layers: jsonb('layers').default({ }),
   notes: text('notes'),
   starred: boolean('starred').default(false),
+  scriptura: boolean('scriptura').default(false),
   updatedAt: text('updatedTime'),
   createdAt: text('createdTime'),
 });
@@ -23,10 +25,12 @@ export const hebBible = pgTable('heb_bible', {
   verse: integer('verse'),
   strongNumber: doublePrecision('strongNumber'),
   wlcWord: text('wlcWord'),
+  hebUnicode: text('hebUnicode'), // OHB Hebrew text (qere readings, e.g. אֲדֹנָי for יהוה)
   gloss: text('gloss'),
   ETCBCgloss: text('ETCBCgloss'),
   morphology: text('morphology'),
   BSBnewLine: boolean('BSBnewLine'),
+  BSBstanzaBreak: boolean('BSBstanzaBreak'),
   motifLinkId: text('motifLink'), // FK to motif_link
 });
 

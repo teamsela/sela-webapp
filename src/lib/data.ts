@@ -1,21 +1,22 @@
-import { BoxDisplayConfig, LanguageMode } from "@/lib/types"
+import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
+import type { PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
-export type ColorSource = "syntax" | "motif";
+export type ColorSource = "syntax" | "motif" | "structure" | "pausal";
 
 export type ColorData = {
-    fill?: string,
-    border?: string,
-    text?: string,
-    source?: ColorSource
+    fill?: string;
+    border?: string;
+    text?: string;
+    source?: ColorSource;
 }
 
 export type WordMetadata = {
-    indent?: number,
-    lineBreak?: boolean,
-    ignoreNewLine?: boolean, // ignore the new line in default Bible data
-    stanzaDiv?: boolean,
+    indent?: number;
+    lineBreak?: boolean;
+    ignoreNewLine?: boolean; // ignore the new line in default Bible data
+    stanzaDiv?: boolean;
     stanzaMd?: StanzaMetadata;
-    stropheDiv?: boolean,
+    stropheDiv?: boolean;
     stropheMd?: StropheMetadata;
     color?: ColorData;
     glossOverride?: string; // optional custom English text
@@ -27,26 +28,41 @@ export type WordMap = {
 
 export type StropheMetadata = {
     expanded?: boolean;
-    color?: ColorData
+    color?: ColorData;
+    notes?: string;
 }
 
 export type StropheMap = {
-    [id: number]: StropheMetadata
+    [id: number]: StropheMetadata;
 }
 
 export type StanzaMetadata = {
     expanded?: boolean;
+    title?: string;
 }
 
 export type StanzaMap = {
     [id: number]: StanzaMetadata
 }
 
+export type LayerDef = {
+    id: number;
+    name: string;
+    fill: string;
+    border: string;
+    text: string;
+};
+
 export type StudyMetadata = {
     words: WordMap;
     scaleValue?: number;
     boxStyle?: BoxDisplayConfig;
     lang?: LanguageMode;
+    nonEnglishDisplayMode?: NonEnglishDisplayMode;
+    layerDefs?: LayerDef[];
+    layerWordMaps?: Record<string, WordMap>;
+    activeLayerId?: number;
+    personGenderNumberHighlights?: Record<string, PersonGenderNumberCode[]>;
 }
 
 export interface StudyProps {
@@ -90,11 +106,15 @@ export interface WordProps {
     verse: number;
     strongNumber: number;
     wlcWord: string;
+    passageTransliteration?: string;
     gloss: string;
     ETCBCgloss: string | undefined;
     morphology?: string;
     metadata: WordMetadata;
     newLine: boolean;
+    BSBnewLine: boolean;
+    newVerse: boolean;
+    BSBstanzaBreak?: boolean;
     showVerseNum: boolean;
     firstWordInStrophe: boolean;
     firstStropheInStanza: boolean;
@@ -105,7 +125,8 @@ export interface WordProps {
 
 export interface LineProps {
     lineId: number; // line id
-    words: WordProps[];    
+    words: WordProps[];
+    paragraphBreakBefore?: boolean;
 }
 
 export interface StropheProps {
@@ -129,6 +150,14 @@ export type PassageProps = {
     stropheCount: number;
 }
 
+export type LayerData = {
+    order: number;
+    name: string;
+    color: ColorData;
+    notes: string;
+    metadata: StudyMetadata;
+}
+
 export interface StudyData {
     id: string;
     name: string;
@@ -140,9 +169,11 @@ export interface StudyData {
     public: boolean;
     starred?: boolean;
     model?: boolean;
+    scriptura?: boolean;
     lastUpdated?: Date;
     createdAt?: Date;
-    metadata: StudyMetadata;
+    metadata: StudyMetadata; // to be deprecated
+    //layers: LayerData[];
     notes: string;
 }
 

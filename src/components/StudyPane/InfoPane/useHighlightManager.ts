@@ -5,6 +5,10 @@ import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
 import { clearAllFormattingState } from "@/lib/formatting";
 import { PRESERVE_CUSTOM_COLORS_ON_SMART_HIGHLIGHT } from "@/lib/featureFlags";
+import {
+  getPersonGenderNumberHighlightCodes,
+  setPersonGenderNumberHighlightScope,
+} from "@/lib/personGenderNumber";
 
 import { FormatContext } from "..";
 
@@ -197,6 +201,10 @@ export const useHighlightManager = (
     colorMap: Map<number, ColorData>,
     newActive: string | null,
   ) => {
+    setPersonGenderNumberHighlightScope(
+      metadata,
+      source === "syntax" ? getPersonGenderNumberHighlightCodes(newActive) : [],
+    );
     const nextActiveHighlightIds = { ...ctxActiveHighlightIds, [source]: newActive };
     ctxSetActiveHighlightId(source, newActive);
     ctxSetWordsColorMap(new Map(colorMap));
