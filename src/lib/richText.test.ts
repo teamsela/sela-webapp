@@ -6,6 +6,7 @@ import {
   mergeRichDocs,
   firstLineText,
   combineNoteDoc,
+  replaceFirstLine,
   sanitizeRichDoc,
   sanitizeStudyNotes,
   isRichDoc,
@@ -334,5 +335,53 @@ describe("sanitizeStudyNotes (API payload gate)", () => {
     const out = JSON.parse(sanitizeStudyNotes(JSON.stringify({ main: "x", strophes: [] })));
     expect(out.layerNotes).toBeUndefined();
     expect(out.layerStrophes).toBeUndefined();
+  });
+});
+
+describe("replaceFirstLine (inline strophe-title edit)", () => {
+  const para = (text: string) => ({ type: "paragraph", content: [{ type: "text", text }] });
+
+  it("fills an empty note with the title", () => {
+    const out = replaceFirstLine(undefined, "Lament");
+    expect(out).toEqual({ type: "doc", content: [para("Lament")] });
+    expect(firstLineText(out)).toBe("Lament");
+  });
+
+  it("replaces only the first paragraph and keeps the note body", () => {
+    const doc = { type: "doc" as const, content: [para("Old"), para("Body line")] };
+    const out = replaceFirstLine(doc, "New");
+    expect(out.content).toEqual([para("New"), para("Body line")]);
+  });
+
+  it("fills a blank first line without touching the body beneath it", () => {
+    const doc = { type: "doc" as const, content: [{ type: "paragraph" }, para("Body")] };
+    expect(replaceFirstLine(doc, "Title").content).toEqual([para("Title"), para("Body")]);
+  });
+
+  it("prepends rather than replacing a leading list, so no content is lost", () => {
+    const list = { type: "bulletList", content: [{ type: "listItem", content: [para("item")] }] };
+    const doc = { type: "doc" as const, content: [list] };
+    expect(replaceFirstLine(doc, "Title").content).toEqual([para("Title"), list]);
+  });
+
+  it("clears the title to a blank first line, keeping the body", () => {
+    const doc = { type: "doc" as const, content: [para("Old"), para("Body")] };
+    const out = replaceFirstLine(doc, "   ");
+    expect(out.content).toEqual([{ type: "paragraph" }, para("Body")]);
+    expect(firstLineText(out)).toBe("");
+  });
+
+  it("returns the same doc (keeping formatting) when the title is unchanged", () => {
+    const bold = { type: "paragraph", content: [{ type: "text", text: "Same", marks: [{ type: "bold" }] }] };
+    const doc = { type: "doc" as const, content: [bold] };
+    expect(replaceFirstLine(doc, " Same ")).toBe(doc);
+  });
+
+  it("collapses newlines so the title stays a single line", () => {
+    expect(firstLineText(replaceFirstLine(undefined, "a\nb"))).toBe("a b");
+  });
+
+  it("migrates a legacy plain-text note", () => {
+    expect(replaceFirstLine("Old\nBody", "New").content).toEqual([para("New"), para("Body")]);
   });
 });
