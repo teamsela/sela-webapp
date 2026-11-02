@@ -27,13 +27,19 @@ const ScripturaPage = async ({
     
   return (
     <>
-      <Breadcrumb pageName="Pre-Marked Studies" />
+      <Breadcrumb pageName="Scriptura Studies" />
 
       <div className="flex flex-col gap-10">
         <section
-          aria-label="About these studies"
+          aria-labelledby="about-scriptura-studies"
           className="rounded-sm border border-stroke bg-white px-5 py-5 text-sm leading-relaxed text-body shadow-default dark:border-strokedark dark:bg-boxdark dark:text-bodydark sm:px-7.5"
         >
+          <h3
+            id="about-scriptura-studies"
+            className="mb-3 text-base font-bold text-black dark:text-white"
+          >
+            About these studies
+          </h3>
           <div className="space-y-3">
             <p>
               Only the layer notes in these studies are the work of Scriptura, used with permission (
