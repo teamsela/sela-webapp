@@ -22,13 +22,24 @@ export const PERSON_GENDER_NUMBER_HIGHLIGHT_PREFIX = "person-gender-number__";
 const codes = new Map<string, PersonGenderNumberCode>(
   PERSON_GENDER_NUMBER_CHIPS.map(({ code }) => [code, code]),
 );
+codes.set("3cp", "3mp");
+
+const imperativeCodes = new Map<string, PersonGenderNumberCode>([
+  ["imp-ms", "2ms"],
+  ["imp-fs", "2fs"],
+  ["imp-mp", "2mp"],
+  ["imp-fp", "2fp"],
+]);
 
 export const getPersonGenderNumberCodes = (
   morphology?: string | null,
 ): PersonGenderNumberCode[] => {
   const matches = new Set<PersonGenderNumberCode>();
-  for (const token of morphology?.toLowerCase().match(/[a-z0-9_]+/g) ?? []) {
-    const code = codes.get(token);
+  for (const token of morphology?.toLowerCase().match(
+    /imp-(?:ms|fs|mp|fp)(?![a-z0-9_])|[a-z0-9_]+/g,
+  ) ?? []) {
+    // Match the literal Imp- form, never Imperf; keep it before object suffixes.
+    const code = imperativeCodes.get(token) ?? codes.get(token);
     if (code) matches.add(code);
   }
   // Preserve source order: counts include every match, but colors use the first.

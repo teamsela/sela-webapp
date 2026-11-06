@@ -263,19 +263,37 @@ const partsOfSpeechLabels: SyntaxLabelDefinition[] = [
   },
 ];
 
+const getVerbConjugation = ({ tokens }: MorphFeatures) => {
+  if (tokens.has("CONSECIMPERF")) return "consecutive-imperfect";
+  if (tokens.has("CONJPERF")) return "consecutive-perfect";
+  if (tokens.has("IMPERF")) return "imperfect";
+  if (tokens.has("PERF") || tokens.has("PERFECT")) return "perfect";
+};
+
 export const verbConjugationLabels: SyntaxLabelDefinition[] = [
   {
     id: "vc-perfect",
     label: "Perfect",
     palette: verbConjugationPalette["vc-perfect"],
-    predicate: (features) =>
-      features.tokens.has("PERF") || features.tokens.has("PERFECT"),
+    predicate: (features) => getVerbConjugation(features) === "perfect",
   },
   {
     id: "vc-imperfect",
     label: "Imperfect",
     palette: verbConjugationPalette["vc-imperfect"],
-    predicate: (features) => features.tokens.has("IMPERF"),
+    predicate: (features) => getVerbConjugation(features) === "imperfect",
+  },
+  {
+    id: "vc-consecutive-imperfect",
+    label: "Consecutive Imperfect",
+    palette: verbConjugationPalette["vc-perfect"],
+    predicate: (features) => getVerbConjugation(features) === "consecutive-imperfect",
+  },
+  {
+    id: "vc-consecutive-perfect",
+    label: "Consecutive Perfect",
+    palette: verbConjugationPalette["vc-imperfect"],
+    predicate: (features) => getVerbConjugation(features) === "consecutive-perfect",
   },
   {
     id: "vc-participle",
@@ -629,7 +647,9 @@ const Syntax = () => {
 
               {isOpen && (
                 <div className="space-y-4 p-4">
-                  <div className="flex flex-wrap">
+                  <div className={section.type === SyntaxType.verbalConjugations
+                    ? "grid grid-cols-2 gap-2"
+                    : "flex flex-wrap"}>
                     {section.labels.map((label) => {
                       const words = labelWordMap.get(label.id) || [];
                       const uniformPalette = deriveUniformWordPalette(words, {
@@ -653,6 +673,7 @@ const Syntax = () => {
                         <SyntaxLabel
                           key={label.id}
                           label={label.label}
+                          fullWidth={section.type === SyntaxType.verbalConjugations}
                           wordCount={words.length}
                           palette={displayPalette}
                           isActive={activeHighlightId === highlightId}

@@ -142,7 +142,7 @@ const PersonGenderNumber = ({
               return (
                 <SyntaxLabel
                   key={chip.code}
-                  label={chip.code}
+                  label={chip.code === "3mp" ? "3mp / 3cp" : chip.code}
                   gloss={chip.gloss}
                   wordCount={matches.length}
                   palette={palette}
