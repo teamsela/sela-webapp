@@ -5,7 +5,7 @@ import Structure from "./Structure";
 import Motif from "./Motif/index";
 import Syntax from "./Syntax/index";
 import Sounds from "./Sounds";
-import Notes from "./Notes";
+import Layers from "./Layers";
 import { InfoPaneActionType } from "@/lib/types";
 
 const InfoPane = ({
@@ -90,7 +90,7 @@ const InfoPane = ({
 
   return (
     <aside
-      className="relative right-0 top-0 flex h-full flex-col overflow-y-auto bg-white"
+      className="relative right-0 top-0 flex h-full flex-col overflow-hidden bg-white"
       style={{
         borderColor: "rgb(203 213 225)",
         borderLeftStyle: "solid",
@@ -102,11 +102,14 @@ const InfoPane = ({
       }}
     >
       <div
-        className="absolute left-0 top-0 h-full w-1 cursor-col-resize bg-slate-200"
+        className="group absolute left-0 top-0 z-999 flex h-full w-3 cursor-col-resize items-center justify-start"
         onMouseDown={handleResizeStart}
         role="presentation"
         aria-hidden
-      />
+      >
+        {/* Slim drag handle indicator */}
+        <div className="h-12 w-1 ml-1 rounded-full bg-bodydark transition-colors group-hover:bg-bodydark2" />
+      </div>
 
       {/* Fixed close button */}
       <button
@@ -117,9 +120,10 @@ const InfoPane = ({
         <MdClose size="24px" />
       </button>
 
-      {/* Conditionally render the content based on infoPaneAction */}
-      <div className="h-full pt-4">
-        {infoPaneAction === InfoPaneActionType.notes && <Notes />}
+      {/* Scrollable content — kept separate from the aside so the resize handle
+          and close button stay static and don't scroll off screen. */}
+      <div className="h-full overflow-y-auto pt-4">
+        {infoPaneAction === InfoPaneActionType.layers && <Layers />}
         {infoPaneAction === InfoPaneActionType.structure && <Structure />}
         {infoPaneAction === InfoPaneActionType.motif && <Motif />}
         {infoPaneAction === InfoPaneActionType.syntax && <Syntax />}

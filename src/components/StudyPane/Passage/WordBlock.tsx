@@ -7,6 +7,12 @@ import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
 import { updateMetadataInDb } from '@/lib/actions';
+import {
+  buildHighlightedHebrewSegments,
+  buildHighlightedTransliterationSegments,
+  LETTER_CHIP_MAP,
+  SOUND_CHIP_MAP,
+} from '@/lib/hebrewHighlights';
 
 type ZoomLevel = {
   [level: number]: { fontSize: string, fontInPx: string, maxWidthPx: number };
@@ -38,21 +44,32 @@ export const WordBlock = ({
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
     ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
     ctxWordsColorMap, ctxSetWordsColorMap, ctxStudyMetadata, ctxStudyId,
-    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook
+    ctxAddToHistory, ctxInViewMode, ctxEditingWordId, ctxSetEditingWordId, ctxStudyBook,
+    ctxCurrentSpokenWordIds,
+    ctxSelectedSoundChipIds, ctxHighlightedSoundChipIds, ctxSoundHighlightEnabled,
+    ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
 
-  const { ctxIsHebrew } = useContext(LanguageContext)
+  const { ctxIsHebrew, ctxDisplayMode } = useContext(LanguageContext)
 
   const [isEditingGloss, setIsEditingGloss] = useState(false);
   const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
   const glossInputRef = useRef<HTMLTextAreaElement | null>(null);
   const [glossEditWidth, setGlossEditWidth] = useState<number | null>(null);
   const skipBlurCommitRef = useRef(false);
-  const canEditEnglish = !ctxIsHebrew && !ctxInViewMode;
+  const canEditEnglish = ctxDisplayMode === "gloss" && !ctxInViewMode;
   const currentGlossValue = wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "";
+  const transliterationValue = wordProps.passageTransliteration || wordProps.wordInformation?.transliteration?.trim() || "";
+  const hebrewValue = wordProps.wlcWord || wordProps.wordInformation?.hebrew?.trim() || "";
+  const displayValue =
+    ctxDisplayMode === "hebrew"
+      ? hebrewValue
+      : ctxDisplayMode === "transliteration"
+        ? transliterationValue
+        : currentGlossValue;
 
   const mapColor = ctxWordsColorMap.get(wordProps.wordId);
-  const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color ?? wordProps.metadata?.color;
+  const metaColor = ctxStudyMetadata.words[wordProps.wordId]?.color;
 
   const colorFillLocal = mapColor?.fill ?? metaColor?.fill ?? DEFAULT_COLOR_FILL;
   const borderColorLocal = mapColor?.border ?? metaColor?.border ?? DEFAULT_BORDER_COLOR;
@@ -60,6 +77,7 @@ export const WordBlock = ({
 
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const selected = ctxSelectedWords.some(word => word.wordId === wordProps.wordId);
+  const isCurrentSpokenWord = ctxCurrentSpokenWordIds.includes(wordProps.wordId);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -270,11 +288,11 @@ export const WordBlock = ({
       const context = canvas.getContext('2d');
       if (context) {
         context.font = zoomLevelMap[DEFAULT_ZOOM_LEVEL].fontInPx + " Satoshi";
-        let currentLineCount = wrapText(wordProps.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx /*(index === 0) ? 90 : 96*/);
+        let currentLineCount = wrapText(displayValue.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx /*(index === 0) ? 90 : 96*/);
         let currentZoomLevel = DEFAULT_ZOOM_LEVEL - 1;
         while (currentLineCount > 2 && currentZoomLevel >= 0) {
           context.font = zoomLevelMap[currentZoomLevel].fontInPx + " Satoshi";
-          currentLineCount = wrapText(wordProps.gloss.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx);
+          currentLineCount = wrapText(displayValue.trim(), context, zoomLevelMap[DEFAULT_ZOOM_LEVEL].maxWidthPx);
           fontSize = zoomLevelMap[currentZoomLevel].fontSize;
           currentZoomLevel--;
         }
@@ -302,6 +320,10 @@ export const WordBlock = ({
     const normalizedDefault = DEFAULT_BORDER_COLOR.toLowerCase();
     return normalizedColor === normalizedDefault;
   };
+  // Use box-shadow instead of outline for the selection ring — avoids layout
+  // shift on wrapping lines in reader mode. contain: paint creates a paint
+  // containment boundary so the shadow doesn't affect adjacent elements.
+  const selectedBoxShadow = selected ? '0 0 0 3px #FFC300' : undefined;
 
   const renderIndents = (times: number) => {
     return (
@@ -318,13 +340,84 @@ export const WordBlock = ({
             <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
               <span className={`whitespace-nowrap break-keep flex select-none px-2 ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center leading-none ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
         ))}
       </div>
     );
+  };
+
+  const selectedSoundIds = ctxSoundHighlightEnabled
+    ? new Set(ctxHighlightedSoundChipIds)
+    : new Set<string>();
+  const selectedLetterIds = ctxLetterHighlightEnabled
+    ? new Set(ctxHighlightedLetterChipIds)
+    : new Set<string>();
+
+  const renderInlineHighlightSegments = () => {
+    if (ctxDisplayMode === "transliteration") {
+      const segments = buildHighlightedTransliterationSegments(
+        transliterationValue,
+        selectedSoundIds,
+      );
+
+      return segments.map((segment, index) => {
+        const palette = segment.highlightId
+          ? SOUND_CHIP_MAP.get(segment.highlightId)?.palette
+          : undefined;
+
+        return (
+          <span
+            key={`${wordProps.wordId}-translit-${index}`}
+            style={palette ? {
+              backgroundColor: palette.fill,
+              color: palette.text,
+              boxShadow: `inset 0 0 0 1px ${palette.border ?? DEFAULT_BORDER_COLOR}`,
+              borderRadius: 4,
+              paddingInline: "1px",
+            } : undefined}
+          >
+            {segment.text}
+          </span>
+        );
+      });
+    }
+
+    // יהוה (Tetragrammaton, H3068) is a qere perpetuum — its written letters carry
+    // no sound when read aloud (pronounced "Adonai"). Suppress sound highlighting
+    // on Hebrew letters only; letter distribution and transliteration stay intact.
+    const isTetrag = Math.trunc(wordProps.strongNumber || 0) === 3068;
+    const hebrewSoundIds = isTetrag ? new Set<string>() : selectedSoundIds;
+
+    const segments = buildHighlightedHebrewSegments(
+      hebrewValue,
+      hebrewSoundIds,
+      selectedLetterIds,
+    );
+
+    return segments.map((segment, index) => {
+      const palette = segment.highlightId
+        ? SOUND_CHIP_MAP.get(segment.highlightId)?.palette ??
+          LETTER_CHIP_MAP.get(segment.highlightId)?.palette
+        : undefined;
+
+      return (
+        <span
+          key={`${wordProps.wordId}-hebrew-${index}`}
+          style={palette ? {
+            backgroundColor: palette.fill,
+            color: palette.text,
+            boxShadow: `inset 0 0 0 1px ${palette.border ?? DEFAULT_BORDER_COLOR}`,
+            borderRadius: 4,
+            paddingInline: "1px",
+          } : undefined}
+        >
+          {segment.text}
+        </span>
+      );
+    });
   };
 
   return (
@@ -334,7 +427,7 @@ export const WordBlock = ({
       <div
         id={wordProps.wordId.toString()}
         key={wordProps.wordId}
-        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} ${selected ? 'rounded border outline outline-offset-1 outline-[3px] outline-[#FFC300] drop-shadow-md' : 'rounded border outline-offset-[-4px]'}`}
+        className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} rounded border ${selected ? 'drop-shadow-md' : 'outline-offset-[-4px]'}`}
         style={{
           background: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
             (colorFillLocal !== DEFAULT_COLOR_FILL ? colorFillLocal : 'transparent') : 
@@ -348,9 +441,11 @@ export const WordBlock = ({
             !isDefaultBorderColor(borderColorLocal) ? '1px' : '2px'}`,
           color: `${textColorLocal}`,
           lineHeight: `${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? '0.8' : 'inherit'}`,
+          boxShadow: selectedBoxShadow,
+          contain: 'paint',
         }}>
         <span
-          className="flex"
+          className={`flex ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''}`}
           onClick={handleClick}
         >
           {wordProps.showVerseNum ?
@@ -365,10 +460,17 @@ export const WordBlock = ({
           <span
             className={`whitespace-nowrap break-keep flex select-none ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 
               (wordProps.showVerseNum ? 'px-1' : 'px-0') : 'px-2'} ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'py-0.5' : 'py-1'} items-center justify-center text-center hover:opacity-60 leading-none ClickBlock ${fontSize}
-              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)} relative`}
+              ${ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && (ctxDisplayMode === "hebrew" ? hebBlockSizeStyle : engBlockSizeStyle)} ${ctxDisplayMode === "transliteration" ? 'hbFontExemption' : ''} relative`}
             data-clicktype="clickable"
+            style={{
+              textDecoration: isCurrentSpokenWord ? 'underline' : 'none',
+              textDecorationThickness: isCurrentSpokenWord ? '3px' : undefined,
+              textUnderlineOffset: isCurrentSpokenWord ? '0.2em' : undefined,
+              textDecorationColor: isCurrentSpokenWord ? '#FFC300' : undefined,
+              transition: 'text-decoration-color 140ms ease-in-out',
+            }}
           >
-            {ctxIsHebrew ? wordProps.wlcWord : (
+            {ctxDisplayMode === "gloss" ? (
               isEditingGloss ? (
                 <>
                   <textarea
@@ -391,7 +493,7 @@ export const WordBlock = ({
                   />
                 </>
               ) : currentGlossValue
-            )}
+            ) : renderInlineHighlightSegments()}
           </span>
         </span>
       </div>

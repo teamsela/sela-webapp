@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "sela-webapp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["mcp/server.py"]
+    }
+  }
+}

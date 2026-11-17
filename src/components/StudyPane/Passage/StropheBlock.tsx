@@ -4,13 +4,24 @@ import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/i
 import { PiNotePencil } from "react-icons/pi";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
-import { ColorActionType, StudyNotes, BoxDisplayStyle, LanguageMode } from "@/lib/types";
+import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
+import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
 import { updateMetadataInDb } from '@/lib/actions';
 import { LanguageContext } from './PassageBlock';
+import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
+
+const getLineRenderKey = (stropheId: number, line: StropheProps["lines"][number]) => {
+  const firstWordId = line.words[0]?.wordId ?? "empty";
+  const lastWordId = line.words.at(-1)?.wordId ?? "empty";
+  return `strophe-${stropheId}-line-${firstWordId}-${lastWordId}-${line.paragraphBreakBefore ? "paragraph" : "plain"}`;
+};
+
+const getWordRenderKey = (wordId: number, stanzaId: number, stropheId: number, lineId: number) =>
+  `word-${wordId}-stanza-${stanzaId}-strophe-${stropheId}-line-${lineId}`;
 
 export const StropheBlock = ({
     stropheProps,
@@ -25,9 +36,11 @@ export const StropheBlock = ({
   
   const { ctxStudyId, ctxStudyMetadata, ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxSetSelectedWords, ctxSetNumSelectedWords, ctxColorAction, ctxSelectedColor, ctxSetColorFill, ctxSetBorderColor,
-    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue
+    ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
+    ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
   const { ctxIsHebrew } = useContext(LanguageContext)
+  const stropheAlign = useContext(StropheAlignContext);
 
   const [selected, setSelected] = useState(false);
   const [expanded, setExpanded] = useState(stropheProps.metadata?.expanded ?? true);
@@ -48,20 +61,10 @@ export const StropheBlock = ({
     [colorFillLocal]
   );
 
-  const stropheNoteTitle = useMemo(() => {
-    if (!ctxStudyNotes) return "";
-    try {
-      const parsed = JSON.parse(ctxStudyNotes) as Partial<StudyNotes> | null;
-      const strophes = Array.isArray(parsed?.strophes) ? parsed!.strophes! : [];
-      const note = strophes?.[stropheProps.stropheId];
-      if (note && typeof note.title === "string" && note.title.trim().length > 0) {
-        return note.title;
-      }
-    } catch {
-      // ignore malformed study notes payloads
-    }
-    return "";
-  }, [ctxStudyNotes, stropheProps.stropheId]);
+  const stropheNoteTitle = useMemo(
+    () => readStropheNoteTitle(ctxStudyNotes, ctxActiveLayerId, stropheProps.stropheId),
+    [ctxStudyNotes, stropheProps.stropheId, ctxActiveLayerId]
+  );
 
   const noteTitleWrapperClass = useMemo(
     () => (ctxIsHebrew ? 'pl-16 justify-end' : 'pr-16 justify-start'),
@@ -210,6 +213,15 @@ export const StropheBlock = ({
     }
     return sizeStyles;
   }, [ctxStropheNoteBtnOn, wordAreaHeight]);
+  // Signature of the strophe's rendered content. Changes when lines/words are
+  // added or removed (e.g. merging or splitting strophes), which is what should
+  // trigger a re-measure of the note panel height.
+  const wordAreaSignature = useMemo(() => {
+    let words = 0;
+    stropheProps.lines.forEach((line) => { words += line.words.length; });
+    return `${stropheProps.lines.length}:${words}:${firstWordId}:${lastWordId}`;
+  }, [stropheProps, firstWordId, lastWordId]);
+
   const syncWordAreaHeight = useCallback(() => {
     const el = wordAreaRef.current;
     if (!el) return;
@@ -221,19 +233,33 @@ export const StropheBlock = ({
     }
   }, [ctxScaleValue]);
 
-  useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return;
-    const el = wordAreaRef.current;
-    if (!el) return;
-
-    syncWordAreaHeight();
-    const observer = new ResizeObserver(() => syncWordAreaHeight());
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-    };
+  // Callback ref so the ResizeObserver always tracks the *current* word-area node.
+  // A plain effect keyed on syncWordAreaHeight would keep observing a stale node
+  // when the layout swaps it (e.g. toggling between side-by-side and overlay
+  // note modes), so the panel height would stop updating.
+  const wordAreaObserverRef = useRef<ResizeObserver | null>(null);
+  const attachWordArea = useCallback((node: HTMLDivElement | null) => {
+    wordAreaRef.current = node;
+    if (wordAreaObserverRef.current) {
+      wordAreaObserverRef.current.disconnect();
+      wordAreaObserverRef.current = null;
+    }
+    if (node && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => syncWordAreaHeight());
+      observer.observe(node);
+      wordAreaObserverRef.current = observer;
+      syncWordAreaHeight();
+    }
   }, [syncWordAreaHeight]);
 
+  useEffect(() => () => {
+    wordAreaObserverRef.current?.disconnect();
+    wordAreaObserverRef.current = null;
+  }, []);
+
+  // Re-measure after layout whenever anything that affects the word-area height
+  // changes — crucially including strophe content changes from merge/split, via
+  // wordAreaSignature (the ResizeObserver alone does not catch these reliably).
   useLayoutEffect(() => {
     if (!shouldRenderWordArea) return;
     const frame = requestAnimationFrame(() => {
@@ -242,9 +268,97 @@ export const StropheBlock = ({
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, syncWordAreaHeight]);
+  }, [ctxBoxDisplayConfig.style, ctxLanguageMode, ctxStropheNoteBtnOn, shouldRenderWordArea, stropheNoteTitle, wordAreaSignature, syncWordAreaHeight]);
+
+  // Report the rendered title height to the counter column (via context) so it
+  // reserves matching vertical space instead of a single placeholder line. Height
+  // is divided by the zoom scale (like syncWordAreaHeight) since the counter
+  // applies it in the same scaled subtree. Both parallel language columns report
+  // for the same stropheId; because they share a width their heights match.
+  const reportTitleHeight = stropheAlign?.reportTitleHeight;
+  const stropheId = stropheProps.stropheId;
+  const measureTitleHeight = useCallback((node: HTMLElement) => {
+    if (!reportTitleHeight) return;
+    const rect = node.getBoundingClientRect();
+    if (rect.height <= 0) return;
+    const scale = ctxScaleValue > 0 ? ctxScaleValue : 1;
+    reportTitleHeight(stropheId, Math.ceil(rect.height / scale));
+  }, [reportTitleHeight, stropheId, ctxScaleValue]);
+  const titleAreaObserverRef = useRef<ResizeObserver | null>(null);
+  const attachTitleArea = useCallback((node: HTMLDivElement | null) => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+    if (node && typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => measureTitleHeight(node));
+      observer.observe(node);
+      titleAreaObserverRef.current = observer;
+      measureTitleHeight(node);
+    }
+  }, [measureTitleHeight]);
+  useEffect(() => () => {
+    titleAreaObserverRef.current?.disconnect();
+    titleAreaObserverRef.current = null;
+  }, []);
 
   const contentWidthClass = "w-full min-w-0";
+
+  const renderWords = (line: StropheProps["lines"][number], lineId: number) =>
+    line.words.map((word) => {
+      const wordRenderKey = getWordRenderKey(word.wordId, word.stanzaId, word.stropheId, word.lineId);
+      return (
+        <div
+          className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
+          key={wordRenderKey}
+        >
+          <WordBlock key={wordRenderKey} wordProps={word} isFirstLineInStrophe={lineId === 0} />
+        </div>
+      );
+    });
+
+  // Reader mode normally lets a line wrap to fill the reading width. When the
+  // in-text counter is on (single or parallel) each line must stay on a single
+  // row so its count box stays aligned, breaking only where the data (or the
+  // user) put a line break. With the counter off, keep wrapping.
+  const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
+  const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
+    <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+      {renderWords(line, lineId)}
+    </div>
+  );
+
+  // Strophe-note title above the word rows. The single-language counter stack
+  // (CounterStropheBlock) reserves matching vertical space for it so the two
+  // stacks stay row-aligned.
+  const renderStropheTitle = () => {
+    if (!stropheNoteTitle || !shouldRenderWordArea) {
+      return null;
+    }
+    return (
+      <div ref={attachTitleArea} className={`mb-2 flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
+        <span
+          className={`block w-full whitespace-normal break-words text-base font-semibold ${noteTitleTextClass}`}
+          dir="auto"
+          style={{ color: contrastingForegroundColor }}
+        >
+          {stropheNoteTitle}
+        </span>
+      </div>
+    );
+  };
+
+  // The strophe's line list. The in-text counter is rendered as a separate
+  // side-by-side stack (single language: StanzaBlock + CounterStropheBlock;
+  // parallel: the dedicated counter column), so here we only lay out the words.
+  const renderLines = () =>
+    stropheProps.lines.map((line, lineId) => {
+      const lineRenderKey = getLineRenderKey(stropheProps.stropheId, line);
+      return (
+        <React.Fragment key={lineRenderKey}>
+          {line.paragraphBreakBefore && <div className="h-6" aria-hidden="true" />}
+          {renderWordRow(line, lineId)}
+        </React.Fragment>
+      );
+    });
 
   return (
     <div 
@@ -260,6 +374,9 @@ export const StropheBlock = ({
       <div
         className={actionButtonWrapperClass}
         >
+      {
+      /* The select icon only enables color editing, so hide it for read-only users. */
+      !ctxInViewMode &&
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
         className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
@@ -272,8 +389,9 @@ export const StropheBlock = ({
           style={{pointerEvents:'none'}}
         />
       </button>
+      }
       {
-      expanded && stanzaExpanded && !ctxStropheNoteBtnOn ?
+      expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
         className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
@@ -301,7 +419,7 @@ export const StropheBlock = ({
       }
       </div>
       {shouldShowCollapsedTitle && (
-        <div className={`flex w-full items-center ${noteTitleWrapperClass}`}>
+        <div className={`flex w-0 min-w-full items-center ${noteTitleWrapperClass}`}>
           <span
             className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
             dir="auto"
@@ -328,46 +446,9 @@ export const StropheBlock = ({
               <div
                 className={`${shouldShowWords ? '' : 'hidden'} flex-1 min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
-                  {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
-                    <span
-                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
-                      dir="auto"
-                      style={{ color: contrastingForegroundColor }}
-                    >
-                      {stropheNoteTitle}
-                    </span>
-                  </div>
-                  )}
-                  {
-                    stropheProps.lines.map((line, lineId) => {
-                      return (
-                        <div 
-                          key={"line_" + lineId}
-                          data-strophe-line="true"
-                          className={`flex my-1`}
-                        >
-                        {
-                          line.words.map((word) => {
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
-                              >
-                                <WordBlock
-                                  key={"word_" + word.wordId}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
-                      )
-                    })
-                  }
+                <div ref={attachWordArea}>
+                  {renderStropheTitle()}
+                  {renderLines()}
                 </div>
               </div>
             {
@@ -386,47 +467,10 @@ export const StropheBlock = ({
               <div
                 className={`${shouldRenderWordArea ? '' : 'hidden'} ${showOverlayNote ? 'invisible pointer-events-none' : ''} min-w-0 overflow-x-auto`}
               >
-                <div ref={wordAreaRef}>
-                  {stropheNoteTitle && shouldRenderWordArea && (
-                  <div className={`mb-2 flex w-full items-center ${noteTitleWrapperClass}`}>
-                    <span
-                      className={`block w-full truncate text-base font-semibold ${noteTitleTextClass}`}
-                      dir="auto"
-                      style={{ color: contrastingForegroundColor }}
-                    >
-                      {stropheNoteTitle}
-                    </span>
-                  </div>
-                  )}
+                <div ref={attachWordArea}>
+                  {renderStropheTitle()}
                   
-                  {
-                    stropheProps.lines.map((line, lineId) => {
-                      return (
-                        <div 
-                          key={"line_" + lineId}
-                          data-strophe-line="true"
-                          className={`flex my-1 `}
-                        >
-                        {
-                          line.words.map((word) => {
-                            return (
-                              <div
-                                className={`${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? 'mt-0.5 mb-0.5' : 'mt-1 mb-1'}`}
-                                key={word.wordId}
-                              >
-                                <WordBlock
-                                  key={"word_" + word.wordId}
-                                  wordProps={word}
-                                  isFirstLineInStrophe={lineId === 0}
-                                />
-                              </div>
-                            )
-                          })
-                        }
-                        </div>
-                      )
-                    })
-                  }
+                  {renderLines()}
                 </div>
               </div>
               {

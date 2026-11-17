@@ -118,7 +118,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
               </li>
               {/* <!-- Menu Item Public --> */}
 
-              {/* <!-- Menu Item Sample --> */}
+              {/* <!-- Menu Item Premarked --> */}
               <li>
                 <Link
                   href="/dashboard/premarked"
@@ -129,7 +129,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                   Pre-Marked Studies
                 </Link>
               </li>
-              {/* <!-- Menu Item Sample --> */}
+              {/* <!-- Menu Item Premarked --> */}
+
+              {/* <!-- Menu Item Scriptura --> */}
+              <li>
+                <Link
+                  href="/dashboard/scriptura"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("scriptura") && "bg-graydark dark:bg-meta-4"
+                    }`}
+                >
+                  {/* Masked so the icon takes the link's text color, like the react-icons above */}
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-5 w-5 shrink-0 bg-current"
+                    style={{
+                      mask: "url(/images/icon/icon-scriptura.svg) center / contain no-repeat",
+                      WebkitMask: "url(/images/icon/icon-scriptura.svg) center / contain no-repeat",
+                    }}
+                  />
+                  Scriptura Studies
+                </Link>
+              </li>
+              {/* <!-- Menu Item Scriptura --> */}
 
             </ul>
           </div>
