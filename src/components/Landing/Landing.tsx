@@ -1,10 +1,8 @@
-import Link from "next/link";
 import Image from "next/image";
 
 import Nav from "./Nav";
+import Hero from "./Hero";
 import FooterBar from "./FooterBar";
-
-const heroImage = "/images/landing/hero.webp";
 
 const majorFeatures = [
   {
@@ -57,47 +55,12 @@ const majorFeatures = [
   },
 ];
 
-const yellowButton = "inline-block rounded-lg bg-[#FFBF00] py-4 px-10 text-center text-lg font-semibold text-white hover:bg-opacity-90";
-
 export default function Landing({ signInSlot }: { signInSlot?: React.ReactNode }) {
   return (
     <div className="bg-white text-black-2 font-quicksand">
       <Nav />
 
-      {/* Hero */}
-      <section
-        className="relative bg-cover bg-center bg-no-repeat text-white"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:py-28">
-          <div className="flex flex-col items-start gap-12 lg:flex-row lg:gap-16">
-            <div className="sqs-block-content flex w-full flex-col lg:flex-1">
-              <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-                Sela <span className="hbFont text-[#FFBF00]">סלע</span>
-              </h1>
-              <h2 className="mt-6 text-xl font-medium sm:text-2xl">
-                A Web-Based Exegetical Tool for Close Reading of the Hebrew Bible
-              </h2>
-              <p className="mt-8 text-base leading-relaxed">
-                Sela helps readers explore meaning that emerges through Hebrew syntax, word repetition, and literary structure. Readers can work in Hebrew, English, or both, while the display retains the original Hebrew word order and word count.
-              </p>
-              <p className="mt-4 text-base leading-relaxed">
-                To support careful literary analysis, the platform makes it easy to divide texts into literary units, compare parallel lines, trace repetition, explore syntactic patterns, and record observations directly in the text. It is especially well suited for biblical Hebrew poetry, where structure and parallelism are central, but it also functions as a general tool for text-centered Hebrew exegesis.
-              </p>
-              <div className="mt-10">
-                <Link href="/playground" className={yellowButton}>
-                  Try Now
-                </Link>
-              </div>
-            </div>
-            {signInSlot && (
-              <div className="flex w-full justify-center lg:w-auto lg:flex-shrink-0">
-                {signInSlot}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <Hero signInSlot={signInSlot} />
 
       {/* Major Features */}
       <section className="mx-auto max-w-7xl px-6 py-20">
