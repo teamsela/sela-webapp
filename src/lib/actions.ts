@@ -1112,6 +1112,7 @@ export async function fetchPassageData(studyId: string) {
           passage: "1",
           public: true,
           model: false,
+          scriptura: false,
           metadata: { words: {} } as StudyMetadata,
           notes: "",
         }

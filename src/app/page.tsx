@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { currentUser, SignIn } from "@clerk/nextjs";
+import { SignIn } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 
 import Landing from "@/components/Landing/Landing";
 
