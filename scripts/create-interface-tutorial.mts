@@ -29,8 +29,8 @@
     # or take the owner from one of your studies (id from its URL, with rec_)
     node scripts/create-interface-tutorial.mts --owner-from-study rec_abc123 --apply
 
-    # the Psalm 1 tutorial
-    node scripts/create-interface-tutorial.mts --tutorial orientation --owner user_2abc... --apply
+    # the Psalm 1 tutorial, owned by whoever owns the existing tutorial(s)
+    node scripts/create-interface-tutorial.mts --tutorial orientation --owner-from-tutorial --apply
 */
 
 import { randomInt } from "node:crypto";
@@ -71,6 +71,7 @@ const { values: args } = parseArgs({
   options: {
     owner: { type: "string" },
     "owner-from-study": { type: "string" },
+    "owner-from-tutorial": { type: "boolean", default: false },
     tutorial: { type: "string", default: "interface" },
     name: { type: "string" },
     apply: { type: "boolean", default: false },
@@ -79,11 +80,11 @@ const { values: args } = parseArgs({
 });
 
 if (args.help) {
-  console.log("Usage: node scripts/create-interface-tutorial.mts (--owner <clerk user id> | --owner-from-study <rec_id>) [--tutorial interface|orientation] [--name <name>] [--apply]");
+  console.log("Usage: node scripts/create-interface-tutorial.mts (--owner <clerk user id> | --owner-from-study <rec_id> | --owner-from-tutorial) [--tutorial interface|orientation] [--name <name>] [--apply]");
   process.exit(0);
 }
-if (!args.owner === !args["owner-from-study"]) {
-  fail("Give exactly one of --owner <clerk user id> or --owner-from-study <rec_id>.");
+if ([!!args.owner, !!args["owner-from-study"], args["owner-from-tutorial"]].filter(Boolean).length !== 1) {
+  fail("Give exactly one of --owner <clerk user id>, --owner-from-study <rec_id> or --owner-from-tutorial.");
 }
 
 if (!(args.tutorial in TUTORIALS)) {
@@ -111,6 +112,13 @@ const run = async (): Promise<void> => {
       [args["owner-from-study"]],
     );
     owner = res.rows[0]?.owner ?? fail(`No study ${args["owner-from-study"]} (or it has no owner).`);
+  }
+  if (args["owner-from-tutorial"]) {
+    // The owner of the first tutorial made (e.g. the Psalm 23 Interface Tutorial).
+    const res = await client.query<{ owner: string | null }>(
+      `SELECT owner FROM study WHERE tutorial = true AND owner IS NOT NULL ORDER BY "createdTime" LIMIT 1`,
+    ).catch(() => fail("Couldn't read existing tutorials (is the tutorial column there yet?)."));
+    owner = res.rows[0]?.owner ?? fail("No existing tutorial study to take the owner from.");
   }
   console.log(`Owner: ${owner}`);
 

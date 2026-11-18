@@ -18,10 +18,11 @@ npm run tutorial:create -- --owner user_2abc... --apply
 ```
 
 Add `--tutorial orientation` to create the Psalm 1 "Orienting to the
-Interface" tutorial instead (the default, `--tutorial interface`, is Psalm 23):
+Interface" tutorial instead (the default, `--tutorial interface`, is Psalm 23).
+`--owner-from-tutorial` gives it the same owner as the existing tutorial:
 
 ```bash
-npm run tutorial:create -- --tutorial orientation --owner user_2abc... --apply
+npm run tutorial:create -- --tutorial orientation --owner-from-tutorial --apply
 ```
 
 The app chooses each tutorial's guided tour by its passage
