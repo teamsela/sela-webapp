@@ -1,28 +1,10 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
-import { RichDoc, combineNoteDoc, firstLineText, toRichDoc } from "@/lib/richText";
+import { RichDoc, combineNoteDoc, toRichDoc } from "@/lib/richText";
+import { buildStropheNotesPayload, readLayerStrophe, saveStudyNotes } from "@/lib/stropheNotes";
 import { LanguageContext } from "./PassageBlock";
 import RichTextEditor from "../InfoPane/RichTextEditor";
-
-// Read a strophe note for the active layer: prefer layerStrophes[layerId], and
-// for layer 0 fall back to the root strophes array (legacy / pre-layer data).
-function readLayerStrophe(
-  parsed: Partial<StudyNotes>,
-  activeLayerId: number,
-  stropheId: number,
-): StropheNote | undefined {
-  // A missing/nullish active layer means the base layer (0).
-  const layerId = activeLayerId ?? 0;
-  const layerKey = String(layerId);
-  const s = parsed?.layerStrophes?.[layerKey]?.[stropheId];
-  if (s) return s;
-  // Layer 0 falls back to the root strophes array (legacy / pre-layer data).
-  if (layerId === 0 && Array.isArray(parsed?.strophes)) {
-    return parsed.strophes[stropheId];
-  }
-  return undefined;
-}
 
 export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWordId: number, lastWordId: number, stropheId: number}) => {
   const {
@@ -99,63 +81,26 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
   }
 
   const saveNow = useCallback(
-async (payload: string, { keepalive = false } = {}) => {
-  if (!ctxStudyId) return;
-  if (lastSavedPayloadRef.current === payload) return;
+    async (payload: string, { keepalive = false } = {}) => {
+      if (!ctxStudyId) return;
+      if (lastSavedPayloadRef.current === payload) return;
+      if (await saveStudyNotes(ctxStudyId, payload, { keepalive })) {
+        lastSavedPayloadRef.current = payload;
+      }
+    },
+    [ctxStudyId],
+  );
 
-  try {
-    const res = await fetch("/api/noteSync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studyId: ctxStudyId, text: payload }),
-      keepalive,
-    });
-    if (!res.ok) throw new Error("Save failed");
-    lastSavedPayloadRef.current = payload;
-  } catch (err) {
-    if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
-      const blob = new Blob([JSON.stringify({ studyId: ctxStudyId, text: payload })], {
-        type: "application/json",
-      });
-      const ok = navigator.sendBeacon("/api/noteSync", blob);
-      if (ok) lastSavedPayloadRef.current = payload;
-      else console.error("Beacon failed");
-    } else {
-      console.error("Save error:", err);
-    }
-  }
-  },[ctxStudyId]);
+  const buildPayload = useCallback(
+    () => buildStropheNotesPayload(ctxStudyNotes, activeLayerId, stropheId, noteDoc, firstWordId, lastWordId),
+    [ctxStudyNotes, stropheId, noteDoc, firstWordId, lastWordId, activeLayerId],
+  );
 
-  const buildPayload = useCallback(() => {
-  let parsed: Record<string, unknown> = { main: "", strophes: [] };
-  try {
-    if (ctxStudyNotes) parsed = JSON.parse(ctxStudyNotes);
-  } catch {/* fall back */}
-
-  const layerKey = String(activeLayerId);
-  const existingLayerStrophes = (parsed?.layerStrophes as Record<string, StropheNote[]>) ?? {};
-
-  // Migration: seed layer 0 from the root strophes array on first write.
-  if (!existingLayerStrophes["0"] && Array.isArray(parsed.strophes)) {
-    existingLayerStrophes["0"] = [...(parsed.strophes as StropheNote[])];
-  }
-
-  const currentLayerStrophes: StropheNote[] = Array.isArray(existingLayerStrophes[layerKey])
-    ? [...existingLayerStrophes[layerKey]]
-    : [];
-  while (currentLayerStrophes.length <= stropheId) {
-    currentLayerStrophes.push({ title: "", text: "", firstWordId, lastWordId });
-  }
-  // Title is the note's first line, derived so the strophe can show it when the
-  // note pane is closed.
-  currentLayerStrophes[stropheId] = { title: firstLineText(noteDoc), text: noteDoc, firstWordId, lastWordId };
-
-  const next = {
-    ...parsed,
-    layerStrophes: { ...existingLayerStrophes, [layerKey]: currentLayerStrophes },
-  };
-  return JSON.stringify(next);
-}, [ctxStudyNotes, stropheId, noteDoc, firstWordId, lastWordId, activeLayerId]);
+  // Latest study notes, read by the unload flush below. If anything else (e.g.
+  // the inline strophe-title editor) has written newer notes since this pane's
+  // pending payload was built, flushing that payload would revert their change.
+  const latestNotesRef = useRef(ctxStudyNotes);
+  latestNotesRef.current = ctxStudyNotes;
 
   // Re-hydration effect: placed BEFORE the save effect so that when both fire
   // in the same render (e.g. viewId or ctxActiveNotesPane changes), noteDoc is
@@ -227,6 +172,7 @@ useEffect(() => {
   const flush = () => {
     const payload = pendingPayloadRef.current;
     if (!payload) return;
+    if (payload !== latestNotesRef.current) return;
     void saveNow(payload, { keepalive: true });
   };
 

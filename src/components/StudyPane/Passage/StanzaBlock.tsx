@@ -8,6 +8,7 @@ import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
 import { updateMetadataInDb } from "@/lib/actions";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
+import { focusAtEnd } from "@/lib/utils";
 
 export const StanzaBlock = ({
   stanzaProps,
@@ -72,7 +73,7 @@ export const StanzaBlock = ({
   const startEditing = () => {
     setIsEditingTitle(true);
     // Focus the input after it mounts
-    setTimeout(() => titleInputRef.current?.focus(), 0);
+    setTimeout(() => focusAtEnd(titleInputRef.current), 0);
   };
 
   const cancelEditing = () => {
