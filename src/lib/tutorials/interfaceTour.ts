@@ -97,6 +97,12 @@ export type TourStep = {
   allow?: string;
   /** Extra space between target and bubble, for controls that open a panel below themselves. */
   clearance?: number;
+  /**
+    Tidy up as the step begins: clear leftover word/strophe selections (so a
+    "click this word" step starts from nothing selected) and close the info
+    pane (so the passage has its full width).
+  */
+  onStart?: { clearSelection?: boolean; closeInfoPane?: boolean };
   /** Dim the rest of the screen (default true). Off when the user must work in a panel that opens elsewhere. */
   dim?: boolean;
   /**
@@ -423,6 +429,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Strophes
   {
     id: "heading-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordAfterHeading(s)),
     title: "Set the heading apart",
@@ -461,6 +468,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse4-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordOfVerse(s, 4)),
     title: "A turn at verse 4",
@@ -482,6 +490,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse5-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordOfVerse(s, 5)),
     title: "A new picture at verse 5",
@@ -513,6 +522,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-select",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Stanzas",
     target: (s) => {
       const sp = stanzaStrophe(s);
@@ -542,6 +552,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // fixed when its step begins, so the highlight stays put as lines change.
   {
     id: "v6-merge1-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, 1)),
     title: "Join verse 6 into two lines",
@@ -560,6 +571,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-merge2-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, -1)),
     title: "Once more",
@@ -584,6 +596,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // "click this button".
   {
     id: "merge-stanza-select",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Merging",
     target: (_s, start) =>
       stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
@@ -607,6 +620,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "merge-strophe-select",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Merging",
     target: (_s, start) =>
       stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
@@ -632,6 +646,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Identical words
   {
     id: "identical-select",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Repeated words",
     target: (_s, start) => wordSelector(yahwehInVerseOne(start)),
     title: "Find a word’s repeats",
@@ -666,6 +681,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Colors
   {
     id: "color-fill",
+    onStart: { closeInfoPane: true },
     section: "Colors",
     target: '[data-tour="fill-color"]',
     title: "Fill color",
@@ -711,6 +727,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Lines again, gloss, word display
   {
     id: "v6-split1-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 1)),
     title: "Split verse 6 again",
@@ -729,6 +746,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-split2-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 3)),
     title: "Once more",
@@ -746,11 +764,12 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "gloss-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Words",
     target: (_s, start) => wordSelector(start.words[3]),
     title: "Pick a word to re-word",
     body: (_s, start) => `Click ${quoted(start.words[3])} to select it.`,
-    isDone: (s, start) => selected(s, start.words[3]) && s.selectedWordIds.length === 1,
+    isDone: (s, start) => selected(s, start.words[3]),
   },
   {
     id: "gloss-edit",
@@ -773,6 +792,15 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     result: firstLine,
   },
   {
+    id: "boxes-on",
+    section: "Words",
+    target: '[data-tour="boxes"]',
+    title: "Turn the boxes back on",
+    body: "Click the box button again to bring the word boxes back. Uniform width, next, works on the boxes.",
+    isDone: (s) => s.boxStyle === BoxDisplayStyle.box,
+    result: firstLineEverywhere,
+  },
+  {
     id: "uniform-width",
     section: "Words",
     target: '[data-tour="uniform-width"]',
@@ -783,6 +811,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "indent-word",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Words",
     target: (_s, start) => wordSelector(firstWordOfVerse(start, 3)),
     title: "Pick a word to indent",
@@ -803,6 +832,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Notes
   {
     id: "notes-on",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Notes",
     target: '[data-tour="notes-toggle"]',
     title: "Open the strophe notes",
@@ -843,6 +873,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-title",
+    onStart: { clearSelection: true, closeInfoPane: true },
     section: "Notes",
     target: '[data-tour="stanza-title"]',
     title: "Name a stanza",
@@ -876,6 +907,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-edit",
+    onStart: { clearSelection: true },
     section: "Layers",
     target: PASSAGE,
     title: "Work in the new layer",

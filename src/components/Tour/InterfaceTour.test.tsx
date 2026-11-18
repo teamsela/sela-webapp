@@ -27,7 +27,12 @@ const baseCtx = {
   ctxActiveLayerId: 0,
 };
 
-const practice = { capture: vi.fn(() => ({ metadata: { words: {} }, notes: "", notesOn: false, infoPaneAction: InfoPaneActionType.none })), restore: vi.fn() };
+const practice = {
+  capture: vi.fn(() => ({ metadata: { words: {} }, notes: "", notesOn: false, infoPaneAction: InfoPaneActionType.none })),
+  restore: vi.fn(),
+  clearSelection: vi.fn(),
+  closeInfoPane: vi.fn(),
+};
 
 const Harness = ({ ctx, setCloneStudyOpen = vi.fn() }: { ctx: Record<string, unknown>; setCloneStudyOpen?: (o: boolean) => void }) => (
   <FormatContext.Provider value={{ ...baseCtx, ...ctx } as any}>

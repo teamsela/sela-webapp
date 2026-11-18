@@ -17,4 +17,8 @@ export type PracticeState = {
 export type PracticeControls = {
   capture: () => PracticeState;
   restore: (state: PracticeState) => void;
+  /** Deselect all words and strophes (and close any color picker or gloss edit). */
+  clearSelection: () => void;
+  /** Close the right-hand info pane. */
+  closeInfoPane: () => void;
 };

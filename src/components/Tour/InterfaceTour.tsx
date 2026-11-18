@@ -90,6 +90,13 @@ const keepUpTo = (checkpoints: Checkpoints, step: number): Checkpoints =>
 
 const ACTION_STEP_IDS = INTERFACE_TOUR_STEPS.filter(isActionStep).map((s) => s.id);
 
+/** Run a step's start-up tidying (see TourStep.onStart). */
+const tidyFor = (index: number, practice: PracticeControls) => {
+  const onStart = INTERFACE_TOUR_STEPS[index]?.onStart;
+  if (onStart?.clearSelection) practice.clearSelection();
+  if (onStart?.closeInfoPane) practice.closeInfoPane();
+};
+
 const InterfaceTour = ({
   studyId,
   infoPaneAction,
@@ -147,6 +154,7 @@ const InterfaceTour = ({
     }
     const resumeAt = checkpoints[String(saved.step)] ? saved.step : 0;
     if (resumeAt > 0) practiceRef.current.restore(checkpoints[String(resumeAt)]);
+    tidyFor(resumeAt, practiceRef.current);
     const next = { step: resumeAt, open: saved.open };
     setProgress(next);
     writeProgress(studyId, next);
@@ -196,6 +204,7 @@ const InterfaceTour = ({
         checkpoints = keepUpTo(checkpoints, index);
       }
       writeCheckpoints(studyId, checkpoints);
+      if (index !== current) tidyFor(index, practiceRef.current);
       update({ step: index, open: true });
     },
     [progress?.step, studyId, update]

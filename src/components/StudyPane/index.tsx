@@ -779,7 +779,19 @@ const StudyPane = ({
             studyId={passageData.study.id}
             infoPaneAction={infoPaneAction}
             setCloneStudyOpen={setCloneStudyOpen}
-            practice={{ capture: capturePracticeState, restore: restorePracticeState }}
+            practice={{
+              capture: capturePracticeState,
+              restore: restorePracticeState,
+              clearSelection: () => {
+                setSelectedWords([]);
+                setNumSelectedWords(0);
+                setSelectedStrophes([]);
+                setNumSelectedStrophes(0);
+                setEditingWordId(null);
+                setColorAction(ColorActionType.none);
+              },
+              closeInfoPane: () => setInfoPaneAction(InfoPaneActionType.none),
+            }}
           />
         )}
       </FormatContext.Provider>

@@ -144,7 +144,7 @@ const measure = (selector?: string, withTooltips = true): Measured => {
 /** Scroll the (first) target to the middle of its panel. */
 const reveal = (selector?: string) => {
   const el = selector ? findTargets(selector)[0] : undefined;
-  el?.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+  el?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
 };
 
 const sameRect = (a: Rect | null, b: Rect | null) =>
