@@ -7,7 +7,7 @@ vi.mock("@/components/StudyPane", async () => {
 });
 
 import { FormatContext } from "@/components/StudyPane";
-import { InfoPaneActionType, LanguageMode, NonEnglishDisplayMode, BoxDisplayStyle } from "@/lib/types";
+import { ColorActionType, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode, BoxDisplayStyle } from "@/lib/types";
 import { INTERFACE_TOUR_ID, INTERFACE_TOUR_STEPS } from "@/lib/tutorials/interfaceTour";
 import InterfaceTour from "./InterfaceTour";
 
@@ -85,7 +85,14 @@ describe("InterfaceTour", () => {
     const { rerender } = render(<Harness ctx={{}} />);
     act(() => { vi.advanceTimersByTime(200); });
     expect(screen.getByRole("dialog", { name: "Fill color" })).toBeTruthy();
-    rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } } }} />);
+    // Color picked, picker still open: not done yet.
+    rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } }, ctxColorAction: ColorActionType.colorFill }} />);
+    act(() => { vi.advanceTimersByTime(400); });
+    expect(screen.getAllByText("(to do)")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+
+    // Picker closed: done.
+    rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } }, ctxColorAction: ColorActionType.none }} />);
     act(() => { vi.advanceTimersByTime(400); });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByRole("dialog", { name: "Font color" })).toBeTruthy();

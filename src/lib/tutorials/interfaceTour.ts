@@ -1,4 +1,4 @@
-import { BoxDisplayStyle, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
+import { BoxDisplayStyle, ColorActionType, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import type { LayerDef, PassageProps, StudyMetadata, WordProps } from "@/lib/data";
 
 /*
@@ -34,6 +34,8 @@ export type TourSnapshot = {
   anyFill: boolean;
   anyBorder: boolean;
   anyTextColor: boolean;
+  /** A color swatch picker (fill, border or font) is open. */
+  colorPickerOpen: boolean;
   anyGlossEdit: boolean;
   boxStyle: BoxDisplayStyle | undefined;
   anyIndent: boolean;
@@ -181,6 +183,7 @@ export type TourSources = {
   layers: LayerDef[] | undefined;
   activeLayerId: number;
   selectedStropheIds?: number[];
+  colorAction?: ColorActionType;
   infoPaneAction: InfoPaneActionType;
   /** Read from the page: whether an ESV popover / Word Information is open. */
   esvOpen: boolean;
@@ -219,6 +222,9 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
     anyFill: words.some((w) => !!w?.color?.fill),
     anyBorder: words.some((w) => !!w?.color?.border),
     anyTextColor: words.some((w) => !!w?.color?.text),
+    colorPickerOpen: [ColorActionType.colorFill, ColorActionType.borderColor, ColorActionType.textColor].includes(
+      src.colorAction ?? ColorActionType.none
+    ),
     anyGlossEdit: words.some((w) => !!w?.glossOverride?.trim()),
     boxStyle: src.boxStyle,
     anyIndent: words.some((w) => (w?.indent ?? 0) > 0),
@@ -664,8 +670,11 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     target: '[data-tour="fill-color"]',
     title: "Fill color",
     body:
-      "Colors mark repeated words and parallel ideas. With words selected (the repeated \u201cYahweh\u201d from before, or double-click or drag across others), click Fill color and pick a color for the background.",
-    isDone: (s) => s.anyFill,
+      "Colors mark repeated words and parallel ideas. With words selected (the repeated \u201cYahweh\u201d from before, or double-click or drag across others), click Fill color and pick a color for the background. Then click Fill color again to close the color picker.",
+    checks: [
+      { label: "Pick a fill color", isDone: (s) => s.anyFill },
+      { label: "Close the picker: click Fill color again", isDone: (s) => s.anyFill && !s.colorPickerOpen },
+    ],
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="fill-color"]'),
@@ -675,8 +684,11 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Colors",
     target: '[data-tour="font-color"]',
     title: "Font color",
-    body: "Now click Font color and pick a color for the text itself.",
-    isDone: (s) => s.anyTextColor,
+    body: "Now click Font color and pick a color for the text itself, then click Font color again to close the picker.",
+    checks: [
+      { label: "Pick a font color", isDone: (s) => s.anyTextColor },
+      { label: "Close the picker: click Font color again", isDone: (s) => s.anyTextColor && !s.colorPickerOpen },
+    ],
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="font-color"]'),
@@ -686,8 +698,11 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Colors",
     target: '[data-tour="border-color"]',
     title: "Border color",
-    body: "Finally, click Border color and pick a color for the box around each word.",
-    isDone: (s) => s.anyBorder,
+    body: "Finally, click Border color and pick a color for the box around each word, then click Border color again to close the picker.",
+    checks: [
+      { label: "Pick a border color", isDone: (s) => s.anyBorder },
+      { label: "Close the picker: click Border color again", isDone: (s) => s.anyBorder && !s.colorPickerOpen },
+    ],
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="border-color"]'),

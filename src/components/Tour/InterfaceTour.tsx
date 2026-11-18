@@ -128,6 +128,7 @@ const InterfaceTour = ({
       layers: c.ctxLayers,
       activeLayerId: c.ctxActiveLayerId,
       selectedStropheIds: (c.ctxSelectedStrophes ?? []).map((sp: { stropheId: number }) => sp.stropheId),
+      colorAction: c.ctxColorAction,
       infoPaneAction: pane,
       esvOpen: !!document.querySelector('[data-tour="esv-popover"][data-open="true"]'),
       wordInfoOpen:
