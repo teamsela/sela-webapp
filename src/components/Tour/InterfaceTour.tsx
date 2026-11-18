@@ -12,9 +12,11 @@ import {
   isActionStep,
   isStepDone,
   resolveBody,
+  resolveResult,
   resolveTarget,
   type TourSnapshot,
 } from "@/lib/tutorials/interfaceTour";
+import type { PracticeControls, PracticeState } from "@/lib/tutorials/practiceState";
 import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverlay";
 
 /*
@@ -27,6 +29,11 @@ import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverl
   the user. Steps can compare against a snapshot taken when they began (for
   "make two more strophes" or "merge two stanzas"). A small pill above the
   footer says this is a practice copy and reopens the tour.
+
+  Checkpoints: practice changes are never saved to the database, so the study
+  state is saved here (per browser) at the start of every step. Back puts the
+  previous step's starting state back, and a reload puts the current step's
+  starting state back, so the passage always matches the step being shown.
 */
 
 type TourProgress = { step: number; open: boolean };
@@ -56,17 +63,46 @@ const writeProgress = (studyId: string, progress: TourProgress) => {
   }
 };
 
+type Checkpoints = Record<string, PracticeState>;
+
+const checkpointKey = (studyId: string) => `${storageKey(studyId)}.checkpoints`;
+
+const readCheckpoints = (studyId: string): Checkpoints => {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(checkpointKey(studyId)) ?? "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeCheckpoints = (studyId: string, checkpoints: Checkpoints) => {
+  try {
+    window.localStorage.setItem(checkpointKey(studyId), JSON.stringify(checkpoints));
+  } catch {
+    // too big or storage blocked: Back/reload just won't restore
+  }
+};
+
+/** Keep checkpoints up to and including `step`; later ones are out of date. */
+const keepUpTo = (checkpoints: Checkpoints, step: number): Checkpoints =>
+  Object.fromEntries(Object.entries(checkpoints).filter(([k]) => Number(k) <= step));
+
 const ACTION_STEP_IDS = INTERFACE_TOUR_STEPS.filter(isActionStep).map((s) => s.id);
 
 const InterfaceTour = ({
   studyId,
   infoPaneAction,
   setCloneStudyOpen,
+  practice,
 }: {
   studyId: string;
   infoPaneAction: InfoPaneActionType;
   setCloneStudyOpen: (open: boolean) => void;
+  practice: PracticeControls;
 }) => {
+  const practiceRef = useRef(practice);
+  practiceRef.current = practice;
   const ctx = useContext(FormatContext);
 
   const [progress, setProgress] = useState<TourProgress | null>(null);
@@ -99,8 +135,20 @@ const InterfaceTour = ({
     });
   }, []);
 
+  // Start (or resume) the tour, putting back the passage as it was when the
+  // current step began.
   useEffect(() => {
-    setProgress(readProgress(studyId));
+    const saved = readProgress(studyId);
+    let checkpoints = readCheckpoints(studyId);
+    if (!checkpoints["0"]) {
+      checkpoints = { "0": practiceRef.current.capture() };
+      writeCheckpoints(studyId, checkpoints);
+    }
+    const resumeAt = checkpoints[String(saved.step)] ? saved.step : 0;
+    if (resumeAt > 0) practiceRef.current.restore(checkpoints[String(resumeAt)]);
+    const next = { step: resumeAt, open: saved.open };
+    setProgress(next);
+    writeProgress(studyId, next);
   }, [studyId]);
 
   const update = useCallback(
@@ -115,11 +163,15 @@ const InterfaceTour = ({
   const isLast = !!progress && progress.step === INTERFACE_TOUR_STEPS.length - 1;
 
   // A fresh "start" snapshot whenever a step begins (or the tour reopens).
+  // Taken a moment later, so a just-restored passage has finished laying out.
   useEffect(() => {
     if (!progress?.open) return;
-    const now = takeSnapshot();
-    setStart(now);
-    setSnapshot(now);
+    const id = window.setTimeout(() => {
+      const now = takeSnapshot();
+      setStart(now);
+      setSnapshot(now);
+    }, 150);
+    return () => window.clearTimeout(id);
   }, [progress?.step, progress?.open, takeSnapshot]);
 
   // Watch the screen a few times a second while an action step is showing.
@@ -129,7 +181,24 @@ const InterfaceTour = ({
     return () => window.clearInterval(id);
   }, [progress?.open, step, takeSnapshot]);
 
-  const goTo = useCallback((index: number) => update({ step: index, open: true }), [update]);
+  const goTo = useCallback(
+    (index: number) => {
+      const current = progress?.step ?? 0;
+      let checkpoints = readCheckpoints(studyId);
+      if (index > current) {
+        // Moving on: remember how the passage looks as the new step begins.
+        checkpoints = { ...keepUpTo(checkpoints, current), [String(index)]: practiceRef.current.capture() };
+      } else if (index < current) {
+        // Going back: put the passage back as it was when that step began.
+        const saved = checkpoints[String(index)];
+        if (saved) practiceRef.current.restore(saved);
+        checkpoints = keepUpTo(checkpoints, index);
+      }
+      writeCheckpoints(studyId, checkpoints);
+      update({ step: index, open: true });
+    },
+    [progress?.step, studyId, update]
+  );
 
   // Once done, stay done for this step even if the user keeps experimenting.
   const [doneStepId, setDoneStepId] = useState<string | null>(null);
@@ -142,6 +211,8 @@ const InterfaceTour = ({
   if (!progress || !step) return null;
 
   const done = doneStepId === step.id;
+  const resultTarget = done ? resolveResult(step, snapshot, start) : undefined;
+  const showResult = !!resultTarget;
   const close = () => update({ ...progress, open: false });
   const restart = () => goTo(0);
   const actionIndex = ACTION_STEP_IDS.indexOf(step.id);
@@ -194,7 +265,9 @@ const InterfaceTour = ({
     <>
       {progress.open && (
         <TourOverlay
-          target={resolveTarget(step, snapshot, start)}
+          target={showResult ? resultTarget : resolveTarget(step, snapshot, start)}
+          tone={showResult ? "result" : "target"}
+          allow={[resolveTarget(step, snapshot, start), resultTarget, step.allow].filter(Boolean).join(", ") || undefined}
           title={step.title}
           body={resolveBody(step, snapshot, start)}
           checklist={checklist}

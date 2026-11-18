@@ -252,7 +252,7 @@ useEffect(() => {
   }, [claimActivePane]);
 
   return (
-    <div className="flex h-full flex-col bg-transparent" onFocus={claimActivePane}>
+    <div className="flex h-full flex-col bg-transparent" onFocus={claimActivePane} data-tour="strophe-note">
       <RichTextEditor
         value={noteDoc}
         onChange={handleChange}

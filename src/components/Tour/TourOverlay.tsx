@@ -23,6 +23,15 @@ import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } 
   is scrolled to the middle of its panel. If the user later scrolls it out of
   view, the ring is dropped and the bubble says which way to scroll, with a
   "Show me" button that brings it back.
+
+  Toolbar tooltips ([data-tooltip] inside a target) are included in the lit
+  area, so they show inside it and the bubble sits below them.
+
+  While the overlay is up, clicks and key presses outside the target, the
+  `allow` areas and the bubble are blocked (the bubble nudges instead), so the
+  user can't knock the tutorial off course. Scrolling is never blocked.
+
+  `tone="result"` draws the ring in green: it is showing what an action did.
 */
 
 const BUBBLE_WIDTH = 340;
@@ -30,6 +39,9 @@ const GAP = 14;
 const EDGE = 16;
 const PAD = 6;
 const Z = 10000; // above the study header (z-9999)
+// Theme colors: primary (#3C50E0) for "do this", meta-3 green for "here's the result".
+const TARGET_RING = "#3C50E0";
+const RESULT_RING = "#10B981";
 
 type Rect = { top: number; left: number; width: number; height: number };
 type Box = { top: number; left: number; bottom: number; right: number };
@@ -70,7 +82,8 @@ const measure = (selector?: string): Measured => {
   let offscreen: Offscreen | null = null;
   let partlyHidden = false;
 
-  for (const el of findTargets(selector)) {
+  const elements = findTargets(selector).flatMap((el) => [el, ...Array.from(el.querySelectorAll("[data-tooltip]"))]);
+  for (const el of elements) {
     const r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) continue; // not rendered (a closed popover)
     const area = visibleArea(el);
@@ -119,16 +132,56 @@ export type TourOverlayProps = {
   dim?: boolean;
   /** "corner": bubble at the bottom right, clear of the passage (see TourStep.placement). */
   placement?: "near" | "corner";
+  /** Extra places the user may click (selector list); see the note at the top. */
+  allow?: string;
+  /** "result": green ring, showing what the user's action did. */
+  tone?: "target" | "result";
   onClose: () => void;
   /** Buttons in the bubble's footer, right-aligned. */
   actions: ReactNode;
 };
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", onClose, actions }: TourOverlayProps) => {
+const NAVIGATION_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " ", "Tab", "Escape"]);
+const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contextmenu", "touchstart", "keydown"] as const;
+
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, tone = "target", onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
+  const [nudge, setNudge] = useState(false);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+
+  // Block interaction outside the step (see the note at the top).
+  useEffect(() => {
+    const allowed = [target, allow].filter(Boolean).join(", ");
+    const isAllowed = (node: EventTarget | null) => {
+      if (!(node instanceof Node)) return true;
+      if (bubbleRef.current?.contains(node)) return true;
+      if (!allowed) return false;
+      return Array.from(document.querySelectorAll(allowed)).some((el) => el.contains(node));
+    };
+    let nudgeTimer: number | undefined;
+    const block = (event: Event) => {
+      if (event instanceof KeyboardEvent) {
+        if (NAVIGATION_KEYS.has(event.key) && !(event.target instanceof HTMLElement && event.target.isContentEditable)) return;
+        const focused = document.activeElement;
+        if (focused && focused !== document.body && isAllowed(focused)) return;
+      }
+      if (isAllowed(event.target)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.type === "pointerdown" || event.type === "touchstart") {
+        setNudge(true);
+        window.clearTimeout(nudgeTimer);
+        nudgeTimer = window.setTimeout(() => setNudge(false), 700);
+      }
+    };
+    BLOCKED_EVENTS.forEach((type) => window.addEventListener(type, block, true));
+    return () => {
+      BLOCKED_EVENTS.forEach((type) => window.removeEventListener(type, block, true));
+      window.clearTimeout(nudgeTimer);
+    };
+  }, [target, allow]);
   const { rect, offscreen } = measured;
   const [bubbleHeight, setBubbleHeight] = useState(180);
-  const bubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!target) {
@@ -186,14 +239,19 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       {rect ? (
         <div
           aria-hidden
-          className="pointer-events-none rounded-lg ring-2 ring-primary transition-all duration-200"
+          className="pointer-events-none rounded-lg transition-all duration-200"
           style={{
             position: "fixed",
             top: rect.top - PAD,
             left: rect.left - PAD,
             width: rect.width + PAD * 2,
             height: rect.height + PAD * 2,
-            boxShadow: dim ? "0 0 0 9999px rgba(15, 23, 42, 0.45)" : undefined,
+            // The ring and the dimming share one box-shadow (a separate ring
+            // class would be overridden by this inline style).
+            boxShadow: [
+              tone === "result" ? `0 0 0 3px ${RESULT_RING}` : `0 0 0 2px ${TARGET_RING}`,
+              dim ? "0 0 0 9999px rgba(15, 23, 42, 0.45)" : undefined,
+            ].filter(Boolean).join(", "),
             zIndex: Z,
           }}
         />
@@ -209,7 +267,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         role="dialog"
         aria-label={title}
         style={bubbleStyle}
-        className="rounded-2xl bg-white p-5 text-left text-sm text-gray-700 shadow-2xl dark:bg-gray-900 dark:text-gray-200"
+        className={`rounded-2xl bg-white p-5 text-left text-sm text-gray-700 shadow-2xl transition-shadow dark:bg-gray-900 dark:text-gray-200 ${nudge ? "ring-4 ring-primary/50" : ""}`}
       >
         <button
           type="button"
@@ -261,7 +319,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
 
         {done && (
-          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it. Take a look, then click Continue.</p>
+          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is outlined in green." : ""} Take a look, then click Continue.</p>
         )}
 
         <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>

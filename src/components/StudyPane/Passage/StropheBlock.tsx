@@ -363,6 +363,7 @@ export const StropheBlock = ({
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
+      data-strophe-block={stropheProps.stropheId}
       className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {

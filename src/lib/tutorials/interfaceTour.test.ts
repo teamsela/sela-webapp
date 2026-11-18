@@ -120,8 +120,8 @@ describe("tour steps", () => {
   it("merge steps compare against the start of the step", () => {
     const start = buildTourSnapshot(sources());
     const later = { ...start, stropheCount: start.stropheCount - 1 };
-    expect(isStepDone(step("merge-strophe"), start, start)).toBe(false);
-    expect(isStepDone(step("merge-strophe"), later, start)).toBe(true);
+    expect(isStepDone(step("merge-strophe-button"), start, start)).toBe(false);
+    expect(isStepDone(step("merge-strophe-button"), later, start)).toBe(true);
   });
 
   it("layer edits need both a color and a division change", () => {

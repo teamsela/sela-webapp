@@ -252,6 +252,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
+      data-stanza-block={stanzaProps.stanzaId}
       className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || useCounterColumns ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
       >
       <div

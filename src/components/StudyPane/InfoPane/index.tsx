@@ -90,6 +90,7 @@ const InfoPane = ({
 
   return (
     <aside
+      data-tour="info-pane"
       className="relative right-0 top-0 flex h-full flex-col overflow-hidden bg-white"
       style={{
         borderColor: "rgb(203 213 225)",

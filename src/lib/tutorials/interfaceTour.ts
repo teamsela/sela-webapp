@@ -49,12 +49,21 @@ export type TourSnapshot = {
   verseSixLines: TourWord[][];
   /** Each strophe and where it starts. */
   strophes: TourStrophe[];
+  /** Each stanza, where it starts and its strophes. */
+  stanzas: TourStanza[];
   selectedWordIds: number[];
   selectedStropheIds: number[];
+  /** Words (in reading order) that carry a color, an edited gloss, an indent. */
+  coloredWordIds: number[];
+  glossEditedWordIds: number[];
+  indentedWordIds: number[];
+  /** Strophes whose note (in the active layer) has a title. */
+  titledNoteStropheIds: number[];
 };
 
 export type TourWord = { wordId: number; verse: number; gloss: string };
 export type TourStrophe = { stropheId: number; firstWordId: number | undefined; firstVerse: number | undefined };
+export type TourStanza = { stanzaId: number; firstVerse: number | undefined; stropheIds: number[] };
 
 export type TourCheck = { label: string; isDone: (s: TourSnapshot, start: TourSnapshot) => boolean };
 
@@ -73,6 +82,14 @@ export type TourStep = {
   isDone?: (s: TourSnapshot, start: TourSnapshot) => boolean;
   /** Several things to do in one step; done when all are ticked. */
   checks?: TourCheck[];
+  /** What to light up (in green) once the step is done: the result of the action. */
+  result?: string | ((s: TourSnapshot, start: TourSnapshot) => string | undefined);
+  /**
+    Extra places the user may click during this step (selector list). Clicks
+    anywhere else, outside the target and the bubble, are blocked so the
+    tutorial's flow can't be knocked off course.
+  */
+  allow?: string;
   /** Extra space between target and bubble, for controls that open a panel below themselves. */
   clearance?: number;
   /** Dim the rest of the screen (default true). Off when the user must work in a panel that opens elsewhere. */
@@ -85,7 +102,9 @@ export type TourStep = {
   placement?: "near" | "corner";
 };
 
-const WORK_IN_PASSAGE = { dim: false, placement: "corner" } as const;
+const PASSAGE_AREA = '[data-tour="passage-area"]';
+const INFO_PANE = '[data-tour="info-pane"]';
+const WORK_IN_PASSAGE = { dim: false, placement: "corner", allow: PASSAGE_AREA } as const;
 
 // A control plus the panel it opens, lit together while the rest stays dimmed.
 const LANGUAGE_WITH_DROPDOWN = '[data-tour="language-switcher"], [data-tour="language-dropdown"]';
@@ -102,6 +121,13 @@ export const resolveTarget = (
 export const resolveBody = (step: TourStep, s: TourSnapshot | null, start: TourSnapshot | null = s): string =>
   typeof step.body === "function" ? (s ? step.body(s, start ?? s) : "") : step.body;
 
+export const resolveResult = (
+  step: TourStep,
+  s: TourSnapshot | null,
+  start: TourSnapshot | null = s
+): string | undefined =>
+  typeof step.result === "function" ? (s ? step.result(s, start ?? s) : undefined) : step.result;
+
 /** Is this step something the user does (as opposed to read)? */
 export const isActionStep = (step: TourStep) => !!step.isDone || !!step.checks?.length;
 
@@ -113,6 +139,20 @@ export const isStepDone = (step: TourStep, s: TourSnapshot, start: TourSnapshot)
 /* ------------------------------------------------------------------------ */
 
 type NoteEntry = { title?: string };
+
+const titledNoteIndexes = (studyNotes: string | undefined, layerId: number): number[] => {
+  if (!studyNotes) return [];
+  try {
+    const parsed = JSON.parse(studyNotes) as {
+      strophes?: NoteEntry[];
+      layerStrophes?: Record<string, NoteEntry[]>;
+    };
+    const list = parsed.layerStrophes?.[String(layerId)] ?? (layerId === 0 ? parsed.strophes : undefined) ?? [];
+    return Array.isArray(list) ? list.flatMap((n, i) => (n?.title?.trim() ? [i] : [])) : [];
+  } catch {
+    return [];
+  }
+};
 
 const anyNoteTitleIn = (studyNotes: string | undefined): boolean => {
   if (!studyNotes) return false;
@@ -205,8 +245,22 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
       const first = sp.lines?.[0]?.words?.[0];
       return { stropheId: sp.stropheId, firstWordId: first?.wordId, firstVerse: first?.verse };
     }),
+    stanzas: stanzas.map((st) => ({
+      stanzaId: st.stanzaId,
+      firstVerse: st.strophes?.[0]?.lines?.[0]?.words?.[0]?.verse,
+      stropheIds: (st.strophes ?? []).map((sp) => sp.stropheId),
+    })),
     selectedWordIds: selected.map((w) => w.wordId),
     selectedStropheIds: src.selectedStropheIds ?? [],
+    coloredWordIds: lines.flatMap((l) => l.words).map((w) => w.wordId).filter((id) => {
+      const c = src.studyMetadata?.words?.[id]?.color;
+      return !!(c?.fill || c?.border || c?.text);
+    }),
+    glossEditedWordIds: lines.flatMap((l) => l.words).map((w) => w.wordId)
+      .filter((id) => !!src.studyMetadata?.words?.[id]?.glossOverride?.trim()),
+    indentedWordIds: lines.flatMap((l) => l.words).map((w) => w.wordId)
+      .filter((id) => (src.studyMetadata?.words?.[id]?.indent ?? 0) > 0),
+    titledNoteStropheIds: titledNoteIndexes(src.studyNotes, src.activeLayerId),
   };
 };
 
@@ -228,6 +282,22 @@ const lastWordOnVerseSixLine = (s: TourSnapshot, index: number) => {
 
 const selected = (s: TourSnapshot, w: TourWord | undefined) => !!w && s.selectedWordIds.includes(w.wordId);
 
+const ALL_TOOL_GROUPS =
+  '[data-tour="group-format"], [data-tour="group-word"], [data-tour="group-line"], [data-tour="group-strophe"], [data-tour="group-stanza"]';
+
+const wordById = (id: number | undefined) => (id === undefined ? undefined : `[data-word-id="${id}"]`);
+const stropheBlock = (sp: TourStrophe | undefined) => (sp ? `[data-strophe-block="${sp.stropheId}"]` : undefined);
+const stanzaBlock = (st: TourStanza | undefined) => (st ? `[data-stanza-block="${st.stanzaId}"]` : undefined);
+const stropheSelector = (sp: TourStrophe | undefined) =>
+  sp ? `[data-tour="strophe-select"][data-strophe-id="${sp.stropheId}"]` : undefined;
+const both = (a: string | undefined, b: string | undefined) => [a, b].filter(Boolean).join(", ") || undefined;
+/** Verse 6 from its first to its last word. */
+const verseSixArea = (s: TourSnapshot) => {
+  const v6 = s.words.filter((w) => w.verse === 6);
+  return both(wordSelector(v6[0]), wordSelector(v6[v6.length - 1]));
+};
+const firstLine = '[data-strophe-line="true"]';
+
 /** The strophe to move into a new stanza: the one starting at verse 4, else the second. */
 const stanzaStrophe = (s: TourSnapshot) =>
   stropheStartingAt(s, firstWordOfVerse(s, 4)) ?? s.strophes[1];
@@ -238,7 +308,7 @@ const structureOf = (s: TourSnapshot) => `${s.stanzaCount}/${s.stropheCount}/${s
 /* Steps                                                                     */
 /* ------------------------------------------------------------------------ */
 
-export const INTERFACE_TOUR_ID = "interface-v2";
+export const INTERFACE_TOUR_ID = "interface-v3";
 
 const PASSAGE = '[data-strophe-line="true"]';
 
@@ -268,6 +338,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Switch to the Hebrew",
     body: "The language switch has three choices: A (English), א (Hebrew) and Aא (both). Click א to show the Hebrew text (OHB, the Open Hebrew Bible).",
     isDone: (s) => s.languageMode === LanguageMode.Hebrew,
+    result: firstLine,
   },
   {
     id: "lang-transliteration",
@@ -281,6 +352,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     // The dropdown opens right below the switch: light it up with the switch
     // and keep the bubble in the corner so it doesn't cover it.
     placement: "corner",
+    result: firstLine,
   },
   {
     id: "lang-parallel",
@@ -289,6 +361,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "English and Hebrew together",
     body: "Click Aא to see the English gloss and the Hebrew side by side.",
     isDone: (s) => s.languageMode === LanguageMode.Parallel,
+    result: firstLine,
   },
   {
     id: "lang-english",
@@ -297,6 +370,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Back to the English gloss",
     body: "Click A to return to the Discovery Bible English. The rest of the tutorial uses this view.",
     isDone: (s) => s.languageMode === LanguageMode.English,
+    result: firstLine,
   },
 
   // ESV
@@ -310,6 +384,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     // keep the bubble in the corner so it doesn't cover it.
     target: ESV_WITH_POPOVER,
     placement: "corner",
+    result: '[data-tour="esv-popover"][data-open="true"]',
   },
   {
     id: "esv-close",
@@ -341,6 +416,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Click New strophe",
     body: "Now click New strophe. The heading stays in the first strophe, and the psalm itself starts a new one.",
     isDone: (s) => s.stropheCount >= 2 && s.firstStropheWordCount === 2,
+    result: (s) => both(stropheBlock(s.strophes[0]), stropheBlock(s.strophes[1])),
   },
   {
     id: "strophe-collapse",
@@ -350,6 +426,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Collapse a strophe",
     body: "Click this arrow to collapse the heading strophe out of the way. Clicking it again opens it.",
     isDone: (s) => s.anyStropheCollapsed,
+    result: (s) => stropheBlock(s.strophes[0]),
   },
   {
     id: "strophe-explain",
@@ -377,6 +454,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Start a strophe at verse 4",
     body: "Click New strophe. Verse 4 and everything after it moves into a new strophe.",
     isDone: (s) => !!stropheStartingAt(s, firstWordOfVerse(s, 4)),
+    result: (s) => stropheBlock(stropheStartingAt(s, firstWordOfVerse(s, 4))),
   },
   {
     id: "verse5-word",
@@ -398,6 +476,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Click New strophe again. Tip: you can also select several words in a row and click New strophe to make just those words a strophe of their own. The words must be next to each other.",
     isDone: (s) => !!stropheStartingAt(s, firstWordOfVerse(s, 5)),
+    result: (s) => stropheBlock(stropheStartingAt(s, firstWordOfVerse(s, 5))),
   },
 
   // Stanzas
@@ -432,6 +511,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Click New stanza",
     body: "Click New stanza. The selected strophe and the ones after it start a new stanza.",
     isDone: (s) => s.stanzaCount >= 2,
+    result: (s) => stanzaBlock(s.stanzas.find((st) => st.firstVerse === 4) ?? s.stanzas[1]),
   },
 
   // Lines: verse 6 from four lines to two, in two merge cycles. Each word is
@@ -452,6 +532,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Click Merge with previous line",
     body: "Click Merge with previous line. The selected word and everything before it on its line join the line above.",
     isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount,
+    result: verseSixArea,
   },
   {
     id: "v6-merge2-word",
@@ -470,26 +551,53 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Click Merge with previous line again to finish. Merge with next line works the same way in the other direction, and if you select several words, only those words move.",
     isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount && s.verseSixLineCount <= 2,
+    result: verseSixArea,
   },
 
-  // Merging
+  // Merging: one strophe merge, then one stanza merge, each as "select
+  // this strophe" then "click this button".
   {
-    id: "merge-strophe",
+    id: "merge-strophe-select",
     section: "Merging",
-    target: '[data-tour="group-strophe"]',
-    title: "Merge two strophes",
-    body: "Changed your mind? Select a strophe and click Merge with previous strophe or Merge with next strophe to join it to its neighbour.",
-    isDone: (s, start) => s.stropheCount < start.stropheCount,
-    ...WORK_IN_PASSAGE,
+    target: (_s, start) => stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
+    title: "Select a strophe to merge",
+    body: (_s, start) =>
+      stropheStartingAt(start, firstWordOfVerse(start, 5))
+        ? "Changed your mind about a division? Click this icon to select the strophe that begins at verse 5."
+        : "Changed your mind about a division? Click this icon to select the last strophe.",
+    isDone: (s, start) => {
+      const sp = stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1);
+      return !!sp && s.selectedStropheIds.includes(sp.stropheId);
+    },
   },
   {
-    id: "merge-stanza",
+    id: "merge-strophe-button",
     section: "Merging",
-    target: '[data-tour="group-stanza"]',
-    title: "Merge two stanzas",
-    body: "Stanzas merge the same way: select a strophe and click Merge with previous stanza or Merge with next stanza.",
+    target: '[data-tour="structure-mergeWithPrevStrophe"]',
+    title: "Click Merge with previous strophe",
+    body: "Click Merge with previous strophe. The selected strophe joins the one before it. Merge with next strophe works the other way.",
+    isDone: (s, start) => s.stropheCount < start.stropheCount,
+    result: (s) => stropheBlock(stropheStartingAt(s, firstWordOfVerse(s, 4))),
+  },
+  {
+    id: "merge-stanza-select",
+    section: "Merging",
+    target: (_s, start) => stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 4)) ?? start.strophes.at(-1)),
+    title: "Select a strophe to move",
+    body: "Stanzas merge the same way. Click this icon to select the strophe that begins at verse 4, the first strophe of the second stanza.",
+    isDone: (s, start) => {
+      const sp = stropheStartingAt(start, firstWordOfVerse(start, 4)) ?? start.strophes.at(-1);
+      return !!sp && s.selectedStropheIds.includes(sp.stropheId);
+    },
+  },
+  {
+    id: "merge-stanza-button",
+    section: "Merging",
+    target: '[data-tour="structure-mergeWithPrevStanza"]',
+    title: "Click Merge with previous stanza",
+    body: "Click Merge with previous stanza. The selected strophe, and any before it in its stanza, move into the previous stanza.",
     isDone: (s, start) => s.stanzaCount < start.stanzaCount,
-    ...WORK_IN_PASSAGE,
+    result: (s) => stanzaBlock(s.stanzas[0]),
   },
 
   // Identical words
@@ -502,6 +610,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Double-click “Yahweh”. Every place the same Hebrew word appears in the passage is selected. Hebrew poetry often repeats key words to tie a poem together, and here God’s name frames the whole psalm.",
     isDone: (s) => s.identicalWordsSelected,
     ...WORK_IN_PASSAGE,
+    result: (s) => both(wordById(s.selectedWordIds[0]), wordById(s.selectedWordIds[s.selectedWordIds.length - 1])),
   },
   {
     id: "word-info",
@@ -511,6 +620,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Open Word Information. It shows the selected word in Hebrew, its transliteration, English gloss and grammar. The info icon there opens a fuller analysis.",
     isDone: (s) => s.wordInfoOpen,
+    result: '#word-information-bar',
   },
   {
     id: "motif-tab",
@@ -520,6 +630,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Open the Motif tab. Identical Words lists every Hebrew word used more than once in the passage. Categories groups words by area of meaning, so you can see themes that run through the psalm even when different words are used.",
     isDone: (s) => s.infoPaneAction === InfoPaneActionType.motif,
+    result: INFO_PANE,
   },
 
   // Colors
@@ -536,6 +647,8 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       { label: "Border color", isDone: (s) => s.anyBorder },
     ],
     ...WORK_IN_PASSAGE,
+    result: (s) => both(wordById(s.coloredWordIds[0]), wordById(s.coloredWordIds[s.coloredWordIds.length - 1])),
+    allow: both(PASSAGE_AREA, '[data-tour="group-format"]'),
   },
 
   // Lines again, gloss, word display
@@ -547,6 +660,8 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body: "Put verse 6 back on four lines. Click the word that should start a new line, then click New line. The words after it on that line move down with it.",
     isDone: (s, start) => s.verseSixLineCount >= 4 && s.verseSixLineCount > start.verseSixLineCount,
     ...WORK_IN_PASSAGE,
+    result: verseSixArea,
+    allow: both(PASSAGE_AREA, '[data-tour="group-line"]'),
   },
   {
     id: "edit-gloss",
@@ -557,6 +672,8 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Select one English word, click Edit English gloss (the last icon in this group), type your own wording and press Enter. Only this study changes; the Hebrew stays as it is.",
     isDone: (s) => s.anyGlossEdit,
     ...WORK_IN_PASSAGE,
+    result: (s) => wordById(s.glossEditedWordIds[0]),
+    allow: both(PASSAGE_AREA, '[data-tour="group-word"]'),
   },
   {
     id: "boxes-off",
@@ -565,6 +682,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Read without boxes",
     body: "Click the box icon (first in this group) to hide the word boxes and read the English as plain text.",
     isDone: (s) => s.boxStyle === BoxDisplayStyle.noBox,
+    result: firstLine,
   },
   {
     id: "uniform-width",
@@ -573,6 +691,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Line up the words",
     body: "Click Enable uniform width (second icon). Every box becomes the same width, which makes it easy to compare lines.",
     isDone: (s) => s.boxStyle === BoxDisplayStyle.uniformBoxes,
+    result: firstLine,
   },
   {
     id: "indent",
@@ -583,6 +702,8 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Select a word and click Add indent (third icon) to shift it one space to the right, so matching ideas in parallel lines sit under each other. Remove indent moves it back.",
     isDone: (s) => s.anyIndent,
     ...WORK_IN_PASSAGE,
+    result: (s) => wordById(s.indentedWordIds[0]),
+    allow: both(PASSAGE_AREA, '[data-tour="group-word"]'),
   },
 
   // Notes
@@ -593,6 +714,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Open the strophe notes",
     body: "Click the notes button to open a note beside every strophe.",
     isDone: (s) => s.notesOn,
+    result: '[data-tour="strophe-note"]',
   },
   {
     id: "notes-write",
@@ -603,6 +725,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Click into any strophe’s note and write something. Put a short title on the first line, press Enter, then write your observation underneath.",
     isDone: (s) => s.anyNoteTitle,
     ...WORK_IN_PASSAGE,
+    result: (s) => s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined,
   },
   {
     id: "notes-format",
@@ -612,6 +735,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "The button at the bottom right of a note (or a right-click inside it) opens the formatting menu: text colour, bold, italic, size and more.",
     dim: false,
+    allow: PASSAGE_AREA,
   },
   {
     id: "notes-off",
@@ -621,6 +745,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Click the notes button again to close the notes. The first line of each note now shows as that strophe’s title.",
     isDone: (s) => !s.notesOn,
+    result: (s) => s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined,
   },
   {
     id: "stanza-title",
@@ -630,6 +755,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body: "Each stanza can have a title too. Click just above a stanza’s first line (“Add stanza title…” appears when you hover), type a title and press Enter.",
     isDone: (s) => s.anyStanzaTitle,
     dim: false,
+    allow: PASSAGE_AREA,
   },
 
   // Layers
@@ -641,6 +767,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Open the Layer tab. A layer is a separate set of colors, divisions and notes on the same passage, so you can study one psalm in several ways without mixing them up.",
     isDone: (s) => s.infoPaneAction === InfoPaneActionType.layers,
+    result: INFO_PANE,
   },
   {
     id: "layers-create",
@@ -650,6 +777,8 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body: "Click the dashed box at the bottom of the tab, type a name for your layer and press Enter. The new layer starts with your current divisions but no colors or notes.",
     isDone: (s, start) => s.layerCount > start.layerCount,
     dim: false,
+    allow: INFO_PANE,
+    result: INFO_PANE,
   },
   {
     id: "layers-edit",
@@ -662,6 +791,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       { label: "Change a division", isDone: (s, start) => structureOf(s) !== structureOf(start) },
     ],
     ...WORK_IN_PASSAGE,
+    allow: both(both(PASSAGE_AREA, ALL_TOOL_GROUPS), INFO_PANE),
   },
   {
     id: "layers-back",
@@ -672,6 +802,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Click your first layer in the Layer tab. Notice that the colors and divisions you just made are not here: each layer keeps its own work.",
     isDone: (s) => s.firstLayerId !== undefined && s.activeLayerId === s.firstLayerId,
     dim: false,
+    allow: INFO_PANE,
   },
 
   // Finish
