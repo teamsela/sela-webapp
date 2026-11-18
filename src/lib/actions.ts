@@ -11,7 +11,7 @@ import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL, sql 
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
-import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, LayerData } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, DEMO_STUDY_ID, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
@@ -92,6 +92,7 @@ export async function fetchStudyById(studyId: string) {
 }
 
 export async function updateStudyName(id: string, studyName: string) {
+  if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
   if (!(await isStudyOwner(id))) {
     return { message: 'Unauthorized: You do not have permission to modify this study.' };
   }
@@ -111,6 +112,7 @@ export async function updateStudyName(id: string, studyName: string) {
 }
 
 export async function updateStudyNotes(id: string, content: string) {
+  if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
   try {
     await db
       .update(study)
@@ -152,6 +154,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
 
+  if (studyId === DEMO_STUDY_ID && !(await isStudyOwner(studyId))) return;
   if (!(await isStudyOwner(studyId))) {
     return { message: 'Unauthorized: You do not have permission to modify this study.' };
   }

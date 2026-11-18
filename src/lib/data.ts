@@ -1,6 +1,11 @@
 import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
 import type { PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
+// The /demo route opens this real, shared study (also at
+// /study/guest_psalm1_template/view). Visitors can mark it up, but their
+// changes are never saved; only the study's owner can update the template.
+export const DEMO_STUDY_ID = "rec_guest_psalm1_template";
+
 export type ColorSource = "syntax" | "motif" | "structure" | "pausal";
 
 export type ColorData = {

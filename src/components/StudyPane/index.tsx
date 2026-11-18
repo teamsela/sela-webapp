@@ -181,10 +181,11 @@ const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
 };
 
 const StudyPane = ({
-  passageData, inViewMode
+  passageData, inViewMode, isDemo = false
 }: {
   passageData: PassageStaticData, // heb word data
   inViewMode: boolean;
+  isDemo?: boolean;
 }) => {
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
@@ -684,6 +685,7 @@ const StudyPane = ({
           setSelectedColor={setSelectedColor}
           setBoxStyle={setBoxDisplayConfig}
           setCloneStudyOpen={setCloneStudyOpen}
+          isDemo={isDemo}
         />
 
         {/* Main Content */}
