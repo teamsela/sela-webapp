@@ -397,6 +397,8 @@ export const StropheBlock = ({
       expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
+        data-tour="strophe-note-open"
+        data-strophe-id={stropheProps.stropheId}
         className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
         onClick={() => setShowNote(!showNote)}
       >

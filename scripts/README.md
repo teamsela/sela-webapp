@@ -17,6 +17,16 @@ npm run tutorial:create -- --owner user_2abc...            # dry run
 npm run tutorial:create -- --owner user_2abc... --apply
 ```
 
+Add `--tutorial orientation` to create the Psalm 1 "Orienting to the
+Interface" tutorial instead (the default, `--tutorial interface`, is Psalm 23):
+
+```bash
+npm run tutorial:create -- --tutorial orientation --owner user_2abc... --apply
+```
+
+The app chooses each tutorial's guided tour by its passage
+(`src/lib/tutorials/tours.ts`).
+
 Needs Node 22.18+ (runs TypeScript directly); on older Node use
 `npx tsx scripts/create-interface-tutorial.mts ...`.
 

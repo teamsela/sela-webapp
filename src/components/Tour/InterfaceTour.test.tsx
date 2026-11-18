@@ -6,9 +6,16 @@ vi.mock("@/components/StudyPane", async () => {
   return { FormatContext: ReactMod.createContext({} as any) };
 });
 
+// The real modal pulls in server actions; a stand-in shows whether it opened.
+vi.mock("@/components/Modals/NewStudy", () => ({
+  default: ({ open }: { open: boolean }) => (open ? <div role="dialog" aria-label="Start a study" /> : null),
+}));
+
 import { FormatContext } from "@/components/StudyPane";
 import { ColorActionType, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode, BoxDisplayStyle } from "@/lib/types";
-import { INTERFACE_TOUR_ID, INTERFACE_TOUR_STEPS } from "@/lib/tutorials/interfaceTour";
+import { INTERFACE_TOUR, INTERFACE_TOUR_ID, INTERFACE_TOUR_STEPS } from "@/lib/tutorials/interfaceTour";
+import { ORIENTATION_TOUR } from "@/lib/tutorials/orientationTour";
+import type { TourDefinition } from "@/lib/tutorials/tour";
 import InterfaceTour from "./InterfaceTour";
 
 const KEY = `sela.tour.${INTERFACE_TOUR_ID}.rec_t`;
@@ -34,12 +41,20 @@ const practice = {
   closeInfoPane: vi.fn(),
 };
 
-const Harness = ({ ctx, setCloneStudyOpen = vi.fn() }: { ctx: Record<string, unknown>; setCloneStudyOpen?: (o: boolean) => void }) => (
+const Harness = ({
+  ctx,
+  setCloneStudyOpen = vi.fn(),
+  tour = INTERFACE_TOUR,
+}: {
+  ctx: Record<string, unknown>;
+  setCloneStudyOpen?: (o: boolean) => void;
+  tour?: TourDefinition;
+}) => (
   <FormatContext.Provider value={{ ...baseCtx, ...ctx } as any}>
     <div data-strophe-line="true">line one</div>
     <div data-tour="language-switcher"><span data-tour="lang-English">A</span><span data-tour="lang-Hebrew">א</span></div>
     <div data-tour="group-format">Format</div>
-    <InterfaceTour studyId="rec_t" infoPaneAction={InfoPaneActionType.none} setCloneStudyOpen={setCloneStudyOpen} practice={practice as any} />
+    <InterfaceTour tour={tour} studyId="rec_t" infoPaneAction={InfoPaneActionType.none} setCloneStudyOpen={setCloneStudyOpen} practice={practice as any} />
   </FormatContext.Provider>
 );
 
@@ -141,6 +156,25 @@ describe("InterfaceTour", () => {
     expect(screen.getByRole("dialog", { name: "That concludes the basic tutorial" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Copy to My Studies" }));
     expect(setCloneStudyOpen).toHaveBeenCalledWith(true);
+  });
+
+  it("ends the Psalm 1 tour with More tutorials and Start your own study", () => {
+    const last = ORIENTATION_TOUR.steps.length - 1;
+    const key = `sela.tour.${ORIENTATION_TOUR.id}.rec_t`;
+    window.localStorage.setItem(key, JSON.stringify({ step: last, open: true }));
+    window.localStorage.setItem(`${key}.checkpoints`, JSON.stringify({ "0": checkpoint(0), [String(last)]: checkpoint(last) }));
+    render(<Harness ctx={{}} tour={ORIENTATION_TOUR} />);
+    expect(screen.getByRole("dialog", { name: "You\u2019re all set!" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "More tutorials" }).getAttribute("href")).toBe("/dashboard/home");
+    expect(screen.queryByRole("button", { name: "Copy to My Studies" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Start your own study" }));
+    expect(screen.getByRole("dialog", { name: "Start a study" })).toBeTruthy();
+  });
+
+  it("keeps each tour's progress separately", () => {
+    startAt(3);
+    render(<Harness ctx={{}} tour={ORIENTATION_TOUR} />);
+    expect(screen.getByRole("dialog", { name: ORIENTATION_TOUR.steps[0].title })).toBeTruthy();
   });
 
   it("saves the passage at the start of each step and puts it back on Back", () => {

@@ -1,13 +1,16 @@
 /*
-  Create the "Interface Tutorial" study (Psalm 23) that the dashboard
-  sidebar's Tutorials folder lists.
+  Create a tutorial study for the dashboard sidebar's Tutorials folder:
+    --tutorial interface    "Interface Tutorial" on Psalm 23 (the default)
+    --tutorial orientation  "Orienting to the Interface" on Psalm 1
+  The app picks each study's guided tour by its passage
+  (src/lib/tutorials/tours.ts).
 
   What it does, in order:
     1. Adds a boolean `tutorial` column to the `study` table (default false)
        if it is not there yet. Existing studies all get false. The app's
        study queries read this column, so this must run before the
        `tutorials` branch is deployed.
-    2. Creates the tutorial study, unless a tutorial for Psalms 23 already
+    2. Creates the tutorial study, unless a tutorial for that passage already
        exists (then it prints that study's id and links instead).
 
   The study is created empty, like one made with "New Study". Its owner edits
@@ -25,6 +28,9 @@
 
     # or take the owner from one of your studies (id from its URL, with rec_)
     node scripts/create-interface-tutorial.mts --owner-from-study rec_abc123 --apply
+
+    # the Psalm 1 tutorial
+    node scripts/create-interface-tutorial.mts --tutorial orientation --owner user_2abc... --apply
 */
 
 import { randomInt } from "node:crypto";
@@ -36,9 +42,11 @@ import pg from "pg";
 dotenv.config({ path: ".env.local", quiet: true });
 dotenv.config({ path: ".env", quiet: true });
 
-const BOOK = "psalms";
-const PASSAGE = "23";
-const DEFAULT_NAME = "Interface Tutorial";
+const TUTORIALS = {
+  interface: { book: "psalms", passage: "23", name: "Interface Tutorial" },
+  orientation: { book: "psalms", passage: "1", name: "Orienting to the Interface" },
+} as const;
+type TutorialKind = keyof typeof TUTORIALS;
 
 // Same id shape the app uses for new studies: "rec_" + nanoid(20).
 const NANOID_ALPHABET = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
@@ -63,19 +71,28 @@ const { values: args } = parseArgs({
   options: {
     owner: { type: "string" },
     "owner-from-study": { type: "string" },
-    name: { type: "string", default: DEFAULT_NAME },
+    tutorial: { type: "string", default: "interface" },
+    name: { type: "string" },
     apply: { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
 });
 
 if (args.help) {
-  console.log("Usage: node scripts/create-interface-tutorial.mts (--owner <clerk user id> | --owner-from-study <rec_id>) [--name <name>] [--apply]");
+  console.log("Usage: node scripts/create-interface-tutorial.mts (--owner <clerk user id> | --owner-from-study <rec_id>) [--tutorial interface|orientation] [--name <name>] [--apply]");
   process.exit(0);
 }
 if (!args.owner === !args["owner-from-study"]) {
   fail("Give exactly one of --owner <clerk user id> or --owner-from-study <rec_id>.");
 }
+
+if (!(args.tutorial in TUTORIALS)) {
+  fail(`--tutorial must be one of: ${Object.keys(TUTORIALS).join(", ")}`);
+}
+const tutorial = TUTORIALS[args.tutorial as TutorialKind];
+const BOOK = tutorial.book;
+const PASSAGE = tutorial.passage;
+const NAME = args.name ?? tutorial.name;
 
 const connectionString = process.env.DATABASE_URL ?? fail("DATABASE_URL is not set in .env.local or .env.");
 const client = new pg.Client({ connectionString });
@@ -131,7 +148,7 @@ const run = async (): Promise<void> => {
 
   const studyId = newStudyId();
   const now = new Date().toISOString();
-  console.log(`Create study ${studyId} "${args.name}" (${BOOK} ${PASSAGE}), tutorial = true`);
+  console.log(`Create study ${studyId} "${NAME}" (${BOOK} ${PASSAGE}), tutorial = true`);
 
   if (!args.apply) {
     await client.query("ROLLBACK");
@@ -144,7 +161,7 @@ const run = async (): Promise<void> => {
        (xata_id, name, owner, book, passage, metadata,
         public, model, starred, scriptura, tutorial, "createdTime", "updatedTime")
      VALUES ($1, $2, $3, $4, $5, $6::jsonb, false, false, false, false, true, $7, $7)`,
-    [studyId, args.name, owner, BOOK, PASSAGE, JSON.stringify({ words: {} }), now],
+    [studyId, NAME, owner, BOOK, PASSAGE, JSON.stringify({ words: {} }), now],
   );
   await client.query("COMMIT");
 
