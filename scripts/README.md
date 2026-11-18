@@ -1,5 +1,25 @@
 # scripts
 
+## create-interface-tutorial.mts
+
+Sets up the Psalm 23 "Interface Tutorial" study listed in the dashboard
+sidebar's Tutorials folder. Adds a `tutorial` boolean column to `study`
+(default `false`) if it is missing, then creates the study with
+`tutorial = true`, owned by the account that will write the tutorial. Uses
+`DATABASE_URL` from `.env.local` / `.env`. Dry run unless `--apply` is given;
+re-running finds the existing tutorial instead of creating a duplicate.
+
+Run it before deploying the `tutorials` branch: the app's study queries read
+the new column.
+
+```bash
+npm run tutorial:create -- --owner user_2abc...            # dry run
+npm run tutorial:create -- --owner user_2abc... --apply
+```
+
+Needs Node 22.18+ (runs TypeScript directly); on older Node use
+`npx tsx scripts/create-interface-tutorial.mts ...`.
+
 ## loadtest-study.js
 
 Load test for the "New Study" (`createStudy`) and "Copy to My Studies"
