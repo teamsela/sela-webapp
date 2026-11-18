@@ -17,9 +17,10 @@ import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverl
 
   Progress (current step, closed or not) is kept per browser, so leaving and
   coming back resumes the tour. A step with `isDone` is checked a few times a
-  second against what the study screen shows and moves on by itself shortly
-  after it is done. A small pill above the footer says this is a practice
-  copy and reopens the tour.
+  second against what the study screen shows; once it is done the bubble
+  confirms it and the button becomes Continue, and the tour waits for the
+  user, so they can look at the result first. A small pill above the footer
+  says this is a practice copy and reopens the tour.
 */
 
 type TourProgress = { step: number; open: boolean };
@@ -48,8 +49,6 @@ const writeProgress = (studyId: string, progress: TourProgress) => {
     // progress just won't survive a reload
   }
 };
-
-const ADVANCE_DELAY_MS = 900;
 
 // Interactive steps (those with a target) are the ones counted in "Step n of m".
 const INTERACTIVE_IDS = INTERFACE_TOUR_STEPS.filter((s) => s.target).map((s) => s.id);
@@ -114,13 +113,6 @@ const InterfaceTour = ({
     return () => window.clearInterval(id);
   }, [progress?.open, step, done]);
 
-  // Move on shortly after a step is done, so the user sees it worked.
-  useEffect(() => {
-    if (!done || !progress || isLast) return;
-    const id = window.setTimeout(() => goTo(progress.step + 1), ADVANCE_DELAY_MS);
-    return () => window.clearTimeout(id);
-  }, [done, progress, isLast, goTo]);
-
   if (!progress || !step) return null;
 
   const close = () => update({ ...progress, open: false });
@@ -154,7 +146,7 @@ const InterfaceTour = ({
         </button>
       )}
       <button type="button" className={tourPrimaryButton} onClick={() => goTo(progress.step + 1)}>
-        {progress.step === 0 ? "Start" : step.isDone && !done ? "Skip" : "Next"}
+        {progress.step === 0 ? "Start" : !step.isDone ? "Next" : done ? "Continue" : "Skip"}
       </button>
     </>
   );

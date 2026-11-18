@@ -34,13 +34,25 @@ describe("InterfaceTour", () => {
     expect(screen.getByRole("dialog", { name: "Select a word" })).toBeTruthy();
   });
 
-  it("moves on by itself once the step's goal is met", () => {
+  it("confirms a completed step and waits for Continue", () => {
     window.localStorage.setItem("sela.tour.interface-v1.rec_t", JSON.stringify({ step: 1, open: true }));
     renderTour([{ wordId: 1 }]);
     act(() => { vi.advanceTimersByTime(400); });
     expect(screen.getByRole("status").textContent).toMatch(/that.s it/i);
-    act(() => { vi.advanceTimersByTime(1000); });
+
+    // It does not move on by itself.
+    act(() => { vi.advanceTimersByTime(10000); });
+    expect(screen.getByRole("dialog", { name: "Select a word" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByRole("dialog", { name: "See what it means" })).toBeTruthy();
+  });
+
+  it("offers Skip until the step is done", () => {
+    window.localStorage.setItem("sela.tour.interface-v1.rec_t", JSON.stringify({ step: 1, open: true }));
+    renderTour();
+    expect(screen.getByRole("button", { name: "Skip" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
   });
 
   it("closes to a resume pill and remembers where it was", () => {

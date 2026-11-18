@@ -155,7 +155,7 @@ const TourOverlay = ({ target, title, body, progress, done, clearance = 0, dim =
         <p className="mt-2 leading-relaxed">{body}</p>
 
         {done && (
-          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.</p>
+          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it. Take a look, then click Continue.</p>
         )}
 
         <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>
