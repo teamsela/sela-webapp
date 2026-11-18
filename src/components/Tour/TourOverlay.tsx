@@ -32,6 +32,10 @@ import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } 
   in its tooltip on hover. The bubble always leaves room for a tooltip below
   a toolbar control, so it doesn't move when one appears.
 
+  The bubble gives way to the study screen's side panel (Layer, Structure,
+  Motif...): while the panel is open the bubble stays to its left, and for a
+  target inside the panel it sits beside the panel, level with the target.
+
   `target` is what the user acts on; it anchors the bubble. `highlight`
   (default: the target) is what is lit, e.g. the result of the action once a
   step is done. The bubble stays where it was while the highlight moves.
@@ -190,6 +194,8 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   // the highlight moves to the result.
   const [anchor, setAnchor] = useState<Rect | null>(null);
   const [anchorHasTooltip, setAnchorHasTooltip] = useState(false);
+  // The side panel's left edge, while it is open (the bubble stays left of it).
+  const [panelLeft, setPanelLeft] = useState<number | null>(null);
   const [nudge, setNudge] = useState(false);
   const bubbleRef = useRef<HTMLDivElement>(null);
 
@@ -227,6 +233,23 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
 
   const [bubbleHeight, setBubbleHeight] = useState(180);
 
+  // Track the side panel (open, closed, resized) for every kind of step.
+  useEffect(() => {
+    const check = () => {
+      const panel = document.querySelector('[data-tour="info-pane"]');
+      const pr = panel && isRendered(panel) ? panel.getBoundingClientRect() : null;
+      const next = pr && pr.left < window.innerWidth ? Math.round(pr.left) : null;
+      setPanelLeft((prev) => (prev === next ? prev : next));
+    };
+    check();
+    const id = window.setInterval(check, 250);
+    window.addEventListener("resize", check);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+
   const lit = highlight ?? target;
 
   useEffect(() => {
@@ -261,12 +284,20 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     if (bubbleRef.current) setBubbleHeight(bubbleRef.current.offsetHeight);
   }, [title, body, rect, offscreen, done, checklist]);
 
-  // The bubble sits by the target (anchor), not by the result.
+  // The bubble sits by the target (anchor), not by the result, and never on
+  // top of the side panel: `rightLimit` is how far right it may reach.
   const place = anchor ?? rect;
+  const panelOpen = panelLeft !== null && panelLeft - EDGE - BUBBLE_WIDTH >= EDGE;
+  const rightLimit = panelOpen ? panelLeft - EDGE : window.innerWidth - EDGE;
+  const targetInPanel = panelOpen && !!place && place.left >= panelLeft;
   let bubbleStyle: React.CSSProperties;
-  if ((place && placement === "corner") || (offscreen && !anchor)) {
-    // Above the study footer (about 64px tall), at the right edge.
-    bubbleStyle = { position: "fixed", right: EDGE, bottom: 80, width: BUBBLE_WIDTH, zIndex: Z + 1 };
+  if (targetInPanel && place) {
+    // Beside the panel, level with the target inside it.
+    const top = Math.min(Math.max(place.top + place.height / 2 - bubbleHeight / 2, EDGE), window.innerHeight - bubbleHeight - EDGE);
+    bubbleStyle = { position: "fixed", top, left: rightLimit - BUBBLE_WIDTH, width: BUBBLE_WIDTH, zIndex: Z + 1 };
+  } else if ((place && placement === "corner") || (offscreen && !anchor)) {
+    // Above the study footer (about 64px tall), at the right edge (or the panel's).
+    bubbleStyle = { position: "fixed", right: window.innerWidth - rightLimit, bottom: 80, width: BUBBLE_WIDTH, zIndex: Z + 1 };
   } else if (place) {
     const rect = place;
     const gap = GAP + clearance + (anchorHasTooltip ? TOOLTIP_ROOM : 0);
@@ -276,13 +307,14 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       ? Math.min(rect.top + rect.height + PAD + gap, window.innerHeight - bubbleHeight - EDGE)
       : rect.top - PAD - gap - bubbleHeight;
     const centered = rect.left + rect.width / 2 - BUBBLE_WIDTH / 2;
-    const left = Math.min(Math.max(centered, EDGE), window.innerWidth - BUBBLE_WIDTH - EDGE);
+    const left = Math.min(Math.max(centered, EDGE), rightLimit - BUBBLE_WIDTH);
     bubbleStyle = { position: "fixed", top: Math.max(top, EDGE), left, width: BUBBLE_WIDTH, zIndex: Z + 1 };
   } else {
     bubbleStyle = {
       position: "fixed",
       top: "50%",
-      left: "50%",
+      // Centered in the space left of the side panel when it is open.
+      left: panelOpen ? rightLimit / 2 : "50%",
       transform: "translate(-50%, -50%)",
       width: BUBBLE_WIDTH + 100,
       zIndex: Z + 1,
