@@ -234,6 +234,7 @@ export const StanzaBlock = ({
       <button
         type="button"
         onClick={startEditing}
+        data-tour="stanza-title"
         className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >

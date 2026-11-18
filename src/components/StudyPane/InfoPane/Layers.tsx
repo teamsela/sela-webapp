@@ -588,6 +588,7 @@ const Layers = () => {
         <div
           className="flex gap-3 px-5 py-4 cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
           onClick={() => !creating && setCreating(true)}
+          data-tour="new-layer"
         >
           {creating ? (
             <input

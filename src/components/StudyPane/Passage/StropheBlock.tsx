@@ -406,6 +406,7 @@ export const StropheBlock = ({
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
+          data-tour="strophe-collapse"
           className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}

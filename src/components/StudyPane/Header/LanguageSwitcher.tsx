@@ -121,7 +121,7 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} data-tour="language-switcher">
       <label
         htmlFor="toggleLang"
         className="flex cursor-pointer select-none items-center ml-2"

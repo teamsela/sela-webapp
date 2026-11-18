@@ -8,6 +8,9 @@ import { InfoPaneActionType } from "@/lib/types";
 import {
   INTERFACE_TOUR_ID,
   INTERFACE_TOUR_STEPS,
+  buildTourSnapshot,
+  isActionStep,
+  isStepDone,
   type TourSnapshot,
 } from "@/lib/tutorials/interfaceTour";
 import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverlay";
@@ -16,11 +19,12 @@ import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverl
   Runs the Interface Tutorial tour while a tutorial study is in practice mode.
 
   Progress (current step, closed or not) is kept per browser, so leaving and
-  coming back resumes the tour. A step with `isDone` is checked a few times a
-  second against what the study screen shows; once it is done the bubble
-  confirms it and the button becomes Continue, and the tour waits for the
-  user, so they can look at the result first. A small pill above the footer
-  says this is a practice copy and reopens the tour.
+  coming back resumes the tour. A step the user has to do is checked a few
+  times a second against what the study screen shows; once it is done the
+  bubble confirms it and the button becomes Continue, and the tour waits for
+  the user. Steps can compare against a snapshot taken when they began (for
+  "make two more strophes" or "merge two stanzas"). A small pill above the
+  footer says this is a practice copy and reopens the tour.
 */
 
 type TourProgress = { step: number; open: boolean };
@@ -50,8 +54,7 @@ const writeProgress = (studyId: string, progress: TourProgress) => {
   }
 };
 
-// Interactive steps (those with a target) are the ones counted in "Step n of m".
-const INTERACTIVE_IDS = INTERFACE_TOUR_STEPS.filter((s) => s.target).map((s) => s.id);
+const ACTION_STEP_IDS = INTERFACE_TOUR_STEPS.filter(isActionStep).map((s) => s.id);
 
 const InterfaceTour = ({
   studyId,
@@ -62,15 +65,36 @@ const InterfaceTour = ({
   infoPaneAction: InfoPaneActionType;
   setCloneStudyOpen: (open: boolean) => void;
 }) => {
-  const { ctxSelectedWords, ctxStudyMetadata } = useContext(FormatContext);
+  const ctx = useContext(FormatContext);
 
   const [progress, setProgress] = useState<TourProgress | null>(null);
-  const [done, setDone] = useState(false);
+  const [snapshot, setSnapshot] = useState<TourSnapshot | null>(null);
+  const [start, setStart] = useState<TourSnapshot | null>(null);
 
   // Latest screen state for the polling check (metadata is sometimes mutated
   // in place, so it is read fresh on every tick rather than via React deps).
-  const live = useRef({ ctxSelectedWords, ctxStudyMetadata, infoPaneAction });
-  live.current = { ctxSelectedWords, ctxStudyMetadata, infoPaneAction };
+  const live = useRef({ ctx, infoPaneAction });
+  live.current = { ctx, infoPaneAction };
+
+  const takeSnapshot = useCallback((): TourSnapshot => {
+    const { ctx: c, infoPaneAction: pane } = live.current;
+    return buildTourSnapshot({
+      languageMode: c.ctxLanguageMode,
+      nonEnglishDisplayMode: c.ctxNonEnglishDisplayMode,
+      passageProps: c.ctxPassageProps,
+      selectedWords: c.ctxSelectedWords,
+      studyMetadata: c.ctxStudyMetadata,
+      boxStyle: c.ctxBoxDisplayConfig?.style,
+      notesOn: !!c.ctxStropheNoteBtnOn,
+      studyNotes: c.ctxStudyNotes,
+      layers: c.ctxLayers,
+      activeLayerId: c.ctxActiveLayerId,
+      infoPaneAction: pane,
+      esvOpen: !!document.querySelector('[data-tour="esv-popover"][data-open="true"]'),
+      wordInfoOpen:
+        document.querySelector('[data-tour="word-info"]')?.getAttribute("aria-expanded") === "true",
+    });
+  }, []);
 
   useEffect(() => {
     setProgress(readProgress(studyId));
@@ -79,7 +103,6 @@ const InterfaceTour = ({
   const update = useCallback(
     (next: TourProgress) => {
       setProgress(next);
-      setDone(false);
       writeProgress(studyId, next);
     },
     [studyId]
@@ -88,36 +111,42 @@ const InterfaceTour = ({
   const step = progress ? INTERFACE_TOUR_STEPS[progress.step] : undefined;
   const isLast = !!progress && progress.step === INTERFACE_TOUR_STEPS.length - 1;
 
-  const goTo = useCallback(
-    (index: number) => update({ step: index, open: true }),
-    [update]
-  );
-
-  // Check the current step's goal a few times a second.
+  // A fresh "start" snapshot whenever a step begins (or the tour reopens).
   useEffect(() => {
-    if (!progress?.open || !step?.isDone || done) return;
-    const check = () => {
-      const { ctxSelectedWords: selected, ctxStudyMetadata: metadata, infoPaneAction: pane } = live.current;
-      const words = metadata?.words ?? {};
-      const snapshot: TourSnapshot = {
-        selectedWordCount: selected?.length ?? 0,
-        anyWordFilled: Object.values(words).some((w) => !!w?.color?.fill),
-        wordInfoOpen:
-          document.querySelector('[data-tour="word-info"]')?.getAttribute("aria-expanded") === "true",
-        infoPaneAction: pane,
-      };
-      if (step.isDone?.(snapshot)) setDone(true);
-    };
-    check();
-    const id = window.setInterval(check, 300);
+    if (!progress?.open) return;
+    const now = takeSnapshot();
+    setStart(now);
+    setSnapshot(now);
+  }, [progress?.step, progress?.open, takeSnapshot]);
+
+  // Watch the screen a few times a second while an action step is showing.
+  useEffect(() => {
+    if (!progress?.open || !step || !isActionStep(step)) return;
+    const id = window.setInterval(() => setSnapshot(takeSnapshot()), 300);
     return () => window.clearInterval(id);
-  }, [progress?.open, step, done]);
+  }, [progress?.open, step, takeSnapshot]);
+
+  const goTo = useCallback((index: number) => update({ step: index, open: true }), [update]);
+
+  // Once done, stay done for this step even if the user keeps experimenting.
+  const [doneStepId, setDoneStepId] = useState<string | null>(null);
+  useEffect(() => {
+    if (step && snapshot && start && isActionStep(step) && isStepDone(step, snapshot, start)) {
+      setDoneStepId(step.id);
+    }
+  }, [step, snapshot, start]);
 
   if (!progress || !step) return null;
 
+  const done = doneStepId === step.id;
   const close = () => update({ ...progress, open: false });
   const restart = () => goTo(0);
-  const interactiveIndex = INTERACTIVE_IDS.indexOf(step.id);
+  const actionIndex = ACTION_STEP_IDS.indexOf(step.id);
+
+  const checklist =
+    step.checks && snapshot && start
+      ? step.checks.map((c) => ({ label: c.label, done: done || c.isDone(snapshot, start) }))
+      : undefined;
 
   const actions = isLast ? (
     <>
@@ -146,10 +175,17 @@ const InterfaceTour = ({
         </button>
       )}
       <button type="button" className={tourPrimaryButton} onClick={() => goTo(progress.step + 1)}>
-        {progress.step === 0 ? "Start" : !step.isDone ? "Next" : done ? "Continue" : "Skip"}
+        {progress.step === 0 ? "Start" : !isActionStep(step) ? "Next" : done ? "Continue" : "Skip"}
       </button>
     </>
   );
+
+  const progressLabel =
+    actionIndex >= 0
+      ? `${step.section} · Task ${actionIndex + 1} of ${ACTION_STEP_IDS.length}`
+      : progress.step > 0 && !isLast
+        ? step.section
+        : undefined;
 
   return (
     <>
@@ -158,10 +194,12 @@ const InterfaceTour = ({
           target={step.target}
           title={step.title}
           body={step.body}
-          progress={interactiveIndex >= 0 ? `Step ${interactiveIndex + 1} of ${INTERACTIVE_IDS.length}` : undefined}
+          checklist={checklist}
+          progress={progressLabel}
           done={done}
           clearance={step.clearance}
           dim={step.dim}
+          placement={step.placement}
           onClose={close}
           actions={actions}
         />
@@ -176,7 +214,7 @@ const InterfaceTour = ({
             className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-medium text-primary transition hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <IconRoute size={16} stroke={2.2} />
-            {isLast ? "Restart tour" : "Resume tour"}
+            {isLast ? "Restart tutorial" : "Resume tutorial"}
           </button>
         </div>
       )}

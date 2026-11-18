@@ -95,6 +95,8 @@ const EsvPopover = ({
   const popoverContent = (
     <div
       ref={popovers}
+      data-tour="esv-popover"
+      data-open={popoversOpen ? "true" : "false"}
       onFocus={() => setPopoversOpen(true)}
       onBlur={() => setPopoversOpen(false)}
       style={{ top: popoverPosition.top, left: popoverPosition.left }}
@@ -114,6 +116,7 @@ const EsvPopover = ({
         <div className={`relative inline-block ${popoversOpen ? 'z-30' : 'z-0'}`}>
           <button
             ref={trigger}
+            data-tour="verse-number"
             onClick={() => {
               const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>

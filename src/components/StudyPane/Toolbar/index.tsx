@@ -72,7 +72,7 @@ const Toolbar = ({
                     <RedoBtn />
                   </div>
                 </div>
-                <div className="border-r border-stroke flex flex-col items-center px-2">
+                <div className="border-r border-stroke flex flex-col items-center px-2" data-tour="group-format">
                   <ButtonInfoModal
                     section="Format"
                     activeSection={activeInfoSection}
@@ -86,7 +86,7 @@ const Toolbar = ({
                     <ClearAllFormatBtn setColorAction={setColorAction} />
                   </div>
                 </div>
-                <div className="border-r border-stroke flex flex-col items-center px-2">
+                <div className="border-r border-stroke flex flex-col items-center px-2" data-tour="group-word">
                   <ButtonInfoModal
                     section="Word"
                     activeSection={activeInfoSection}
@@ -100,7 +100,7 @@ const Toolbar = ({
                     <EditWordBtn />
                   </div>
                 </div>
-                <div className="border-r border-stroke flex flex-col items-center px-2">
+                <div className="border-r border-stroke flex flex-col items-center px-2" data-tour="group-line">
                   <ButtonInfoModal
                     section="Line"
                     activeSection={activeInfoSection}
@@ -112,7 +112,7 @@ const Toolbar = ({
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextLine} toolTip="Merge with next line" />
                   </div>
                 </div>
-                <div className="border-r border-stroke flex flex-col items-center px-2">
+                <div className="border-r border-stroke flex flex-col items-center px-2" data-tour="group-strophe">
                   <ButtonInfoModal
                     section="Strophe"
                     activeSection={activeInfoSection}
@@ -124,7 +124,7 @@ const Toolbar = ({
                     <StructureUpdateBtn updateType={StructureUpdateType.mergeWithNextStrophe} toolTip="Merge with next strophe" />
                   </div>
                 </div>
-                <div className="border-r border-stroke flex flex-col items-center px-2">
+                <div className="border-r border-stroke flex flex-col items-center px-2" data-tour="group-stanza">
                   <ButtonInfoModal
                     section="Stanza"
                     activeSection={activeInfoSection}

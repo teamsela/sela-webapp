@@ -31,6 +31,7 @@ export const Tabs = ({
             infoPaneAction === InfoPaneActionType.layers ? activeClasses : inactiveClasses
           }`}
         onClick={() => handleClick(InfoPaneActionType.layers)}
+        data-tour="tab-layer"
       >
         Layer
       </button>
@@ -49,6 +50,7 @@ export const Tabs = ({
             infoPaneAction === InfoPaneActionType.motif ? activeClasses : inactiveClasses
           }`}
         onClick={() => handleClick(InfoPaneActionType.motif)}
+        data-tour="tab-motif"
       >
         Motif
       </button>

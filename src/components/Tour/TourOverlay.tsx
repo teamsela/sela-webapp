@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconX } from "@tabler/icons-react";
+import { IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
 
 /*
   Highlight-and-bubble for a guided tour, in the app's own style.
@@ -44,19 +44,23 @@ export type TourOverlayProps = {
   target?: string;
   title: string;
   body: string;
-  /** e.g. "Step 2 of 4"; omitted on welcome/finish cards. */
+  /** Several things to do, each ticked off as it is done. */
+  checklist?: { label: string; done: boolean }[];
+  /** e.g. "Strophes · Task 2 of 30"; omitted on welcome/finish cards. */
   progress?: string;
   done?: boolean;
   /** Extra space between target and bubble (see TourStep.clearance). */
   clearance?: number;
   /** Dim everything but the target (default true). */
   dim?: boolean;
+  /** "corner": bubble at the bottom right, clear of the passage (see TourStep.placement). */
+  placement?: "near" | "corner";
   onClose: () => void;
   /** Buttons in the bubble's footer, right-aligned. */
   actions: ReactNode;
 };
 
-const TourOverlay = ({ target, title, body, progress, done, clearance = 0, dim = true, onClose, actions }: TourOverlayProps) => {
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", onClose, actions }: TourOverlayProps) => {
   const [rect, setRect] = useState<Rect | null>(null);
   const [bubbleHeight, setBubbleHeight] = useState(180);
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -88,10 +92,13 @@ const TourOverlay = ({ target, title, body, progress, done, clearance = 0, dim =
 
   useLayoutEffect(() => {
     if (bubbleRef.current) setBubbleHeight(bubbleRef.current.offsetHeight);
-  }, [title, body, rect, done]);
+  }, [title, body, rect, done, checklist]);
 
   let bubbleStyle: React.CSSProperties;
-  if (rect) {
+  if (rect && placement === "corner") {
+    // Above the study footer (about 64px tall), at the right edge.
+    bubbleStyle = { position: "fixed", right: EDGE, bottom: 80, width: BUBBLE_WIDTH, zIndex: Z + 1 };
+  } else if (rect) {
     const gap = GAP + clearance;
     const roomBelow = window.innerHeight - (rect.top + rect.height + PAD + gap);
     const below = roomBelow >= bubbleHeight + EDGE || rect.top < bubbleHeight + gap + EDGE;
@@ -153,6 +160,24 @@ const TourOverlay = ({ target, title, body, progress, done, clearance = 0, dim =
         )}
         <h3 className="mt-1 pr-8 text-lg font-semibold text-black dark:text-white">{title}</h3>
         <p className="mt-2 leading-relaxed">{body}</p>
+
+        {checklist && (
+          <ul className="mt-3 space-y-1.5">
+            {checklist.map((item) => (
+              <li key={item.label} className="flex items-center gap-2">
+                {item.done ? (
+                  <IconCircleCheckFilled size={18} className="shrink-0 text-primary" aria-hidden />
+                ) : (
+                  <IconCircle size={18} stroke={1.8} className="shrink-0 text-slate-400" aria-hidden />
+                )}
+                <span className={item.done ? "text-black dark:text-white" : ""}>
+                  {item.label}
+                  <span className="sr-only">{item.done ? " (done)" : " (to do)"}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {done && (
           <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it. Take a look, then click Continue.</p>
