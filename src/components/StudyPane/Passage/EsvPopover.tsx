@@ -116,7 +116,8 @@ const EsvPopover = ({
         <div className={`relative inline-block ${popoversOpen ? 'z-30' : 'z-0'}`}>
           <button
             ref={trigger}
-            data-tour="verse-number"
+            // Only verse 1 is marked, so the tutorial lights up one verse number.
+            data-tour={verseNumber === 1 ? "verse-number" : undefined}
             onClick={() => {
               const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>

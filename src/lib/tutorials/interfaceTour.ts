@@ -71,6 +71,11 @@ export type TourStep = {
 
 const WORK_IN_PASSAGE = { dim: false, placement: "corner" } as const;
 
+// A control plus the panel it opens, lit together while the rest stays dimmed.
+const LANGUAGE_WITH_DROPDOWN = '[data-tour="language-switcher"], [data-tour="language-dropdown"]';
+// Verse 1's number (the only one marked) and any open ESV box.
+const ESV_WITH_POPOVER = '[data-tour="verse-number"], [data-tour="esv-popover"][data-open="true"]';
+
 /** Is this step something the user does (as opposed to read)? */
 export const isActionStep = (step: TourStep) => !!step.isDone || !!step.checks?.length;
 
@@ -198,14 +203,15 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   {
     id: "lang-transliteration",
     section: "Languages",
-    target: '[data-tour="language-switcher"]',
+    target: LANGUAGE_WITH_DROPDOWN,
     title: "See the transliteration",
     body: "Click the small arrow next to א and choose Transliteration to read the Hebrew in English letters.",
     isDone: (s) =>
       s.languageMode === LanguageMode.Hebrew &&
       s.nonEnglishDisplayMode === NonEnglishDisplayMode.HebrewTransliteration,
-    // The language dropdown opens right below the switch; keep it clear.
-    ...WORK_IN_PASSAGE,
+    // The dropdown opens right below the switch: light it up with the switch
+    // and keep the bubble in the corner so it doesn't cover it.
+    placement: "corner",
   },
   {
     id: "lang-parallel",
@@ -228,20 +234,22 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   {
     id: "esv-open",
     section: "Translation",
-    target: '[data-tour="verse-number"]',
     title: "Read a verse in the ESV",
     body: "Click the small verse number 1 to see the verse in the English Standard Version, a regular translation.",
     isDone: (s) => s.esvOpen,
-    dim: false,
+    // The ESV box opens next to the verse number: light it up with it and
+    // keep the bubble in the corner so it doesn't cover it.
+    target: ESV_WITH_POPOVER,
+    placement: "corner",
   },
   {
     id: "esv-close",
     section: "Translation",
-    target: '[data-tour="verse-number"]',
     title: "Close it again",
     body: "Click the verse number again to hide the ESV.",
     isDone: (s) => !s.esvOpen,
-    dim: false,
+    target: ESV_WITH_POPOVER,
+    placement: "corner",
   },
 
   // Strophes

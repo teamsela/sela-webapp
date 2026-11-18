@@ -12,7 +12,10 @@ import { IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
   Without a target: a dimmed backdrop with the bubble centered.
 
   The target is looked up by selector and re-measured every 200 ms, so the
-  highlight follows scrolling, resizing and layout changes.
+  highlight follows scrolling, resizing and layout changes. A selector list
+  ("a, b") lights up the area around everything it matches that is visible,
+  so a control and the panel it opens (a dropdown, a popover) can be lit
+  together while the rest of the screen stays dimmed.
 */
 
 const BUBBLE_WIDTH = 340;
@@ -25,15 +28,17 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 const measure = (selector?: string): Rect | null => {
   if (!selector) return null;
-  const el = document.querySelector(selector);
-  if (!el) return null;
-  const r = el.getBoundingClientRect();
-  if (r.width === 0 && r.height === 0) return null;
+  const rects = Array.from(document.querySelectorAll(selector))
+    .map((el) => el.getBoundingClientRect())
+    .filter((r) => r.width > 0 || r.height > 0);
+  if (rects.length === 0) return null;
+  const left = Math.min(...rects.map((r) => r.left));
+  const right = Math.max(...rects.map((r) => r.right));
   // Clamp to the viewport so a very tall target (a scaled passage) still
   // leaves room for the bubble.
-  const top = Math.max(r.top, 0);
-  const bottom = Math.min(r.bottom, window.innerHeight);
-  return { top, left: r.left, width: r.width, height: Math.max(bottom - top, 0) };
+  const top = Math.max(Math.min(...rects.map((r) => r.top)), 0);
+  const bottom = Math.min(Math.max(...rects.map((r) => r.bottom)), window.innerHeight);
+  return { top, left, width: right - left, height: Math.max(bottom - top, 0) };
 };
 
 const sameRect = (a: Rect | null, b: Rect | null) =>

@@ -134,7 +134,7 @@ const LanguageSwitcher = () => {
       </label>
 
       {dropdownOpen && (
-        <div className={`absolute top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg ${ctxLanguageMode === LanguageMode.English ? "left-0" : "right-0"}`}>
+        <div data-tour="language-dropdown" className={`absolute top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg ${ctxLanguageMode === LanguageMode.English ? "left-0" : "right-0"}`}>
           {options.map((opt) => (
             <button
               key={opt.label}
