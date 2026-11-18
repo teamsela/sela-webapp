@@ -42,7 +42,9 @@ const EsvPopover = ({
       if (
         !popoversOpen ||
         popovers.current.contains(target) ||
-        trigger.current.contains(target)
+        trigger.current.contains(target) ||
+        // The tutorial's bubble (Continue, Back) isn't a click on the page.
+        (target instanceof Element && target.closest("[data-tour-ui]"))
       )
         return;
       setPopoversOpen(false);

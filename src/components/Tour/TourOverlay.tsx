@@ -356,6 +356,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
 
       <div
         ref={bubbleRef}
+        // Clicks in the bubble are tour clicks, not "outside" clicks: popovers
+        // such as the ESV box ignore them, so Continue doesn't close them.
+        data-tour-ui
         role="dialog"
         aria-label={title}
         style={bubbleStyle}
