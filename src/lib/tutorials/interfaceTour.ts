@@ -49,9 +49,12 @@ export type TourSnapshot = {
   words: TourWord[];
   /** Verse 6 as shown: one list of its words per line. */
   verseSixLines: TourWord[][];
-  /** Line ids (shared by the English and Hebrew panes). */
-  firstLineId: number | undefined;
-  verseSixLineIds: number[];
+  /**
+    Lines, identified by the id of their first word: unique across the
+    passage and shared by the English and Hebrew panes.
+  */
+  firstLineStart: number | undefined;
+  verseSixLineStarts: number[];
   /** Each strophe and where it starts. */
   strophes: TourStrophe[];
   /** Each stanza, where it starts and its strophes. */
@@ -248,8 +251,10 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
         lineStart: !!w.newLine,
       }))
     ),
-    firstLineId: lines[0]?.lineId,
-    verseSixLineIds: lines.filter((l) => l.words.some((w) => w.verse === 6)).map((l) => l.lineId),
+    firstLineStart: lines[0]?.words[0]?.wordId,
+    verseSixLineStarts: lines
+      .filter((l) => l.words.some((w) => w.verse === 6))
+      .flatMap((l) => (l.words[0] ? [l.words[0].wordId] : [])),
     verseSixLines: lines
       .map((l) =>
         l.words
@@ -314,10 +319,11 @@ const verseSixArea = (s: TourSnapshot) => {
 };
 const firstLine = '[data-strophe-line="true"]';
 /** Whole lines, in every pane (English and Hebrew), from edge to edge. */
-const linesById = (ids: number[]) => ids.map((id) => `all:[data-line-id="${id}"]`).join(", ") || undefined;
+const linesStartingWith = (wordIds: number[]) =>
+  wordIds.map((id) => `all:[data-line-start="${id}"]`).join(", ") || undefined;
 const firstLineEverywhere = (s: TourSnapshot) =>
-  s.firstLineId === undefined ? firstLine : linesById([s.firstLineId]);
-const verseSixLinesEverywhere = (s: TourSnapshot) => linesById(s.verseSixLineIds);
+  s.firstLineStart === undefined ? firstLine : linesStartingWith([s.firstLineStart]);
+const verseSixLinesEverywhere = (s: TourSnapshot) => linesStartingWith(s.verseSixLineStarts);
 /** Where verse 6's lines start in the passage's original layout. */
 const verseSixOriginalLineStart = (s: TourSnapshot, index: number) =>
   s.words.filter((w) => w.verse === 6 && w.lineStart).at(index);

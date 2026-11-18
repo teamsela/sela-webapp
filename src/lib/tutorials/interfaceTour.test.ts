@@ -102,7 +102,11 @@ describe("tour steps", () => {
 
   it("lights whole lines in every pane", () => {
     const s = buildTourSnapshot(sources());
-    expect(resolveResult(step("lang-parallel"), s)).toBe('all:[data-line-id="0"]');
+    expect(resolveResult(step("lang-parallel"), s)).toBe('all:[data-line-start="1"]');
+    // Verse 6 lines are found by their first word, never by a shared line id.
+    expect(resolveResult(step("v6-merge1-button"), s)).toBe(
+      'all:[data-line-start="4"], all:[data-line-start="5"], all:[data-line-start="6"]'
+    );
   });
 
   it("walks verse 6 from four lines to two, one word and one button at a time", () => {
