@@ -8,7 +8,7 @@ import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from './PassageBlock';
 import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';

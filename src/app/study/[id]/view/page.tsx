@@ -20,8 +20,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-export default async function StudyPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function StudyPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ practice?: string }>;
+}) {
   const { id } = await params;
+  const sp = (await searchParams) ?? {};
   const studyId = "rec_" + id;
 
   const [thisUser, result] = await Promise.all([
@@ -42,7 +49,21 @@ export default async function StudyPage({ params }: { params: Promise<{ id: stri
   if (!result.study || (thisUser?.id != result.study.owner && !isSharedStudy)) {
     notFound();
   }
-  else if (thisUser?.id == result.study.owner) {
+
+  const isOwner = thisUser?.id == result.study.owner;
+
+  /*
+    Tutorials open in practice mode for everyone but the owner: every tool is
+    available, nothing is saved, and the guided tour runs. The owner can
+    preview exactly that with ?practice=1; otherwise the owner edits.
+  */
+  if (result.study.tutorial && (!isOwner || sp.practice === "1")) {
+    return (
+      <StudyPane passageData={result} inViewMode={false} practiceMode />
+    );
+  }
+
+  if (isOwner) {
     return redirect(`/study/${id}/edit`);
   }
 

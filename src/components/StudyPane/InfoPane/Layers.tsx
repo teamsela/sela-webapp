@@ -1,4 +1,5 @@
 'use client'
+import { isPracticeMode } from "@/lib/practiceMode";
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LuTextSelect, LuChevronUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
@@ -88,7 +89,7 @@ const Layers = () => {
   const lastSavedPayloadRef = useRef<string | null>(null);
 
   const saveNow = useCallback(async (payload: string, { keepalive = false } = {}) => {
-    if (!ctxStudyId) return;
+    if (!ctxStudyId || isPracticeMode()) return;
     if (lastSavedPayloadRef.current === payload) return;
     try {
       const res = await fetch("/api/noteSync", {

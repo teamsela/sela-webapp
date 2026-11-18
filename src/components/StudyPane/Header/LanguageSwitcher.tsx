@@ -1,7 +1,7 @@
 import { useContext, useState, useRef, useEffect } from 'react';
 import { FormatContext } from '../index';
 import { LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 
 type DropdownOption = { label: string; value?: NonEnglishDisplayMode };
 

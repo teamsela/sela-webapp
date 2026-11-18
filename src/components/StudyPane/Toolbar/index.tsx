@@ -30,7 +30,7 @@ const Toolbar = ({
   setCloneStudyOpen: (arg: boolean) => void;
 }) => {
 
-  const { ctxInViewMode, ctxLanguageMode } = useContext(FormatContext);
+  const { ctxInViewMode, ctxLanguageMode, ctxPracticeMode } = useContext(FormatContext);
   const [activeInfoSection, setActiveInfoSection] = useState<InfoModalSection | null>(null);
 
   const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
@@ -141,6 +141,11 @@ const Toolbar = ({
                 <ReadmeBtn />
                 <StropheNoteBtn />
                 <LanguageSwitcher />
+                {ctxPracticeMode && (
+                  <div className="ml-3">
+                    <CloneStudyBtn setCloneStudyOpen={setCloneStudyOpen} />
+                  </div>
+                )}
               </div>
             </div>
             )

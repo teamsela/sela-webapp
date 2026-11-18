@@ -6,7 +6,7 @@ import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types"
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import {
   buildHighlightedHebrewSegments,
   buildHighlightedTransliterationSegments,

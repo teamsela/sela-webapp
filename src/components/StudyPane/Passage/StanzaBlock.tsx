@@ -5,7 +5,7 @@ import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "..";
 import { StropheBlock } from "./StropheBlock";
 import { CounterStropheBlock } from "./CounterStropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
 

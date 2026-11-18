@@ -58,6 +58,7 @@ export const Tabs = ({
             infoPaneAction === InfoPaneActionType.syntax ? activeClasses : inactiveClasses
           }`}
         onClick={() => handleClick(InfoPaneActionType.syntax)}
+        data-tour="tab-syntax"
       >
         Syntax
       </button>

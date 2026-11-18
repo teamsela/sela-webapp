@@ -15,7 +15,7 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
@@ -364,7 +364,10 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   } 
 
   return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
+    <div
+      className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock"
+      data-tour={colorAction === ColorActionType.colorFill ? "fill-color" : undefined}
+    >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick} >

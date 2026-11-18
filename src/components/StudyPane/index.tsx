@@ -12,7 +12,8 @@ import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, S
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { CounterMode } from "@/lib/counter";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb, setPracticeMode } from "@/lib/studyPersistence";
+import InterfaceTour from "@/components/Tour/InterfaceTour";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 import { getPersonGenderNumberHighlightState, PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
@@ -101,6 +102,7 @@ export const FormatContext = createContext({
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
+  ctxPracticeMode: false,
   ctxEditingWordId: null as number | null,
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
@@ -181,12 +183,17 @@ const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
 };
 
 const StudyPane = ({
-  passageData, inViewMode, isDemo = false
+  passageData, inViewMode, isDemo = false, practiceMode = false
 }: {
   passageData: PassageStaticData, // heb word data
   inViewMode: boolean;
   isDemo?: boolean;
+  // Practice mode: a non-owner using every tool on a tutorial study. Nothing
+  // is saved (see lib/studyPersistence) and the guided tour runs.
+  practiceMode?: boolean;
 }) => {
+  // Set during render so it is in place before any child component saves.
+  setPracticeMode(practiceMode);
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
@@ -563,6 +570,7 @@ const StudyPane = ({
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
+    ctxPracticeMode: practiceMode,
     ctxEditingWordId: editingWordId,
     ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: structureUpdateType,
@@ -694,7 +702,12 @@ const StudyPane = ({
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
-            <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
+            <CloneStudyModal
+              // In practice mode the copy keeps what the visitor has done so far.
+              originalStudy={practiceMode ? { ...passageData.study, metadata: studyMetadata, notes: studyNotes } : passageData.study}
+              open={cloneStudyOpen}
+              setOpen={setCloneStudyOpen}
+            />
             }
           </main>
 
@@ -713,6 +726,10 @@ const StudyPane = ({
 
         {/* Footer */}
         <Footer/>
+
+        {practiceMode && (
+          <InterfaceTour studyId={passageData.study.id} infoPaneAction={infoPaneAction} setCloneStudyOpen={setCloneStudyOpen} />
+        )}
       </FormatContext.Provider>
     </>
   );
