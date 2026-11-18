@@ -105,12 +105,14 @@ const LanguageSwitcher = () => {
     return (
       <div className={`flex items-stretch ${outerClass}`}>
         <span
+          data-tour={`lang-${LanguageMode[mode]}`}
           onClick={() => handleMainClick(mode)}
           className={`flex items-center pl-[14px] pr-[6px] py-[6px] cursor-pointer select-none transition-colors ${hoverClass} ${labelRoundClass} ${isActive ? activeClass : ""}`}
         >
           {label}
         </span>
         <span
+          data-tour={`lang-chevron-${LanguageMode[mode]}`}
           onClick={(e) => { e.stopPropagation(); handleChevronClick(mode); }}
           className={`flex items-center justify-center w-[14px] py-[6px] cursor-pointer select-none transition-colors border-l border-l-transparent ${hoverClass} ${chevronRoundClass} ${isActive ? activeClass : ""}`}
         >

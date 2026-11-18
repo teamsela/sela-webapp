@@ -47,6 +47,9 @@ export type TourSnapshot = {
   words: TourWord[];
   /** Verse 6 as shown: one list of its words per line. */
   verseSixLines: TourWord[][];
+  /** Line ids (shared by the English and Hebrew panes). */
+  firstLineId: number | undefined;
+  verseSixLineIds: number[];
   /** Each strophe and where it starts. */
   strophes: TourStrophe[];
   /** Each stanza, where it starts and its strophes. */
@@ -61,7 +64,7 @@ export type TourSnapshot = {
   titledNoteStropheIds: number[];
 };
 
-export type TourWord = { wordId: number; verse: number; gloss: string };
+export type TourWord = { wordId: number; verse: number; gloss: string; /** starts a line in the passage's original layout */ lineStart?: boolean };
 export type TourStrophe = { stropheId: number; firstWordId: number | undefined; firstVerse: number | undefined };
 export type TourStanza = { stanzaId: number; firstVerse: number | undefined; stropheIds: number[] };
 
@@ -106,8 +109,6 @@ const PASSAGE_AREA = '[data-tour="passage-area"]';
 const INFO_PANE = '[data-tour="info-pane"]';
 const WORK_IN_PASSAGE = { dim: false, placement: "corner", allow: PASSAGE_AREA } as const;
 
-// A control plus the panel it opens, lit together while the rest stays dimmed.
-const LANGUAGE_WITH_DROPDOWN = '[data-tour="language-switcher"], [data-tour="language-dropdown"]';
 // Verse 1's number (the only one marked) and any open ESV box.
 const ESV_WITH_POPOVER = '[data-tour="verse-number"], [data-tour="esv-popover"][data-open="true"]';
 
@@ -232,8 +233,11 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
         wordId: w.wordId,
         verse: w.verse,
         gloss: (w.metadata?.glossOverride || w.gloss || "").trim(),
+        lineStart: !!w.newLine,
       }))
     ),
+    firstLineId: lines[0]?.lineId,
+    verseSixLineIds: lines.filter((l) => l.words.some((w) => w.verse === 6)).map((l) => l.lineId),
     verseSixLines: lines
       .map((l) =>
         l.words
@@ -297,6 +301,16 @@ const verseSixArea = (s: TourSnapshot) => {
   return both(wordSelector(v6[0]), wordSelector(v6[v6.length - 1]));
 };
 const firstLine = '[data-strophe-line="true"]';
+/** Whole lines, in every pane (English and Hebrew), from edge to edge. */
+const linesById = (ids: number[]) => ids.map((id) => `all:[data-line-id="${id}"]`).join(", ") || undefined;
+const firstLineEverywhere = (s: TourSnapshot) =>
+  s.firstLineId === undefined ? firstLine : linesById([s.firstLineId]);
+const verseSixLinesEverywhere = (s: TourSnapshot) => linesById(s.verseSixLineIds);
+/** Where verse 6's lines start in the passage's original layout. */
+const verseSixOriginalLineStart = (s: TourSnapshot, index: number) =>
+  s.words.filter((w) => w.verse === 6 && w.lineStart).at(index);
+const coloredWords = (s: TourSnapshot) =>
+  both(wordById(s.coloredWordIds[0]), wordById(s.coloredWordIds[s.coloredWordIds.length - 1]));
 
 /** The strophe to move into a new stanza: the one starting at verse 4, else the second. */
 const stanzaStrophe = (s: TourSnapshot) =>
@@ -308,7 +322,7 @@ const structureOf = (s: TourSnapshot) => `${s.stanzaCount}/${s.stropheCount}/${s
 /* Steps                                                                     */
 /* ------------------------------------------------------------------------ */
 
-export const INTERFACE_TOUR_ID = "interface-v3";
+export const INTERFACE_TOUR_ID = "interface-v4";
 
 const PASSAGE = '[data-strophe-line="true"]';
 
@@ -334,16 +348,16 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   {
     id: "lang-hebrew",
     section: "Languages",
-    target: '[data-tour="language-switcher"]',
+    target: '[data-tour="lang-Hebrew"]',
     title: "Switch to the Hebrew",
     body: "The language switch has three choices: A (English), א (Hebrew) and Aא (both). Click א to show the Hebrew text (OHB, the Open Hebrew Bible).",
     isDone: (s) => s.languageMode === LanguageMode.Hebrew,
-    result: firstLine,
+    result: firstLineEverywhere,
   },
   {
     id: "lang-transliteration",
     section: "Languages",
-    target: LANGUAGE_WITH_DROPDOWN,
+    target: '[data-tour="lang-chevron-Hebrew"], [data-tour="language-dropdown"]',
     title: "See the transliteration",
     body: "Click the small arrow next to א and choose Transliteration to read the Hebrew in English letters.",
     isDone: (s) =>
@@ -352,25 +366,25 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     // The dropdown opens right below the switch: light it up with the switch
     // and keep the bubble in the corner so it doesn't cover it.
     placement: "corner",
-    result: firstLine,
+    result: firstLineEverywhere,
   },
   {
     id: "lang-parallel",
     section: "Languages",
-    target: '[data-tour="language-switcher"]',
+    target: '[data-tour="lang-Parallel"]',
     title: "English and Hebrew together",
-    body: "Click Aא to see the English gloss and the Hebrew side by side.",
+    body: "Click Aא to see the English gloss and the Hebrew side by side. The first line is highlighted in both.",
     isDone: (s) => s.languageMode === LanguageMode.Parallel,
-    result: firstLine,
+    result: firstLineEverywhere,
   },
   {
     id: "lang-english",
     section: "Languages",
-    target: '[data-tour="language-switcher"]',
+    target: '[data-tour="lang-English"]',
     title: "Back to the English gloss",
     body: "Click A to return to the Discovery Bible English. The rest of the tutorial uses this view.",
     isDone: (s) => s.languageMode === LanguageMode.English,
-    result: firstLine,
+    result: firstLineEverywhere,
   },
 
   // ESV
@@ -509,7 +523,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Stanzas",
     target: '[data-tour="structure-newStanza"]',
     title: "Click New stanza",
-    body: "Click New stanza. The selected strophe and the ones after it start a new stanza.",
+    body: "Click New stanza. The selected strophe becomes a stanza of its own, so the psalm now has three stanzas: the heading and verses 1\u20133, verse 4, and verses 5\u20136.",
     isDone: (s) => s.stanzaCount >= 2,
     result: (s) => stanzaBlock(s.stanzas.find((st) => st.firstVerse === 4) ?? s.stanzas[1]),
   },
@@ -532,7 +546,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Click Merge with previous line",
     body: "Click Merge with previous line. The selected word and everything before it on its line join the line above.",
     isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount,
-    result: verseSixArea,
+    result: verseSixLinesEverywhere,
   },
   {
     id: "v6-merge2-word",
@@ -551,20 +565,44 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Click Merge with previous line again to finish. Merge with next line works the same way in the other direction, and if you select several words, only those words move.",
     isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount && s.verseSixLineCount <= 2,
-    result: verseSixArea,
+    result: verseSixLinesEverywhere,
   },
 
-  // Merging: one strophe merge, then one stanza merge, each as "select
-  // this strophe" then "click this button".
+  // Merging: first join the last two stanzas back together (verse 4 and
+  // verses 5-6 are each a stanza of their own after New stanza), then merge
+  // the verse 5 strophe into verse 4. Each is "select this strophe", then
+  // "click this button".
+  {
+    id: "merge-stanza-select",
+    section: "Merging",
+    target: (_s, start) =>
+      stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
+    title: "Select a strophe to move back",
+    body:
+      "Divisions can be undone with the merge buttons. First, join the last two stanzas again: click this icon to select the strophe that begins at verse 5.",
+    isDone: (s, start) => {
+      const sp = stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1);
+      return !!sp && s.selectedStropheIds.includes(sp.stropheId);
+    },
+  },
+  {
+    id: "merge-stanza-button",
+    section: "Merging",
+    target: '[data-tour="structure-mergeWithPrevStanza"]',
+    title: "Click Merge with previous stanza",
+    body:
+      "Click Merge with previous stanza. The selected strophe moves back into the stanza before it. Merge with next stanza (the button beside it) moves a strophe forward into the stanza after it.",
+    isDone: (s, start) => s.stanzaCount < start.stanzaCount,
+    result: (s) => stanzaBlock(s.stanzas.find((st) => st.firstVerse === 4) ?? s.stanzas.at(-1)),
+  },
   {
     id: "merge-strophe-select",
     section: "Merging",
-    target: (_s, start) => stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
+    target: (_s, start) =>
+      stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1)),
     title: "Select a strophe to merge",
-    body: (_s, start) =>
-      stropheStartingAt(start, firstWordOfVerse(start, 5))
-        ? "Changed your mind about a division? Click this icon to select the strophe that begins at verse 5."
-        : "Changed your mind about a division? Click this icon to select the last strophe.",
+    body:
+      "Verse 4 and verses 5\u20136 are now two strophes in the same stanza. Click this icon to select the strophe that begins at verse 5.",
     isDone: (s, start) => {
       const sp = stropheStartingAt(start, firstWordOfVerse(start, 5)) ?? start.strophes.at(-1);
       return !!sp && s.selectedStropheIds.includes(sp.stropheId);
@@ -575,29 +613,10 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Merging",
     target: '[data-tour="structure-mergeWithPrevStrophe"]',
     title: "Click Merge with previous strophe",
-    body: "Click Merge with previous strophe. The selected strophe joins the one before it. Merge with next strophe works the other way.",
+    body:
+      "Click Merge with previous strophe. The selected strophe joins the one before it. Merge with next strophe (the button beside it) joins a strophe to the one after it. Strophes can only merge within the same stanza.",
     isDone: (s, start) => s.stropheCount < start.stropheCount,
     result: (s) => stropheBlock(stropheStartingAt(s, firstWordOfVerse(s, 4))),
-  },
-  {
-    id: "merge-stanza-select",
-    section: "Merging",
-    target: (_s, start) => stropheSelector(stropheStartingAt(start, firstWordOfVerse(start, 4)) ?? start.strophes.at(-1)),
-    title: "Select a strophe to move",
-    body: "Stanzas merge the same way. Click this icon to select the strophe that begins at verse 4, the first strophe of the second stanza.",
-    isDone: (s, start) => {
-      const sp = stropheStartingAt(start, firstWordOfVerse(start, 4)) ?? start.strophes.at(-1);
-      return !!sp && s.selectedStropheIds.includes(sp.stropheId);
-    },
-  },
-  {
-    id: "merge-stanza-button",
-    section: "Merging",
-    target: '[data-tour="structure-mergeWithPrevStanza"]',
-    title: "Click Merge with previous stanza",
-    body: "Click Merge with previous stanza. The selected strophe, and any before it in its stanza, move into the previous stanza.",
-    isDone: (s, start) => s.stanzaCount < start.stanzaCount,
-    result: (s) => stanzaBlock(s.stanzas[0]),
   },
 
   // Identical words
@@ -635,75 +654,130 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
 
   // Colors
   {
-    id: "colors",
+    id: "color-fill",
     section: "Colors",
-    target: '[data-tour="group-format"]',
-    title: "Mark words with color",
+    target: '[data-tour="fill-color"]',
+    title: "Fill color",
     body:
-      "With some words selected (double-click a word, or click and drag across several), try all three color tools:",
-    checks: [
-      { label: "Fill color (the background)", isDone: (s) => s.anyFill },
-      { label: "Font color (the text)", isDone: (s) => s.anyTextColor },
-      { label: "Border color", isDone: (s) => s.anyBorder },
-    ],
+      "Colors mark repeated words and parallel ideas. With words selected (the repeated \u201cYahweh\u201d from before, or double-click or drag across others), click Fill color and pick a color for the background.",
+    isDone: (s) => s.anyFill,
+    result: coloredWords,
     ...WORK_IN_PASSAGE,
-    result: (s) => both(wordById(s.coloredWordIds[0]), wordById(s.coloredWordIds[s.coloredWordIds.length - 1])),
-    allow: both(PASSAGE_AREA, '[data-tour="group-format"]'),
+    allow: both(PASSAGE_AREA, '[data-tour="fill-color"]'),
+  },
+  {
+    id: "color-font",
+    section: "Colors",
+    target: '[data-tour="font-color"]',
+    title: "Font color",
+    body: "Now click Font color and pick a color for the text itself.",
+    isDone: (s) => s.anyTextColor,
+    result: coloredWords,
+    ...WORK_IN_PASSAGE,
+    allow: both(PASSAGE_AREA, '[data-tour="font-color"]'),
+  },
+  {
+    id: "color-border",
+    section: "Colors",
+    target: '[data-tour="border-color"]',
+    title: "Border color",
+    body: "Finally, click Border color and pick a color for the box around each word.",
+    isDone: (s) => s.anyBorder,
+    result: coloredWords,
+    ...WORK_IN_PASSAGE,
+    allow: both(PASSAGE_AREA, '[data-tour="border-color"]'),
   },
 
   // Lines again, gloss, word display
   {
-    id: "lines-split",
+    id: "v6-split1-word",
     section: "Lines",
-    target: '[data-tour="group-line"]',
+    target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 1)),
     title: "Split verse 6 again",
-    body: "Put verse 6 back on four lines. Click the word that should start a new line, then click New line. The words after it on that line move down with it.",
-    isDone: (s, start) => s.verseSixLineCount >= 4 && s.verseSixLineCount > start.verseSixLineCount,
-    ...WORK_IN_PASSAGE,
-    result: verseSixArea,
-    allow: both(PASSAGE_AREA, '[data-tour="group-line"]'),
+    body: (_s, start) =>
+      `Now put verse 6 back on four lines. Click ${quoted(verseSixOriginalLineStart(start, 1))}, where its second line used to begin.`,
+    isDone: (s, start) => selected(s, verseSixOriginalLineStart(start, 1)),
   },
   {
-    id: "edit-gloss",
+    id: "v6-split1-button",
+    section: "Lines",
+    target: '[data-tour="structure-newLine"]',
+    title: "Click New line",
+    body: "Click New line. The selected word, and the words after it on its line, move down to a line of their own.",
+    isDone: (s, start) => s.verseSixLineCount > start.verseSixLineCount,
+    result: verseSixLinesEverywhere,
+  },
+  {
+    id: "v6-split2-word",
+    section: "Lines",
+    target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 3)),
+    title: "Once more",
+    body: (_s, start) => `Click ${quoted(verseSixOriginalLineStart(start, 3))}, where the last line used to begin.`,
+    isDone: (s, start) => selected(s, verseSixOriginalLineStart(start, 3)),
+  },
+  {
+    id: "v6-split2-button",
+    section: "Lines",
+    target: '[data-tour="structure-newLine"]',
+    title: "Click New line",
+    body: "Click New line again. Verse 6 is back on four lines.",
+    isDone: (s, start) => s.verseSixLineCount > start.verseSixLineCount,
+    result: verseSixLinesEverywhere,
+  },
+  {
+    id: "gloss-word",
     section: "Words",
-    target: '[data-tour="group-word"]',
+    target: (_s, start) => wordSelector(start.words[3]),
+    title: "Pick a word to re-word",
+    body: (_s, start) => `Click ${quoted(start.words[3])} to select it.`,
+    isDone: (s, start) => selected(s, start.words[3]) && s.selectedWordIds.length === 1,
+  },
+  {
+    id: "gloss-edit",
+    section: "Words",
+    target: '[data-tour="edit-gloss"]',
     title: "Edit the English gloss",
     body:
-      "Select one English word, click Edit English gloss (the last icon in this group), type your own wording and press Enter. Only this study changes; the Hebrew stays as it is.",
+      "Click Edit English gloss, type your own wording in the word box and press Enter. Only this study changes; the Hebrew stays as it is.",
     isDone: (s) => s.anyGlossEdit,
-    ...WORK_IN_PASSAGE,
     result: (s) => wordById(s.glossEditedWordIds[0]),
-    allow: both(PASSAGE_AREA, '[data-tour="group-word"]'),
+    allow: PASSAGE_AREA,
   },
   {
     id: "boxes-off",
     section: "Words",
-    target: '[data-tour="group-word"]',
+    target: '[data-tour="boxes"]',
     title: "Read without boxes",
-    body: "Click the box icon (first in this group) to hide the word boxes and read the English as plain text.",
+    body: "Click the box button to hide the word boxes and read the English as plain text.",
     isDone: (s) => s.boxStyle === BoxDisplayStyle.noBox,
     result: firstLine,
   },
   {
     id: "uniform-width",
     section: "Words",
-    target: '[data-tour="group-word"]',
+    target: '[data-tour="uniform-width"]',
     title: "Line up the words",
-    body: "Click Enable uniform width (second icon). Every box becomes the same width, which makes it easy to compare lines.",
+    body: "Click Enable uniform width. Every box becomes the same width, which makes it easy to compare lines.",
     isDone: (s) => s.boxStyle === BoxDisplayStyle.uniformBoxes,
     result: firstLine,
   },
   {
-    id: "indent",
+    id: "indent-word",
     section: "Words",
-    target: '[data-tour="group-word"]',
-    title: "Indent to line up ideas",
+    target: (_s, start) => wordSelector(firstWordOfVerse(start, 3)),
+    title: "Pick a word to indent",
+    body: (_s, start) => `Click ${quoted(firstWordOfVerse(start, 3))}, the first word of verse 3.`,
+    isDone: (s, start) => selected(s, firstWordOfVerse(start, 3)),
+  },
+  {
+    id: "indent-add",
+    section: "Words",
+    target: '[data-tour="indent-add"]',
+    title: "Click Add indent",
     body:
-      "Select a word and click Add indent (third icon) to shift it one space to the right, so matching ideas in parallel lines sit under each other. Remove indent moves it back.",
+      "Click Add indent to shift the word one space to the right, so matching ideas in parallel lines can sit under each other. Remove indent, beside it, moves it back.",
     isDone: (s) => s.anyIndent,
-    ...WORK_IN_PASSAGE,
     result: (s) => wordById(s.indentedWordIds[0]),
-    allow: both(PASSAGE_AREA, '[data-tour="group-word"]'),
   },
 
   // Notes
@@ -796,13 +870,12 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   {
     id: "layers-back",
     section: "Layers",
-    target: '[data-tour="tab-layer"]',
+    target: (s) => s.firstLayerId === undefined ? '[data-tour="tab-layer"]' : `[data-tour="layer-card"][data-layer-id="${s.firstLayerId}"]`,
     title: "Switch back to your first layer",
-    body:
-      "Click your first layer in the Layer tab. Notice that the colors and divisions you just made are not here: each layer keeps its own work.",
     isDone: (s) => s.firstLayerId !== undefined && s.activeLayerId === s.firstLayerId,
     dim: false,
     allow: INFO_PANE,
+    body: "Click your first layer. Notice that the colors and divisions you just made are not here: each layer keeps its own work.",
   },
 
   // Finish

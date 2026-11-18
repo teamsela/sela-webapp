@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { BoxDisplayStyle, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { INTERFACE_TOUR_STEPS, buildTourSnapshot, isStepDone, resolveBody, resolveTarget, type TourSources } from "./interfaceTour";
+import { INTERFACE_TOUR_STEPS, buildTourSnapshot, isStepDone, resolveBody, resolveResult, resolveTarget, type TourSources } from "./interfaceTour";
 
 const word = (wordId: number, verse: number, strongNumber = wordId, gloss = `w${wordId}`) => ({ wordId, verse, strongNumber, gloss, metadata: {} }) as any;
 const line = (...words: any[]) => ({ lineId: 0, words });
@@ -82,9 +82,18 @@ describe("tour steps", () => {
 
   it("points at single buttons, not whole groups", () => {
     const s = buildTourSnapshot(sources());
+    // No toolbar step may target a whole toolbar group.
+    for (const st of INTERFACE_TOUR_STEPS) {
+      expect(String(resolveTarget(st, s) ?? ""), st.id).not.toMatch(/group-/);
+    }
     expect(resolveTarget(step("heading-new-strophe"), s)).toBe('[data-tour="structure-newStrophe"]');
     expect(resolveTarget(step("stanza-new"), s)).toBe('[data-tour="structure-newStanza"]');
     expect(resolveTarget(step("strophe-collapse"), s)).toBe('[data-tour="strophe-collapse"][data-strophe-id="0"]');
+  });
+
+  it("lights whole lines in every pane", () => {
+    const s = buildTourSnapshot(sources());
+    expect(resolveResult(step("lang-parallel"), s)).toBe('all:[data-line-id="0"]');
   });
 
   it("walks verse 6 from four lines to two, one word and one button at a time", () => {

@@ -32,7 +32,7 @@ const practice = { capture: vi.fn(() => ({ metadata: { words: {} }, notes: "", n
 const Harness = ({ ctx, setCloneStudyOpen = vi.fn() }: { ctx: Record<string, unknown>; setCloneStudyOpen?: (o: boolean) => void }) => (
   <FormatContext.Provider value={{ ...baseCtx, ...ctx } as any}>
     <div data-strophe-line="true">line one</div>
-    <div data-tour="language-switcher">A</div>
+    <div data-tour="language-switcher"><span data-tour="lang-English">A</span><span data-tour="lang-Hebrew">א</span></div>
     <div data-tour="group-format">Format</div>
     <InterfaceTour studyId="rec_t" infoPaneAction={InfoPaneActionType.none} setCloneStudyOpen={setCloneStudyOpen} practice={practice as any} />
   </FormatContext.Provider>
@@ -80,18 +80,32 @@ describe("InterfaceTour", () => {
     expect(screen.getByRole("dialog", { name: "See the transliteration" })).toBeTruthy();
   });
 
-  it("ticks checklist items one by one", () => {
-    startAt(stepIndex("colors"));
+  it("colors go one button at a time", () => {
+    startAt(stepIndex("color-fill"));
     const { rerender } = render(<Harness ctx={{}} />);
     act(() => { vi.advanceTimersByTime(200); });
-    expect(screen.getAllByText("(to do)")).toHaveLength(3);
+    expect(screen.getByRole("dialog", { name: "Fill color" })).toBeTruthy();
+    rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } } }} />);
+    act(() => { vi.advanceTimersByTime(400); });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("dialog", { name: "Font color" })).toBeTruthy();
+  });
+
+  it("ticks checklist items one by one", () => {
+    startAt(stepIndex("layers-edit"));
+    const { rerender } = render(<Harness ctx={{}} />);
+    act(() => { vi.advanceTimersByTime(200); });
+    expect(screen.getAllByText("(to do)")).toHaveLength(2);
 
     rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } } }} />);
     act(() => { vi.advanceTimersByTime(400); });
-    expect(screen.getAllByText("(to do)")).toHaveLength(2);
+    expect(screen.getAllByText("(to do)")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
 
-    rerender(<Harness ctx={{ ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0", text: "#f00", border: "#00f" } } } } }} />);
+    rerender(<Harness ctx={{
+      ctxStudyMetadata: { words: { 1: { color: { fill: "#ff0" } } } },
+      ctxPassageProps: { stanzaProps: [], stanzaCount: 1, stropheCount: 2 },
+    }} />);
     act(() => { vi.advanceTimersByTime(400); });
     expect(screen.queryAllByText("(to do)")).toHaveLength(0);
     expect(screen.getByRole("button", { name: "Continue" })).toBeTruthy();
@@ -149,10 +163,11 @@ describe("InterfaceTour", () => {
     const outside = vi.fn();
     const inside = vi.fn();
     screen.getByText("Format").addEventListener("click", outside);
-    screen.getByText("A").addEventListener("click", inside);
+    screen.getByText("א").addEventListener("click", inside);
     fireEvent.click(screen.getByText("Format"));
-    fireEvent.click(screen.getByText("A"));
+    fireEvent.click(screen.getByText("A")); // the switch, but not this step's button
+    fireEvent.click(screen.getByText("א"));
     expect(outside).not.toHaveBeenCalled();
-    expect(inside).toHaveBeenCalled();
+    expect(inside).toHaveBeenCalledTimes(1);
   });
 });

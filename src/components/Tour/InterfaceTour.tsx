@@ -265,9 +265,10 @@ const InterfaceTour = ({
     <>
       {progress.open && (
         <TourOverlay
-          target={showResult ? resultTarget : resolveTarget(step, snapshot, start)}
+          target={resolveTarget(step, snapshot, start)}
+          highlight={showResult ? resultTarget : undefined}
           tone={showResult ? "result" : "target"}
-          allow={[resolveTarget(step, snapshot, start), resultTarget, step.allow].filter(Boolean).join(", ") || undefined}
+          allow={step.allow}
           title={step.title}
           body={resolveBody(step, snapshot, start)}
           checklist={checklist}

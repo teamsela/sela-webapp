@@ -24,14 +24,23 @@ import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } 
   view, the ring is dropped and the bubble says which way to scroll, with a
   "Show me" button that brings it back.
 
-  Toolbar tooltips ([data-tooltip] inside a target) are included in the lit
-  area, so they show inside it and the bubble sits below them.
+  A selector part written "all:<selector>" lights every match instead of the
+  first (the same line in the English and Hebrew panes, several lines).
+
+  Toolbar tooltips ([data-tooltip] inside a target) join the lit area only
+  while they are showing, so the highlight hugs the button and grows to take
+  in its tooltip on hover. The bubble always leaves room for a tooltip below
+  a toolbar control, so it doesn't move when one appears.
+
+  `target` is what the user acts on; it anchors the bubble. `highlight`
+  (default: the target) is what is lit, e.g. the result of the action once a
+  step is done. The bubble stays where it was while the highlight moves.
 
   While the overlay is up, clicks and key presses outside the target, the
   `allow` areas and the bubble are blocked (the bubble nudges instead), so the
   user can't knock the tutorial off course. Scrolling is never blocked.
 
-  `tone="result"` draws the ring in green: it is showing what an action did.
+  `tone="result"` draws a slightly heavier ring around what an action did.
 */
 
 const BUBBLE_WIDTH = 340;
@@ -39,9 +48,9 @@ const GAP = 14;
 const EDGE = 16;
 const PAD = 6;
 const Z = 10000; // above the study header (z-9999)
-// Theme colors: primary (#3C50E0) for "do this", meta-3 green for "here's the result".
-const TARGET_RING = "#3C50E0";
-const RESULT_RING = "#10B981";
+// The theme's primary color, for both "do this" and "here's the result".
+const RING = "#3C50E0";
+const TOOLTIP_ROOM = 40; // space reserved below a toolbar control for its tooltip
 
 type Rect = { top: number; left: number; width: number; height: number };
 type Box = { top: number; left: number; bottom: number; right: number };
@@ -70,19 +79,38 @@ const visibleArea = (el: Element): Box => {
   return box;
 };
 
+/** Each part's first match, or every match for "all:" parts. */
 const findTargets = (selector: string): Element[] =>
   selector
     .split(",")
-    .map((part) => document.querySelector(part.trim()))
-    .filter((el): el is Element => !!el);
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .flatMap((part) =>
+      part.startsWith("all:")
+        ? Array.from(document.querySelectorAll(part.slice(4)))
+        : [document.querySelector(part)].filter((el): el is Element => !!el)
+    );
 
-const measure = (selector?: string): Measured => {
+/** The selector list as plain CSS (for matching), without "all:" prefixes. */
+const plainSelector = (selector: string) =>
+  selector
+    .split(",")
+    .map((part) => part.trim().replace(/^all:/, ""))
+    .filter(Boolean)
+    .join(", ");
+
+const isShowing = (el: Element) => Number(window.getComputedStyle(el).opacity) > 0.5;
+
+const measure = (selector?: string, withTooltips = true): Measured => {
   if (!selector) return NOTHING;
   const visible: Box[] = [];
   let offscreen: Offscreen | null = null;
   let partlyHidden = false;
 
-  const elements = findTargets(selector).flatMap((el) => [el, ...Array.from(el.querySelectorAll("[data-tooltip]"))]);
+  const elements = findTargets(selector).flatMap((el) => [
+    el,
+    ...(withTooltips ? Array.from(el.querySelectorAll("[data-tooltip]")).filter(isShowing) : []),
+  ]);
   for (const el of elements) {
     const r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) continue; // not rendered (a closed popover)
@@ -134,7 +162,9 @@ export type TourOverlayProps = {
   placement?: "near" | "corner";
   /** Extra places the user may click (selector list); see the note at the top. */
   allow?: string;
-  /** "result": green ring, showing what the user's action did. */
+  /** What to light (default: the target); see the note at the top. */
+  highlight?: string;
+  /** "result": a slightly heavier ring, showing what the user's action did. */
   tone?: "target" | "result";
   onClose: () => void;
   /** Buttons in the bubble's footer, right-aligned. */
@@ -144,14 +174,19 @@ export type TourOverlayProps = {
 const NAVIGATION_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " ", "Tab", "Escape"]);
 const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contextmenu", "touchstart", "keydown"] as const;
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, tone = "target", onClose, actions }: TourOverlayProps) => {
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, highlight, tone = "target", onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
+  const { rect, offscreen } = measured;
+  // Where the bubble is anchored: the target itself (no tooltips), kept while
+  // the highlight moves to the result.
+  const [anchor, setAnchor] = useState<Rect | null>(null);
+  const [anchorHasTooltip, setAnchorHasTooltip] = useState(false);
   const [nudge, setNudge] = useState(false);
   const bubbleRef = useRef<HTMLDivElement>(null);
 
   // Block interaction outside the step (see the note at the top).
   useEffect(() => {
-    const allowed = [target, allow].filter(Boolean).join(", ");
+    const allowed = plainSelector([target, highlight, allow].filter(Boolean).join(", "));
     const isAllowed = (node: EventTarget | null) => {
       if (!(node instanceof Node)) return true;
       if (bubbleRef.current?.contains(node)) return true;
@@ -179,23 +214,31 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       BLOCKED_EVENTS.forEach((type) => window.removeEventListener(type, block, true));
       window.clearTimeout(nudgeTimer);
     };
-  }, [target, allow]);
-  const { rect, offscreen } = measured;
+  }, [target, highlight, allow]);
+
   const [bubbleHeight, setBubbleHeight] = useState(180);
 
+  const lit = highlight ?? target;
+
   useEffect(() => {
-    if (!target) {
+    if (!lit) {
       setMeasured(NOTHING);
+      setAnchor(null);
       return;
     }
-    // When a step begins, bring a hidden or half-hidden target into view.
-    const first = measure(target);
-    if (first.offscreen || first.partlyHidden) reveal(target);
+    // When a step begins (or its result appears), bring it into view.
+    const first = measure(lit);
+    if (first.offscreen || first.partlyHidden) reveal(lit);
 
-    const update = () => setMeasured((prev) => {
-      const next = measure(target);
-      return sameMeasure(prev, next) ? prev : next;
-    });
+    const update = () => {
+      setMeasured((prev) => {
+        const next = measure(lit);
+        return sameMeasure(prev, next) ? prev : next;
+      });
+      const a = target ? measure(target, false).rect : null;
+      setAnchor((prev) => (a && !sameRect(prev, a) ? a : prev));
+      setAnchorHasTooltip(!!target && findTargets(target).some((el) => !!el.querySelector("[data-tooltip]")));
+    };
     update();
     const id = window.setInterval(update, 200);
     window.addEventListener("resize", update);
@@ -203,18 +246,21 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       window.clearInterval(id);
       window.removeEventListener("resize", update);
     };
-  }, [target]);
+  }, [lit, target]);
 
   useLayoutEffect(() => {
     if (bubbleRef.current) setBubbleHeight(bubbleRef.current.offsetHeight);
   }, [title, body, rect, offscreen, done, checklist]);
 
+  // The bubble sits by the target (anchor), not by the result.
+  const place = anchor ?? rect;
   let bubbleStyle: React.CSSProperties;
-  if ((rect && placement === "corner") || offscreen) {
+  if ((place && placement === "corner") || (offscreen && !anchor)) {
     // Above the study footer (about 64px tall), at the right edge.
     bubbleStyle = { position: "fixed", right: EDGE, bottom: 80, width: BUBBLE_WIDTH, zIndex: Z + 1 };
-  } else if (rect) {
-    const gap = GAP + clearance;
+  } else if (place) {
+    const rect = place;
+    const gap = GAP + clearance + (anchorHasTooltip ? TOOLTIP_ROOM : 0);
     const roomBelow = window.innerHeight - (rect.top + rect.height + PAD + gap);
     const below = roomBelow >= bubbleHeight + EDGE || rect.top < bubbleHeight + gap + EDGE;
     const top = below
@@ -249,7 +295,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             // The ring and the dimming share one box-shadow (a separate ring
             // class would be overridden by this inline style).
             boxShadow: [
-              tone === "result" ? `0 0 0 3px ${RESULT_RING}` : `0 0 0 2px ${TARGET_RING}`,
+              `0 0 0 ${tone === "result" ? 3 : 2}px ${RING}`,
               dim ? "0 0 0 9999px rgba(15, 23, 42, 0.45)" : undefined,
             ].filter(Boolean).join(", "),
             zIndex: Z,
@@ -292,7 +338,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             </span>
             <button
               type="button"
-              onClick={() => reveal(target)}
+              onClick={() => reveal(lit)}
               className="whitespace-nowrap rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-white hover:bg-opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               Show me
@@ -319,7 +365,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
 
         {done && (
-          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is outlined in green." : ""} Take a look, then click Continue.</p>
+          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is highlighted." : ""} Take a look, then click Continue.</p>
         )}
 
         <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>

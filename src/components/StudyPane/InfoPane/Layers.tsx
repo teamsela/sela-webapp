@@ -473,6 +473,8 @@ const Layers = () => {
               {/* Header row: dot, name, action icons */}
               <div
                 className="flex items-center gap-3 px-5 py-4"
+                data-tour="layer-card"
+                data-layer-id={layer.id}
                 onClick={() => handleBoxClick(layer.id)}
               >
                 {/* Active/inactive status dot */}

@@ -321,7 +321,7 @@ export const StropheBlock = ({
   // user) put a line break. With the counter off, keep wrapping.
   const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
   const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
-    <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+    <div data-strophe-line="true" data-line-id={line.lineId} className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
       {renderWords(line, lineId)}
     </div>
   );

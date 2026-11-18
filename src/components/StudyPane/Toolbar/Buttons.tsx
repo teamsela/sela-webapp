@@ -366,7 +366,12 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   return (
     <div
       className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock"
-      data-tour={colorAction === ColorActionType.colorFill ? "fill-color" : undefined}
+      data-tour={
+        colorAction === ColorActionType.colorFill ? "fill-color"
+        : colorAction === ColorActionType.borderColor ? "border-color"
+        : colorAction === ColorActionType.textColor ? "font-color"
+        : undefined
+      }
     >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
@@ -439,7 +444,7 @@ export const EditWordBtn = () => {
   };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="edit-gloss">
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick}
@@ -645,7 +650,7 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
   }
   
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="uniform-width">
       <button
         className="hover:text-primary"
         onClick={handleClick} >
@@ -689,7 +694,7 @@ export const BoxlessBtn = ({ setBoxStyle }: {
   }
   
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="boxes">
       <button
         className="hover:text-primary"
         onClick={handleClick} >
@@ -762,7 +767,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
   }
   return (
-    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `}>
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `} data-tour={leftIndent ? "indent-add" : "indent-remove"}>
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
