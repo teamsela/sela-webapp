@@ -114,6 +114,9 @@ export async function updateStudyName(id: string, studyName: string) {
 
 export async function updateStudyNotes(id: string, content: string) {
   if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
+  if (!(await isStudyOwner(id))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
   try {
     await db
       .update(study)
