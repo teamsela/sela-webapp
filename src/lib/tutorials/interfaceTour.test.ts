@@ -91,6 +91,15 @@ describe("tour steps", () => {
     expect(resolveTarget(step("strophe-collapse"), s)).toBe('[data-tour="strophe-collapse"][data-strophe-id="0"]');
   });
 
+  it("points the repeated-word step at Yahweh in verse 1", () => {
+    const passage = sources().passageProps as any;
+    passage.stanzaProps[0].strophes[1].lines[0] = line(word(3, 1, 3068, "Yahweh [is]"));
+    const s = buildTourSnapshot(sources({ passageProps: passage }));
+    expect(resolveTarget(step("identical-select"), s)).toBe('[data-word-id="3"]');
+    const picked = { ...s, selectedWordIds: [3, 9] };
+    expect(resolveResult(step("identical-select"), picked)).toBe('[data-word-id="3"], [data-word-id="9"]');
+  });
+
   it("lights whole lines in every pane", () => {
     const s = buildTourSnapshot(sources());
     expect(resolveResult(step("lang-parallel"), s)).toBe('all:[data-line-id="0"]');

@@ -312,6 +312,10 @@ const verseSixOriginalLineStart = (s: TourSnapshot, index: number) =>
 const coloredWords = (s: TourSnapshot) =>
   both(wordById(s.coloredWordIds[0]), wordById(s.coloredWordIds[s.coloredWordIds.length - 1]));
 
+/** God's name in verse 1 (glossed "Yahweh [is]"), else the first word after the heading. */
+const yahwehInVerseOne = (s: TourSnapshot) =>
+  s.words.find((w) => w.verse === 1 && /yahweh/i.test(w.gloss)) ?? firstWordAfterHeading(s);
+
 /** The strophe to move into a new stanza: the one starting at verse 4, else the second. */
 const stanzaStrophe = (s: TourSnapshot) =>
   stropheStartingAt(s, firstWordOfVerse(s, 4)) ?? s.strophes[1];
@@ -623,13 +627,14 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   {
     id: "identical-select",
     section: "Repeated words",
-    target: PASSAGE,
+    target: (_s, start) => wordSelector(yahwehInVerseOne(start)),
     title: "Find a word’s repeats",
     body:
-      "Double-click “Yahweh”. Every place the same Hebrew word appears in the passage is selected. Hebrew poetry often repeats key words to tie a poem together, and here God’s name frames the whole psalm.",
+      "Double-click this word, \u201cYahweh\u201d. Every place the same Hebrew word appears in the passage is selected. Hebrew poetry often repeats key words to tie a poem together, and here God’s name frames the whole psalm.",
     isDone: (s) => s.identicalWordsSelected,
     ...WORK_IN_PASSAGE,
-    result: (s) => both(wordById(s.selectedWordIds[0]), wordById(s.selectedWordIds[s.selectedWordIds.length - 1])),
+    // Each selected repeat, wherever it is in the psalm.
+    result: (s) => s.selectedWordIds.map((id) => wordById(id)).filter(Boolean).join(", ") || undefined,
   },
   {
     id: "word-info",

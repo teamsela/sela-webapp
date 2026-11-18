@@ -79,17 +79,26 @@ const visibleArea = (el: Element): Box => {
   return box;
 };
 
-/** Each part's first match, or every match for "all:" parts. */
+const isRendered = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.width > 0 || r.height > 0;
+};
+
+/**
+  Each part's first rendered match (hidden copies, e.g. in a collapsed
+  strophe, are skipped), or every match for "all:" parts.
+*/
 const findTargets = (selector: string): Element[] =>
   selector
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean)
-    .flatMap((part) =>
-      part.startsWith("all:")
-        ? Array.from(document.querySelectorAll(part.slice(4)))
-        : [document.querySelector(part)].filter((el): el is Element => !!el)
-    );
+    .flatMap((part) => {
+      if (part.startsWith("all:")) return Array.from(document.querySelectorAll(part.slice(4)));
+      const matches = Array.from(document.querySelectorAll(part));
+      const first = matches.find(isRendered) ?? matches[0];
+      return first ? [first] : [];
+    });
 
 /** The selector list as plain CSS (for matching), without "all:" prefixes. */
 const plainSelector = (selector: string) =>
@@ -304,8 +313,13 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       ) : offscreen ? (
         // Target scrolled away: dim lightly, but let the wheel reach the page.
         dim && <div aria-hidden className="pointer-events-none fixed inset-0 bg-black/40" style={{ zIndex: Z }} />
-      ) : (
+      ) : !lit ? (
+        // A card with nothing to point at (welcome, explanations).
         <div aria-hidden className="fixed inset-0 bg-black/60" style={{ zIndex: Z }} />
+      ) : (
+        // The target isn't on screen yet (still rendering, or hidden): dim
+        // lightly but never cover the page, so nothing becomes unclickable.
+        dim && <div aria-hidden className="pointer-events-none fixed inset-0 bg-black/40" style={{ zIndex: Z }} />
       )}
 
       <div
