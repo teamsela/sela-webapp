@@ -87,6 +87,22 @@ describe("tour steps", () => {
     expect(resolveTarget(step("strophe-collapse"), s)).toBe('[data-tour="strophe-collapse"][data-strophe-id="0"]');
   });
 
+  it("walks verse 6 from four lines to two, one word and one button at a time", () => {
+    const start = buildTourSnapshot(sources()); // verse 6 on 3 lines here: [4] [5] [6,7]
+    expect(start.verseSixLines.map((l) => l.map((w) => w.wordId))).toEqual([[4], [5], [6, 7]]);
+    expect(resolveTarget(step("v6-merge1-word"), start, start)).toBe('[data-word-id="5"]');
+    expect(isStepDone(step("v6-merge1-word"), { ...start, selectedWordIds: [5] }, start)).toBe(true);
+    expect(resolveTarget(step("v6-merge1-button"), start, start)).toBe('[data-tour="structure-mergeWithPrevLine"]');
+    expect(isStepDone(step("v6-merge1-button"), { ...start, verseSixLineCount: 2 }, start)).toBe(true);
+
+    // The word stays fixed to the step's start even after the layout changes.
+    const later = { ...start, verseSixLines: [[{ wordId: 4, verse: 6, gloss: "x" }]] };
+    expect(resolveTarget(step("v6-merge1-word"), later, start)).toBe('[data-word-id="5"]');
+
+    expect(resolveTarget(step("v6-merge2-word"), start, start)).toBe('[data-word-id="7"]');
+    expect(isStepDone(step("v6-merge2-button"), { ...start, verseSixLineCount: 2 }, { ...start, verseSixLineCount: 3 })).toBe(true);
+  });
+
   it("suggests the strophe starting at verse 4 for the new stanza", () => {
     const passage = sources().passageProps as any;
     passage.stanzaProps[0].strophes = [

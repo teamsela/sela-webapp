@@ -194,9 +194,9 @@ const InterfaceTour = ({
     <>
       {progress.open && (
         <TourOverlay
-          target={resolveTarget(step, snapshot)}
+          target={resolveTarget(step, snapshot, start)}
           title={step.title}
-          body={resolveBody(step, snapshot)}
+          body={resolveBody(step, snapshot, start)}
           checklist={checklist}
           progress={progressLabel}
           done={done}

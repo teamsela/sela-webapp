@@ -45,6 +45,8 @@ export type TourSnapshot = {
   firstLayerId: number | undefined;
   /** The passage's words in reading order. */
   words: TourWord[];
+  /** Verse 6 as shown: one list of its words per line. */
+  verseSixLines: TourWord[][];
   /** Each strophe and where it starts. */
   strophes: TourStrophe[];
   selectedWordIds: number[];
@@ -60,10 +62,14 @@ export type TourStep = {
   id: string;
   /** Section name shown above the title, e.g. "Languages". */
   section: string;
-  /** CSS selector (or selector list) to light up; may depend on the passage. */
-  target?: string | ((s: TourSnapshot) => string | undefined);
+  /**
+    CSS selector (or selector list) to light up. May depend on the passage:
+    `s` is the screen now, `start` the screen when the step began (use it to
+    keep pointing at the same word while the layout changes).
+  */
+  target?: string | ((s: TourSnapshot, start: TourSnapshot) => string | undefined);
   title: string;
-  body: string | ((s: TourSnapshot) => string);
+  body: string | ((s: TourSnapshot, start: TourSnapshot) => string);
   isDone?: (s: TourSnapshot, start: TourSnapshot) => boolean;
   /** Several things to do in one step; done when all are ticked. */
   checks?: TourCheck[];
@@ -86,11 +92,15 @@ const LANGUAGE_WITH_DROPDOWN = '[data-tour="language-switcher"], [data-tour="lan
 // Verse 1's number (the only one marked) and any open ESV box.
 const ESV_WITH_POPOVER = '[data-tour="verse-number"], [data-tour="esv-popover"][data-open="true"]';
 
-export const resolveTarget = (step: TourStep, s: TourSnapshot | null): string | undefined =>
-  typeof step.target === "function" ? (s ? step.target(s) : undefined) : step.target;
+export const resolveTarget = (
+  step: TourStep,
+  s: TourSnapshot | null,
+  start: TourSnapshot | null = s
+): string | undefined =>
+  typeof step.target === "function" ? (s ? step.target(s, start ?? s) : undefined) : step.target;
 
-export const resolveBody = (step: TourStep, s: TourSnapshot | null): string =>
-  typeof step.body === "function" ? (s ? step.body(s) : "") : step.body;
+export const resolveBody = (step: TourStep, s: TourSnapshot | null, start: TourSnapshot | null = s): string =>
+  typeof step.body === "function" ? (s ? step.body(s, start ?? s) : "") : step.body;
 
 /** Is this step something the user does (as opposed to read)? */
 export const isActionStep = (step: TourStep) => !!step.isDone || !!step.checks?.length;
@@ -184,6 +194,13 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
         gloss: (w.metadata?.glossOverride || w.gloss || "").trim(),
       }))
     ),
+    verseSixLines: lines
+      .map((l) =>
+        l.words
+          .filter((w) => w.verse === 6)
+          .map((w) => ({ wordId: w.wordId, verse: w.verse, gloss: (w.metadata?.glossOverride || w.gloss || "").trim() }))
+      )
+      .filter((l) => l.length > 0),
     strophes: strophes.map((sp) => {
       const first = sp.lines?.[0]?.words?.[0];
       return { stropheId: sp.stropheId, firstWordId: first?.wordId, firstVerse: first?.verse };
@@ -202,6 +219,14 @@ const stropheStartingAt = (s: TourSnapshot, w: TourWord | undefined) =>
   w ? s.strophes.find((sp) => sp.firstWordId === w.wordId) : undefined;
 /** The heading ends after the first two words ("A Psalm" "of David"). */
 const firstWordAfterHeading = (s: TourSnapshot) => s.words[2];
+
+/** Last word on line `index` of verse 6 (negative counts from the end). */
+const lastWordOnVerseSixLine = (s: TourSnapshot, index: number) => {
+  const line = s.verseSixLines.at(index);
+  return line?.[line.length - 1];
+};
+
+const selected = (s: TourSnapshot, w: TourWord | undefined) => !!w && s.selectedWordIds.includes(w.wordId);
 
 /** The strophe to move into a new stanza: the one starting at verse 4, else the second. */
 const stanzaStrophe = (s: TourSnapshot) =>
@@ -409,16 +434,42 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     isDone: (s) => s.stanzaCount >= 2,
   },
 
-  // Lines
+  // Lines: verse 6 from four lines to two, in two merge cycles. Each word is
+  // fixed when its step begins, so the highlight stays put as lines change.
   {
-    id: "lines-merge",
+    id: "v6-merge1-word",
     section: "Lines",
-    target: '[data-tour="group-line"]',
-    title: "Make verse 6 two lines",
+    target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, 1)),
+    title: "Join verse 6 into two lines",
+    body: (_s, start) =>
+      `Verse 6 is on ${start.verseSixLineCount} lines; let\u2019s join it into two. Click ${quoted(lastWordOnVerseSixLine(start, 1))}, the last word on the second line of verse 6.`,
+    isDone: (s, start) => selected(s, lastWordOnVerseSixLine(start, 1)),
+  },
+  {
+    id: "v6-merge1-button",
+    section: "Lines",
+    target: '[data-tour="structure-mergeWithPrevLine"]',
+    title: "Click Merge with previous line",
+    body: "Click Merge with previous line. The selected word and everything before it on its line join the line above.",
+    isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount,
+  },
+  {
+    id: "v6-merge2-word",
+    section: "Lines",
+    target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, -1)),
+    title: "Once more",
+    body: (_s, start) =>
+      `Now click ${quoted(lastWordOnVerseSixLine(start, -1))}, the last word of verse 6.`,
+    isDone: (s, start) => selected(s, lastWordOnVerseSixLine(start, -1)),
+  },
+  {
+    id: "v6-merge2-button",
+    section: "Lines",
+    target: '[data-tour="structure-mergeWithPrevLine"]',
+    title: "Click Merge with previous line",
     body:
-      "Verse 6 is on four lines. Join it into two with Merge with previous line or Merge with next line. Select one word to merge it together with the rest of its line, or select several words to move just those.",
-    isDone: (s) => s.verseSixLineCount > 0 && s.verseSixLineCount <= 2,
-    ...WORK_IN_PASSAGE,
+      "Click Merge with previous line again to finish. Merge with next line works the same way in the other direction, and if you select several words, only those words move.",
+    isDone: (s, start) => s.verseSixLineCount < start.verseSixLineCount && s.verseSixLineCount <= 2,
   },
 
   // Merging
