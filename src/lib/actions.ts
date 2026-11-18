@@ -11,7 +11,7 @@ import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL, sql 
 import { nanoid } from 'nanoid';
 
 import { parsePassageInfo, PassageInfo } from './utils';
-import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, PLAYGROUND_STUDY_ID, LayerData } from './data';
+import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, DEMO_STUDY_ID, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
 
 const SORT_COLUMNS = {
@@ -92,7 +92,7 @@ export async function fetchStudyById(studyId: string) {
 }
 
 export async function updateStudyName(id: string, studyName: string) {
-  if (id === PLAYGROUND_STUDY_ID) return;
+  if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
   if (!(await isStudyOwner(id))) {
     return { message: 'Unauthorized: You do not have permission to modify this study.' };
   }
@@ -112,7 +112,7 @@ export async function updateStudyName(id: string, studyName: string) {
 }
 
 export async function updateStudyNotes(id: string, content: string) {
-  if (id === PLAYGROUND_STUDY_ID) return;
+  if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
   try {
     await db
       .update(study)
@@ -154,7 +154,7 @@ export async function updateStar(studyId: string, isStarred: boolean) {
 export async function updateMetadataInDb(studyId: string, studyMetadata: StudyMetadata) {
   "use server";
 
-  if (studyId === PLAYGROUND_STUDY_ID) return;
+  if (studyId === DEMO_STUDY_ID && !(await isStudyOwner(studyId))) return;
   if (!(await isStudyOwner(studyId))) {
     return { message: 'Unauthorized: You do not have permission to modify this study.' };
   }
@@ -1103,25 +1103,12 @@ const getBibleData = unstable_cache(
 
 export async function fetchPassageData(studyId: string) {
   try {
-    const currentStudy = studyId === PLAYGROUND_STUDY_ID
-      ? {
-          id: PLAYGROUND_STUDY_ID,
-          name: "Playground - Psalm 1",
-          owner: "",
-          book: "psalms",
-          passage: "1",
-          public: true,
-          model: false,
-          scriptura: false,
-          metadata: { words: {} } as StudyMetadata,
-          notes: "",
-        }
-      : await db
-          .select()
-          .from(study)
-          .where(eq(study.id, studyId))
-          .limit(1)
-          .then((rows) => rows[0] ?? null);
+    const currentStudy = await db
+      .select()
+      .from(study)
+      .where(eq(study.id, studyId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
 
     const studyData: StudyData = {
       id: studyId,

@@ -1,13 +1,40 @@
-import { SignIn } from '@clerk/nextjs';
+'use client';
 
-import Nav from '@/components/Landing/Nav';
-import Hero from '@/components/Landing/Hero';
+import { SignIn } from '@clerk/nextjs';
+import React, {useState, useEffect} from "react";
+import Image from 'next/image'
+import Link from 'next/link'
 
 export default function SignInPage() {
-  return (
-    <main className="flex min-h-screen flex-col bg-white">
-      <Nav />
-      <Hero fullHeight signInSlot={<SignIn />} />
-    </main>
-  );
+  const [isMobile, setIsMobile] = useState(false)
+   
+  //choose the screen size 
+  const handleResize = () => {
+    if (window.innerWidth < 640) {
+      setIsMobile(true);
+    } else {
+      setIsMobile(false);
+    }
+  }
+
+    // create an event listener
+    useEffect(() => {
+      window.addEventListener("resize", handleResize)
+    })
+    return (
+      <main>
+        <div className={`min-h-screen justify-center items-center ${isMobile? "flex-row" : "flex"} `}>
+          <Image src="/images/digging-for-gems.png" width={0} height={0} sizes="100vw" alt="Bible Poetry Logo" style={{marginRight: 100}} className={`w-2/5 ${isMobile ? "ml-30 my-10" : ""}`} />
+          <div className="flex w-full flex-1 flex-col items-center gap-2 px-8 sm:max-w-md">
+            <SignIn />
+            <Link
+              href="/demo"
+              className="mt-12 rounded border border-stroke bg-white px-3 py-1 text-xl text-meta-1 shadow-default hover:bg-gray"
+            >
+              Demo Study of Psalm 1
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
 }

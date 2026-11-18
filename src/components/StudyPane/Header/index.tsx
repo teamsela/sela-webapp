@@ -22,7 +22,7 @@ const Header = ({
   setSelectedColor,
   setBoxStyle,
   setCloneStudyOpen,
-  isPlayground = false
+  isDemo = false
 }: {
   study: StudyData;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
@@ -33,7 +33,7 @@ const Header = ({
   setSelectedColor: (arg: string) => void;
   setBoxStyle: (arg: BoxDisplayConfig) => void;
   setCloneStudyOpen: (arg: boolean) => void;
-  isPlayground?: boolean;
+  isDemo?: boolean;
 }) => {
 
   const capitalizedBook = study.book.charAt(0).toUpperCase() + study.book.slice(1);
@@ -73,7 +73,7 @@ const Header = ({
               {/* <!-- Dark Mode Toggler --> */}
 
               {/* <!-- User Area --> */}
-              {isPlayground ? (
+              {isDemo ? (
                 <Link
                   href="/sign-up"
                   className="whitespace-nowrap rounded-lg bg-[#FFBF00] py-2 px-4 text-center text-sm text-white hover:bg-opacity-90 lg:px-6"
