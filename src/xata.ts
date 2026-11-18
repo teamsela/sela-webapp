@@ -17,6 +17,7 @@ const tables = [
       { name: "passage", type: "text", notNull: true, defaultValue: "1" },
       { name: "model", type: "bool", defaultValue: "false" },
       { name: "scriptura", type: "bool", defaultValue: "false" },
+      { name: "tutorial", type: "bool", defaultValue: "false" },
       { name: "metadata", type: "json", defaultValue: "{}" },
       //{ name: "layers", type: "json", defaultValue: "{}" },
       { name: "book", type: "text" },
