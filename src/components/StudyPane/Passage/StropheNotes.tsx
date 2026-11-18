@@ -1,3 +1,4 @@
+import { isPracticeMode } from "@/lib/practiceMode";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { FormatContext } from ".."
 import { StropheNote, StudyNotes } from "@/lib/types";
@@ -100,7 +101,7 @@ export const StropheNotes = ({ firstWordId, lastWordId, stropheId }: { firstWord
 
   const saveNow = useCallback(
 async (payload: string, { keepalive = false } = {}) => {
-  if (!ctxStudyId) return;
+  if (!ctxStudyId || isPracticeMode()) return;
   if (lastSavedPayloadRef.current === payload) return;
 
   try {
@@ -251,7 +252,7 @@ useEffect(() => {
   }, [claimActivePane]);
 
   return (
-    <div className="flex h-full flex-col bg-transparent" onFocus={claimActivePane}>
+    <div className="flex h-full flex-col bg-transparent" onFocus={claimActivePane} data-tour="strophe-note">
       <RichTextEditor
         value={noteDoc}
         onChange={handleChange}

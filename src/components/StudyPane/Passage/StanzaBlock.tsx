@@ -5,7 +5,7 @@ import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "..";
 import { StropheBlock } from "./StropheBlock";
 import { CounterStropheBlock } from "./CounterStropheBlock";
 import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
 
@@ -234,6 +234,7 @@ export const StanzaBlock = ({
       <button
         type="button"
         onClick={startEditing}
+        data-tour="stanza-title"
         className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >
@@ -251,6 +252,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
+      data-stanza-block={stanzaProps.stanzaId}
       className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || useCounterColumns ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
       >
       <div

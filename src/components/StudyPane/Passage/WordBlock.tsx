@@ -6,7 +6,7 @@ import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType } from "@/lib/types"
 import { wrapText, wordsHasSameColor } from "@/lib/utils";
 import EsvPopover from './EsvPopover';
 import { LanguageContext } from './PassageBlock';
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import {
   buildHighlightedHebrewSegments,
   buildHighlightedTransliterationSegments,
@@ -426,6 +426,7 @@ export const WordBlock = ({
       {ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && indentsLocal > 0 && renderIndents(indentsLocal)}
       <div
         id={wordProps.wordId.toString()}
+        data-word-id={wordProps.wordId}
         key={wordProps.wordId}
         className={`wordBlock ${ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox ? (selected ? 'mx-1' : 'mx-0') : 'mx-1'} rounded border ${selected ? 'drop-shadow-md' : 'outline-offset-[-4px]'}`}
         style={{

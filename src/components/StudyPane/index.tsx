@@ -12,7 +12,9 @@ import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, S
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
 import { mergeData } from "@/lib/utils";
 import { CounterMode } from "@/lib/counter";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb, setPracticeMode } from "@/lib/studyPersistence";
+import InterfaceTour from "@/components/Tour/InterfaceTour";
+import type { PracticeState } from "@/lib/tutorials/practiceState";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 import { getPersonGenderNumberHighlightState, PersonGenderNumberCode } from "@/lib/personGenderNumber";
 
@@ -101,6 +103,7 @@ export const FormatContext = createContext({
   ctxIndentNum: {} as number,
   ctxSetIndentNum: (arg: number) => {},
   ctxInViewMode: false,
+  ctxPracticeMode: false,
   ctxEditingWordId: null as number | null,
   ctxSetEditingWordId: (arg: number | null) => {},
   ctxStructureUpdateType: {} as StructureUpdateType,
@@ -181,12 +184,17 @@ const cloneWordMapWithoutColorAndNotes = (words: WordMap): WordMap => {
 };
 
 const StudyPane = ({
-  passageData, inViewMode, isDemo = false
+  passageData, inViewMode, isDemo = false, practiceMode = false
 }: {
   passageData: PassageStaticData, // heb word data
   inViewMode: boolean;
   isDemo?: boolean;
+  // Practice mode: a non-owner using every tool on a tutorial study. Nothing
+  // is saved (see lib/studyPersistence) and the guided tour runs.
+  practiceMode?: boolean;
 }) => {
+  // Set during render so it is in place before any child component saves.
+  setPracticeMode(practiceMode);
 
   const [passageProps, setPassageProps] = useState<PassageProps>({ stanzaProps: [], stanzaCount: 0, stropheCount: 0 });
 
@@ -563,6 +571,7 @@ const StudyPane = ({
     ctxIndentNum: indentNum,
     ctxSetIndentNum: setIndentNum,
     ctxInViewMode: inViewMode,
+    ctxPracticeMode: practiceMode,
     ctxEditingWordId: editingWordId,
     ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: structureUpdateType,
@@ -670,6 +679,52 @@ const StudyPane = ({
     }
   }, [passageData.study, inViewMode]);
 
+  /*
+    Practice mode: the tutorial saves the study state at the start of each step
+    and puts it back on Back or after a reload (practice changes are never
+    saved to the database). Restoring works like undo: replacing the metadata
+    also resets language, box style, layers and structure.
+  */
+  const capturePracticeState = (): PracticeState => ({
+    metadata: structuredClone(studyMetadata),
+    notes: studyNotes,
+    notesOn: stropheNoteBtnOn,
+    infoPaneAction,
+  });
+
+  const restorePracticeState = (state: PracticeState) => {
+    const metadata = structuredClone(state.metadata);
+    if (!metadata.words) metadata.words = {};
+    const noHighlights = { syntax: null, motif: null, structure: null, pausal: null };
+
+    setSelectedWords([]);
+    setNumSelectedWords(0);
+    setSelectedStrophes([]);
+    setNumSelectedStrophes(0);
+    setEditingWordId(null);
+    setColorAction(ColorActionType.none);
+    setStructureUpdateType(StructureUpdateType.none);
+    setWordsColorMap(new Map());
+    setActiveHighlightIds(noHighlights);
+    highlightCacheRef.current = new Map();
+
+    setStudyMetadata(metadata);
+    setStudyNotes(state.notes);
+    setNoteMerge(true); // re-read notes into the editors
+    setStropheNoteBtnOn(state.notesOn);
+    setInfoPaneAction(state.infoPaneAction);
+
+    // Undo history starts over from the restored state.
+    setHistory([
+      snapshotHistoryEntry(metadata, {
+        wordsColorMap: new Map(),
+        activeHighlightIds: noHighlights,
+        highlightCache: new Map(),
+      }),
+    ]);
+    setPointer(0);
+  };
+
   return (
 
     <>
@@ -690,11 +745,16 @@ const StudyPane = ({
 
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden pt-32 pb-14 max-[645px]:!pb-0">
-          <main className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>
+          <main data-tour="passage-area" className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
             {
-            <CloneStudyModal originalStudy={passageData.study} open={cloneStudyOpen} setOpen={setCloneStudyOpen} />
+            <CloneStudyModal
+              // In practice mode the copy keeps what the visitor has done so far.
+              originalStudy={practiceMode ? { ...passageData.study, metadata: studyMetadata, notes: studyNotes } : passageData.study}
+              open={cloneStudyOpen}
+              setOpen={setCloneStudyOpen}
+            />
             }
           </main>
 
@@ -713,6 +773,27 @@ const StudyPane = ({
 
         {/* Footer */}
         <Footer/>
+
+        {practiceMode && (
+          <InterfaceTour
+            studyId={passageData.study.id}
+            infoPaneAction={infoPaneAction}
+            setCloneStudyOpen={setCloneStudyOpen}
+            practice={{
+              capture: capturePracticeState,
+              restore: restorePracticeState,
+              clearSelection: () => {
+                setSelectedWords([]);
+                setNumSelectedWords(0);
+                setSelectedStrophes([]);
+                setNumSelectedStrophes(0);
+                setEditingWordId(null);
+                setColorAction(ColorActionType.none);
+              },
+              closeInfoPane: () => setInfoPaneAction(InfoPaneActionType.none),
+            }}
+          />
+        )}
       </FormatContext.Provider>
     </>
   );
