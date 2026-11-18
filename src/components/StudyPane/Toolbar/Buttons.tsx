@@ -872,7 +872,10 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div
+      className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row"
+      data-tour={`structure-${StructureUpdateType[updateType]}`}
+    >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >

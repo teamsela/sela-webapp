@@ -43,7 +43,16 @@ export type TourSnapshot = {
   layerCount: number;
   activeLayerId: number;
   firstLayerId: number | undefined;
+  /** The passage's words in reading order. */
+  words: TourWord[];
+  /** Each strophe and where it starts. */
+  strophes: TourStrophe[];
+  selectedWordIds: number[];
+  selectedStropheIds: number[];
 };
+
+export type TourWord = { wordId: number; verse: number; gloss: string };
+export type TourStrophe = { stropheId: number; firstWordId: number | undefined; firstVerse: number | undefined };
 
 export type TourCheck = { label: string; isDone: (s: TourSnapshot, start: TourSnapshot) => boolean };
 
@@ -51,9 +60,10 @@ export type TourStep = {
   id: string;
   /** Section name shown above the title, e.g. "Languages". */
   section: string;
-  target?: string;
+  /** CSS selector (or selector list) to light up; may depend on the passage. */
+  target?: string | ((s: TourSnapshot) => string | undefined);
   title: string;
-  body: string;
+  body: string | ((s: TourSnapshot) => string);
   isDone?: (s: TourSnapshot, start: TourSnapshot) => boolean;
   /** Several things to do in one step; done when all are ticked. */
   checks?: TourCheck[];
@@ -75,6 +85,12 @@ const WORK_IN_PASSAGE = { dim: false, placement: "corner" } as const;
 const LANGUAGE_WITH_DROPDOWN = '[data-tour="language-switcher"], [data-tour="language-dropdown"]';
 // Verse 1's number (the only one marked) and any open ESV box.
 const ESV_WITH_POPOVER = '[data-tour="verse-number"], [data-tour="esv-popover"][data-open="true"]';
+
+export const resolveTarget = (step: TourStep, s: TourSnapshot | null): string | undefined =>
+  typeof step.target === "function" ? (s ? step.target(s) : undefined) : step.target;
+
+export const resolveBody = (step: TourStep, s: TourSnapshot | null): string =>
+  typeof step.body === "function" ? (s ? step.body(s) : "") : step.body;
 
 /** Is this step something the user does (as opposed to read)? */
 export const isActionStep = (step: TourStep) => !!step.isDone || !!step.checks?.length;
@@ -113,6 +129,7 @@ export type TourSources = {
   studyNotes: string | undefined;
   layers: LayerDef[] | undefined;
   activeLayerId: number;
+  selectedStropheIds?: number[];
   infoPaneAction: InfoPaneActionType;
   /** Read from the page: whether an ESV popover / Word Information is open. */
   esvOpen: boolean;
@@ -160,8 +177,35 @@ export const buildTourSnapshot = (src: TourSources): TourSnapshot => {
     layerCount: src.layers?.length ?? 1,
     activeLayerId: src.activeLayerId,
     firstLayerId: src.layers?.[0]?.id,
+    words: lines.flatMap((l) =>
+      l.words.map((w) => ({
+        wordId: w.wordId,
+        verse: w.verse,
+        gloss: (w.metadata?.glossOverride || w.gloss || "").trim(),
+      }))
+    ),
+    strophes: strophes.map((sp) => {
+      const first = sp.lines?.[0]?.words?.[0];
+      return { stropheId: sp.stropheId, firstWordId: first?.wordId, firstVerse: first?.verse };
+    }),
+    selectedWordIds: selected.map((w) => w.wordId),
+    selectedStropheIds: src.selectedStropheIds ?? [],
   };
 };
+
+/* Passage helpers for steps that point at one word or strophe. */
+
+const wordSelector = (w: TourWord | undefined) => (w ? `[data-word-id="${w.wordId}"]` : undefined);
+const quoted = (w: TourWord | undefined) => (w?.gloss ? `\u201c${w.gloss}\u201d` : "the highlighted word");
+const firstWordOfVerse = (s: TourSnapshot, verse: number) => s.words.find((w) => w.verse === verse);
+const stropheStartingAt = (s: TourSnapshot, w: TourWord | undefined) =>
+  w ? s.strophes.find((sp) => sp.firstWordId === w.wordId) : undefined;
+/** The heading ends after the first two words ("A Psalm" "of David"). */
+const firstWordAfterHeading = (s: TourSnapshot) => s.words[2];
+
+/** The strophe to move into a new stanza: the one starting at verse 4, else the second. */
+const stanzaStrophe = (s: TourSnapshot) =>
+  stropheStartingAt(s, firstWordOfVerse(s, 4)) ?? s.strophes[1];
 
 const structureOf = (s: TourSnapshot) => `${s.stanzaCount}/${s.stropheCount}/${s.lineCount}`;
 
@@ -254,21 +298,32 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
 
   // Strophes
   {
-    id: "strophe-heading",
+    id: "heading-word",
     section: "Strophes",
-    target: '[data-tour="group-strophe"]',
+    target: (s) => wordSelector(firstWordAfterHeading(s)),
     title: "Set the heading apart",
-    body:
-      "“A Psalm of David” is a heading. Headings and choir directions are not usually part of the poem’s analysis, so we can put them in a strophe of their own. Click the third word, “Yahweh”, then click New strophe.",
+    body: (s) =>
+      `\u201cA Psalm of David\u201d is a heading. Headings and choir directions are not usually part of the poem\u2019s analysis, so we can put them in a strophe of their own. Click ${quoted(firstWordAfterHeading(s))}, the first word after the heading.`,
+    isDone: (s) => {
+      const w = firstWordAfterHeading(s);
+      return !!w && s.selectedWordIds.includes(w.wordId);
+    },
+  },
+  {
+    id: "heading-new-strophe",
+    section: "Strophes",
+    target: '[data-tour="structure-newStrophe"]',
+    title: "Click New strophe",
+    body: "Now click New strophe. The heading stays in the first strophe, and the psalm itself starts a new one.",
     isDone: (s) => s.stropheCount >= 2 && s.firstStropheWordCount === 2,
-    ...WORK_IN_PASSAGE,
   },
   {
     id: "strophe-collapse",
     section: "Strophes",
-    target: '[data-tour="strophe-collapse"]',
+    target: (s) =>
+      s.strophes[0] ? `[data-tour="strophe-collapse"][data-strophe-id="${s.strophes[0].stropheId}"]` : undefined,
     title: "Collapse a strophe",
-    body: "Click the arrow at the top corner of the heading strophe to collapse it out of the way. Clicking it again opens it.",
+    body: "Click this arrow to collapse the heading strophe out of the way. Clicking it again opens it.",
     isDone: (s) => s.anyStropheCollapsed,
   },
   {
@@ -276,17 +331,48 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Strophes",
     title: "What is a strophe?",
     body:
-      "A strophe is a small unit of the poem, made of one or more lines that belong together. Its lines share a thought, often with parallel wording, and it ends where the grammar, image, speaker or purpose shifts, much like a paragraph in prose.",
+      "A strophe is a small unit of the poem, made of one or more lines that belong together. Its lines share a thought, often with parallel wording, and it ends where the grammar, image, speaker or purpose shifts, much like a paragraph in prose. We\u2019ll divide the rest of the psalm at two of its verse breaks, the same verses you saw in the ESV.",
   },
   {
-    id: "strophe-divide",
+    id: "verse4-word",
     section: "Strophes",
-    target: '[data-tour="group-strophe"]',
-    title: "Divide the psalm into strophes",
+    target: (s) => wordSelector(firstWordOfVerse(s, 4)),
+    title: "A turn at verse 4",
+    body: (s) =>
+      `In verse 4 David stops speaking about the LORD as \u201che\u201d and starts speaking to him as \u201cyou\u201d. Click ${quoted(firstWordOfVerse(s, 4))}, the first word of verse 4.`,
+    isDone: (s) => {
+      const w = firstWordOfVerse(s, 4);
+      return !!w && s.selectedWordIds.includes(w.wordId);
+    },
+  },
+  {
+    id: "verse4-new-strophe",
+    section: "Strophes",
+    target: '[data-tour="structure-newStrophe"]',
+    title: "Start a strophe at verse 4",
+    body: "Click New strophe. Verse 4 and everything after it moves into a new strophe.",
+    isDone: (s) => !!stropheStartingAt(s, firstWordOfVerse(s, 4)),
+  },
+  {
+    id: "verse5-word",
+    section: "Strophes",
+    target: (s) => wordSelector(firstWordOfVerse(s, 5)),
+    title: "A new picture at verse 5",
+    body: (s) =>
+      `In verse 5 the picture changes from a shepherd to a host preparing a table. Click ${quoted(firstWordOfVerse(s, 5))}, the first word of verse 5.`,
+    isDone: (s) => {
+      const w = firstWordOfVerse(s, 5);
+      return !!w && s.selectedWordIds.includes(w.wordId);
+    },
+  },
+  {
+    id: "verse5-new-strophe",
+    section: "Strophes",
+    target: '[data-tour="structure-newStrophe"]',
+    title: "Start a strophe at verse 5",
     body:
-      "Make at least two more strophes where you think the psalm turns. Click one word and New strophe to start a strophe there, or select several words in a row and click New strophe to make them a strophe of their own. The words must be next to each other to form a strophe.",
-    isDone: (s, start) => s.stropheCount >= start.stropheCount + 2,
-    ...WORK_IN_PASSAGE,
+      "Click New strophe again. Tip: you can also select several words in a row and click New strophe to make just those words a strophe of their own. The words must be next to each other.",
+    isDone: (s) => !!stropheStartingAt(s, firstWordOfVerse(s, 5)),
   },
 
   // Stanzas
@@ -295,17 +381,32 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Stanzas",
     title: "What is a stanza?",
     body:
-      "A stanza is a larger section of a Hebrew poem, made of one or more strophes. A new stanza begins where the theme, image, speaker or direction of the poem shifts, and stanzas show the poem’s overall shape. Because stanzas are built from strophes, you divide the passage into strophes first, then group the strophes into stanzas.",
+      "A stanza is a larger section of a Hebrew poem, made of one or more strophes. A new stanza begins where the theme, image, speaker or direction of the poem shifts, and stanzas show the poem\u2019s overall shape. Because stanzas are built from strophes, you divide the passage into strophes first, then group the strophes into stanzas.",
   },
   {
-    id: "stanza-divide",
+    id: "stanza-select",
     section: "Stanzas",
-    target: '[data-tour="group-stanza"]',
-    title: "Group strophes into stanzas",
-    body:
-      "Select a strophe with its selector (the small icon at its top corner), then click New stanza to start a new stanza there.",
+    target: (s) => {
+      const sp = stanzaStrophe(s);
+      return sp ? `[data-tour="strophe-select"][data-strophe-id="${sp.stropheId}"]` : undefined;
+    },
+    title: "Select a strophe",
+    body: (s) =>
+      stanzaStrophe(s)?.firstVerse === 4
+        ? "Click this icon to select the strophe that begins at verse 4, where David turns to speak to the LORD directly."
+        : "Click this icon to select the second strophe.",
+    isDone: (s) => {
+      const sp = stanzaStrophe(s);
+      return !!sp && s.selectedStropheIds.includes(sp.stropheId);
+    },
+  },
+  {
+    id: "stanza-new",
+    section: "Stanzas",
+    target: '[data-tour="structure-newStanza"]',
+    title: "Click New stanza",
+    body: "Click New stanza. The selected strophe and the ones after it start a new stanza.",
     isDone: (s) => s.stanzaCount >= 2,
-    ...WORK_IN_PASSAGE,
   },
 
   // Lines

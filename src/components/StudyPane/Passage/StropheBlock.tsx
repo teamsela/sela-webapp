@@ -379,6 +379,8 @@ export const StropheBlock = ({
       !ctxInViewMode &&
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
+        data-tour="strophe-select"
+        data-strophe-id={stropheProps.stropheId}
         className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
@@ -407,6 +409,7 @@ export const StropheBlock = ({
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
           data-tour="strophe-collapse"
+          data-strophe-id={stropheProps.stropheId}
           className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}

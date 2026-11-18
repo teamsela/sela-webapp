@@ -11,6 +11,8 @@ import {
   buildTourSnapshot,
   isActionStep,
   isStepDone,
+  resolveBody,
+  resolveTarget,
   type TourSnapshot,
 } from "@/lib/tutorials/interfaceTour";
 import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverlay";
@@ -89,6 +91,7 @@ const InterfaceTour = ({
       studyNotes: c.ctxStudyNotes,
       layers: c.ctxLayers,
       activeLayerId: c.ctxActiveLayerId,
+      selectedStropheIds: (c.ctxSelectedStrophes ?? []).map((sp: { stropheId: number }) => sp.stropheId),
       infoPaneAction: pane,
       esvOpen: !!document.querySelector('[data-tour="esv-popover"][data-open="true"]'),
       wordInfoOpen:
@@ -191,9 +194,9 @@ const InterfaceTour = ({
     <>
       {progress.open && (
         <TourOverlay
-          target={step.target}
+          target={resolveTarget(step, snapshot)}
           title={step.title}
-          body={step.body}
+          body={resolveBody(step, snapshot)}
           checklist={checklist}
           progress={progressLabel}
           done={done}

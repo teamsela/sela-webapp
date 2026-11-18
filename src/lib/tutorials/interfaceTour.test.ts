@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { BoxDisplayStyle, InfoPaneActionType, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { INTERFACE_TOUR_STEPS, buildTourSnapshot, isStepDone, type TourSources } from "./interfaceTour";
+import { INTERFACE_TOUR_STEPS, buildTourSnapshot, isStepDone, resolveBody, resolveTarget, type TourSources } from "./interfaceTour";
 
-const word = (wordId: number, verse: number, strongNumber = wordId) => ({ wordId, verse, strongNumber }) as any;
+const word = (wordId: number, verse: number, strongNumber = wordId, gloss = `w${wordId}`) => ({ wordId, verse, strongNumber, gloss, metadata: {} }) as any;
 const line = (...words: any[]) => ({ lineId: 0, words });
 const strophe = (lines: any[], expanded?: boolean) => ({ stropheId: 0, metadata: { expanded }, lines });
 
@@ -69,7 +69,36 @@ describe("tour steps", () => {
 
   it("heading strophe is done when the first strophe is just two words", () => {
     const s = buildTourSnapshot(sources());
-    expect(isStepDone(step("strophe-heading"), s, s)).toBe(true);
+    expect(isStepDone(step("heading-new-strophe"), s, s)).toBe(true);
+  });
+
+  it("points at the exact word to click, named by its gloss", () => {
+    const s = buildTourSnapshot(sources());
+    expect(resolveTarget(step("heading-word"), s)).toBe('[data-word-id="3"]');
+    expect(resolveBody(step("heading-word"), s)).toContain("\u201cw3\u201d");
+    expect(resolveTarget(step("verse4-word"), s)).toBeUndefined(); // no verse 4 in this sample
+    expect(isStepDone(step("heading-word"), { ...s, selectedWordIds: [3] }, s)).toBe(true);
+  });
+
+  it("points at single buttons, not whole groups", () => {
+    const s = buildTourSnapshot(sources());
+    expect(resolveTarget(step("heading-new-strophe"), s)).toBe('[data-tour="structure-newStrophe"]');
+    expect(resolveTarget(step("stanza-new"), s)).toBe('[data-tour="structure-newStanza"]');
+    expect(resolveTarget(step("strophe-collapse"), s)).toBe('[data-tour="strophe-collapse"][data-strophe-id="0"]');
+  });
+
+  it("suggests the strophe starting at verse 4 for the new stanza", () => {
+    const passage = sources().passageProps as any;
+    passage.stanzaProps[0].strophes = [
+      { stropheId: 0, metadata: {}, lines: [line(word(1, 1), word(2, 1))] },
+      { stropheId: 1, metadata: {}, lines: [line(word(3, 1))] },
+      { stropheId: 2, metadata: {}, lines: [line(word(8, 4)), line(word(9, 4))] },
+    ];
+    const s = buildTourSnapshot(sources({ passageProps: passage }));
+    expect(resolveTarget(step("stanza-select"), s)).toBe('[data-tour="strophe-select"][data-strophe-id="2"]');
+    expect(resolveBody(step("stanza-select"), s)).toContain("verse 4");
+    expect(isStepDone(step("verse4-new-strophe"), s, s)).toBe(true);
+    expect(isStepDone(step("stanza-select"), { ...s, selectedStropheIds: [2] }, s)).toBe(true);
   });
 
   it("merge steps compare against the start of the step", () => {

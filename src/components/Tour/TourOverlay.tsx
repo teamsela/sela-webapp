@@ -12,10 +12,10 @@ import { IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
   Without a target: a dimmed backdrop with the bubble centered.
 
   The target is looked up by selector and re-measured every 200 ms, so the
-  highlight follows scrolling, resizing and layout changes. A selector list
-  ("a, b") lights up the area around everything it matches that is visible,
-  so a control and the panel it opens (a dropdown, a popover) can be lit
-  together while the rest of the screen stays dimmed.
+  highlight follows scrolling, resizing and layout changes. Each part of a
+  selector list ("a, b") lights up its first visible match, and the lit area
+  covers all of them, so a control and the panel it opens (a dropdown, a
+  popover) can be lit together while the rest of the screen stays dimmed.
 */
 
 const BUBBLE_WIDTH = 340;
@@ -28,7 +28,10 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 const measure = (selector?: string): Rect | null => {
   if (!selector) return null;
-  const rects = Array.from(document.querySelectorAll(selector))
+  const rects = selector
+    .split(",")
+    .map((part) => document.querySelector(part.trim()))
+    .filter((el): el is Element => !!el)
     .map((el) => el.getBoundingClientRect())
     .filter((r) => r.width > 0 || r.height > 0);
   if (rects.length === 0) return null;
