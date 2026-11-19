@@ -15,14 +15,14 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
 
 export const ToolTip = ({ text }: { text: string }) => {
   return (
-    <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">
+    <div data-tooltip className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">
       <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
       {text}
     </div>
@@ -364,7 +364,15 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
   } 
 
   return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
+    <div
+      className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock"
+      data-tour={
+        colorAction === ColorActionType.colorFill ? "fill-color"
+        : colorAction === ColorActionType.borderColor ? "border-color"
+        : colorAction === ColorActionType.textColor ? "font-color"
+        : undefined
+      }
+    >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick} >
@@ -436,7 +444,7 @@ export const EditWordBtn = () => {
   };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="edit-gloss">
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
         onClick={handleClick}
@@ -642,7 +650,7 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
   }
   
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="uniform-width">
       <button
         className="hover:text-primary"
         onClick={handleClick} >
@@ -686,7 +694,7 @@ export const BoxlessBtn = ({ setBoxStyle }: {
   }
   
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row" data-tour="boxes">
       <button
         className="hover:text-primary"
         onClick={handleClick} >
@@ -759,7 +767,7 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
   }
   return (
-    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `}>
+    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `} data-tour={leftIndent ? "indent-add" : "indent-remove"}>
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
@@ -869,7 +877,10 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
+    <div
+      className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row"
+      data-tour={`structure-${StructureUpdateType[updateType]}`}
+    >
       <button
         className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
         onClick={handleClick} >
@@ -929,7 +940,7 @@ export const StropheNoteBtn = () => {
   const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn, ctxLanguageMode } = useContext(FormatContext)
   const disabled = ctxLanguageMode === LanguageMode.Parallel;
   return (
-    <div >
+    <div data-tour="notes-toggle">
       <button 
         className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}

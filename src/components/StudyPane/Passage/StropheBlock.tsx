@@ -8,7 +8,7 @@ import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from './PassageBlock';
 import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
@@ -321,7 +321,7 @@ export const StropheBlock = ({
   // user) put a line break. With the counter off, keep wrapping.
   const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
   const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
-    <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+    <div data-strophe-line="true" data-line-id={line.lineId} data-line-start={line.words[0]?.wordId} className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
       {renderWords(line, lineId)}
     </div>
   );
@@ -363,6 +363,7 @@ export const StropheBlock = ({
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
+      data-strophe-block={stropheProps.stropheId}
       className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
@@ -379,6 +380,8 @@ export const StropheBlock = ({
       !ctxInViewMode &&
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
+        data-tour="strophe-select"
+        data-strophe-id={stropheProps.stropheId}
         className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
@@ -394,6 +397,8 @@ export const StropheBlock = ({
       expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
+        data-tour="strophe-note-open"
+        data-strophe-id={stropheProps.stropheId}
         className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
         onClick={() => setShowNote(!showNote)}
       >
@@ -406,6 +411,8 @@ export const StropheBlock = ({
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
+          data-tour="strophe-collapse"
+          data-strophe-id={stropheProps.stropheId}
           className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
           onClick={() => handleCollapseBlockClick()}
           data-clicktype={'clickable'}

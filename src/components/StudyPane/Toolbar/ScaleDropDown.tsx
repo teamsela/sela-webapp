@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useEffect } from "react";
 import { FormatContext } from '../index';
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { ToolTip } from "./Buttons";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageMode } from "@/lib/types";
 
 const ScaleDropDown = ({setScaleValue}: {

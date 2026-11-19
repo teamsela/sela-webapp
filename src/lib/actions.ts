@@ -79,6 +79,7 @@ export async function fetchStudyById(studyId: string) {
       public: row?.public || false,
       model: row?.model || false,
       scriptura: row?.scriptura || false,
+      tutorial: row?.tutorial || false,
       metadata: (row?.metadata as StudyMetadata) || { words: {} },
       //layers: (row?.layers as LayerData[]) || { },
       notes: row?.notes || "",
@@ -113,6 +114,9 @@ export async function updateStudyName(id: string, studyName: string) {
 
 export async function updateStudyNotes(id: string, content: string) {
   if (id === DEMO_STUDY_ID && !(await isStudyOwner(id))) return;
+  if (!(await isStudyOwner(id))) {
+    return { message: 'Unauthorized: You do not have permission to modify this study.' };
+  }
   try {
     await db
       .update(study)
@@ -211,6 +215,7 @@ export async function createStudy(passage: string, book: string) {
           model: false,
           starred: false,
           scriptura: false,
+          tutorial: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         })
@@ -248,6 +253,7 @@ export async function cloneStudy(originalStudy: StudyData, newName: string) {
           model: false,
           starred: false,
           scriptura: false,
+          tutorial: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()          
         })
@@ -385,6 +391,7 @@ export async function fetchRecentStudies(
       public: row.public ?? false,
       starred: row.starred ?? false,
       scriptura: row.scriptura ?? false,
+      tutorial: row.tutorial ?? false,
       lastUpdated: row.updatedAt ? new Date(row.updatedAt) : undefined,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       metadata: row.metadata as StudyMetadata,
@@ -453,6 +460,38 @@ export async function fetchModelStudies(query: string, currentPage: number, sort
   searchResult.totalPages = Math.ceil(totalCount / PAGINATION_SIZE);
 
   return searchResult;
+}
+
+export type TutorialStudySummary = {
+  id: string;
+  name: string;
+  book: string;
+  passage: string;
+};
+
+/*
+  Studies flagged tutorial = true, for the dashboard sidebar's Tutorials
+  folder. Tutorials are a short, curated list, so there is no paging or search.
+  They are readable by any signed-in user (see the view page's access check).
+*/
+export async function fetchTutorialStudies(): Promise<TutorialStudySummary[]> {
+  try {
+    const rows = await db
+      .select({ id: study.id, name: study.name, book: study.book, passage: study.passage })
+      .from(study)
+      .where(eq(study.tutorial, true))
+      .orderBy(asc(study.createdAt));
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name ?? "Tutorial",
+      book: row.book ?? "",
+      passage: row.passage ?? "",
+    }));
+  } catch (error) {
+    console.error('Database Error:', error);
+    return [];
+  }
 }
 
 export async function fetchScripturaStudies(query: string, currentPage: number, sortKey: any, sortAsc: boolean) {
@@ -1119,6 +1158,7 @@ export async function fetchPassageData(studyId: string) {
       public: currentStudy?.public || false,
       model: currentStudy?.model || false,
       scriptura: currentStudy?.scriptura || false,
+      tutorial: currentStudy?.tutorial || false,
       metadata: (currentStudy?.metadata as StudyMetadata) || {},
       notes: currentStudy?.notes || ""
     };

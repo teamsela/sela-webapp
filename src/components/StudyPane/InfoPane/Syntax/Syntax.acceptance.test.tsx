@@ -266,6 +266,7 @@ function Harness({
     ctxIndentNum: 0,
     ctxSetIndentNum: noop,
     ctxInViewMode: inViewMode,
+    ctxPracticeMode: false,
     ctxEditingWordId: editingWordId,
     ctxSetEditingWordId: setEditingWordId,
     ctxStructureUpdateType: StructureUpdateType.none,

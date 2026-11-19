@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { ColorData, ColorSource, StudyMetadata, WordProps } from "@/lib/data";
 import { ColorActionType } from "@/lib/types";
 import { clearAllFormattingState } from "@/lib/formatting";

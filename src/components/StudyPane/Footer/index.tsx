@@ -95,6 +95,7 @@ export const Footer = () => {
               )}
               aria-expanded={isExpanded}
               aria-controls="word-information-bar"
+              data-tour="word-info"
             >
               <IconInfoCircle size={18} stroke={2.2} />
               <span>Word Information</span>

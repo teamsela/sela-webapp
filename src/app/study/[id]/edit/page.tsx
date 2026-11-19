@@ -36,7 +36,7 @@ export default async function StudyPage({ params }: { params: Promise<{ id: stri
   /*
     Authorization check
     Only the owner has write access to this study. Any other user — including
-    those opening a public / pre-marked / scriptura study — is redirected to the
+    those opening a public / pre-marked / scriptura / tutorial study — is redirected to the
     read-only view page, which runs its own access check.
   */
   if (thisUser?.id != result.study.owner) {

@@ -13,6 +13,7 @@ export const study = pgTable('study', {
   notes: text('notes'),
   starred: boolean('starred').default(false),
   scriptura: boolean('scriptura').default(false),
+  tutorial: boolean('tutorial').default(false),
   updatedAt: text('updatedTime'),
   createdAt: text('createdTime'),
 });

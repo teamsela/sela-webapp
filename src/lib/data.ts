@@ -175,6 +175,7 @@ export interface StudyData {
     starred?: boolean;
     model?: boolean;
     scriptura?: boolean;
+    tutorial?: boolean;
     lastUpdated?: Date;
     createdAt?: Date;
     metadata: StudyMetadata; // to be deprecated
