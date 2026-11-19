@@ -2,10 +2,8 @@ import { BoxDisplayStyle, InfoPaneActionType } from "@/lib/types";
 import {
   INFO_PANE,
   PASSAGE_AREA,
-  WORK_IN_PASSAGE,
   allColored,
   allSelected,
-  both,
   eachWord,
   firstLine,
   firstLineEverywhere,
@@ -171,7 +169,9 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     title: "Type a heading",
     body: "Click into the note, type a short heading (for example “The righteous”) and press [ENTER]. The first line of a note is the strophe’s heading.",
     isDone: (s) => s.titledNoteStropheIds.length > 0,
-    ...WORK_IN_PASSAGE,
+    // Only this strophe (its note sits in place of its words) can be typed in.
+    dim: false,
+    placement: "corner",
   },
   {
     id: "strophe-heading-close",
@@ -198,7 +198,6 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     isDone: (s) => s.anyStanzaTitle,
     result: (s) => stanzaBlock(firstStanza(s)),
     dim: false,
-    allow: PASSAGE_AREA,
   },
 
   // III. Color tools
@@ -221,7 +220,8 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       `Double-click ${quoted(firstNot(start))} in verse 1. Every place the same Hebrew word appears is selected: all ${nots(start).length} of them.`,
     isDone: (s) => allSelected(s, nots(s)),
     result: (s) => eachWord(nots(s)),
-    ...WORK_IN_PASSAGE,
+    dim: false,
+    placement: "corner",
   },
   {
     id: "not-fill",
@@ -234,8 +234,8 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Close the picker: click Fill color again", isDone: (s) => allColored(s, nots(s)) && !s.colorPickerOpen },
     ],
     result: (s) => eachWord(nots(s)),
-    ...WORK_IN_PASSAGE,
-    allow: both(PASSAGE_AREA, FILL),
+    dim: false,
+    placement: "corner",
   },
 
   // IV. Smart tools
@@ -272,8 +272,8 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Close the picker", isDone: (s) => allColored(s, ways(s)) && !s.colorPickerOpen },
     ],
     result: (s) => eachWord(ways(s)),
-    ...WORK_IN_PASSAGE,
-    allow: both(both(PASSAGE_AREA, COLOR_BUTTONS), INFO_PANE),
+    dim: false,
+    placement: "corner",
   },
   {
     id: "syntax-tab",

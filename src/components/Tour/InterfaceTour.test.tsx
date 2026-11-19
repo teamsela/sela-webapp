@@ -100,6 +100,22 @@ describe("InterfaceTour", () => {
     expect(screen.getByRole("dialog", { name: "See the transliteration" })).toBeTruthy();
   });
 
+  it("doesn't call a step done before the user has done it", () => {
+    // The screen already shows Hebrew when the step begins: nothing to confirm yet.
+    startAt(stepIndex("lang-hebrew"));
+    const { rerender } = render(<Harness ctx={{ ctxLanguageMode: LanguageMode.Hebrew }} />);
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.queryByRole("status")?.textContent ?? "").not.toMatch(/that.s it/i);
+    expect(screen.getByRole("button", { name: "Skip" })).toBeTruthy();
+
+    // Once it has been seen not done, doing it counts.
+    rerender(<Harness ctx={{ ctxLanguageMode: LanguageMode.English }} />);
+    act(() => { vi.advanceTimersByTime(400); });
+    rerender(<Harness ctx={{ ctxLanguageMode: LanguageMode.Hebrew }} />);
+    act(() => { vi.advanceTimersByTime(400); });
+    expect(screen.getByRole("status").textContent).toMatch(/that.s it/i);
+  });
+
   it("colors go one button at a time", () => {
     startAt(stepIndex("color-fill"));
     const { rerender } = render(<Harness ctx={{}} />);

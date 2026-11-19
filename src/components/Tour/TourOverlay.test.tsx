@@ -17,6 +17,47 @@ describe("TourOverlay", () => {
     expect(document.querySelector(".bg-black\\/60")).toBeNull();
   });
 
+  it("lets the user click the target of an action step, and nothing else", () => {
+    const target = vi.fn();
+    const other = vi.fn();
+    render(
+      <>
+        <button data-tour="boxes" onClick={target}>Boxes</button>
+        <button onClick={other}>Bold</button>
+        <TourOverlay target='[data-tour="boxes"]' title="Box button" body="Click it." onClose={() => {}} actions={null} />
+      </>
+    );
+    fireEvent.click(screen.getByText("Boxes"));
+    fireEvent.click(screen.getByText("Bold"));
+    expect(target).toHaveBeenCalled();
+    expect(other).not.toHaveBeenCalled();
+  });
+
+  it("only points at the target of a read-only card", () => {
+    const target = vi.fn();
+    render(
+      <>
+        <button data-tour="fill-color" onClick={target}>Fill</button>
+        <TourOverlay target='[data-tour="fill-color"]' interactive={false} title="Colors" body="Look." onClose={() => {}} actions={null} />
+      </>
+    );
+    fireEvent.click(screen.getByText("Fill"));
+    expect(target).not.toHaveBeenCalled();
+  });
+
+  it("never makes a lit result clickable", () => {
+    const result = vi.fn();
+    render(
+      <>
+        <button data-tour="tab-motif">Motif</button>
+        <aside data-tour="info-pane"><button onClick={result}>chip</button></aside>
+        <TourOverlay target='[data-tour="tab-motif"]' highlight='[data-tour="info-pane"]' tone="result" done title="Motif" body="Done." onClose={() => {}} actions={null} />
+      </>
+    );
+    fireEvent.click(screen.getByText("chip"));
+    expect(result).not.toHaveBeenCalled();
+  });
+
   it("dims the whole page for a card with no target", () => {
     render(<TourOverlay title="Welcome" body="Hello" onClose={() => {}} actions={null} />);
     expect(document.querySelector(".bg-black\\/60")).not.toBeNull();

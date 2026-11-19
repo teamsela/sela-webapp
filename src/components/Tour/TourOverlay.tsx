@@ -42,7 +42,10 @@ import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } 
 
   While the overlay is up, clicks and key presses outside the target, the
   `allow` areas and the bubble are blocked (the bubble nudges instead), so the
-  user can't knock the tutorial off course. Scrolling is never blocked.
+  user can't knock the tutorial off course. Scrolling is never blocked. On a
+  read-only card (`interactive={false}`) the target is only pointed at, not
+  clickable, and a lit result is never clickable: once a step is done the
+  next move is Continue.
 
   `tone="result"` draws a slightly heavier ring around what an action did.
 */
@@ -175,6 +178,8 @@ export type TourOverlayProps = {
   placement?: "near" | "corner";
   /** Extra places the user may click (selector list); see the note at the top. */
   allow?: string;
+  /** Whether the target can be clicked (false on read-only cards). Default true. */
+  interactive?: boolean;
   /** What to light (default: the target); see the note at the top. */
   highlight?: string;
   /** "result": a slightly heavier ring, showing what the user's action did. */
@@ -187,7 +192,7 @@ export type TourOverlayProps = {
 const NAVIGATION_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " ", "Tab", "Escape"]);
 const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contextmenu", "touchstart", "keydown"] as const;
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, highlight, tone = "target", onClose, actions }: TourOverlayProps) => {
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
   const { rect, offscreen } = measured;
   // Where the bubble is anchored: the target itself (no tooltips), kept while
@@ -201,7 +206,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
 
   // Block interaction outside the step (see the note at the top).
   useEffect(() => {
-    const allowed = plainSelector([target, highlight, allow].filter(Boolean).join(", "));
+    const allowed = plainSelector([interactive ? target : undefined, allow].filter(Boolean).join(", "));
     const isAllowed = (node: EventTarget | null) => {
       if (!(node instanceof Node)) return true;
       if (bubbleRef.current?.contains(node)) return true;
@@ -229,7 +234,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       BLOCKED_EVENTS.forEach((type) => window.removeEventListener(type, block, true));
       window.clearTimeout(nudgeTimer);
     };
-  }, [target, highlight, allow]);
+  }, [target, interactive, allow]);
 
   const [bubbleHeight, setBubbleHeight] = useState(180);
 

@@ -121,6 +121,9 @@ const InterfaceTour = ({
   const [progress, setProgress] = useState<TourProgress | null>(null);
   const [snapshot, setSnapshot] = useState<TourSnapshot | null>(null);
   const [start, setStart] = useState<TourSnapshot | null>(null);
+  // Which step `start` (and so `snapshot`) belongs to. Until the new step's
+  // start snapshot is in, the screen readings are the previous step's.
+  const [startStepId, setStartStepId] = useState<string | null>(null);
 
   // Latest screen state for the polling check (metadata is sometimes mutated
   // in place, so it is read fresh on every tick rather than via React deps).
@@ -147,9 +150,9 @@ const InterfaceTour = ({
       wordInfoOpen:
         document.querySelector('[data-tour="word-info"]')?.getAttribute("aria-expanded") === "true",
       // Notes shown on screen (with the notes button on, every strophe's note is
-      // rendered and the closed ones hidden).
+      // rendered and the closed ones hidden with display: none).
       openNoteStropheIds: Array.from(document.querySelectorAll('[data-tour="strophe-note"]')).flatMap((el) => {
-        if (el.closest(".hidden")) return [];
+        if (el.getClientRects().length === 0) return [];
         const id = el.closest("[data-strophe-block]")?.getAttribute("data-strophe-block");
         return id == null ? [] : [Number(id)];
       }),
@@ -192,13 +195,16 @@ const InterfaceTour = ({
   // Taken a moment later, so a just-restored passage has finished laying out.
   useEffect(() => {
     if (!progress?.open) return;
+    const stepId = steps[progress.step]?.id ?? null;
+    setStartStepId(null);
     const id = window.setTimeout(() => {
       const now = takeSnapshot();
       setStart(now);
       setSnapshot(now);
+      setStartStepId(stepId);
     }, 150);
     return () => window.clearTimeout(id);
-  }, [progress?.step, progress?.open, takeSnapshot]);
+  }, [progress?.step, progress?.open, steps, takeSnapshot]);
 
   // Watch the screen a few times a second while an action step is showing.
   useEffect(() => {
@@ -227,13 +233,18 @@ const InterfaceTour = ({
     [progress?.step, key, steps, update]
   );
 
-  // Once done, stay done for this step even if the user keeps experimenting.
+  // A step counts as done only once the user has done it: the screen must
+  // first be seen not done (on this step's own readings), then done. So a
+  // step never says "Nice, that's it" before anything was clicked. Once done,
+  // it stays done even if the user keeps experimenting.
+  const [armedStepId, setArmedStepId] = useState<string | null>(null);
   const [doneStepId, setDoneStepId] = useState<string | null>(null);
+  const current = !!step && startStepId === step.id && !!snapshot && !!start;
   useEffect(() => {
-    if (step && snapshot && start && isActionStep(step) && isStepDone(step, snapshot, start)) {
-      setDoneStepId(step.id);
-    }
-  }, [step, snapshot, start]);
+    if (!current || !step || !snapshot || !start || !isActionStep(step)) return;
+    if (!isStepDone(step, snapshot, start)) setArmedStepId(step.id);
+    else if (armedStepId === step.id) setDoneStepId(step.id);
+  }, [current, step, snapshot, start, armedStepId]);
 
   if (!progress || !step) return null;
 
@@ -246,7 +257,7 @@ const InterfaceTour = ({
 
   const checklist =
     step.checks && snapshot && start
-      ? step.checks.map((c) => ({ label: c.label, done: done || c.isDone(snapshot, start) }))
+      ? step.checks.map((c) => ({ label: c.label, done: done || (current && c.isDone(snapshot, start)) }))
       : undefined;
 
   const actions = isLast && tour.finish === "next" ? (
@@ -315,6 +326,7 @@ const InterfaceTour = ({
           highlight={showResult ? resultTarget : undefined}
           tone={showResult ? "result" : "target"}
           allow={step.allow}
+          interactive={isActionStep(step)}
           title={step.title}
           body={resolveBody(step, snapshot, start)}
           checklist={checklist}
