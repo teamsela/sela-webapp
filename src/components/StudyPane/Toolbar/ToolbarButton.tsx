@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 
 import type { Availability } from "@/lib/toolbarAvailability";
+import { useToolbarVariant } from "../Responsive/layout";
 
 export const ToolTip = ({ text, reason, show = false, id }: { text: string; reason?: string; show?: boolean; id?: string }) => {
   return (
@@ -18,10 +19,14 @@ export const ToolTip = ({ text, reason, show = false, id }: { text: string; reas
 
 /*
   One toolbar button: icon (with a short label under it on screens 1800px
-  and wider), a tooltip with its name, and, when it can't be used, the reason.
-  A disabled button still takes clicks and taps so it can show that reason
-  for a moment: touch screens have no hover. It is marked aria-disabled and
-  points screen readers at the reason.
+  and wider, or always in the tablet ribbon), a tooltip with its name, and,
+  when it can't be used, the reason. A disabled button still takes clicks and
+  taps so it can show that reason for a moment: touch screens have no hover.
+  It is marked aria-disabled and points screen readers at the reason.
+
+  In the phone's menus and sheets (variant "row", from ToolbarVariantContext)
+  the same button draws as a full-width row with its name, and the reason
+  written underneath when it can't be used.
 */
 export const ToolbarButton = ({
   label,
@@ -46,6 +51,7 @@ export const ToolbarButton = ({
   tooltip?: boolean;
   extra?: React.ReactNode;
 }) => {
+  const { variant, onAction } = useToolbarVariant();
   const enabled = availability?.enabled ?? true;
   const reason = enabled ? undefined : availability?.reason || undefined;
   const [flash, setFlash] = useState(false);
@@ -60,6 +66,7 @@ export const ToolbarButton = ({
   const handleClick = () => {
     if (enabled) {
       onClick();
+      onAction?.();
       return;
     }
     setFlash(true);
@@ -67,6 +74,35 @@ export const ToolbarButton = ({
     timer.current = window.setTimeout(() => setFlash(false), 2500);
   };
 
+  if (variant === "row") {
+    return (
+      <div className="ClickBlock w-full" data-tour={dataTour}>
+        <button
+          type="button"
+          aria-disabled={enabled ? undefined : true}
+          aria-pressed={pressed}
+          aria-describedby={reason ? tipId : undefined}
+          className={`ClickBlock flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left ${enabled ? 'active:bg-slate-100' : 'cursor-not-allowed'} ${pressed ? 'bg-primary/10 text-primary' : ''}`}
+          onClick={handleClick}
+        >
+          <span className="ClickBlock flex w-7 shrink-0 flex-col items-center" style={{ opacity: enabled ? 1 : 0.4 }}>
+            {children}
+          </span>
+          <span className="ClickBlock flex min-w-0 flex-col">
+            <span className={`ClickBlock text-[15px] font-semibold ${enabled ? '' : 'text-slate-400'}`}>{label}</span>
+            {reason && (
+              <span id={tipId} className={`ClickBlock text-xs leading-4 ${flash ? 'text-primary' : 'text-slate-500'}`}>
+                {reason}
+              </span>
+            )}
+          </span>
+        </button>
+        {extra}
+      </div>
+    );
+  }
+
+  const ribbon = variant === "ribbon";
   return (
     <div className={`ClickBlock flex flex-col group relative inline-block items-center justify-center xsm:flex-row ${wrapperClassName}`} data-tour={dataTour}>
       <button
@@ -75,14 +111,19 @@ export const ToolbarButton = ({
         aria-disabled={enabled ? undefined : true}
         aria-pressed={pressed}
         aria-describedby={reason ? tipId : undefined}
-        className={`ClickBlock flex flex-col items-center rounded-md px-1 py-0.5 ${enabled ? 'hover:text-primary' : 'cursor-not-allowed'} ${pressed ? 'bg-primary/10 text-primary' : ''}`}
+        className={`ClickBlock flex flex-col items-center rounded-md px-1 py-0.5 ${ribbon ? 'min-h-[44px] min-w-[44px] justify-center' : ''} ${enabled ? 'hover:text-primary' : 'cursor-not-allowed'} ${pressed ? 'bg-primary/10 text-primary' : ''}`}
         onClick={handleClick}
       >
         <span className="ClickBlock flex w-full flex-col items-center" style={{ opacity: enabled ? 1 : 0.4 }}>
           {children}
         </span>
         {shortLabel && (
-          <span className="ClickBlock mt-1 hidden whitespace-nowrap text-[10px] leading-3 text-body min-[1800px]:block">{shortLabel}</span>
+          <span
+            className={`ClickBlock mt-1 whitespace-nowrap leading-3 ${ribbon ? 'block text-[11px] text-slate-600' : 'hidden text-[10px] text-slate-500 min-[1800px]:block'}`}
+            style={ribbon ? { opacity: enabled ? 1 : 0.5 } : undefined}
+          >
+            {shortLabel}
+          </span>
         )}
       </button>
       {tooltip && <ToolTip text={label} reason={reason} show={flash} id={tipId} />}

@@ -12,6 +12,7 @@ import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+import { useLayout } from '../Responsive/layout';
 
 
 // Line-break helpers shared by the structure-edit logic. In reader mode the
@@ -44,13 +45,15 @@ const Passage = ({
   bibleData: WordProps[];
 }) => {
 
+  const formatContext = useContext(FormatContext);
+  const { mode: layoutMode } = useLayout();
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
     ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
     ctxNonEnglishDisplayMode, ctxActiveLayerId,
-  } = useContext(FormatContext);
+  } = formatContext;
 
   const nonEnglishDisplayMode =
     ctxNonEnglishDisplayMode === NonEnglishDisplayMode.Transliteration ||
@@ -688,7 +691,17 @@ const Passage = ({
             <PassageBlock displayMode="gloss"/>
           </div>
         }
-        { ctxLanguageMode == LanguageMode.Parallel &&
+        { ctxLanguageMode == LanguageMode.Parallel && layoutMode === "phone" &&
+          // Phones have no room for three columns: one column of word boxes,
+          // each with the Hebrew under the English. The column is drawn as a
+          // single-language passage.
+          <FormatContext.Provider value={{ ...formatContext, ctxLanguageMode: LanguageMode.English }}>
+            <div className="flex flex-row mx-auto w-[100%]">
+              <PassageBlock displayMode="gloss" interlinear />
+            </div>
+          </FormatContext.Provider>
+        }
+        { ctxLanguageMode == LanguageMode.Parallel && layoutMode !== "phone" &&
           // px-1 pairs with the columns' px-1 so the outer edges keep the same 8px
           // as the (now un-doubled) 8px gaps between columns.
           <div className={`flex flex-row mx-auto px-1 ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>

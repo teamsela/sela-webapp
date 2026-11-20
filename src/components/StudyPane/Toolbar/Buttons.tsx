@@ -17,6 +17,8 @@ import {
 } from "@/lib/toolbarAvailability";
 
 import { SwatchesPicker } from 'react-color';
+import { createPortal } from "react-dom";
+import { SwatchSlotContext, useToolbarVariant } from "../Responsive/layout";
 import { FALLBACK_SWATCH_GROUPS } from "@/lib/colors";
 import React, { useContext, useEffect, useCallback, useState } from 'react';
 
@@ -357,6 +359,8 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     layers: ctxNumSelectedLayers,
   });
   const pickerOpen = ctxColorAction === colorAction && buttonEnabled;
+  const { variant } = useToolbarVariant();
+  const swatchSlot = useContext(SwatchSlotContext);
   const [label, shortLabel, tourKey] =
     colorAction === ColorActionType.colorFill ? ["Fill color", "Fill", "fill-color"]
     : colorAction === ColorActionType.borderColor ? ["Border color", "Border", "border-color"]
@@ -372,7 +376,30 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
       dataTour={tourKey}
       tooltip={!pickerOpen}
       extra={
-        pickerOpen && (
+        pickerOpen && variant === "row" ? (
+          // Phone color sheet: a grid of swatches under the Fill/Border/Text rows.
+          swatchSlot && createPortal(
+            <div className="overflow-x-auto pb-2 pt-1">
+              <div className="flex w-max gap-1.5">
+                {FALLBACK_SWATCH_GROUPS.map((group) => (
+                  <div key={group[0]} className="flex flex-col gap-1.5">
+                    {group.map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        aria-label={`${label} ${hex}`}
+                        onClick={() => handleColorPickerChange({ hex })}
+                        className="ClickBlock h-9 w-9 rounded-lg border border-black/10"
+                        style={{ background: hex, outline: displayColor === hex ? "3px solid #3C50E0" : undefined, outlineOffset: 2 }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>,
+            swatchSlot,
+          )
+        ) : pickerOpen && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker

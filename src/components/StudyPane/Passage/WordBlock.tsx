@@ -50,7 +50,7 @@ export const WordBlock = ({
     ctxSelectedLetterChipIds, ctxHighlightedLetterChipIds, ctxLetterHighlightEnabled,
   } = useContext(FormatContext)
 
-  const { ctxIsHebrew, ctxDisplayMode } = useContext(LanguageContext)
+  const { ctxIsHebrew, ctxDisplayMode, ctxInterlinear } = useContext(LanguageContext)
 
   const [isEditingGloss, setIsEditingGloss] = useState(false);
   const [glossDraft, setGlossDraft] = useState(wordProps.metadata?.glossOverride ?? wordProps.gloss ?? "");
@@ -493,6 +493,11 @@ export const WordBlock = ({
                     onMouseDown={(event) => event.stopPropagation()}
                   />
                 </>
+              ) : ctxInterlinear ? (
+                <span className="flex flex-col items-center gap-1">
+                  <span>{currentGlossValue}</span>
+                  <span lang="he" dir="rtl" className="hbFont text-[1.15em] leading-none">{hebrewValue}</span>
+                </span>
               ) : currentGlossValue
             ) : renderInlineHighlightSegments()}
           </span>

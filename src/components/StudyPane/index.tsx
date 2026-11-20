@@ -7,6 +7,9 @@ import Passage from "./Passage";
 import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
+import { LayoutContext, useStudyLayout } from "./Responsive/layout";
+import PhoneHeader from "./Responsive/PhoneHeader";
+import PhoneDock from "./Responsive/PhoneDock";
 
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
@@ -244,6 +247,23 @@ const StudyPane = ({
 
   const [infoPaneAction, setInfoPaneAction] = useState(InfoPaneActionType.none);
   const [infoPaneWidth, setInfoPaneWidth] = useState(360);
+
+  // Phone, tablet or desktop layout (see Responsive/layout). Desktop is the
+  // original screen; the others measure their header and bottom bar so the
+  // passage starts below one and scrolls clear of the other.
+  const layout = useStudyLayout();
+  const [headerHeight, setHeaderHeight] = useState(108);
+  const [dockHeight, setDockHeight] = useState(76);
+  useEffect(() => {
+    if (layout.mode === "desktop" || layout.mode === "phone") return;
+    const header = document.getElementById("selaHeader");
+    if (!header) return;
+    const report = () => setHeaderHeight(header.offsetHeight);
+    report();
+    const observer = new ResizeObserver(report);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [layout.mode]);
   const [structureUpdateType, setStructureUpdateType] = useState(StructureUpdateType.none);
   const [initialPgnHighlight] = useState(() =>
     getPersonGenderNumberHighlightState(_initialStudyMetadata, passageData.bibleData),
@@ -730,7 +750,17 @@ const StudyPane = ({
     <>
       <FormatContext.Provider value={formatContextValue}>
 
+        <LayoutContext.Provider value={layout}>
         {/* Header */}
+        {layout.mode === "phone" ? (
+          <PhoneHeader
+            study={passageData.study}
+            setScaleValue={setScaleValue}
+            setBoxStyle={setBoxDisplayConfig}
+            setCloneStudyOpen={setCloneStudyOpen}
+            onHeight={setHeaderHeight}
+          />
+        ) : (
         <Header
           study={passageData.study}
           setInfoPaneAction={setInfoPaneAction}
@@ -742,9 +772,13 @@ const StudyPane = ({
           setCloneStudyOpen={setCloneStudyOpen}
           isDemo={isDemo}
         />
+        )}
 
         {/* Main Content */}
-        <div className="flex flex-1 overflow-hidden pt-32 pb-14 max-[645px]:!pb-0">
+        <div
+          className={`relative flex flex-1 overflow-hidden ${layout.mode === "desktop" ? "pt-32 pb-14 max-[645px]:!pb-0" : ""}`}
+          style={layout.mode === "desktop" ? undefined : { paddingTop: headerHeight, paddingBottom: layout.mode === "phone" ? dockHeight : 56 }}
+        >
           <main data-tour="passage-area" className={`flex flex-row overflow-y-auto overflow-x-auto relative h-full flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
             <Passage bibleData={passageData.bibleData}/>
@@ -759,20 +793,43 @@ const StudyPane = ({
           </main>
 
           {
-              infoPaneAction !== InfoPaneActionType.none && (
-                /* Scrollable Info Pane */
+              infoPaneAction !== InfoPaneActionType.none && layout.mode !== "phone" && (
+                /* Scrollable Info Pane: beside the passage on desktop; a drawer or a
+                   docked panel on tablets; beside the fold on an opened foldable */
                 <InfoPane
                   infoPaneAction={infoPaneAction}
                   setInfoPaneAction={setInfoPaneAction}
                   infoPaneWidth={infoPaneWidth}
                   setInfoPaneWidth={setInfoPaneWidth}
+                  variant={
+                    layout.mode === "desktop"
+                      ? "side"
+                      : layout.mode === "tablet" && layout.fold !== "book"
+                        ? "drawer"
+                        : "docked"
+                  }
+                  fold={layout.fold === "book"}
+                  top={headerHeight}
                 />
               )
           }
         </div>
 
-        {/* Footer */}
-        <Footer/>
+        {/* Footer, or on phones the bottom bar with the tools and selection actions */}
+        {layout.mode === "phone" ? (
+          <PhoneDock
+            infoPaneAction={infoPaneAction}
+            setInfoPaneAction={setInfoPaneAction}
+            infoPaneWidth={infoPaneWidth}
+            setInfoPaneWidth={setInfoPaneWidth}
+            setColorAction={setColorAction}
+            setSelectedColor={setSelectedColor}
+            headerHeight={headerHeight}
+            onHeight={setDockHeight}
+          />
+        ) : (
+          <Footer/>
+        )}
 
         {practiceMode && (
           <InterfaceTour
@@ -794,6 +851,7 @@ const StudyPane = ({
             }}
           />
         )}
+        </LayoutContext.Provider>
       </FormatContext.Provider>
     </>
   );

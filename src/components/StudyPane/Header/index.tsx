@@ -9,6 +9,8 @@ import { StudyData } from '@/lib/data';
 import Tabs from "./Tabs";
 import DropdownUser from "./DropdownUser";
 import Title from "./Title";
+import { useLayout } from "../Responsive/layout";
+import TabletToolbar from "../Responsive/TabletToolbar";
 import Toolbar from "../Toolbar";
 import { BoxDisplayConfig, InfoPaneActionType } from "@/lib/types";
 
@@ -38,9 +40,11 @@ const Header = ({
 
   const capitalizedBook = study.book.charAt(0).toUpperCase() + study.book.slice(1);
 
+  const { mode } = useLayout();
+  const tablet = mode === "tablet" || mode === "tabletWide";
   return (
     <header id="selaHeader" className="fixed top-0 left-0 w-full z-50 bg-white drop-shadow-2 z-9999 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="flex justify-between items-center px-6 py-4 border-b-2" style={{borderColor: 'rgb(203 213 225)'}}>
+      <div className={`flex justify-between items-center border-b-2 ${tablet ? 'gap-3 px-4 py-2' : 'px-6 py-4'}`} style={{borderColor: 'rgb(203 213 225)'}}>
         <div className="flex-1 justify-left">        
           <div className="flex items-center">
             <Link className="block flex-shrink-0" href="/">
@@ -56,7 +60,7 @@ const Header = ({
             </div>
           </div>
         </div>
-        <div className="flex-1">
+        <div className={`flex-1 ${tablet ? 'hidden' : ''}`}>
           <div className="flex justify-center items-center gap-4 sm:gap-4 px-4">
             <FaBible fontSize="1.5em" />
             <div className="text-black text-md md:text-lg dark:text-white">{capitalizedBook} {study.passage}</div>
@@ -64,7 +68,7 @@ const Header = ({
         </div>
         <div className="flex-1">
           <div className="flex justify-end items-center sm:gap-1 md:gap-2 lg:gap-4">
-              <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} />
+              <Tabs setInfoPaneAction={setInfoPaneAction} infoPaneAction={infoPaneAction} compact={tablet} />
 
               {/* <LanguageSwitcher /> */}
 
@@ -90,6 +94,16 @@ const Header = ({
 
       <div className="flex justify-between items-center">
         <div className="flex-1">
+          {tablet ? (
+          <TabletToolbar
+            study={study}
+            setScaleValue={setScaleValue}
+            setColorAction={setColorAction}
+            setSelectedColor={setSelectedColor}
+            setBoxStyle={setBoxStyle}
+            setCloneStudyOpen={setCloneStudyOpen}
+          />
+          ) : (
           <Toolbar
             study={study}
             setScaleValue={setScaleValue}
@@ -98,7 +112,8 @@ const Header = ({
             setSelectedColor={setSelectedColor}
             setBoxStyle={setBoxStyle}
             setCloneStudyOpen={setCloneStudyOpen}
-          />        
+          />
+          )}        
         </div>
       </div>
     </header>

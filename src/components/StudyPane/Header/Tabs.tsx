@@ -7,9 +7,12 @@ import { InfoPaneActionType } from "@/lib/types";
 export const Tabs = ({
   setInfoPaneAction,
   infoPaneAction,
+  compact = false,
 }: {
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
   infoPaneAction: InfoPaneActionType;
+  /** Tablets: smaller tabs, still 40px tall for touch. */
+  compact?: boolean;
 }) => {
   
   const activeClasses = "bg-primary text-white dark:text-white";
@@ -26,7 +29,7 @@ export const Tabs = ({
   return (
     <div className="flex items-center rounded-full">
       <button
-        className={`inline-flex rounded-l-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex rounded-l-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary ${compact ? "min-h-[40px] items-center px-3 text-sm" : "sm:px-4 sm:py-[6px]"}
           ${
             infoPaneAction === InfoPaneActionType.layers ? activeClasses : inactiveClasses
           }`}
@@ -36,7 +39,7 @@ export const Tabs = ({
         Layer
       </button>
       <button
-        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary ${compact ? "min-h-[40px] items-center px-3 text-sm" : "sm:px-4 sm:py-[6px]"}
           ${
             infoPaneAction === InfoPaneActionType.structure ? activeClasses : inactiveClasses
           }`}
@@ -45,7 +48,7 @@ export const Tabs = ({
         Structure
       </button>
       <button
-        className={`inline-flex border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary ${compact ? "min-h-[40px] items-center px-3 text-sm" : "sm:px-4 sm:py-[6px]"}
           ${
             infoPaneAction === InfoPaneActionType.motif ? activeClasses : inactiveClasses
           }`}
@@ -55,7 +58,7 @@ export const Tabs = ({
         Motif
       </button>
       <button
-        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex border-y border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary ${compact ? "min-h-[40px] items-center px-3 text-sm" : "sm:px-4 sm:py-[6px]"}
           ${
             infoPaneAction === InfoPaneActionType.syntax ? activeClasses : inactiveClasses
           }`}
@@ -65,7 +68,7 @@ export const Tabs = ({
         Syntax
       </button>
       <button
-        className={`inline-flex rounded-r-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary sm:px-4 sm:py-[6px]
+        className={`inline-flex rounded-r-full border border-primary font-medium text-black dark:border-strokedark hover:border-primary hover:bg-primary hover:text-white dark:text-white dark:hover:border-primary ${compact ? "min-h-[40px] items-center px-3 text-sm" : "sm:px-4 sm:py-[6px]"}
           ${
             infoPaneAction === InfoPaneActionType.sounds ? activeClasses : inactiveClasses
           }`}

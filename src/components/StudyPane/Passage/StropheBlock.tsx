@@ -13,6 +13,7 @@ import { LanguageContext } from './PassageBlock';
 import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
+import { useLayout } from '../Responsive/layout';
 
 const getLineRenderKey = (stropheId: number, line: StropheProps["lines"][number]) => {
   const firstWordId = line.words[0]?.wordId ?? "empty";
@@ -39,6 +40,10 @@ export const StropheBlock = ({
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
     ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
+  const { mode: layoutMode } = useLayout();
+  const isPhone = layoutMode === 'phone';
+  // Phones and narrow tablets (and an opened foldable's half): wrap long lines.
+  const wrapLines = isPhone || layoutMode === 'tablet';
   const { ctxIsHebrew } = useContext(LanguageContext)
   const stropheAlign = useContext(StropheAlignContext);
 
@@ -319,9 +324,17 @@ export const StropheBlock = ({
   // in-text counter is on (single or parallel) each line must stay on a single
   // row so its count box stays aligned, breaking only where the data (or the
   // user) put a line break. With the counter off, keep wrapping.
-  const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
+  // Phones: lines wrap onto more rows instead of running off the screen.
+  const wrapReaderLines = (ctxReadmeBtnOn && !ctxInTextCounterOn) || wrapLines;
   const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
-    <div data-strophe-line="true" data-line-id={line.lineId} data-line-start={line.words[0]?.wordId} className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+    // On phones and narrow tablets a long line wraps with a hanging indent, so
+    // the rows it continues onto can't be mistaken for lines of their own.
+    <div
+      data-strophe-line="true"
+      data-line-id={line.lineId}
+      data-line-start={line.words[0]?.wordId}
+      className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''} ${wrapLines && !ctxReadmeBtnOn ? (ctxIsHebrew ? 'gap-y-1 pr-6 [&>*:first-child]:-mr-6' : 'gap-y-1 pl-6 [&>*:first-child]:-ml-6') : ''}`}
+    >
       {renderWords(line, lineId)}
     </div>
   );
@@ -364,7 +377,7 @@ export const StropheBlock = ({
     <div 
       key={"strophe_" + stropheProps.stropheId}
       data-strophe-block={stropheProps.stropheId}
-      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded ? (isPhone ? (ctxIsHebrew ? 'pl-12' : 'pr-12') : (ctxIsHebrew ? 'pl-20' : 'pr-20')) : 'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
