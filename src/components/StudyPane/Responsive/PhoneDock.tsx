@@ -346,6 +346,7 @@ export const PhoneDock = ({
       {/* The bar at the bottom, floating: selection bar or tool tabs */}
       <div
         ref={dockRef}
+        data-bottom-bar
         className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pt-2"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
