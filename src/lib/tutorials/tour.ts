@@ -104,6 +104,12 @@ export type TourStep = {
   title: string;
   body: string | ((s: TourSnapshot, start: TourSnapshot) => string);
   isDone?: (s: TourSnapshot, start: TourSnapshot) => boolean;
+  /**
+    Shown once the step is done: what changed and what it's for in reading
+    the poem. One short line for steps that only set up the next one
+    (selecting a word before New strophe).
+  */
+  doneText?: string | ((s: TourSnapshot, start: TourSnapshot) => string);
   /** Several things to do in one step; done when all are ticked. */
   checks?: TourCheck[];
   /** What to light up (in green) once the step is done: the result of the action. */
@@ -231,6 +237,7 @@ export const forLayout = (step: TourStep, layout: TourLayout): TourStep => {
       ...out,
       title: touchWords(out.title),
       body: mapText(out.body, touchWords) as TourStep["body"],
+      doneText: mapText(out.doneText, touchWords) as TourStep["doneText"],
       checks: out.checks?.map((c) => ({ ...c, label: touchWords(c.label) })),
     };
     // A control in a menu: say to open the menu first (unless the phone
@@ -261,6 +268,9 @@ export const resolveTarget = (
 
 export const resolveBody = (step: TourStep, s: TourSnapshot | null, start: TourSnapshot | null = s): string =>
   typeof step.body === "function" ? (s ? step.body(s, start ?? s) : "") : step.body;
+
+export const resolveDoneText = (step: TourStep, s: TourSnapshot | null, start: TourSnapshot | null = s): string | undefined =>
+  typeof step.doneText === "function" ? (s ? step.doneText(s, start ?? s) : undefined) : step.doneText;
 
 export const resolveResult = (
   step: TourStep,

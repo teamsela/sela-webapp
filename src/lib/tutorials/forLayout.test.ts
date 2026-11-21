@@ -137,3 +137,17 @@ describe("steps that work in a side panel", () => {
     expect(withPanelOpen(chip, snapWith(InfoPaneActionType.motif), "desktop")).toBe(chip);
   });
 });
+
+describe("messages when a task is done", () => {
+  it("every task says what it did", () => {
+    const missing = [...ORIENTATION_TOUR_STEPS, ...INTERFACE_TOUR_STEPS]
+      .filter((st) => !!st.isDone || !!st.checks?.length)
+      .filter((st) => !st.doneText)
+      .map((st) => st.id);
+    expect(missing).toEqual([]);
+  });
+  it("use touch words on phones", () => {
+    const step = { id: "x", section: "S", title: "T", body: "B", isDone: () => true, doneText: "Click it again later." } as TourStep;
+    expect(forLayout(step, "phone").doneText).toBe("Tap it again later.");
+  });
+});

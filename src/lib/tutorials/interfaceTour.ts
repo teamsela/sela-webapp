@@ -83,6 +83,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Languages
   {
     id: "lang-hebrew",
+    doneText: "This is the Hebrew text (OHB). Each box is the same word as in the English gloss, so colors and divisions carry across both.",
     section: "Languages",
     target: '[data-tour="lang-Hebrew"]',
     title: "Switch to the Hebrew",
@@ -92,6 +93,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "lang-transliteration",
+    doneText: "Transliteration spells the Hebrew in English letters, so you can follow its sounds without reading Hebrew script.",
     section: "Languages",
     target: '[data-tour="lang-chevron-Hebrew"], [data-tour="language-dropdown"]',
     title: "See the transliteration",
@@ -111,6 +113,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "lang-parallel",
+    doneText: "Both side by side: the first line is outlined in each, so you can match every English box to its Hebrew word.",
     section: "Languages",
     target: '[data-tour="lang-Parallel"]',
     title: "English and Hebrew together",
@@ -120,6 +123,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "lang-english",
+    doneText: "Back to the English gloss.",
     section: "Languages",
     target: '[data-tour="lang-English"]',
     title: "Back to the English gloss",
@@ -131,6 +135,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // ESV
   {
     id: "esv-open",
+    doneText: "The ESV’s rendering of verse 1, for comparing the word-by-word gloss with an ordinary translation.",
     section: "Translation",
     title: "Read a verse in the ESV",
     body: "Click the small verse number 1 to see the verse in the English Standard Version, a regular translation.",
@@ -143,6 +148,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "esv-close",
+    doneText: "Closed.",
     section: "Translation",
     title: "Close it again",
     body: "Click the verse number again to hide the ESV.",
@@ -154,6 +160,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Strophes
   {
     id: "heading-word",
+    doneText: "Selected. The new strophe will start here.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordAfterHeading(s)),
@@ -167,6 +174,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "heading-new-strophe",
+    doneText: "The heading now sits in a strophe of its own, apart from the poem.",
     section: "Strophes",
     target: '[data-tour="structure-newStrophe"]',
     title: "Click New strophe",
@@ -176,6 +184,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "strophe-collapse",
+    doneText: "Collapsed. The heading keeps its place but takes almost no room, so the poem itself has the screen.",
     section: "Strophes",
     target: (s) =>
       s.strophes[0] ? `[data-tour="strophe-collapse"][data-strophe-id="${s.strophes[0].stropheId}"]` : undefined,
@@ -193,6 +202,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse4-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordOfVerse(s, 4)),
@@ -206,6 +216,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse4-new-strophe",
+    doneText: "Verse 4 starts a new strophe: David’s turn from speaking about the LORD to speaking to him now shows in the layout.",
     section: "Strophes",
     target: '[data-tour="structure-newStrophe"]',
     title: "Start a strophe at verse 4",
@@ -215,6 +226,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse5-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Strophes",
     target: (s) => wordSelector(firstWordOfVerse(s, 5)),
@@ -228,6 +240,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verse5-new-strophe",
+    doneText: "Three strophes now: the shepherd (verses 1–3), the dark valley (4), and the table and the house (5–6).",
     section: "Strophes",
     target: '[data-tour="structure-newStrophe"]',
     title: "Start a strophe at verse 5",
@@ -247,6 +260,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-select",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Stanzas",
     target: (s) => {
@@ -265,6 +279,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-new",
+    doneText: "The psalm now has three stanzas. Stanzas group strophes into the poem’s larger movements.",
     section: "Stanzas",
     target: '[data-tour="structure-newStanza"]',
     title: "Click New stanza",
@@ -277,6 +292,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // fixed when its step begins, so the highlight stays put as lines change.
   {
     id: "v6-merge1-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, 1)),
@@ -287,6 +303,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-merge1-button",
+    doneText: "Two lines became one. Where lines break decides which words stand in parallel.",
     section: "Lines",
     target: '[data-tour="structure-mergeWithPrevLine"]',
     title: "Click Merge with previous line",
@@ -296,6 +313,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-merge2-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(lastWordOnVerseSixLine(start, -1)),
@@ -306,6 +324,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-merge2-button",
+    doneText: "Verse 6 is now two lines, one for each half of the verse.",
     section: "Lines",
     target: '[data-tour="structure-mergeWithPrevLine"]',
     title: "Click Merge with previous line",
@@ -321,6 +340,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // "click this button".
   {
     id: "merge-stanza-select",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Merging",
     target: (_s, start) =>
@@ -335,6 +355,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "merge-stanza-button",
+    doneText: "The strophe moved back into the stanza before it. Merging is how you undo a division you no longer see in the poem.",
     section: "Merging",
     target: '[data-tour="structure-mergeWithPrevStanza"]',
     title: "Click Merge with previous stanza",
@@ -345,6 +366,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "merge-strophe-select",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Merging",
     target: (_s, start) =>
@@ -359,6 +381,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "merge-strophe-button",
+    doneText: "The two strophes are one again.",
     section: "Merging",
     target: '[data-tour="structure-mergeWithPrevStrophe"]',
     title: "Click Merge with previous strophe",
@@ -371,6 +394,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Identical words
   {
     id: "identical-select",
+    doneText: "Every place God’s name appears is selected. A word repeated at a poem’s start and end frames everything between.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Repeated words",
     target: (_s, start) => wordSelector(yahwehInVerseOne(start)),
@@ -390,6 +414,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "word-info",
+    doneText: "This is the Hebrew behind the gloss: the word, its transliteration, its grammar and its Strong’s number, the data the smart tools use.",
     section: "Repeated words",
     target: '[data-tour="word-info"]',
     title: "See what a word means",
@@ -405,6 +430,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "motif-tab",
+    doneText: "Identical Words lists every repeated Hebrew word; Categories groups words by meaning. Each chip selects its words in the passage.",
     section: "Repeated words",
     target: '[data-tour="tab-motif"]',
     title: "The Motif tab",
@@ -417,6 +443,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Colors
   {
     id: "color-fill",
+    doneText: "The selected words now share a fill color, so the repetition shows across the whole psalm.",
     onStart: { closeInfoPane: true },
     section: "Colors",
     target: '[data-tour="fill-color"]',
@@ -440,6 +467,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "color-font",
+    doneText: "Text color marks words without hiding a fill: a second pattern on the same words.",
     section: "Colors",
     target: '[data-tour="font-color"]',
     title: "Font color",
@@ -461,6 +489,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "color-border",
+    doneText: "Borders add a third mark. Fill, text and border together let one word carry three observations.",
     section: "Colors",
     target: '[data-tour="border-color"]',
     title: "Border color",
@@ -484,6 +513,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Lines again, gloss, word display
   {
     id: "v6-split1-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 1)),
@@ -494,6 +524,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-split1-button",
+    doneText: "The line split at the selected word.",
     section: "Lines",
     target: '[data-tour="structure-newLine"]',
     title: "Click New line",
@@ -503,6 +534,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-split2-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Lines",
     target: (_s, start) => wordSelector(verseSixOriginalLineStart(start, 3)),
@@ -512,6 +544,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v6-split2-button",
+    doneText: "Verse 6 is back on four lines.",
     section: "Lines",
     target: '[data-tour="structure-newLine"]',
     title: "Click New line",
@@ -521,6 +554,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "gloss-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Words",
     target: (_s, start) => wordSelector(start.words[3]),
@@ -530,6 +564,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "gloss-edit",
+    doneText: "The box shows your wording. The Hebrew word behind it is unchanged, so the smart tools still find it.",
     section: "Words",
     target: '[data-tour="edit-gloss"]',
     title: "Edit the English gloss",
@@ -541,6 +576,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "boxes-off",
+    doneText: "Plain text reads like an ordinary translation.",
     section: "Words",
     target: '[data-tour="boxes"]',
     title: "Read without boxes",
@@ -550,6 +586,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "boxes-on",
+    doneText: "The boxes are back.",
     section: "Words",
     target: '[data-tour="boxes"]',
     title: "Turn the boxes back on",
@@ -559,6 +596,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "uniform-width",
+    doneText: "Every box is now the same width, so words line up in columns and parallel lines can be compared word for word.",
     section: "Words",
     target: '[data-tour="uniform-width"]',
     title: "Line up the words",
@@ -568,6 +606,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "indent-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Words",
     target: (_s, start) => wordSelector(firstWordOfVerse(start, 3)),
@@ -577,6 +616,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "indent-add",
+    doneText: "The word moved one column in. Indents line up matching ideas in parallel lines.",
     section: "Words",
     target: '[data-tour="indent-add"]',
     title: "Click Add indent",
@@ -591,6 +631,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     // Opening the notes and writing in one are one step, so a note can be
     // typed in as soon as it shows.
     id: "notes-on",
+    doneText: "Your note has a title. Notes keep observations beside the strophe they’re about.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Notes",
     target: '[data-tour="notes-toggle"], [data-tour="strophe-note"]',
@@ -627,6 +668,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "notes-off",
+    doneText: "The note’s first line now titles its strophe.",
     section: "Notes",
     target: '[data-tour="notes-toggle"]',
     title: "Back to the passage",
@@ -645,6 +687,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-title",
+    doneText: "The stanza is named.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Notes",
     target: '[data-tour="stanza-title"]',
@@ -658,6 +701,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Layers
   {
     id: "layers-tab",
+    doneText: "Layer is where each reading of the poem is kept separate.",
     section: "Layers",
     target: '[data-tour="tab-layer"]',
     title: "The Layer tab",
@@ -668,6 +712,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-create",
+    doneText: "Your new layer starts with the current divisions but no colors or notes: a clean copy for a different reading.",
     panel: InfoPaneActionType.layers,
     section: "Layers",
     target: '[data-tour="new-layer"]',
@@ -680,6 +725,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-edit",
+    doneText: "These colors and divisions belong to this layer only.",
     onStart: { clearSelection: true },
     section: "Layers",
     target: PASSAGE,
@@ -694,6 +740,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-back",
+    doneText: "Back on your first layer, just as you left it. Each layer keeps its own divisions, colors and notes.",
     panel: InfoPaneActionType.layers,
     section: "Layers",
     target: (s) => s.firstLayerId === undefined ? '[data-tour="tab-layer"]' : `[data-tour="layer-card"][data-layer-id="${s.firstLayerId}"]`,

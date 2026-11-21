@@ -204,6 +204,8 @@ export type TourOverlayProps = {
   docked?: boolean;
   /** Touch screens: "tap" in the bubble's own words. */
   touch?: boolean;
+  /** Once done: what changed and what it's for (TourStep.doneText). */
+  doneText?: string;
   /** Draws the title, text and checklist (e.g. control names as the controls). Default: plain text. */
   formatText?: (text: string) => ReactNode;
   onClose: () => void;
@@ -217,7 +219,7 @@ const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contex
 const PHONE_TOOLS = "[data-phone-tools]";
 const DOCK_EDGE = 12;
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", docked = false, touch = false, formatText = (t: string) => t, onClose, actions }: TourOverlayProps) => {
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", docked = false, touch = false, doneText, formatText = (t: string) => t, onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
   const { rect, offscreen } = measured;
   // Where the bubble is anchored: the target itself (no tooltips), kept while
@@ -382,7 +384,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     const litBox = rect ?? place;
     // Only on steps where the user has to reach what the bubble would cover;
     // a read-and-continue step always shows its whole text.
-    if (litBox && !expanded && interactive) {
+    // Not once done: the message about what changed is the point then, and
+    // nothing under the bubble is left to reach.
+    if (litBox && !expanded && interactive && !done) {
       const bubbleRight = DOCK_EDGE + (wide ? Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2) : window.innerWidth);
       // Sideways, the target may sit beside the bubble (the tools panel): no overlap then.
       const besideIt = wide && litBox.left >= bubbleRight;
@@ -517,11 +521,16 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
           // The step is done: say so plainly in place of the instruction.
           <div className="mt-3 flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "#E7F6EF", color: "#0B6E4F" }} role="status">
             <IconCircleCheckFilled size={22} className="mt-px shrink-0" aria-hidden />
-            <p className="leading-relaxed">
-              <span className="font-semibold">Done, that&rsquo;s right.</span>{" "}
-              {tone === "result" ? "What changed is outlined in green. " : ""}
-              {touch ? "Tap" : "Click"} Continue for the next step.
-            </p>
+            <div className="leading-relaxed">
+              <p>
+                <span className="font-semibold">Done, that&rsquo;s right.</span>{" "}
+                {doneText ? formatText(doneText) : tone === "result" ? "What changed is outlined in green." : null}
+              </p>
+              <p className="mt-1 text-xs font-medium opacity-80">
+                {doneText && tone === "result" ? "What changed is outlined in green. " : ""}
+                {touch ? "Tap" : "Click"} Continue for the next step.
+              </p>
+            </div>
           </div>
         ) : (
           <p className="mt-2 leading-[1.7]">{formatText(body)}</p>

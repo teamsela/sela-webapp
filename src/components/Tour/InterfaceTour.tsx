@@ -16,6 +16,7 @@ import {
   isActionStep,
   isStepDone,
   resolveBody,
+  resolveDoneText,
   resolveResult,
   resolveTarget,
   type TourDefinition,
@@ -345,6 +346,7 @@ const InterfaceTour = ({
           checklist={checklist}
           progress={progressLabel}
           done={done}
+          doneText={done ? resolveDoneText(step, snapshot, start) : undefined}
           clearance={step.clearance}
           dim={step.dim}
           placement={step.placement}

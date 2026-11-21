@@ -74,6 +74,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "boxes-off",
+    doneText: "Plain text reads like an ordinary translation. The boxes matter for analysis: each one is a single Hebrew word, so it can be colored, moved and compared.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Study screen",
     target: '[data-tour="boxes"]',
@@ -84,6 +85,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "boxes-on",
+    doneText: "The boxes are back; the rest of the tutorial uses them.",
     section: "Study screen",
     target: '[data-tour="boxes"]',
     title: "And back on",
@@ -112,6 +114,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v4-word",
+    doneText: "Selected. Divisions start at the selected word.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Structure",
     target: (_s, start) => wordSelector(firstWordOfVerse(start, 4)),
@@ -122,6 +125,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "v4-new-strophe",
+    doneText: "Verses 1–3 and 4–6 are now separate strophes. The poem’s turn from the righteous to the wicked now shows in its layout.",
     section: "Structure",
     target: '[data-tour="structure-newStrophe"]',
     title: "Click New strophe",
@@ -131,6 +135,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-select",
+    doneText: "Strophe 2 is selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Structure",
     target: (_s, start) => stropheSelector(verseFourStrophe(start)),
@@ -143,6 +148,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-new",
+    doneText: "Strophe 2 now stands as a stanza of its own. Stanzas group strophes into the poem’s larger movements.",
     section: "Structure",
     target: '[data-tour="structure-newStanza"]',
     title: "Click New stanza",
@@ -155,6 +161,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     // in as soon as it opens (a separate "type" step left it blocked until
     // Continue was pressed).
     id: "strophe-heading",
+    doneText: "The heading is the first line of the strophe’s note. It shows above the strophe once the note is closed.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Headings",
     target: (_s, start) => {
@@ -174,6 +181,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "strophe-heading-close",
+    doneText: "Your heading now labels the strophe, so the shape of the psalm can be read at a glance.",
     section: "Headings",
     target: (_s, start) => {
       const sp = firstStrophe(start);
@@ -186,6 +194,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "stanza-heading",
+    doneText: "The stanza is named. With strophe and stanza headings, the psalm’s structure reads like an outline.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Headings",
     target: (_s, start) => {
@@ -216,6 +225,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "not-select",
+    doneText: "All six places this Hebrew word (lo’, “not”) appears are selected, including the two glossed “nor”: one Hebrew word, two English renderings.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Color tools",
     target: (_s, start) => wordSelector(firstNot(start)),
@@ -235,6 +245,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "not-fill",
+    doneText: "Every “not” now shares one color, so the run of negatives in verse 1 stands out: the blessed man is first described by what he does not do.",
     section: "Color tools",
     target: FILL,
     title: "Pick a fill color",
@@ -258,6 +269,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   // IV. Smart tools
   {
     id: "motif-tab",
+    doneText: "Motif lists every Hebrew word used more than once (Identical Words) and groups words by meaning (Categories).",
     onStart: { clearSelection: true },
     section: "Smart tools",
     target: '[data-tour="tab-motif"]',
@@ -269,6 +281,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "way-chip",
+    doneText: "A chip selects every place its word appears: here the three uses of “way”, from verse 1 to the psalm’s last line.",
     panel: InfoPaneActionType.motif,
     onStart: { clearSelection: true },
     section: "Smart tools",
@@ -281,6 +294,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "way-color",
+    doneText: "“Way” now has its own color. Two colored threads now run through the psalm, and the second one frames it from beginning to end.",
     section: "Smart tools",
     target: COLOR_BUTTONS,
     title: "Color the “way” words",
@@ -302,6 +316,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "syntax-tab",
+    doneText: "Syntax groups the passage’s words by grammar: parts of speech, verb forms and more.",
     onStart: { clearSelection: true },
     section: "Smart tools",
     target: '[data-tour="tab-syntax"]',
@@ -312,6 +327,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verb-conjugations",
+    doneText: "Each chip is a verb form, with how often it appears. A chip selects those verbs in the passage.",
     panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-section"][data-section-id="${VERB_CONJUGATIONS}"]`,
@@ -324,6 +340,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "smart-highlight-on",
+    doneText: "Each verb form now has its own color across the passage, so shifts in tense and aspect show at a glance.",
     panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-smart-highlight"][data-highlight-id="${VERB_CONJUGATIONS}"]`,
@@ -336,6 +353,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "smart-highlight-off",
+    doneText: "Colors cleared.",
     panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-smart-highlight"][data-highlight-id="${VERB_CONJUGATIONS}"]`,
@@ -346,6 +364,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "walk-word",
+    doneText: "Selected.",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Smart tools",
     target: (_s, start) => wordSelector(walk(start)),
@@ -356,6 +375,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "word-info",
+    doneText: "This is the Hebrew behind the English gloss: the word, its transliteration, its grammar and its Strong’s number. The smart tools use this data to find patterns.",
     section: "Smart tools",
     target: '[data-tour="word-info"]',
     title: "Show Word Information",
@@ -373,6 +393,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   // V. Layers
   {
     id: "layers-tab",
+    doneText: "Layer keeps each reading of the poem separate, with its own divisions, colors and notes.",
     onStart: { clearSelection: true },
     section: "Layers",
     target: '[data-tour="tab-layer"]',
