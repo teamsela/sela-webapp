@@ -225,10 +225,13 @@ describe("InterfaceTour", () => {
     const outside = vi.fn();
     const inside = vi.fn();
     screen.getByText("Format").addEventListener("click", outside);
-    screen.getByText("א").addEventListener("click", inside);
+    // (The bubble draws "א" as a chip too, so find the switch's button by its marker.)
+    const hebrew = document.querySelector('[data-tour="lang-Hebrew"]') as HTMLElement;
+    const english = document.querySelector('[data-tour="lang-English"]') as HTMLElement;
+    hebrew.addEventListener("click", inside);
     fireEvent.click(screen.getByText("Format"));
-    fireEvent.click(screen.getByText("A")); // the switch, but not this step's button
-    fireEvent.click(screen.getByText("א"));
+    fireEvent.click(english); // the switch, but not this step's button
+    fireEvent.click(hebrew);
     expect(outside).not.toHaveBeenCalled();
     expect(inside).toHaveBeenCalledTimes(1);
   });

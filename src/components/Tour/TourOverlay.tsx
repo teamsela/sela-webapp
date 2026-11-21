@@ -204,6 +204,8 @@ export type TourOverlayProps = {
   docked?: boolean;
   /** Touch screens: "tap" in the bubble's own words. */
   touch?: boolean;
+  /** Draws the title, text and checklist (e.g. control names as the controls). Default: plain text. */
+  formatText?: (text: string) => ReactNode;
   onClose: () => void;
   /** Buttons in the bubble's footer, right-aligned. */
   actions: ReactNode;
@@ -215,7 +217,7 @@ const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contex
 const PHONE_TOOLS = "[data-phone-tools]";
 const DOCK_EDGE = 12;
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", docked = false, touch = false, onClose, actions }: TourOverlayProps) => {
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", docked = false, touch = false, formatText = (t: string) => t, onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
   const { rect, offscreen } = measured;
   // Where the bubble is anchored: the target itself (no tooltips), kept while
@@ -509,7 +511,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
         <h3 className="mt-1 flex items-center gap-2 pr-8 text-lg font-semibold text-black dark:text-white">
           {done && <IconCircleCheckFilled size={22} className="shrink-0" style={{ color: DONE }} aria-hidden />}
-          {title}
+          <span>{formatText(title)}</span>
         </h3>
         {done ? (
           // The step is done: say so plainly in place of the instruction.
@@ -522,7 +524,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             </p>
           </div>
         ) : (
-          <p className="mt-2 leading-relaxed">{body}</p>
+          <p className="mt-2 leading-[1.7]">{formatText(body)}</p>
         )}
         {!done && interactive && !!target && !!rect && (
           <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary">
@@ -557,7 +559,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
                   <IconCircle size={18} stroke={1.8} className="shrink-0 text-slate-400" aria-hidden />
                 )}
                 <span className={item.done ? "text-black dark:text-white" : ""}>
-                  {item.label}
+                  {formatText(item.label)}
                   <span className="sr-only">{item.done ? " (done)" : " (to do)"}</span>
                 </span>
               </li>

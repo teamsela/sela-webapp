@@ -24,6 +24,7 @@ import {
 } from "@/lib/tutorials/tour";
 import type { PracticeControls, PracticeState } from "@/lib/tutorials/practiceState";
 import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverlay";
+import { withControlChips } from "./controlChips";
 
 /*
   Runs a tutorial's guided tour (see lib/tutorials/tours.ts) while a tutorial study is in practice mode.
@@ -348,6 +349,8 @@ const InterfaceTour = ({
           dim={step.dim}
           placement={step.placement}
           docked={mode === "phone"}
+          // Control names drawn as the controls (same icons and labels).
+          formatText={(text) => withControlChips(text, mode)}
           touch={touch}
           onClose={close}
           actions={actions}
