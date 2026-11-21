@@ -225,7 +225,9 @@ export const PhoneDock = ({
       ? `calc(env(viewport-segment-height 0 1, 50dvh) - ${dockHeight}px)`
       : "50dvh";
 
-  const groupButton = "flex flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold";
+  const groupButton = "flex flex-col items-center justify-center gap-1 rounded-[22px] text-[11px] font-semibold";
+  // The floating pill: light grey, a hairline white edge and a soft shadow.
+  const floatingBar = "pointer-events-auto border border-white bg-whiten/95 shadow-[0_8px_28px_rgba(28,36,52,0.16)] backdrop-blur";
 
   const activeWord = ctxSelectedWords.length ? (ctxSelectedWords[ctxSelectedWords.length - 1] as WordProps) : undefined;
   const info = activeWord?.wordInformation;
@@ -236,8 +238,8 @@ export const PhoneDock = ({
       {toolsOpen && (
         <section
           aria-label={toolsTitle}
-          className="fixed inset-x-0 z-40 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_32px_rgba(15,23,42,0.18)]"
-          style={{ bottom: dockHeight, height: toolsHeight }}
+          className="fixed inset-x-0 bottom-0 z-40 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_32px_rgba(15,23,42,0.18)]"
+          style={{ height: `calc(${toolsHeight} + ${dockHeight}px)`, paddingBottom: dockHeight }}
         >
           <button
             type="button"
@@ -347,26 +349,26 @@ export const PhoneDock = ({
         </div>
       )}
 
-      {/* The bar at the bottom: selection bar or tool tabs */}
+      {/* The bar at the bottom, floating: selection bar or tool tabs */}
       <div
         ref={dockRef}
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-stroke bg-white"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pt-2"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
         {showSelectionBar ? (
-          <div role="toolbar" aria-label="Edit the selection">
-            <div className="flex h-10 items-center gap-2 pl-4 pr-2">
+          <div role="toolbar" aria-label="Edit the selection" className={`${floatingBar} rounded-[28px] p-1.5`}>
+            <div className="flex h-10 items-center gap-2 pl-3 pr-0.5">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{selectionLabel}</span>
               {ctxNumSelectedWords > 0 && (
                 <button type="button" onClick={selectRepeats} className="h-9 rounded-lg px-2 text-sm font-semibold text-primary">
                   Select repeats
                 </button>
               )}
-              <button type="button" onClick={clearSelection} className="h-9 rounded-lg bg-whiten px-3 text-sm font-semibold text-black">
+              <button type="button" onClick={clearSelection} className="h-9 rounded-full bg-white px-4 text-sm font-semibold text-black shadow-sm">
                 Done
               </button>
             </div>
-            <div className="grid h-[60px] grid-cols-6 gap-1 px-1 pb-1">
+            <div className="grid h-[60px] grid-cols-6 gap-0.5">
               <button type="button" onClick={openColor} className={`${groupButton} text-black`}>
                 <LuPaintBucket size={21} />
                 Color
@@ -377,7 +379,7 @@ export const PhoneDock = ({
                   type="button"
                   aria-expanded={tray === t}
                   onClick={() => setTray(tray === t ? null : t)}
-                  className={`${groupButton} ${tray === t ? "bg-primary/10 text-primary" : "text-black"}`}
+                  className={`${groupButton} ${tray === t ? "bg-stroke" : ""} text-black`}
                 >
                   {t === "word" ? <LuType size={21} /> : <StructureIcon level={t} action="new" size={21} />}
                   {TRAY_TITLES[t]}
@@ -390,7 +392,7 @@ export const PhoneDock = ({
             </div>
           </div>
         ) : (
-          <nav aria-label="Study tools" className="grid h-[60px] grid-cols-5 px-1">
+          <nav aria-label="Study tools" className={`${floatingBar} grid h-[68px] grid-cols-5 rounded-full p-1.5`}>
             {TABS.map(({ action, label, Icon }) => {
               const on = infoPaneAction === action;
               return (
@@ -399,7 +401,7 @@ export const PhoneDock = ({
                   type="button"
                   aria-pressed={on}
                   onClick={() => openTool(action)}
-                  className={`flex flex-col items-center justify-center gap-1 text-[11px] ${on ? "font-bold text-primary" : "font-medium text-body"}`}
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold text-black transition-colors ${on ? "bg-stroke" : ""}`}
                 >
                   <Icon size={21} />
                   {label}
