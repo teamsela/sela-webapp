@@ -153,11 +153,17 @@ export const clearFormatAvailability = (counts: { words: number; strophes: numbe
 export const clearAllAvailability = (hasCustomColor: boolean): Availability =>
   hasCustomColor ? OK : no("Nothing is colored yet.");
 
+/**
+ * `uniformWidthAt` says where the Uniform width button is from where the
+ * indent buttons are drawn: beside them in the desktop toolbar and tablet
+ * ribbon, but at the top of the screen on a phone.
+ */
 export const indentAvailability = (
   add: boolean,
   input: { boxStyle: BoxDisplayStyle | undefined; selectedCount: number; indent: number },
+  uniformWidthAt = "in this group of buttons",
 ): Availability => {
-  if (input.boxStyle !== BoxDisplayStyle.uniformBoxes) return no("Turn on Uniform width (the button beside this one) to indent words.");
+  if (input.boxStyle !== BoxDisplayStyle.uniformBoxes) return no(`Turn on Uniform width (${uniformWidthAt}) to indent words.`);
   if (input.selectedCount !== 1) return no("Select exactly one word.");
   if (add && input.indent >= 3) return no("This word is at the most indent there is (3).");
   if (!add && input.indent <= 0) return no("This word has no indent to remove.");

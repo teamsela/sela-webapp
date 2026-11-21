@@ -100,6 +100,10 @@ describe("other buttons", () => {
   it("indent explains uniform width, one word and the limits", () => {
     const base = { boxStyle: BoxDisplayStyle.uniformBoxes, selectedCount: 1, indent: 0 };
     expect(indentAvailability(true, { ...base, boxStyle: BoxDisplayStyle.box }).reason).toMatch(/Uniform width/);
+    expect(indentAvailability(true, { ...base, boxStyle: BoxDisplayStyle.box }).reason).toMatch(/in this group of buttons/);
+    expect(indentAvailability(true, { ...base, boxStyle: BoxDisplayStyle.box }, "at the top right").reason).toBe(
+      "Turn on Uniform width (at the top right) to indent words.",
+    );
     expect(indentAvailability(true, { ...base, selectedCount: 2 }).reason).toMatch(/exactly one word/);
     expect(indentAvailability(true, { ...base, indent: 3 }).reason).toMatch(/most indent/);
     expect(indentAvailability(false, base).reason).toMatch(/no indent/);

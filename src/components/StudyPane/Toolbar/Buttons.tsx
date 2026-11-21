@@ -732,11 +732,13 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
     }
   }
   const showIncrease = ((ctxLanguageMode != LanguageMode.Hebrew) && leftIndent) || ((ctxLanguageMode == LanguageMode.Hebrew) && !leftIndent);
-  const availability = indentAvailability(leftIndent, {
-    boxStyle: ctxBoxDisplayConfig.style,
-    selectedCount: ctxNumSelectedWords,
-    indent: ctxIndentNum,
-  });
+  const { variant } = useToolbarVariant();
+  const availability = indentAvailability(
+    leftIndent,
+    { boxStyle: ctxBoxDisplayConfig.style, selectedCount: ctxNumSelectedWords, indent: ctxIndentNum },
+    // Phones keep Uniform width at the top of the screen (PhoneHeader), not beside these.
+    variant === "row" ? "the right-hand button at the top of the screen, under ⋯" : "in this group of buttons",
+  );
   return (
     <ToolbarButton
       label={leftIndent ? "Add indent" : "Remove indent"}
