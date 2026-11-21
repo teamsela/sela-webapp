@@ -82,7 +82,7 @@ export const ToolbarButton = ({
           {children}
         </span>
         {shortLabel && (
-          <span className="ClickBlock mt-1 hidden whitespace-nowrap text-[10px] leading-3 text-slate-500 min-[1800px]:block">{shortLabel}</span>
+          <span className="ClickBlock mt-1 hidden whitespace-nowrap text-[10px] leading-3 text-body min-[1800px]:block">{shortLabel}</span>
         )}
       </button>
       {tooltip && <ToolTip text={label} reason={reason} show={flash} id={tipId} />}
