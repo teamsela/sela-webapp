@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
+import { IconArrowDown, IconArrowUp, IconCheck, IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
 
 /*
   Highlight-and-bubble for a guided tour, in the app's own style.
@@ -61,8 +61,9 @@ const GAP = 14;
 const EDGE = 16;
 const PAD = 6;
 const Z = 10000; // above the study header (z-9999)
-// The theme's primary color, for both "do this" and "here's the result".
+// Blue: "use this". Green, with a tick: "done, here's what changed".
 const RING = "#3C50E0";
+const DONE = "#0E9F6E";
 const TOOLTIP_ROOM = 40; // space reserved below a toolbar control for its tooltip
 
 type Rect = { top: number; left: number; width: number; height: number };
@@ -399,13 +400,24 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             // The ring and the dimming share one box-shadow (a separate ring
             // class would be overridden by this inline style).
             boxShadow: [
-              `0 0 0 ${tone === "result" ? 3 : 2}px ${RING}`,
+              tone === "result" ? `0 0 0 3px ${DONE}` : `0 0 0 2px ${RING}`,
               dim ? "0 0 0 9999px rgba(15, 23, 42, 0.45)" : undefined,
             ].filter(Boolean).join(", "),
             zIndex: Z,
           }}
         />
-      ) : offscreen ? (
+      ) : null}
+      {rect && tone === "result" && (
+        // A tick on the result's outline: this is what the step did.
+        <span
+          aria-hidden
+          className="pointer-events-none flex items-center justify-center rounded-full text-white shadow"
+          style={{ position: "fixed", top: rect.top - PAD - 11, left: rect.left + rect.width + PAD - 11, width: 22, height: 22, background: DONE, zIndex: Z }}
+        >
+          <IconCheck size={14} stroke={3} />
+        </span>
+      )}
+      {rect ? null : offscreen ? (
         // Target scrolled away: dim lightly, but let the wheel reach the page.
         dim && <div aria-hidden className="pointer-events-none fixed inset-0 bg-black/40" style={{ zIndex: Z }} />
       ) : !lit ? (
@@ -437,11 +449,13 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
               className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 text-left"
             >
               {done ? (
-                <IconCircleCheckFilled size={20} className="shrink-0 text-primary" aria-hidden />
+                <IconCircleCheckFilled size={20} className="shrink-0" style={{ color: DONE }} aria-hidden />
               ) : (
                 <IconArrowDown size={18} stroke={2.2} className="shrink-0 rotate-180 text-primary" aria-hidden />
               )}
-              <span className="truncate text-[15px] font-semibold text-black dark:text-white">{title}</span>
+              <span className="truncate text-[15px] font-semibold text-black dark:text-white" style={done ? { color: "#0B6E4F" } : undefined}>
+                {done ? "Done, that\u2019s right" : title}
+              </span>
             </button>
             <div className="flex shrink-0 items-center gap-2 [&>button:not(:last-child)]:hidden">{actions}</div>
           </div>
@@ -459,8 +473,29 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         {progress && (
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{progress}</p>
         )}
-        <h3 className="mt-1 pr-8 text-lg font-semibold text-black dark:text-white">{title}</h3>
-        <p className="mt-2 leading-relaxed">{body}</p>
+        <h3 className="mt-1 flex items-center gap-2 pr-8 text-lg font-semibold text-black dark:text-white">
+          {done && <IconCircleCheckFilled size={22} className="shrink-0" style={{ color: DONE }} aria-hidden />}
+          {title}
+        </h3>
+        {done ? (
+          // The step is done: say so plainly in place of the instruction.
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "#E7F6EF", color: "#0B6E4F" }} role="status">
+            <IconCircleCheckFilled size={22} className="mt-px shrink-0" aria-hidden />
+            <p className="leading-relaxed">
+              <span className="font-semibold">Done, that&rsquo;s right.</span>{" "}
+              {tone === "result" ? "What changed is outlined in green. " : ""}
+              {touch ? "Tap" : "Click"} Continue for the next step.
+            </p>
+          </div>
+        ) : (
+          <p className="mt-2 leading-relaxed">{body}</p>
+        )}
+        {!done && interactive && !!target && (
+          <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary">
+            <span aria-hidden className="h-3 w-3 shrink-0 rounded-[3px] ring-2 ring-primary" />
+            Your turn: what to use is outlined in blue.
+          </p>
+        )}
 
         {offscreen && (
           <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary" role="status">
@@ -483,7 +518,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             {checklist.map((item) => (
               <li key={item.label} className="flex items-center gap-2">
                 {item.done ? (
-                  <IconCircleCheckFilled size={18} className="shrink-0 text-primary" aria-hidden />
+                  <IconCircleCheckFilled size={18} className="shrink-0" style={{ color: DONE }} aria-hidden />
                 ) : (
                   <IconCircle size={18} stroke={1.8} className="shrink-0 text-slate-400" aria-hidden />
                 )}
@@ -496,9 +531,6 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
           </ul>
         )}
 
-        {done && (
-          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is highlighted." : ""} Take a look, then {touch ? "tap" : "click"} Continue.</p>
-        )}
 
         <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>
         </>

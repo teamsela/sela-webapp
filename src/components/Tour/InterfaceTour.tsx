@@ -244,7 +244,7 @@ const InterfaceTour = ({
 
   // A step counts as done only once the user has done it: the screen must
   // first be seen not done (on this step's own readings), then done. So a
-  // step never says "Nice, that's it" before anything was clicked. Once done,
+  // step never says it's done before anything was clicked. Once done,
   // it stays done even if the user keeps experimenting.
   const [armedStepId, setArmedStepId] = useState<string | null>(null);
   const [doneStepId, setDoneStepId] = useState<string | null>(null);

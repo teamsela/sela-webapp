@@ -779,7 +779,9 @@ const StudyPane = ({
         <div
           // Phones scroll the whole page rather than an inner box, so the browser
           // can tuck its address bar and toolbar away as the reader scrolls.
-          className={`relative flex flex-1 ${layout.mode === "phone" ? "" : "overflow-hidden"} ${layout.mode === "desktop" ? "pt-32 pb-14 max-[645px]:!pb-0" : ""}`}
+          // (flex-none: the box grows with the passage, so its bottom padding,
+          // the room for the floating bar, comes after the last line.)
+          className={`relative flex ${layout.mode === "phone" ? "flex-none" : "flex-1 overflow-hidden"} ${layout.mode === "desktop" ? "pt-32 pb-14 max-[645px]:!pb-0" : ""}`}
           style={layout.mode === "desktop" ? undefined : { paddingTop: headerHeight, paddingBottom: layout.mode === "phone" ? dockHeight : 56 }}
         >
           <main data-tour="passage-area" className={`flex flex-row ${layout.mode === "phone" ? "overflow-x-clip" : "overflow-y-auto overflow-x-auto h-full"} relative flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>

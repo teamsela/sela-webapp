@@ -91,7 +91,7 @@ describe("InterfaceTour", () => {
     act(() => { vi.advanceTimersByTime(200); });
     rerender(<Harness ctx={{ ctxLanguageMode: LanguageMode.Hebrew }} />);
     act(() => { vi.advanceTimersByTime(400); });
-    expect(screen.getByRole("status").textContent).toMatch(/that.s it/i);
+    expect(screen.getByRole("status").textContent).toMatch(/done, that.s right/i);
 
     act(() => { vi.advanceTimersByTime(10000); });
     expect(screen.getByRole("dialog", { name: "Switch to the Hebrew" })).toBeTruthy();
@@ -105,7 +105,7 @@ describe("InterfaceTour", () => {
     startAt(stepIndex("lang-hebrew"));
     const { rerender } = render(<Harness ctx={{ ctxLanguageMode: LanguageMode.Hebrew }} />);
     act(() => { vi.advanceTimersByTime(1000); });
-    expect(screen.queryByRole("status")?.textContent ?? "").not.toMatch(/that.s it/i);
+    expect(screen.queryByRole("status")?.textContent ?? "").not.toMatch(/done, that.s right/i);
     expect(screen.getByRole("button", { name: "Skip" })).toBeTruthy();
 
     // Once it has been seen not done, doing it counts.
@@ -113,7 +113,7 @@ describe("InterfaceTour", () => {
     act(() => { vi.advanceTimersByTime(400); });
     rerender(<Harness ctx={{ ctxLanguageMode: LanguageMode.Hebrew }} />);
     act(() => { vi.advanceTimersByTime(400); });
-    expect(screen.getByRole("status").textContent).toMatch(/that.s it/i);
+    expect(screen.getByRole("status").textContent).toMatch(/done, that.s right/i);
   });
 
   it("colors go one button at a time", () => {

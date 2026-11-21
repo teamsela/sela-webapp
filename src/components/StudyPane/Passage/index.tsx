@@ -677,7 +677,10 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className='h-0 w-[100%]'
+      // Elsewhere the passage scrolls inside <main>, so this box takes no
+      // height of its own; phones scroll the page, so it needs its real height
+      // (otherwise the room left for the floating bar comes before the end).
+      className={`${layoutMode === 'phone' ? '' : 'h-0'} w-[100%]`}
     >
       <div className="h-4 w-full" />
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
