@@ -1,15 +1,8 @@
 "use client";
 
-import { IconType } from "react-icons";
-
-import { LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow } from "react-icons/lu";
-import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
-import { BiSolidColorFill, BiFont } from "react-icons/bi";
-import { AiOutlineClear } from "react-icons/ai";
-import { VscClearAll } from "react-icons/vsc";
-import { TbArrowAutofitContent, TbEdit } from "react-icons/tb";
-import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease } from "react-icons/cg";
-import { TbBoxModel2 } from "react-icons/tb";
+import type React from "react";
+import { LuPaintBucket, LuBaseline, LuRemoveFormatting, LuEraser, LuTextCursorInput, LuIndentIncrease, LuIndentDecrease } from "react-icons/lu";
+import { BorderColorIcon, StructureIcon, UniformWidthIcon, WordBoxesIcon, type StructureAction, type StructureLevel } from "@/components/StudyPane/Toolbar/ToolbarIcons";
 import { BsInfoCircle } from "react-icons/bs";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
@@ -31,12 +24,25 @@ type ButtonInfoModalProps = {
   setActiveSection: (section: InfoModalSection | null) => void;
 };
 
+type InfoIcon = React.ComponentType<{ style?: React.CSSProperties }>;
+
 type InfoItem = {
-  icon: IconType;
+  icon: InfoIcon;
   iconStyle?: React.CSSProperties | {};
   title: string;
   description: string;
+  /** When the button can be used. */
+  needs?: string;
 };
+
+const structureIcon = (level: StructureLevel, action: StructureAction): InfoIcon => {
+  const Icon = () => <StructureIcon level={level} action={action} size="1.1em" />;
+  Icon.displayName = `StructureIcon_${level}_${action}`;
+  return Icon;
+};
+const BorderIcon: InfoIcon = () => <BorderColorIcon size="1.1em" />;
+const BoxesIcon: InfoIcon = () => <WordBoxesIcon size="1.1em" />;
+const UniformIcon: InfoIcon = () => <UniformWidthIcon size="1.1em" />;
 
 type InfoSection = {
   title: InfoModalSection;
@@ -49,29 +55,34 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
     title: "Format",
     items: [
       {
-        icon: BiSolidColorFill,
+        icon: LuPaintBucket,
         title: "Fill Color",
         description: "Add a background color to selected words or strophes.",
+        needs: "Words or a strophe selected.",
       },
       {
-        icon: MdOutlineModeEdit,
+        icon: BorderIcon,
         title: "Border Color",
         description: "Add a border color to selected words or strophes.",
+        needs: "Words or a strophe selected.",
       },
       {
-        icon: BiFont,
+        icon: LuBaseline,
         title: "Font Color",
         description: "Change the color of selected text.",
+        needs: "Words selected. Text color does not apply to a whole strophe.",
       },
       {
-        icon: AiOutlineClear,
+        icon: LuRemoveFormatting,
         title: "Clear Format",
         description: "Remove fill, border, and font colors from the selection.",
+        needs: "Words or a strophe selected.",
       },
       {
-        icon: VscClearAll,
+        icon: LuEraser,
         title: "Clear All Format",
         description: "Remove all fill, border, and font colors from the entire text.",
+        needs: "Some color somewhere in the passage.",
       },
     ],
   },
@@ -79,33 +90,36 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
     title: "Word",
     items: [
       {
-        icon: TbBoxModel2,
+        icon: BoxesIcon,
         title: "Enable Boxes",
         description:
           "Show word boxes that map one English word to one Hebrew word, preserving Hebrew word order and count.",
       },
       {
-        icon: TbArrowAutofitContent,
+        icon: UniformIcon,
         title: "Enable Uniform Width",
         description:
           "Make all word boxes the same width to compare word counts and see how parallel lines correspond.",
       },
       {
-        icon: CgFormatIndentIncrease,
+        icon: LuIndentIncrease,
         title: "Add Indent",
         description:
           "With uniform width enabled, shift a word forward one space to align ideas in parallel lines.",
+        needs: "Uniform width on, and exactly one word selected. Up to 3 indents.",
       },
       {
-        icon: CgFormatIndentDecrease,
+        icon: LuIndentDecrease,
         title: "Remove Indent",
         description: "Remove the indent from the selected word.",
+        needs: "Uniform width on, and one indented word selected.",
       },
       {
-        icon: TbEdit,
+        icon: LuTextCursorInput,
         title: "Edit English Gloss",
         description:
           "Edit the word by word English translation (gloss) for this document only. Hebrew text cannot be changed. Advanced users only.",
+        needs: "Exactly one word selected, in the English view (A).",
       },
     ],
   },
@@ -113,22 +127,25 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
     title: "Line",
     items: [
       {
-        icon: MdOutlinePlaylistAdd,
+        icon: structureIcon("line", "new"),
         title: "New Line",
         description:
           "Move selected words to a new line. If one word is selected, all following words on that line move with it.",
+        needs: "Words next to each other in one strophe, not starting at the beginning of a line.",
       },
       {
-        icon: LuArrowUpToLine,
+        icon: structureIcon("line", "prev"),
         title: "Merge with Previous Line",
         description:
           "Merge selected words with the line above. If one word is selected, all preceding words on that line merge upward.",
+        needs: "A word that is not on the first line of its strophe.",
       },
       {
-        icon: LuArrowDownToLine,
+        icon: structureIcon("line", "next"),
         title: "Merge with Next Line",
         description:
           "Merge selected words with the line below. If one word is selected, all following words on that line merge downward.",
+        needs: "A word that is not on the last line of its strophe.",
       },
     ],
   },
@@ -140,22 +157,25 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
     ],
     items: [
       {
-        icon: CgArrowsBreakeV,
+        icon: structureIcon("strophe", "new"),
         title: "New Strophe",
         description:
           "Start a new strophe at the selected word. All following words move into the new strophe. Selecting a consecutive group moves only that group into its own strophe.",
+        needs: "A word, or words next to each other.",
       },
       {
-        icon: LuArrowUpNarrowWide,
+        icon: structureIcon("strophe", "prev"),
         title: "Merge with Previous Strophe",
         description:
           "Merge the selected word and all preceding words into the strophe above. You can also merge an entire strophe using the strophe selector.",
+        needs: "A word, or one strophe, that is not the first in its stanza. Strophes only merge within a stanza.",
       },
       {
-        icon: LuArrowDownWideNarrow,
+        icon: structureIcon("strophe", "next"),
         title: "Merge with Next Strophe",
         description:
           "Merge the selected word and all following words into the strophe below. You can also merge an entire strophe using the strophe selector.",
+        needs: "A word, or one strophe, that is not the last in its stanza. Strophes only merge within a stanza.",
       },
     ],
   },
@@ -167,24 +187,25 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
     ],
     items: [
       {
-        icon: CgArrowsBreakeH,
+        icon: structureIcon("stanza", "new"),
         title: "New Stanza",
         description:
           "Move the selected strophe into a new stanza. In single language view, stanzas appear side by side. In parallel view, new stanzas appear below.",
+        needs: "A strophe (its select icon) or a word in it. The passage needs at least two strophes.",
       },
       {
-        icon: LuArrowDownWideNarrow,
-        iconStyle: { transform: 'rotate(90deg)' },
+        icon: structureIcon("stanza", "prev"),
         title: "Merge with Previous Stanza",
         description:
           "Merge the selected strophe and all preceding strophes into the previous stanza. Multiple strophes can be merged at once.",
+        needs: "A strophe or a word in it, not in the first stanza.",
       },
       {
-        icon: LuArrowUpNarrowWide,
-        iconStyle: { transform: 'rotate(90deg)' },
+        icon: structureIcon("stanza", "next"),
         title: "Merge with Next Stanza",
         description:
           "Merge the selected strophe and all following strophes into the next stanza. Multiple strophes can be merged at once.",
+        needs: "A strophe or a word in it, not in the last stanza.",
       },
     ],
   },
@@ -277,6 +298,12 @@ const ButtonInfoModal = ({
                         <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.title}</span>
                     </div>
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.description}</p>
+                    {item.needs && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">Needs: </span>
+                        {item.needs}
+                      </p>
+                    )}
                 </div>
                 ))}
             </div>

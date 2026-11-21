@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, useContext, useEffect, useRef, useState, useCallback } from "react";
-import { updateStudyName } from '@/lib/actions';
+import { updateStudyName } from "@/lib/studyPersistence";
 import { StudyData } from '@/lib/data';
 import { FormatContext } from '../index';
 

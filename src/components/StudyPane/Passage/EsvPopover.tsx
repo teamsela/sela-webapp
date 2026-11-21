@@ -42,7 +42,9 @@ const EsvPopover = ({
       if (
         !popoversOpen ||
         popovers.current.contains(target) ||
-        trigger.current.contains(target)
+        trigger.current.contains(target) ||
+        // The tutorial's bubble (Continue, Back) isn't a click on the page.
+        (target instanceof Element && target.closest("[data-tour-ui]"))
       )
         return;
       setPopoversOpen(false);
@@ -95,6 +97,8 @@ const EsvPopover = ({
   const popoverContent = (
     <div
       ref={popovers}
+      data-tour="esv-popover"
+      data-open={popoversOpen ? "true" : "false"}
       onFocus={() => setPopoversOpen(true)}
       onBlur={() => setPopoversOpen(false)}
       style={{ top: popoverPosition.top, left: popoverPosition.left }}
@@ -114,6 +118,8 @@ const EsvPopover = ({
         <div className={`relative inline-block ${popoversOpen ? 'z-30' : 'z-0'}`}>
           <button
             ref={trigger}
+            // Only verse 1 is marked, so the tutorial lights up one verse number.
+            data-tour={verseNumber === 1 ? "verse-number" : undefined}
             onClick={() => {
               const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>

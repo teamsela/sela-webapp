@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
+import { HiPlus, HiOutlineClock, HiUserGroup, HiFolder, HiFolderOpen, HiChevronDown, HiOutlineAcademicCap } from "react-icons/hi2";
 import { FaBookReader } from "react-icons/fa";
 import { PiBookBookmarkFill } from "react-icons/pi";
 
 import { UserButton } from '@clerk/nextjs';
+
+import { fetchTutorialStudies, type TutorialStudySummary } from "@/lib/actions";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -22,6 +24,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
+
+  // Tutorials folder: open by default, filled from studies flagged tutorial = true.
+  const [tutorialsOpen, setTutorialsOpen] = useState(true);
+  const [tutorials, setTutorials] = useState<TutorialStudySummary[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchTutorialStudies()
+      .then((rows) => { if (active) setTutorials(rows); })
+      .catch(() => { if (active) setTutorials([]); });
+    return () => { active = false; };
+  }, []);
 
 
   // close on click outside
@@ -151,6 +165,47 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
                 </Link>
               </li>
               {/* <!-- Menu Item Scriptura --> */}
+
+              {/* <!-- Menu Folder Tutorials --> */}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setTutorialsOpen((open) => !open)}
+                  aria-expanded={tutorialsOpen}
+                  aria-controls="sidebar-tutorials"
+                  className="group relative flex w-full items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4"
+                >
+                  {tutorialsOpen ? <HiFolderOpen size="20px" /> : <HiFolder size="20px" />}
+                  Tutorials
+                  <HiChevronDown
+                    size="16px"
+                    className={`ml-auto transition-transform duration-200 ${tutorialsOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {tutorialsOpen && (
+                  <ul id="sidebar-tutorials" className="mt-1 flex flex-col gap-1 pl-6">
+                    {tutorials === null && (
+                      <li className="py-1.5 px-4 text-sm text-bodydark2">Loading…</li>
+                    )}
+                    {tutorials !== null && tutorials.length === 0 && (
+                      <li className="py-1.5 px-4 text-sm text-bodydark2">No tutorials yet</li>
+                    )}
+                    {tutorials?.map((tutorial) => (
+                      <li key={tutorial.id}>
+                        <Link
+                          href={`/study/${tutorial.id.replace(/^rec_/, "")}/view`}
+                          className="group relative flex items-center gap-2.5 rounded-sm py-1.5 px-4 text-sm font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4"
+                        >
+                          <HiOutlineAcademicCap size="18px" className="shrink-0" />
+                          {tutorial.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+              {/* <!-- Menu Folder Tutorials --> */}
 
             </ul>
           </div>

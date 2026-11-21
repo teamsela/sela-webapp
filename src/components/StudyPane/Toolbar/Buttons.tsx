@@ -1,13 +1,20 @@
 "use client";
 
-import { LuUndo2, LuRedo2, LuArrowUpToLine, LuArrowDownToLine, LuArrowUpNarrowWide, LuArrowDownWideNarrow, LuNotebookPen } from "react-icons/lu";
-import { MdOutlineModeEdit, MdOutlinePlaylistAdd } from "react-icons/md";
-import { BiSolidColorFill, BiFont } from "react-icons/bi";
-import { AiOutlineClear } from "react-icons/ai";
-import { VscClearAll } from "react-icons/vsc";
-import { TbArrowAutofitContent, TbArrowAutofitContentFilled, TbEdit } from "react-icons/tb";
-import { CgArrowsBreakeV, CgArrowsBreakeH, CgFormatIndentIncrease, CgFormatIndentDecrease, CgEreader } from "react-icons/cg";
-import { TbBoxModel2, TbBoxModel2Off } from "react-icons/tb";
+import { LuUndo2, LuRedo2, LuNotebookPen, LuPaintBucket, LuBaseline, LuRemoveFormatting, LuEraser, LuTextCursorInput, LuIndentIncrease, LuIndentDecrease } from "react-icons/lu";
+import { CgEreader } from "react-icons/cg";
+import { ToolbarButton, ToolTip } from "./ToolbarButton";
+import { BorderColorIcon, StructureIcon, UniformWidthIcon, WordBoxesIcon, type StructureAction, type StructureLevel } from "./ToolbarIcons";
+import {
+  clearAllAvailability,
+  clearFormatAvailability,
+  colorAvailability,
+  editGlossAvailability,
+  indentAvailability,
+  redoAvailability,
+  stanzaTargets,
+  structureAvailability,
+  undoAvailability,
+} from "@/lib/toolbarAvailability";
 
 import { SwatchesPicker } from 'react-color';
 import { FALLBACK_SWATCH_GROUPS } from "@/lib/colors";
@@ -15,19 +22,10 @@ import React, { useContext, useEffect, useCallback, useState } from 'react';
 
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, FormatContext, HistoryEntry, cloneHighlightCache, cloneWordsColorMap } from '../index';
 import { BoxDisplayConfig, BoxDisplayStyle, ColorActionType, ColorPickerProps, LanguageMode, StructureUpdateType } from "@/lib/types";
-import { updateMetadataInDb } from "@/lib/actions";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 
 import { ColorSource, StudyMetadata, StropheProps, WordProps, ColorData } from '@/lib/data';
 import { clearAllFormattingState } from "@/lib/formatting";
-
-export const ToolTip = ({ text }: { text: string }) => {
-  return (
-    <div className="absolute left-1/2 top-full mt-3 -translate-x-1/2 whitespace-nowrap rounded bg-black px-4.5 py-1.5 text-xs text-white opacity-0 group-hover:opacity-100 pointer-events-none">
-      <span className="absolute left-1/2 top-[-3px] -z-10 h-2 w-2 -translate-x-1/2 rotate-45 rounded-sm bg-black"></span>
-      {text}
-    </div>
-  )
-}
 
 export const UndoBtn = () => {
   const {
@@ -73,14 +71,9 @@ export const UndoBtn = () => {
   }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center pl-3 px-1 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <LuUndo2 fontSize="1.5em" opacity={(buttonEnabled) ? `1` : `0.4`} />
-      </button>
-      <ToolTip text="Undo" />
-    </div>
+    <ToolbarButton label="Undo" shortLabel="Undo" availability={undoAvailability(buttonEnabled)} onClick={handleClick} wrapperClassName="pl-2">
+      <LuUndo2 fontSize="1.5em" />
+    </ToolbarButton>
   );
 };
 
@@ -127,14 +120,9 @@ export const RedoBtn = () => {
     }
   }
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-3 dark:border-strokedark xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <LuRedo2 fontSize="1.5em" opacity={buttonEnabled ? `1` : `0.4`} />
-      </button>
-      <ToolTip text="Redo" />
-    </div>
+    <ToolbarButton label="Redo" shortLabel="Redo" availability={redoAvailability(buttonEnabled)} onClick={handleClick} wrapperClassName="px-2">
+      <LuRedo2 fontSize="1.5em" />
+    </ToolbarButton>
   );
 };
 
@@ -363,36 +351,28 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
     (isChanged) && setStagedMetadata(ctxStudyMetadata);
   } 
 
-  return (
-    <div className="flex flex-col items-center justify-center px-2 xsm:flex-row ClickBlock">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
-        onClick={handleClick} >
-        {
-          (colorAction === ColorActionType.colorFill) && <BiSolidColorFill className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
-        }
-        {
-          (colorAction === ColorActionType.borderColor) && <MdOutlineModeEdit className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
-        }
-        {
-          (colorAction === ColorActionType.textColor) && <BiFont className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
-        }
-        <div
-          // TODO: using embbed style for the color display for now, may move to tailwind after some research
-          style={
-            {
-              width: "100%",
-              height: "0.25rem",
-              background: `${buttonEnabled ? displayColor : '#FFFFFF'}`,
-              marginTop: "0.05rem",
-            }
-          }
-        >
-        </div>
-      </button>
+  const availability = colorAvailability(colorAction, {
+    words: ctxNumSelectedWords,
+    strophes: ctxNumSelectedStrophes,
+    layers: ctxNumSelectedLayers,
+  });
+  const pickerOpen = ctxColorAction === colorAction && buttonEnabled;
+  const [label, shortLabel, tourKey] =
+    colorAction === ColorActionType.colorFill ? ["Fill color", "Fill", "fill-color"]
+    : colorAction === ColorActionType.borderColor ? ["Border color", "Border", "border-color"]
+    : ["Text color", "Text", "font-color"];
 
-      {
-        ctxColorAction === colorAction && buttonEnabled && (
+  return (
+    <ToolbarButton
+      label={label}
+      shortLabel={shortLabel}
+      availability={availability}
+      pressed={pickerOpen}
+      onClick={handleClick}
+      dataTour={tourKey}
+      tooltip={!pickerOpen}
+      extra={
+        pickerOpen && (
           <div className="relative z-10">
             <div className="absolute top-6 -left-6">
               <SwatchesPicker
@@ -406,11 +386,23 @@ export const ColorActionBtn: React.FC<ColorPickerProps> = ({
           </div>
         )
       }
-    </div>
+    >
+      {colorAction === ColorActionType.colorFill && <LuPaintBucket className="ClickBlock" fontSize="1.4em" />}
+      {colorAction === ColorActionType.borderColor && <BorderColorIcon className="ClickBlock" size="1.4em" />}
+      {colorAction === ColorActionType.textColor && <LuBaseline className="ClickBlock" fontSize="1.4em" />}
+      <div
+        className="ClickBlock"
+        style={{
+          width: "100%",
+          height: "0.25rem",
+          background: `${buttonEnabled ? displayColor : '#FFFFFF'}`,
+          marginTop: "0.05rem",
+        }}
+      />
+    </ToolbarButton>
   );
 };
 
-const EDIT_INDICATOR_COLOR = "#3C50E0";
 
 export const EditWordBtn = () => {
   const {
@@ -436,29 +428,16 @@ export const EditWordBtn = () => {
   };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'} ClickBlock`}
-        onClick={handleClick}
-      >
-        <TbEdit
-          className="ClickBlock"
-          fontSize="1.4em"
-          opacity={buttonEnabled ? "1" : "0.4"}
-          color={isEditing ? EDIT_INDICATOR_COLOR : undefined}
-        />
-        <div
-          style={{
-            width: "100%",
-            height: "0.25rem",
-            background: `${buttonEnabled && isEditing ? EDIT_INDICATOR_COLOR : '#FFFFFF'}`,
-            opacity: buttonEnabled ? 1 : 0.4,
-            marginTop: "0.05rem",
-          }}
-        />
-      </button>
-      <ToolTip text="Edit English gloss" />
-    </div>
+    <ToolbarButton
+      label="Edit English gloss"
+      shortLabel="Gloss"
+      availability={editGlossAvailability({ selectedCount: ctxSelectedWords.length, isHebrew: ctxIsHebrew, inViewMode: ctxInViewMode })}
+      pressed={isEditing}
+      onClick={handleClick}
+      dataTour="edit-gloss"
+    >
+      <LuTextCursorInput className="ClickBlock" fontSize="1.4em" />
+    </ToolbarButton>
   );
 };
 
@@ -531,14 +510,14 @@ export const ClearFormatBtn = ({ setColorAction }: { setColorAction: (arg: numbe
   }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <AiOutlineClear className="ClickBlock" fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.4em" />
-      </button>
-      <ToolTip text="Clear format" />
-    </div>
+    <ToolbarButton
+      label="Clear format"
+      shortLabel="Clear"
+      availability={clearFormatAvailability({ words: ctxNumSelectedWords, strophes: ctxNumSelectedStrophes })}
+      onClick={handleClick}
+    >
+      <LuRemoveFormatting className="ClickBlock" fontSize="1.4em" />
+    </ToolbarButton>
   );
 };
 
@@ -604,14 +583,9 @@ export const ClearAllFormatBtn = ({ setColorAction }: { setColorAction: (arg: nu
   }
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        <VscClearAll className="ClickBlock" fontSize="1.4em" opacity={(buttonEnabled) ? `1` : `0.4`} />
-      </button>
-      <ToolTip text="Clear all format" />
-    </div>
+    <ToolbarButton label="Clear all format" shortLabel="Clear all" availability={clearAllAvailability(buttonEnabled)} onClick={handleClick}>
+      <LuEraser className="ClickBlock" fontSize="1.4em" />
+    </ToolbarButton>
   );
 };
 
@@ -641,25 +615,11 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
     }
   }
   
+  const on = ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes;
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        {
-          ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <TbArrowAutofitContentFilled fontSize="1.5em" />
-        }
-        {
-          ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <TbArrowAutofitContent fontSize="1.5em" />
-        }
-      </button>
-      {
-        ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <ToolTip text="Disable uniform width" />
-      }
-      {
-        ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <ToolTip text="Enable uniform width" />
-      }      
-    </div>
+    <ToolbarButton label={on ? "Disable uniform width" : "Enable uniform width"} shortLabel="Uniform" pressed={on} onClick={handleClick} dataTour="uniform-width">
+      <UniformWidthIcon size="1.5em" />
+    </ToolbarButton>
   );
 };
 
@@ -685,25 +645,11 @@ export const BoxlessBtn = ({ setBoxStyle }: {
     }
   }
   
+  const on = ctxBoxDisplayConfig.style !== BoxDisplayStyle.noBox;
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className="hover:text-primary"
-        onClick={handleClick} >
-        {
-          ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox && <TbBoxModel2 fontSize="1.5em" />
-        }
-        {
-          ctxBoxDisplayConfig.style !== BoxDisplayStyle.noBox && <TbBoxModel2Off fontSize="1.5em" />
-        }
-      </button>
-      {
-        ctxBoxDisplayConfig.style === BoxDisplayStyle.noBox && <ToolTip text="Enable boxes" />
-      }
-      {
-        ctxBoxDisplayConfig.style !== BoxDisplayStyle.noBox && <ToolTip text="Disable boxes" />
-      }      
-    </div>
+    <ToolbarButton label={on ? "Disable boxes" : "Enable boxes"} shortLabel="Boxes" pressed={on} onClick={handleClick} dataTour="boxes">
+      <WordBoxesIcon size="1.5em" />
+    </ToolbarButton>
   );
 };
 
@@ -758,151 +704,84 @@ export const IndentBtn = ({ leftIndent }: { leftIndent: boolean }) => {
       }
     }
   }
+  const showIncrease = ((ctxLanguageMode != LanguageMode.Hebrew) && leftIndent) || ((ctxLanguageMode == LanguageMode.Hebrew) && !leftIndent);
+  const availability = indentAvailability(leftIndent, {
+    boxStyle: ctxBoxDisplayConfig.style,
+    selectedCount: ctxNumSelectedWords,
+    indent: ctxIndentNum,
+  });
   return (
-    <div className={`flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row hbFontExemption `}>
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        {
-          ((ctxLanguageMode != LanguageMode.Hebrew) && leftIndent) || ((ctxLanguageMode == LanguageMode.Hebrew) && !leftIndent) ?
-            <CgFormatIndentIncrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" /> :
-            <CgFormatIndentDecrease fillOpacity={buttonEnabled ? "1" : "0.4"} fontSize="1.5em" />
-        }
-      </button>
-      <ToolTip text={(leftIndent) ? "Add indent" : "Remove indent"} />
-    </div>
+    <ToolbarButton
+      label={leftIndent ? "Add indent" : "Remove indent"}
+      shortLabel={leftIndent ? "Indent" : "Outdent"}
+      availability={buttonEnabled ? { enabled: true } : availability.enabled ? { enabled: false, reason: "Select exactly one word." } : availability}
+      onClick={handleClick}
+      dataTour={leftIndent ? "indent-add" : "indent-remove"}
+      wrapperClassName="px-1 hbFontExemption"
+    >
+      {showIncrease ? <LuIndentIncrease fontSize="1.5em" /> : <LuIndentDecrease fontSize="1.5em" />}
+    </ToolbarButton>
   );
 };
 
-const areStrophesContiguous = (strophes: StropheProps[]): boolean => {
-  if (strophes.length <= 1) return true;
-
-  const sorted = [...strophes].sort((a, b) =>
-    a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
-
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const currentLastWordId = sorted[i].lines.at(-1)?.words.at(-1)?.wordId;
-    const nextFirstWordId = sorted[i + 1].lines[0].words[0].wordId;
-
-    if (currentLastWordId === undefined || nextFirstWordId !== currentLastWordId + 1) {
-      return false;
-    }
-  }
-
-  return true;
+const STRUCTURE_ICON: Record<number, { level: StructureLevel; action: StructureAction; short: string }> = {
+  [StructureUpdateType.newLine]: { level: "line", action: "new", short: "New" },
+  [StructureUpdateType.mergeWithPrevLine]: { level: "line", action: "prev", short: "Merge \u2191" },
+  [StructureUpdateType.mergeWithNextLine]: { level: "line", action: "next", short: "Merge \u2193" },
+  [StructureUpdateType.newStrophe]: { level: "strophe", action: "new", short: "New" },
+  [StructureUpdateType.mergeWithPrevStrophe]: { level: "strophe", action: "prev", short: "Merge \u2191" },
+  [StructureUpdateType.mergeWithNextStrophe]: { level: "strophe", action: "next", short: "Merge \u2193" },
+  [StructureUpdateType.newStanza]: { level: "stanza", action: "new", short: "New" },
+  [StructureUpdateType.mergeWithPrevStanza]: { level: "stanza", action: "prev", short: "Merge prev" },
+  [StructureUpdateType.mergeWithNextStanza]: { level: "stanza", action: "next", short: "Merge next" },
 };
 
-const areWordsContiguous = (words: WordProps[]): boolean => {
-  if (words.length <= 1) return true;
-
-  const sorted = [...words].sort((a, b) => a.wordId - b.wordId);
-
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (sorted[i + 1].wordId !== sorted[i].wordId + 1) {
-      return false;
-    }
-  }
-
-  return true;
-};
+const STANZA_UPDATES = new Set([
+  StructureUpdateType.newStanza,
+  StructureUpdateType.mergeWithPrevStanza,
+  StructureUpdateType.mergeWithNextStanza,
+]);
 
 export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: StructureUpdateType, toolTip: string }) => {
 
-  const { ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
+  const {
+    ctxSelectedWords, ctxLanguageMode, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes,
+    ctxPassageProps, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
+  } = useContext(FormatContext);
 
-  let buttonEnabled = false;
-  let hasWordSelected = (ctxSelectedWords.length > 0);
-  // let singleWordSelected = (ctxSelectedWords.length === 1);
-  let hasStropheSelected = (ctxSelectedStrophes.length === 1);
-  let hasStrophesSelected = (ctxNumSelectedStrophes >= 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
-
-  const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
-  const firstSelectedWord = sortedWords[0];
-  const lastSelectedWord = sortedWords[sortedWords.length - 1];
-  const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
-  const firstSelectedStrophe = sortedStrophes[0];
-  const lastSelectedStrophe = sortedStrophes[sortedStrophes.length - 1];
+  const selection = {
+    selectedWords: ctxSelectedWords,
+    selectedStrophes: ctxSelectedStrophes,
+    numSelectedStrophes: ctxNumSelectedStrophes,
+    passage: ctxPassageProps,
+  };
+  const availability = structureAvailability(updateType, selection);
+  const icon = STRUCTURE_ICON[updateType];
   const isHebrew = (ctxLanguageMode == LanguageMode.Hebrew);
 
-  if (updateType === StructureUpdateType.newLine) {
-    if (hasWordSelected && firstSelectedWord) {
-      const sameStrophe = ctxSelectedWords.every(w => w.stropheId === firstSelectedWord.stropheId);
-      let wholeLine = false;
-      const sameLine = ctxSelectedWords.every(w => w.lineId === firstSelectedWord.lineId && w.stropheId === firstSelectedWord.stropheId);
-      if (sameLine) {
-        const lineWords = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
-          .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words.length;
-        wholeLine = ctxSelectedWords.length === lineWords;
+  const handleClick = () => {
+    if (!availability.enabled) return;
+    if (STANZA_UPDATES.has(updateType)) {
+      // Selecting a word is enough: act on the strophe(s) that hold it.
+      const targets = stanzaTargets(selection);
+      if (targets.fromWords) {
+        ctxSetSelectedStrophes(targets.strophes);
+        ctxSetNumSelectedStrophes(targets.strophes.length);
       }
-      const isFirstWord = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
-        .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId].words[0].wordId === firstSelectedWord.wordId;
-      buttonEnabled = sameStrophe && !wholeLine && areWordsContiguous(ctxSelectedWords) && !isFirstWord;
-    } else {
-      buttonEnabled = false;
     }
-  } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
-  } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-      buttonEnabled = hasWordSelected && lastSelectedWord &&
-        ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
-        .strophes[lastSelectedWord.stropheId]?.lines?.length - 1 !== lastSelectedWord.lineId;
-  } else if (updateType === StructureUpdateType.newStrophe) {
-    buttonEnabled = hasWordSelected && !!firstSelectedWord && areWordsContiguous(ctxSelectedWords);
-  } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = ((hasWordSelected && firstSelectedWord && !firstSelectedWord.firstStropheInStanza) ||
-      (hasStropheSelected && firstSelectedStrophe && !firstSelectedStrophe.firstStropheInStanza));
-  } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = ((hasWordSelected && lastSelectedWord && !lastSelectedWord.lastStropheInStanza) ||
-      (hasStropheSelected && lastSelectedStrophe && !lastSelectedStrophe.lastStropheInStanza));
-  } else if (updateType === StructureUpdateType.newStanza) {
-    buttonEnabled = hasStrophesSelected && !!firstSelectedStrophe && areStrophesContiguous(ctxSelectedStrophes);
-  } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
-    buttonEnabled = hasStrophesSelected &&
-      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId > 0) &&
-      areStrophesContiguous(ctxSelectedStrophes);
-  } else if (updateType === StructureUpdateType.mergeWithNextStanza) {
-    buttonEnabled = hasStrophesSelected &&
-      (ctxSelectedStrophes[0].lines[0].words[0].stanzaId !== undefined && ctxSelectedStrophes[0].lines[0].words[0].stanzaId < ctxPassageProps.stanzaCount - 1) &&
-      areStrophesContiguous(ctxSelectedStrophes);
-  }
-
-  const handleClick = () => { buttonEnabled && ctxSetStructureUpdateType(updateType) };
+    ctxSetStructureUpdateType(updateType);
+  };
 
   return (
-    <div className="flex flex-col group relative inline-block items-center justify-center px-2 xsm:flex-row">
-      <button
-        className={`hover:text-primary ${buttonEnabled ? '' : 'pointer-events-none'}`}
-        onClick={handleClick} >
-        {
-          (updateType === StructureUpdateType.newLine) && <MdOutlinePlaylistAdd opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.mergeWithPrevLine) && <LuArrowUpToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.mergeWithNextLine) && <LuArrowDownToLine opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.newStrophe) && <CgArrowsBreakeV opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.mergeWithPrevStrophe) && <LuArrowUpNarrowWide opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.mergeWithNextStrophe) && <LuArrowDownWideNarrow opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          (updateType === StructureUpdateType.newStanza) && <CgArrowsBreakeH opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          ((updateType == StructureUpdateType.mergeWithPrevStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithNextStanza && isHebrew) && <LuArrowDownWideNarrow style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        {
-          ((updateType == StructureUpdateType.mergeWithNextStanza && !isHebrew) || updateType == StructureUpdateType.mergeWithPrevStanza && isHebrew) && <LuArrowUpNarrowWide style={{ transform: 'rotate(90deg)' }} opacity={(buttonEnabled) ? `1` : `0.4`} fontSize="1.5em" />
-        }
-        <ToolTip text={toolTip} />
-      </button>
-    </div>
+    <ToolbarButton
+      label={toolTip}
+      shortLabel={icon?.short}
+      availability={availability}
+      onClick={handleClick}
+      dataTour={`structure-${StructureUpdateType[updateType]}`}
+    >
+      {icon && <StructureIcon level={icon.level} action={icon.action} rtl={isHebrew} size="1.5em" />}
+    </ToolbarButton>
   );
 };
 
@@ -929,11 +808,14 @@ export const StropheNoteBtn = () => {
   const { ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn, ctxLanguageMode } = useContext(FormatContext)
   const disabled = ctxLanguageMode === LanguageMode.Parallel;
   return (
-    <div >
+    <div data-tour="notes-toggle">
       <button 
         className={`${ctxStropheNoteBtnOn ? 'bg-white': ''} py-2 px-2 rounded-[5px] bg-[#F2F2F2] border-[2px] border-[#D9D9D9] top-0 w-full h-[40px] place-content-around items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => {!disabled && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}}
         disabled={disabled}
+        aria-label="Strophe notes"
+        aria-pressed={ctxStropheNoteBtnOn}
+        title={disabled ? "Notes aren't available in the English + Hebrew view. Switch to A or \u05d0." : "Strophe notes"}
       >
       <LuNotebookPen />
       </button>
@@ -954,3 +836,5 @@ export const ReadmeBtn = () => {
     </div>
   );
 }
+
+export { ToolbarButton, ToolTip };

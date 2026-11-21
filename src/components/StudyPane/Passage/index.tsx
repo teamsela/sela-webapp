@@ -7,7 +7,7 @@ import { StropheAlignContext } from './stropheAlign';
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
 import { RichDoc, mergeRichDocs } from '@/lib/richText';
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
