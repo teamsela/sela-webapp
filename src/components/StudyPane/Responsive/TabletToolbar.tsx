@@ -79,7 +79,7 @@ export const TabletToolbar = ({
           <RedoBtn />
         </div>
 
-        <div role="tablist" aria-label="Tool group" className="flex rounded-lg bg-slate-100 p-1">
+        <div role="tablist" aria-label="Tool group" className="flex rounded-lg bg-whiten p-1">
           {GROUPS.map((g) => (
             <button
               key={g}
@@ -90,7 +90,7 @@ export const TabletToolbar = ({
                 setGroup(g);
                 setColorAction(ColorActionType.none);
               }}
-              className={`h-10 rounded-md px-3 text-sm font-semibold ${group === g ? "bg-white text-primary shadow-sm" : "text-slate-600"}`}
+              className={`h-10 rounded-md px-3 text-sm font-semibold ${group === g ? "bg-white text-primary shadow-sm" : "text-body"}`}
             >
               {g}
             </button>

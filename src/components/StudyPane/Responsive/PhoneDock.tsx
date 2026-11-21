@@ -96,7 +96,7 @@ const SheetChrome = ({
     style={{ paddingBottom: "env(safe-area-inset-bottom)", ...style }}
   >
     <div className="flex h-4 shrink-0 justify-center pt-2">
-      <span className="h-1.5 w-10 rounded-full bg-slate-300" />
+      <span className="h-1.5 w-10 rounded-full bg-bodydark" />
     </div>
     <div className="flex h-12 shrink-0 items-center gap-2 px-4">
       <h2 className="min-w-0 flex-1 truncate text-base font-bold text-black">{title}</h2>
@@ -245,15 +245,15 @@ export const PhoneDock = ({
             onClick={() => setFull((f) => !f)}
             className="flex h-5 shrink-0 items-center justify-center"
           >
-            <span className="h-1.5 w-10 rounded-full bg-slate-300" />
+            <span className="h-1.5 w-10 rounded-full bg-bodydark" />
           </button>
-          <div className="flex h-11 shrink-0 items-center gap-1 border-b border-slate-200 pl-4 pr-2">
+          <div className="flex h-11 shrink-0 items-center gap-1 border-b border-stroke pl-4 pr-2">
             <h2 className="min-w-0 flex-1 truncate text-[17px] font-bold text-black">{toolsTitle}</h2>
             <button
               type="button"
               aria-label={full ? "Shrink the tools" : "Expand the tools"}
               onClick={() => setFull((f) => !f)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-body"
             >
               {full ? <LuMinimize2 size={18} /> : <LuMaximize2 size={18} />}
             </button>
@@ -261,7 +261,7 @@ export const PhoneDock = ({
               type="button"
               aria-label="Close tools"
               onClick={() => setInfoPaneAction(InfoPaneActionType.none)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-black"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-whiten text-black"
             >
               <LuX size={18} />
             </button>
@@ -276,12 +276,12 @@ export const PhoneDock = ({
             />
           </div>
           {hasSelection && !ctxInViewMode && (
-            <div className="flex h-14 shrink-0 items-center gap-2 border-t border-slate-200 px-3">
+            <div className="flex h-14 shrink-0 items-center gap-2 border-t border-stroke px-3">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{selectionLabel}</span>
               <button type="button" onClick={openColor} className="h-10 rounded-full bg-primary px-4 text-sm font-semibold text-white">
                 Color
               </button>
-              <button type="button" onClick={clearSelection} className="h-10 rounded-full bg-slate-100 px-4 text-sm font-semibold text-black">
+              <button type="button" onClick={clearSelection} className="h-10 rounded-full bg-whiten px-4 text-sm font-semibold text-black">
                 Done
               </button>
             </div>
@@ -294,12 +294,12 @@ export const PhoneDock = ({
         <div
           role="menu"
           aria-label={TRAY_TITLES[tray]}
-          className="fixed inset-x-2 z-50 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
+          className="fixed inset-x-2 z-50 rounded-2xl border border-stroke bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
           style={{ bottom: dockHeight + 8 }}
         >
           <div className="flex h-9 items-center pl-3 pr-1">
-            <span className="flex-1 text-xs font-bold uppercase tracking-wider text-slate-500">{TRAY_TITLES[tray]}</span>
-            <button type="button" aria-label="Close" onClick={() => setTray(null)} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500">
+            <span className="flex-1 text-xs font-bold uppercase tracking-wider text-body">{TRAY_TITLES[tray]}</span>
+            <button type="button" aria-label="Close" onClick={() => setTray(null)} className="flex h-9 w-9 items-center justify-center rounded-lg text-body">
               <LuX size={18} />
             </button>
           </div>
@@ -309,12 +309,12 @@ export const PhoneDock = ({
                 <button
                   type="button"
                   onClick={selectRepeats}
-                  className="flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left active:bg-slate-100"
+                  className="flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left active:bg-whiten"
                 >
                   <span className="flex w-7 justify-center"><LuShapes size={20} /></span>
                   <span className="flex flex-col">
                     <span className="text-[15px] font-semibold">Select repeats</span>
-                    <span className="text-xs text-slate-500">Every place this Hebrew word appears.</span>
+                    <span className="text-xs text-body">Every place this Hebrew word appears.</span>
                   </span>
                 </button>
                 <IndentBtn leftIndent={true} />
@@ -350,7 +350,7 @@ export const PhoneDock = ({
       {/* The bar at the bottom: selection bar or tool tabs */}
       <div
         ref={dockRef}
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-stroke bg-white"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {showSelectionBar ? (
@@ -362,7 +362,7 @@ export const PhoneDock = ({
                   Select repeats
                 </button>
               )}
-              <button type="button" onClick={clearSelection} className="h-9 rounded-lg bg-slate-100 px-3 text-sm font-semibold text-black">
+              <button type="button" onClick={clearSelection} className="h-9 rounded-lg bg-whiten px-3 text-sm font-semibold text-black">
                 Done
               </button>
             </div>
@@ -399,7 +399,7 @@ export const PhoneDock = ({
                   type="button"
                   aria-pressed={on}
                   onClick={() => openTool(action)}
-                  className={`flex flex-col items-center justify-center gap-1 text-[11px] ${on ? "font-bold text-primary" : "font-medium text-slate-500"}`}
+                  className={`flex flex-col items-center justify-center gap-1 text-[11px] ${on ? "font-bold text-primary" : "font-medium text-body"}`}
                 >
                   <Icon size={21} />
                   {label}
@@ -417,7 +417,7 @@ export const PhoneDock = ({
             <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
             <ColorActionBtn colorAction={ColorActionType.textColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
             <div ref={setSwatchSlot} className="px-2" />
-            <div className="mx-2 my-1 h-px bg-slate-200" />
+            <div className="mx-2 my-1 h-px bg-stroke" />
             <ClearFormatBtn setColorAction={setColorAction} />
             <ClearAllFormatBtn setColorAction={setColorAction} />
           </ToolbarVariantContext.Provider>
@@ -428,10 +428,10 @@ export const PhoneDock = ({
         <SheetChrome title="Word information" onClose={() => setSheet(null)} closeLabel="Close">
           {info ? (
             <div className="flex flex-col gap-3 px-2">
-              <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
+              <div className="flex items-end justify-between gap-3 border-b border-stroke pb-3">
                 <div className="min-w-0">
                   <div className="text-xl font-bold text-black">{info.gloss || activeWord?.gloss}</div>
-                  {info.transliteration && <div className="text-sm text-slate-500">{info.transliteration}</div>}
+                  {info.transliteration && <div className="text-sm text-body">{info.transliteration}</div>}
                 </div>
                 {info.hebrew && (
                   <span lang="he" dir="rtl" className="hbFont text-3xl text-black">
@@ -442,25 +442,25 @@ export const PhoneDock = ({
               <dl className="grid grid-cols-[110px_1fr] gap-y-2 text-sm">
                 {(info.morphology || activeWord?.morphology) && (
                   <>
-                    <dt className="text-slate-500">Morphology</dt>
+                    <dt className="text-body">Morphology</dt>
                     <dd className="font-semibold text-black">{info.morphology || activeWord?.morphology}</dd>
                   </>
                 )}
                 {info.strongsNumber && (
                   <>
-                    <dt className="text-slate-500">Strong&rsquo;s</dt>
+                    <dt className="text-body">Strong&rsquo;s</dt>
                     <dd className="font-semibold text-black">{info.strongsNumber}</dd>
                   </>
                 )}
               </dl>
               {info.meaning && (
-                <button type="button" onClick={() => setAnalysisOpen(true)} className="h-11 rounded-xl border border-slate-300 text-sm font-semibold text-black">
+                <button type="button" onClick={() => setAnalysisOpen(true)} className="h-11 rounded-xl border border-stroke text-sm font-semibold text-black">
                   Full word analysis
                 </button>
               )}
             </div>
           ) : (
-            <p className="px-3 text-sm italic text-slate-500">
+            <p className="px-3 text-sm italic text-body">
               {activeWord ? "No additional word information is available for this selection." : "Select a word to view detailed information."}
             </p>
           )}

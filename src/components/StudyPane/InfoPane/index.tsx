@@ -124,7 +124,7 @@ const InfoPane = ({
     return (
       <aside
         data-tour="info-pane"
-        className={`${drawer ? "absolute bottom-0 right-0 z-30 shadow-[-16px_0_40px_rgba(15,23,42,0.16)]" : "relative h-full shrink-0"} flex flex-col overflow-hidden border-l-2 border-slate-300 bg-white`}
+        className={`${drawer ? "absolute bottom-0 right-0 z-30 shadow-[-16px_0_40px_rgba(15,23,42,0.16)]" : "relative h-full shrink-0"} flex flex-col overflow-hidden border-l-2 border-stroke bg-white`}
         style={{ width: fold ? "env(viewport-segment-width 1 0, 50%)" : drawer ? "min(380px, 90vw)" : 360, top: drawer ? top : undefined }}
       >
         <button className="absolute right-4 top-4" onClick={handleClick} aria-label="Close tools" style={{ zIndex: 1000 }}>

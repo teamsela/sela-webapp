@@ -82,16 +82,16 @@ export const ToolbarButton = ({
           aria-disabled={enabled ? undefined : true}
           aria-pressed={pressed}
           aria-describedby={reason ? tipId : undefined}
-          className={`ClickBlock flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left ${enabled ? 'active:bg-slate-100' : 'cursor-not-allowed'} ${pressed ? 'bg-primary/10 text-primary' : ''}`}
+          className={`ClickBlock flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left ${enabled ? 'active:bg-whiten' : 'cursor-not-allowed'} ${pressed ? 'bg-primary/10 text-primary' : ''}`}
           onClick={handleClick}
         >
           <span className="ClickBlock flex w-7 shrink-0 flex-col items-center" style={{ opacity: enabled ? 1 : 0.4 }}>
             {children}
           </span>
           <span className="ClickBlock flex min-w-0 flex-col">
-            <span className={`ClickBlock text-[15px] font-semibold ${enabled ? '' : 'text-slate-400'}`}>{label}</span>
+            <span className={`ClickBlock text-[15px] font-semibold ${enabled ? '' : 'text-bodydark2'}`}>{label}</span>
             {reason && (
-              <span id={tipId} className={`ClickBlock text-xs leading-4 ${flash ? 'text-primary' : 'text-slate-500'}`}>
+              <span id={tipId} className={`ClickBlock text-xs leading-4 ${flash ? 'text-primary' : 'text-body'}`}>
                 {reason}
               </span>
             )}
@@ -119,7 +119,7 @@ export const ToolbarButton = ({
         </span>
         {shortLabel && (
           <span
-            className={`ClickBlock mt-1 whitespace-nowrap leading-3 ${ribbon ? 'block text-[11px] text-slate-600' : 'hidden text-[10px] text-slate-500 min-[1800px]:block'}`}
+            className={`ClickBlock mt-1 whitespace-nowrap leading-3 ${ribbon ? 'block text-[11px] text-body' : 'hidden text-[10px] text-body min-[1800px]:block'}`}
             style={ribbon ? { opacity: enabled ? 1 : 0.5 } : undefined}
           >
             {shortLabel}

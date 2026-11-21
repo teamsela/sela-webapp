@@ -4,7 +4,8 @@ import { useContext, useEffect, useState, useRef, useMemo } from "react";
 import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "..";
 import { StropheBlock } from "./StropheBlock";
 import { CounterStropheBlock } from "./CounterStropheBlock";
-import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
+import { LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { useLayout } from "../Responsive/layout";
 import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
@@ -35,7 +36,9 @@ export const StanzaBlock = ({
     []
   );
 
-  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
+  // Stanzas stack on phones and narrow tablets (see PassageBlock), so the collapse arrow points up there too.
+  const { mode: layoutMode } = useLayout();
+  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn || layoutMode === "phone" || layoutMode === "tablet";
   const shouldStretchReadmeStanza = ctxReadmeBtnOn && ctxLanguageMode != LanguageMode.Parallel;
   const isParallelMode = ctxLanguageMode == LanguageMode.Parallel;
   const stanzaHorizontalPaddingClass = isParallelMode
@@ -158,14 +161,14 @@ export const StanzaBlock = ({
     if (shouldStackStanzas) {
       if (expanded) {
         return (
-            <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
+            <LuArrowLeftToLine className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
         )
       }
       else {
         return (
           <>
           { 
-            ctxIsHebrew ? <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> : <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} />
+            ctxIsHebrew ? <LuArrowRightToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> : <LuArrowLeftToLine fontSize="1.1em" style={{pointerEvents:'none'}} />
           } 
           </>
         )  
@@ -175,8 +178,8 @@ export const StanzaBlock = ({
     else {
       return (
         <>
-          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
-          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
+          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <LuArrowLeftToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <LuArrowRightToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
         </>
       )        
     }

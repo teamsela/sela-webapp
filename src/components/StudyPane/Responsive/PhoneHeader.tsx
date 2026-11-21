@@ -2,41 +2,70 @@
 
 import { useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LuChevronLeft, LuEllipsis, LuNotebookPen } from "react-icons/lu";
+import { LuChevronLeft, LuEllipsis } from "react-icons/lu";
 
 import type { StudyData } from "@/lib/data";
-import { BoxDisplayConfig, LanguageMode } from "@/lib/types";
+import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { FormatContext } from "../index";
-import LanguageSwitcher from "../Header/LanguageSwitcher";
 import ScaleDropDown from "../Toolbar/ScaleDropDown";
 import { BoxlessBtn, RedoBtn, UndoBtn, UniformWidthBtn } from "../Toolbar/Buttons";
-import { ToolbarVariantContext } from "./layout";
 
 /*
-  The phone's header: back, the passage and study name, undo/redo and a
-  "more" menu on top; the language switch, word boxes and notes on a second
-  row. Everything the desktop toolbar's view controls do is in the menu.
+  The phone's header.
+
+  Top row: back, the passage and study name, undo/redo, and a "more" menu.
+  Second row: the language switch (A, English + Hebrew, Hebrew) and the two
+  word-box toggles (Boxes, Uniform width), each shown once.
+  The menu: how Hebrew is shown (script or transliteration), the Hebrew
+  reader view, text size, and Copy to My Studies where allowed.
+
+  "Notes beside strophes" is left out on phones: there is no room beside a
+  strophe, so it would only show the note. Each strophe's own note button
+  still opens its note in place.
 */
 
 const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
-const MenuToggle = ({ label, on, onToggle, reason }: { label: string; on: boolean; onToggle: () => void; reason?: string }) => (
-  <button
-    type="button"
-    role="menuitemcheckbox"
-    aria-checked={on}
-    aria-disabled={reason ? true : undefined}
-    onClick={() => !reason && onToggle()}
-    className={`flex min-h-[48px] w-full items-center gap-3 rounded-xl px-3 text-left text-[15px] ${reason ? "cursor-not-allowed text-slate-400" : "active:bg-slate-100"}`}
-  >
-    <span className="flex min-w-0 flex-1 flex-col">
-      <span>{label}</span>
-      {reason && <span className="text-xs text-slate-500">{reason}</span>}
-    </span>
-    <span className={`flex h-6 w-10 shrink-0 rounded-full p-0.5 ${on ? "justify-end bg-primary" : "justify-start bg-slate-300"}`}>
-      <span className="h-5 w-5 rounded-full bg-white" />
-    </span>
-  </button>
+const Switch = ({ on }: { on: boolean }) => (
+  <span aria-hidden="true" className={`flex h-6 w-10 shrink-0 rounded-full p-0.5 transition-colors ${on ? "justify-end bg-primary" : "justify-start bg-bodydark"}`}>
+    <span className="h-5 w-5 rounded-full bg-white shadow" />
+  </span>
+);
+
+const Segmented = <T extends string | number>({
+  label,
+  options,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  options: { value: T; label: string; ariaLabel?: string; lang?: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  disabled?: boolean;
+}) => (
+  <div role="radiogroup" aria-label={label} className={`flex rounded-lg bg-whiten p-[3px] ${disabled ? "opacity-50" : ""}`}>
+    {options.map((o) => {
+      const on = o.value === value;
+      return (
+        <button
+          key={String(o.value)}
+          type="button"
+          role="radio"
+          aria-checked={on}
+          aria-label={o.ariaLabel}
+          lang={o.lang}
+          disabled={disabled}
+          onClick={() => onChange(o.value)}
+          className={`h-10 min-w-[44px] rounded-md px-3 text-[15px] font-semibold ${on ? "bg-white text-primary shadow" : "text-body"}`}
+        >
+          {o.label}
+        </button>
+      );
+    })}
+  </div>
 );
 
 export const PhoneHeader = ({
@@ -53,9 +82,14 @@ export const PhoneHeader = ({
   onHeight: (height: number) => void;
 }) => {
   const {
+    ctxStudyId,
+    ctxStudyMetadata,
     ctxInViewMode,
     ctxPracticeMode,
     ctxLanguageMode,
+    ctxSetLanguageMode,
+    ctxNonEnglishDisplayMode,
+    ctxSetNonEnglishDisplayMode,
     ctxStropheNoteBtnOn,
     ctxSetStropheNoteBtnOn,
     ctxReadmeBtnOn,
@@ -74,15 +108,32 @@ export const PhoneHeader = ({
     return () => observer.disconnect();
   }, [onHeight]);
 
-  const notesReason = ctxLanguageMode === LanguageMode.Parallel ? "Not available in the English + Hebrew view." : undefined;
-  // As on the desktop toolbar: tutorial practice copies, and read-only studies that can be copied.
+  // Notes beside every strophe don't fit on a phone (see above).
+  useEffect(() => {
+    if (ctxStropheNoteBtnOn) ctxSetStropheNoteBtnOn(false);
+  }, [ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn]);
+
+  const setLanguage = (mode: LanguageMode) => {
+    if (mode === ctxLanguageMode) return;
+    ctxStudyMetadata.lang = mode;
+    if (!ctxInViewMode) updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    ctxSetLanguageMode(mode);
+  };
+  const setHebrewDisplay = (mode: NonEnglishDisplayMode) => {
+    if (mode === ctxNonEnglishDisplayMode) return;
+    ctxStudyMetadata.nonEnglishDisplayMode = mode;
+    if (!ctxInViewMode) updateMetadataInDb(ctxStudyId, ctxStudyMetadata);
+    ctxSetNonEnglishDisplayMode(mode);
+  };
+
   const canCopy = ctxPracticeMode || (ctxInViewMode && (study.model || study.scriptura || study.tutorial));
+  const hebrewShown = ctxLanguageMode !== LanguageMode.English;
 
   return (
     <header
       ref={ref}
       id="selaHeader"
-      className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white"
+      className="fixed inset-x-0 top-0 z-50 border-b border-stroke bg-white"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="flex h-14 items-center gap-0.5 px-1">
@@ -93,7 +144,7 @@ export const PhoneHeader = ({
           <div className="truncate text-base font-bold leading-5 text-black">
             {capitalize(study.book)} {study.passage}
           </div>
-          <div className="truncate text-xs leading-4 text-slate-500">{study.name}</div>
+          <div className="truncate text-xs leading-4 text-body">{study.name}</div>
         </div>
         {!ctxInViewMode && (
           <div className="flex items-center">
@@ -112,21 +163,20 @@ export const PhoneHeader = ({
         </button>
       </div>
 
-      <div className="flex h-[52px] items-center gap-2 border-t border-slate-100 px-2">
-        <LanguageSwitcher />
-        <div className="ml-auto flex items-center gap-1">
+      <div className="flex h-[56px] items-center gap-2 border-t border-stroke px-2">
+        <Segmented
+          label="Language"
+          value={ctxLanguageMode}
+          onChange={setLanguage}
+          options={[
+            { value: LanguageMode.English, label: "A", ariaLabel: "English gloss" },
+            { value: LanguageMode.Parallel, label: "Aא", ariaLabel: "English and Hebrew" },
+            { value: LanguageMode.Hebrew, label: "א", ariaLabel: "Hebrew", lang: "he" },
+          ]}
+        />
+        <div className="ml-auto flex items-center">
           {!ctxInViewMode && <BoxlessBtn setBoxStyle={setBoxStyle} />}
-          <button
-            type="button"
-            aria-label="Strophe notes"
-            aria-pressed={ctxStropheNoteBtnOn}
-            aria-disabled={notesReason ? true : undefined}
-            title={notesReason}
-            onClick={() => !notesReason && ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)}
-            className={`flex h-11 w-11 items-center justify-center rounded-lg ${ctxStropheNoteBtnOn ? "bg-primary/10 text-primary" : "text-black"} ${notesReason ? "opacity-40" : ""}`}
-          >
-            <LuNotebookPen size={20} />
-          </button>
+          <UniformWidthBtn setBoxStyle={setBoxStyle} />
         </div>
       </div>
 
@@ -138,21 +188,45 @@ export const PhoneHeader = ({
             className="fixed inset-0 z-40 cursor-default bg-black/10"
             onClick={() => setMenuOpen(false)}
           />
-          <div role="menu" aria-label="More options" className="absolute right-2 top-14 z-50 w-[288px] rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-            <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">View</p>
-            <ToolbarVariantContext.Provider value={{ variant: "row" }}>
-              {!ctxInViewMode && <BoxlessBtn setBoxStyle={setBoxStyle} />}
-              <UniformWidthBtn setBoxStyle={setBoxStyle} />
-            </ToolbarVariantContext.Provider>
-            <MenuToggle label="Notes beside strophes" on={ctxStropheNoteBtnOn} onToggle={() => ctxSetStropheNoteBtnOn(!ctxStropheNoteBtnOn)} reason={notesReason} />
-            <MenuToggle label="Hebrew reader view" on={ctxReadmeBtnOn} onToggle={() => ctxSetReadmeBtnOn(!ctxReadmeBtnOn)} />
-            <div className="flex min-h-[48px] items-center justify-between px-3 text-[15px]">
+          <div role="menu" aria-label="More options" className="absolute right-2 top-14 z-50 w-[296px] rounded-2xl border border-stroke bg-white p-2 shadow-xl">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-body">View</p>
+
+            <div className="flex min-h-[56px] items-center justify-between gap-2 px-3">
+              <span className="flex flex-col text-[15px] text-black">
+                Show Hebrew as
+                {!hebrewShown && <span className="text-xs text-body">Used in the {"א"} and A{"א"} views</span>}
+              </span>
+              <Segmented
+                label="Show Hebrew as"
+                value={ctxNonEnglishDisplayMode}
+                onChange={setHebrewDisplay}
+                disabled={!hebrewShown}
+                options={[
+                  { value: NonEnglishDisplayMode.Hebrew, label: "אב", ariaLabel: "Hebrew script", lang: "he" },
+                  { value: NonEnglishDisplayMode.HebrewTransliteration, label: "Abc", ariaLabel: "Transliteration" },
+                ]}
+              />
+            </div>
+
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={ctxReadmeBtnOn}
+              onClick={() => ctxSetReadmeBtnOn(!ctxReadmeBtnOn)}
+              className="flex min-h-[52px] w-full items-center gap-3 rounded-xl px-3 text-left text-[15px] text-black active:bg-whiten"
+            >
+              <span className="flex-1">Hebrew reader view</span>
+              <Switch on={ctxReadmeBtnOn} />
+            </button>
+
+            <div className="flex min-h-[52px] items-center justify-between px-3 text-[15px] text-black">
               <span>Text size</span>
               <ScaleDropDown setScaleValue={setScaleValue} />
             </div>
+
             {canCopy && (
               <>
-                <div className="mx-2 my-1 h-px bg-slate-200" />
+                <div className="mx-2 my-1 h-px bg-stroke" />
                 <button
                   type="button"
                   role="menuitem"
@@ -160,7 +234,7 @@ export const PhoneHeader = ({
                     setMenuOpen(false);
                     setCloneStudyOpen(true);
                   }}
-                  className="flex min-h-[48px] w-full items-center rounded-xl px-3 text-left text-[15px] active:bg-slate-100"
+                  className="flex min-h-[48px] w-full items-center rounded-xl px-3 text-left text-[15px] text-black active:bg-whiten"
                 >
                   Copy to My Studies
                 </button>

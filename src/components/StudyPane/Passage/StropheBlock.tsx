@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, useLayoutEffect } from 'react';
-import { LuTextSelect } from "react-icons/lu";
-import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
-import { PiNotePencil } from "react-icons/pi";
+import { LuTextSelect, LuNotebookPen, LuChevronDown, LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
@@ -79,8 +77,12 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const phoneActionRow = isPhone && stanzaExpanded && expanded;
   const actionButtonWrapperClass = useMemo(
     () => {
+      if (phoneActionRow) {
+        return `relative flex h-10 items-center gap-1 -mx-2 -mt-1 mb-1 ${ctxIsHebrew ? 'justify-start' : 'justify-end'}`;
+      }
       const base = 'z-1 absolute p-[0.5] m-[0.5] bg-transparent';
       if (!stanzaExpanded) {
         const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
@@ -91,8 +93,10 @@ export const StropheBlock = ({
       }
       return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
     },
-    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode]
+    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode, phoneActionRow]
   );
+  // Touch-size buttons on phones.
+  const actionButtonClass = phoneActionRow ? 'flex h-10 w-10 items-center justify-center rounded-lg' : '';
 
   const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Stop bubbling so drag-select handler does not steal the first click
@@ -377,7 +381,7 @@ export const StropheBlock = ({
     <div 
       key={"strophe_" + stropheProps.stropheId}
       data-strophe-block={stropheProps.stropheId}
-      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded ? (isPhone ? (ctxIsHebrew ? 'pl-12' : 'pr-12') : (ctxIsHebrew ? 'pl-20' : 'pr-20')) : 'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded ? (isPhone ? 'px-3' : (ctxIsHebrew ? 'pl-20' : 'pr-20')) : 'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
@@ -395,7 +399,8 @@ export const StropheBlock = ({
         key={"strophe" + stropheProps.stropheId + "Selector"}
         data-tour="strophe-select"
         data-strophe-id={stropheProps.stropheId}
-        className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
+        className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent ${actionButtonClass}`}
+        aria-label="Select strophe"
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
@@ -410,10 +415,12 @@ export const StropheBlock = ({
       expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
-        className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
+        className={`mx-[0.5] hover:bg-theme active:bg-transparent ${actionButtonClass}`}
         onClick={() => setShowNote(!showNote)}
+        aria-label="Strophe note"
+        aria-pressed={showNote}
       >
-        <PiNotePencil size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} />
+        <LuNotebookPen size={ACTION_ICON_SIZE - 2} color={contrastingForegroundColor} style={{pointerEvents:'none'}} />
       </button>
       :
       <></>
@@ -424,13 +431,15 @@ export const StropheBlock = ({
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
           data-tour="strophe-collapse"
           data-strophe-id={stropheProps.stropheId}
-          className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
+          className={`${phoneActionRow ? '' : 'mt-2'} mx-[0.5] hover:bg-theme active:bg-transparent ${actionButtonClass}`}
           onClick={() => handleCollapseBlockClick()}
+          aria-label={expanded ? "Collapse strophe" : "Expand strophe"}
+          aria-expanded={expanded}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <IoIosArrowForward size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
-          { expanded && <IoIosArrowDown size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { (!expanded && ctxIsHebrew) && <LuChevronRight size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew)  && <LuChevronLeft size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { expanded && <LuChevronDown size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
         </button>
         :
         <></>
