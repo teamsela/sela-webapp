@@ -270,6 +270,23 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   // the user expanded a bubble that had shrunk to one line.
   const [fullHeight, setFullHeight] = useState(180);
   const [expanded, setExpanded] = useState(false);
+  // The user's choice to keep the bubble small (one line), on every screen;
+  // it stays so on the next steps, and across reloads, until they expand it.
+  const [minimized, setMinimizedState] = useState(() => {
+    try {
+      return window.localStorage.getItem("sela.tour.minimized") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const setMinimized = (on: boolean) => {
+    setMinimizedState(on);
+    try {
+      window.localStorage.setItem("sela.tour.minimized", on ? "1" : "0");
+    } catch {
+      // the choice just won't survive a reload
+    }
+  };
   // Phones: where the header ends and the bottom bar begins. The bar grows
   // when words are selected (the selection bar), and the bubble must move
   // with it so it never covers Select repeats or Done.
@@ -354,45 +371,61 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   let bubbleStyle: React.CSSProperties;
   let compact = false;
   // Whether the bubble would shrink if not expanded (offers "Hide" when expanded).
-  let shrinkable = false;
   if (docked) {
-    // Full width, above the bottom bar, or under the header when the target
-    // is in the lower part of the screen.
     const header = chrome.header;
     const bar = chrome.bar || window.innerHeight;
-    const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
-    // A phone on its side is wide: keep the bubble to a readable width on
-    // the left, clear of the tools panel on the right.
-    const wide = window.innerWidth > 600;
-    const common: React.CSSProperties = {
-      position: "fixed",
-      left: DOCK_EDGE,
-      right: wide ? "auto" : DOCK_EDGE,
-      width: wide ? Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2) : undefined,
-      // Upright, under half the screen; sideways (short), whatever fits between header and bar.
-      maxHeight: wide ? Math.max(160, bar - header - 16) : "45dvh",
-      overflowY: "auto",
-      zIndex: Z + 1,
-    };
-    bubbleStyle = !place && !lit
-      ? { ...common, top: "50%", transform: "translateY(-50%)", maxHeight: "70dvh" }
-      : targetLow
-        ? { ...common, top: header + 8 }
-        : { ...common, bottom: window.innerHeight - bar + 8 };
-    // Shrink to one line when the full bubble would cover what the step
-    // points at (a tall panel such as the colors), unless the user expanded it.
     const litBox = rect ?? place;
-    // Only on steps where the user has to reach what the bubble would cover;
-    // a read-and-continue step always shows its whole text.
-    // Not once done: the message about what changed is the point then, and
-    // nothing under the bubble is left to reach.
-    if (litBox && !expanded && interactive && !done) {
-      const bubbleRight = DOCK_EDGE + (wide ? Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2) : window.innerWidth);
-      // Sideways, the target may sit beside the bubble (the tools panel): no overlap then.
-      const besideIt = wide && litBox.left >= bubbleRight;
-      compact = !besideIt && (targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height);
+    // A phone on its side is wide but short: the bubble takes one side, the
+    // one away from what the step points at (the passage's first lines are on
+    // the left, the tools panel on the right), from the header down.
+    const wide = window.innerWidth > 600;
+    if (wide) {
+      const width = Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2);
+      // Judged by what is drawn there: an outline around a whole line spans the
+      // screen, but its words sit to the left (English) or right (Hebrew).
+      const cx = (() => {
+        const els = target ? findTargets(target) : [];
+        const words = els.flatMap((el) => Array.from(el.querySelectorAll("[data-word-id]")));
+        const boxes = (words.length ? words : els).map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0);
+        if (!boxes.length) return place ? place.left + place.width / 2 : window.innerWidth / 2;
+        return (Math.min(...boxes.map((r) => r.left)) + Math.max(...boxes.map((r) => r.right))) / 2;
+      })();
+      const onRight = !!place && cx < window.innerWidth / 2;
+      const left = onRight ? window.innerWidth - DOCK_EDGE - width : DOCK_EDGE;
+      const top = header + 8;
+      bubbleStyle = !place && !lit
+        ? { position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: Math.min(460, window.innerWidth - 24), maxHeight: "80dvh", overflowY: "auto", zIndex: Z + 1 }
+        : { position: "fixed", left, top, width, maxHeight: Math.max(160, bar - header - 16), overflowY: "auto", zIndex: Z + 1 };
+      if (litBox && !expanded && interactive && !done) {
+        const overlapsX = litBox.left < left + width && litBox.left + litBox.width > left;
+        const overlapsY = litBox.top < top + fullHeight && litBox.top + litBox.height > top;
+        compact = overlapsX && overlapsY;
+      }
+    } else {
+      // Upright: full width, above the bottom bar, or under the header when
+      // the target is in the lower part of the screen.
+      const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
+      const common: React.CSSProperties = {
+        position: "fixed",
+        left: DOCK_EDGE,
+        right: DOCK_EDGE,
+        maxHeight: "45dvh",
+        overflowY: "auto",
+        zIndex: Z + 1,
+      };
+      bubbleStyle = !place && !lit
+        ? { ...common, top: "50%", transform: "translateY(-50%)", maxHeight: "70dvh" }
+        : targetLow
+          ? { ...common, top: header + 8 }
+          : { ...common, bottom: window.innerHeight - bar + 8 };
+      // Shrink to one line when the full bubble would cover what the step
+      // points at (a tall panel such as the colors), unless expanded. Only on
+      // steps where the user must reach it, and not once done (the message
+      // about what changed is the point then).
+      if (litBox && !expanded && interactive && !done) {
+        compact = targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height;
+      }
     }
-    shrinkable = compact || (expanded && interactive);
   } else if (targetInPanel && place) {
     // Beside the panel, level with the target inside it.
     const top = Math.min(Math.max(place.top + place.height / 2 - bubbleHeight / 2, EDGE), window.innerHeight - bubbleHeight - EDGE);
@@ -422,6 +455,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       zIndex: Z + 1,
     };
   }
+
+  // The user shrank it: one line on every step until they expand it again.
+  if (minimized) compact = true;
 
   return (
     <>
@@ -482,7 +518,10 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setExpanded(true)}
+              onClick={() => {
+                setMinimized(false);
+                setExpanded(true);
+              }}
               aria-expanded={false}
               className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2.5 text-left"
             >
@@ -503,6 +542,15 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         <>
         <button
           type="button"
+          onClick={() => setMinimized(true)}
+          aria-label="Shrink the step to one line"
+          title="Shrink"
+          className="absolute right-12 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <IconChevronUp size={16} stroke={2.4} />
+        </button>
+        <button
+          type="button"
           onClick={onClose}
           aria-label="Close tour"
           className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -511,9 +559,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         </button>
 
         {progress && (
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">{progress}</p>
+          <p className="pr-16 text-xs font-semibold uppercase tracking-wide text-body dark:text-bodydark">{progress}</p>
         )}
-        <h3 className="mt-1 flex items-center gap-2 pr-8 text-lg font-semibold text-black dark:text-white">
+        <h3 className="mt-1 flex items-center gap-2 pr-16 text-lg font-semibold text-black dark:text-white">
           {done && <IconCircleCheckFilled size={22} className="shrink-0" style={{ color: DONE }} aria-hidden />}
           <span>{formatText(title)}</span>
         </h3>
@@ -578,12 +626,6 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
 
 
         <div className="mt-4 flex items-center justify-end gap-3">
-          {shrinkable && expanded && (
-            <button type="button" onClick={() => setExpanded(false)} className="mr-auto flex items-center gap-1 text-sm font-semibold text-primary">
-              <IconChevronUp size={16} stroke={2.4} aria-hidden />
-              Hide
-            </button>
-          )}
           {actions}
         </div>
         </>
