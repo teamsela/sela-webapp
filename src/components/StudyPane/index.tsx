@@ -17,6 +17,7 @@ import { mergeData } from "@/lib/utils";
 import { CounterMode } from "@/lib/counter";
 import { updateMetadataInDb, setPracticeMode } from "@/lib/studyPersistence";
 import InterfaceTour from "@/components/Tour/InterfaceTour";
+import { tourForStudy } from "@/lib/tutorials/tours";
 import type { PracticeState } from "@/lib/tutorials/practiceState";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_LAYER_FILL, DEFAULT_LAYER_BORDER, DEFAULT_LAYER_TEXT } from "@/lib/colors";
 import { getPersonGenderNumberHighlightState, PersonGenderNumberCode } from "@/lib/personGenderNumber";
@@ -835,6 +836,7 @@ const StudyPane = ({
 
         {practiceMode && (
           <InterfaceTour
+            tour={tourForStudy(passageData.study)}
             studyId={passageData.study.id}
             infoPaneAction={infoPaneAction}
             setCloneStudyOpen={setCloneStudyOpen}

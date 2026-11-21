@@ -43,6 +43,8 @@ const SyntaxSmartHighlight: React.FC<SyntaxSmartHighlightProps> = ({
             : "bg-primary text-white hover:bg-opacity-90"
       }`}
       aria-pressed={isActive}
+      data-tour="syntax-smart-highlight"
+      data-highlight-id={highlightId}
     >
       {isActive ? activeButtonLabel : buttonLabel}
     </button>

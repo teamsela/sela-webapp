@@ -207,6 +207,9 @@ export const StanzaBlock = ({
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
           onBlur={saveTitle}
+          // The tutorial points at the title; it stays the target while typed in.
+          data-tour="stanza-title"
+          data-stanza-id={stanzaProps.stanzaId}
           dir="auto"
           className={`w-full resize-none rounded border border-primary bg-transparent py-1 text-base font-semibold outline-none ${titleReservedSidePaddingClass}`}
           style={{ color: contrastingForegroundColor }}
@@ -238,6 +241,7 @@ export const StanzaBlock = ({
         type="button"
         onClick={startEditing}
         data-tour="stanza-title"
+        data-stanza-id={stanzaProps.stanzaId}
         className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >

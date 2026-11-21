@@ -1,26 +1,28 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { IconRoute } from "@tabler/icons-react";
 
 import { FormatContext } from "@/components/StudyPane";
 import { InfoPaneActionType } from "@/lib/types";
+import NewStudyModal from "@/components/Modals/NewStudy";
 import {
-  INTERFACE_TOUR_ID,
-  INTERFACE_TOUR_STEPS,
   buildTourSnapshot,
   isActionStep,
   isStepDone,
   resolveBody,
   resolveResult,
   resolveTarget,
+  type TourDefinition,
   type TourSnapshot,
-} from "@/lib/tutorials/interfaceTour";
+  type TourStep,
+} from "@/lib/tutorials/tour";
 import type { PracticeControls, PracticeState } from "@/lib/tutorials/practiceState";
 import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverlay";
 
 /*
-  Runs the Interface Tutorial tour while a tutorial study is in practice mode.
+  Runs a tutorial's guided tour (see lib/tutorials/tours.ts) while a tutorial study is in practice mode.
 
   Progress (current step, closed or not) is kept per browser, so leaving and
   coming back resumes the tour. A step the user has to do is checked a few
@@ -38,14 +40,14 @@ import TourOverlay, { tourPrimaryButton, tourSecondaryButton } from "./TourOverl
 
 type TourProgress = { step: number; open: boolean };
 
-const storageKey = (studyId: string) => `sela.tour.${INTERFACE_TOUR_ID}.${studyId}`;
+const storageKey = (tourId: string, studyId: string) => `sela.tour.${tourId}.${studyId}`;
 
-const readProgress = (studyId: string): TourProgress => {
+const readProgress = (key: string, stepCount: number): TourProgress => {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(storageKey(studyId)) ?? "null");
+    const parsed = JSON.parse(window.localStorage.getItem(key) ?? "null");
     if (parsed && typeof parsed.step === "number" && typeof parsed.open === "boolean") {
       return {
-        step: Math.min(Math.max(parsed.step, 0), INTERFACE_TOUR_STEPS.length - 1),
+        step: Math.min(Math.max(parsed.step, 0), stepCount - 1),
         open: parsed.open,
       };
     }
@@ -55,9 +57,9 @@ const readProgress = (studyId: string): TourProgress => {
   return { step: 0, open: true };
 };
 
-const writeProgress = (studyId: string, progress: TourProgress) => {
+const writeProgress = (key: string, progress: TourProgress) => {
   try {
-    window.localStorage.setItem(storageKey(studyId), JSON.stringify(progress));
+    window.localStorage.setItem(key, JSON.stringify(progress));
   } catch {
     // progress just won't survive a reload
   }
@@ -65,20 +67,20 @@ const writeProgress = (studyId: string, progress: TourProgress) => {
 
 type Checkpoints = Record<string, PracticeState>;
 
-const checkpointKey = (studyId: string) => `${storageKey(studyId)}.checkpoints`;
+const checkpointKey = (key: string) => `${key}.checkpoints`;
 
-const readCheckpoints = (studyId: string): Checkpoints => {
+const readCheckpoints = (key: string): Checkpoints => {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(checkpointKey(studyId)) ?? "{}");
+    const parsed = JSON.parse(window.localStorage.getItem(checkpointKey(key)) ?? "{}");
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
     return {};
   }
 };
 
-const writeCheckpoints = (studyId: string, checkpoints: Checkpoints) => {
+const writeCheckpoints = (key: string, checkpoints: Checkpoints) => {
   try {
-    window.localStorage.setItem(checkpointKey(studyId), JSON.stringify(checkpoints));
+    window.localStorage.setItem(checkpointKey(key), JSON.stringify(checkpoints));
   } catch {
     // too big or storage blocked: Back/reload just won't restore
   }
@@ -88,21 +90,21 @@ const writeCheckpoints = (studyId: string, checkpoints: Checkpoints) => {
 const keepUpTo = (checkpoints: Checkpoints, step: number): Checkpoints =>
   Object.fromEntries(Object.entries(checkpoints).filter(([k]) => Number(k) <= step));
 
-const ACTION_STEP_IDS = INTERFACE_TOUR_STEPS.filter(isActionStep).map((s) => s.id);
-
 /** Run a step's start-up tidying (see TourStep.onStart). */
-const tidyFor = (index: number, practice: PracticeControls) => {
-  const onStart = INTERFACE_TOUR_STEPS[index]?.onStart;
+const tidyFor = (steps: TourStep[], index: number, practice: PracticeControls) => {
+  const onStart = steps[index]?.onStart;
   if (onStart?.clearSelection) practice.clearSelection();
   if (onStart?.closeInfoPane) practice.closeInfoPane();
 };
 
 const InterfaceTour = ({
+  tour,
   studyId,
   infoPaneAction,
   setCloneStudyOpen,
   practice,
 }: {
+  tour: TourDefinition;
   studyId: string;
   infoPaneAction: InfoPaneActionType;
   setCloneStudyOpen: (open: boolean) => void;
@@ -111,10 +113,17 @@ const InterfaceTour = ({
   const practiceRef = useRef(practice);
   practiceRef.current = practice;
   const ctx = useContext(FormatContext);
+  const steps = tour.steps;
+  const key = storageKey(tour.id, studyId);
+  const actionStepIds = useMemo(() => steps.filter(isActionStep).map((s) => s.id), [steps]);
+  const [newStudyOpen, setNewStudyOpen] = useState(false);
 
   const [progress, setProgress] = useState<TourProgress | null>(null);
   const [snapshot, setSnapshot] = useState<TourSnapshot | null>(null);
   const [start, setStart] = useState<TourSnapshot | null>(null);
+  // Which step `start` (and so `snapshot`) belongs to. Until the new step's
+  // start snapshot is in, the screen readings are the previous step's.
+  const [startStepId, setStartStepId] = useState<string | null>(null);
 
   // Latest screen state for the polling check (metadata is sometimes mutated
   // in place, so it is read fresh on every tick rather than via React deps).
@@ -140,48 +149,62 @@ const InterfaceTour = ({
       esvOpen: !!document.querySelector('[data-tour="esv-popover"][data-open="true"]'),
       wordInfoOpen:
         document.querySelector('[data-tour="word-info"]')?.getAttribute("aria-expanded") === "true",
+      // Notes shown on screen (with the notes button on, every strophe's note is
+      // rendered and the closed ones hidden with display: none).
+      openNoteStropheIds: Array.from(document.querySelectorAll('[data-tour="strophe-note"]')).flatMap((el) => {
+        if (el.getClientRects().length === 0) return [];
+        const id = el.closest("[data-strophe-block]")?.getAttribute("data-strophe-block");
+        return id == null ? [] : [Number(id)];
+      }),
+      openSyntaxSections: Array.from(
+        document.querySelectorAll('[data-tour="syntax-section"][aria-expanded="true"]')
+      ).map((el) => el.getAttribute("data-section-id") ?? ""),
+      activeHighlights: { ...(c.ctxActiveHighlightIds ?? {}) },
     });
   }, []);
 
   // Start (or resume) the tour, putting back the passage as it was when the
   // current step began.
   useEffect(() => {
-    const saved = readProgress(studyId);
-    let checkpoints = readCheckpoints(studyId);
+    const saved = readProgress(key, steps.length);
+    let checkpoints = readCheckpoints(key);
     if (!checkpoints["0"]) {
       checkpoints = { "0": practiceRef.current.capture() };
-      writeCheckpoints(studyId, checkpoints);
+      writeCheckpoints(key, checkpoints);
     }
     const resumeAt = checkpoints[String(saved.step)] ? saved.step : 0;
     if (resumeAt > 0) practiceRef.current.restore(checkpoints[String(resumeAt)]);
-    tidyFor(resumeAt, practiceRef.current);
+    tidyFor(steps, resumeAt, practiceRef.current);
     const next = { step: resumeAt, open: saved.open };
     setProgress(next);
-    writeProgress(studyId, next);
-  }, [studyId]);
+    writeProgress(key, next);
+  }, [key, steps]);
 
   const update = useCallback(
     (next: TourProgress) => {
       setProgress(next);
-      writeProgress(studyId, next);
+      writeProgress(key, next);
     },
-    [studyId]
+    [key]
   );
 
-  const step = progress ? INTERFACE_TOUR_STEPS[progress.step] : undefined;
-  const isLast = !!progress && progress.step === INTERFACE_TOUR_STEPS.length - 1;
+  const step = progress ? steps[progress.step] : undefined;
+  const isLast = !!progress && progress.step === steps.length - 1;
 
   // A fresh "start" snapshot whenever a step begins (or the tour reopens).
   // Taken a moment later, so a just-restored passage has finished laying out.
   useEffect(() => {
     if (!progress?.open) return;
+    const stepId = steps[progress.step]?.id ?? null;
+    setStartStepId(null);
     const id = window.setTimeout(() => {
       const now = takeSnapshot();
       setStart(now);
       setSnapshot(now);
+      setStartStepId(stepId);
     }, 150);
     return () => window.clearTimeout(id);
-  }, [progress?.step, progress?.open, takeSnapshot]);
+  }, [progress?.step, progress?.open, steps, takeSnapshot]);
 
   // Watch the screen a few times a second while an action step is showing.
   useEffect(() => {
@@ -193,7 +216,7 @@ const InterfaceTour = ({
   const goTo = useCallback(
     (index: number) => {
       const current = progress?.step ?? 0;
-      let checkpoints = readCheckpoints(studyId);
+      let checkpoints = readCheckpoints(key);
       if (index > current) {
         // Moving on: remember how the passage looks as the new step begins.
         checkpoints = { ...keepUpTo(checkpoints, current), [String(index)]: practiceRef.current.capture() };
@@ -203,20 +226,25 @@ const InterfaceTour = ({
         if (saved) practiceRef.current.restore(saved);
         checkpoints = keepUpTo(checkpoints, index);
       }
-      writeCheckpoints(studyId, checkpoints);
-      if (index !== current) tidyFor(index, practiceRef.current);
+      writeCheckpoints(key, checkpoints);
+      if (index !== current) tidyFor(steps, index, practiceRef.current);
       update({ step: index, open: true });
     },
-    [progress?.step, studyId, update]
+    [progress?.step, key, steps, update]
   );
 
-  // Once done, stay done for this step even if the user keeps experimenting.
+  // A step counts as done only once the user has done it: the screen must
+  // first be seen not done (on this step's own readings), then done. So a
+  // step never says "Nice, that's it" before anything was clicked. Once done,
+  // it stays done even if the user keeps experimenting.
+  const [armedStepId, setArmedStepId] = useState<string | null>(null);
   const [doneStepId, setDoneStepId] = useState<string | null>(null);
+  const current = !!step && startStepId === step.id && !!snapshot && !!start;
   useEffect(() => {
-    if (step && snapshot && start && isActionStep(step) && isStepDone(step, snapshot, start)) {
-      setDoneStepId(step.id);
-    }
-  }, [step, snapshot, start]);
+    if (!current || !step || !snapshot || !start || !isActionStep(step)) return;
+    if (!isStepDone(step, snapshot, start)) setArmedStepId(step.id);
+    else if (armedStepId === step.id) setDoneStepId(step.id);
+  }, [current, step, snapshot, start, armedStepId]);
 
   if (!progress || !step) return null;
 
@@ -225,14 +253,33 @@ const InterfaceTour = ({
   const showResult = !!resultTarget;
   const close = () => update({ ...progress, open: false });
   const restart = () => goTo(0);
-  const actionIndex = ACTION_STEP_IDS.indexOf(step.id);
+  const actionIndex = actionStepIds.indexOf(step.id);
 
   const checklist =
     step.checks && snapshot && start
-      ? step.checks.map((c) => ({ label: c.label, done: done || c.isDone(snapshot, start) }))
+      ? step.checks.map((c) => ({ label: c.label, done: done || (current && c.isDone(snapshot, start)) }))
       : undefined;
 
-  const actions = isLast ? (
+  const actions = isLast && tour.finish === "next" ? (
+    <>
+      <button type="button" className={tourSecondaryButton} onClick={restart}>
+        Restart
+      </button>
+      <Link href="/dashboard/home" className={tourSecondaryButton}>
+        More tutorials
+      </Link>
+      <button
+        type="button"
+        className={tourPrimaryButton}
+        onClick={() => {
+          close();
+          setNewStudyOpen(true);
+        }}
+      >
+        Start your own study
+      </button>
+    </>
+  ) : isLast ? (
     <>
       <button type="button" className={tourSecondaryButton} onClick={restart}>
         Restart
@@ -266,7 +313,7 @@ const InterfaceTour = ({
 
   const progressLabel =
     actionIndex >= 0
-      ? `${step.section} · Task ${actionIndex + 1} of ${ACTION_STEP_IDS.length}`
+      ? `${step.section} · Task ${actionIndex + 1} of ${actionStepIds.length}`
       : progress.step > 0 && !isLast
         ? step.section
         : undefined;
@@ -279,6 +326,7 @@ const InterfaceTour = ({
           highlight={showResult ? resultTarget : undefined}
           tone={showResult ? "result" : "target"}
           allow={step.allow}
+          interactive={isActionStep(step)}
           title={step.title}
           body={resolveBody(step, snapshot, start)}
           checklist={checklist}
@@ -305,6 +353,7 @@ const InterfaceTour = ({
           </button>
         </div>
       )}
+      {tour.finish === "next" && <NewStudyModal open={newStudyOpen} setOpen={setNewStudyOpen} />}
     </>
   );
 };
