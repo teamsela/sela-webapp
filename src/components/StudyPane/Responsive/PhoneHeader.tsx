@@ -12,6 +12,7 @@ import ScaleDropDown from "../Toolbar/ScaleDropDown";
 import { BoxlessBtn, RedoBtn, UndoBtn, UniformWidthBtn } from "../Toolbar/Buttons";
 import CopyrightLinks from "@/components/Footer/CopyrightLinks";
 import { useTourStep } from "@/lib/tutorials/tourEvents";
+import { useLayout } from "./layout";
 
 /*
   The phone's header.
@@ -139,6 +140,22 @@ export const PhoneHeader = ({
     ctxSetNonEnglishDisplayMode(mode);
   };
 
+  const { landscape } = useLayout();
+  const languageSwitch = (
+    <Segmented
+      label="Language"
+      tour="language-switcher"
+      value={ctxLanguageMode}
+      onChange={setLanguage}
+      // Same markers as the desktop language switch, for the tutorial.
+      options={[
+        { value: LanguageMode.English, label: "A", ariaLabel: "English gloss", tour: "lang-English" },
+        { value: LanguageMode.Parallel, label: "Aא", ariaLabel: "English and Hebrew", tour: "lang-Parallel" },
+        { value: LanguageMode.Hebrew, label: "א", ariaLabel: "Hebrew", lang: "he", tour: "lang-Hebrew" },
+      ]}
+    />
+  );
+
   const canCopy = ctxPracticeMode || (ctxInViewMode && (study.model || study.scriptura || study.tutorial));
   const hebrewShown = ctxLanguageMode !== LanguageMode.English;
 
@@ -147,7 +164,7 @@ export const PhoneHeader = ({
       ref={ref}
       id="selaHeader"
       className="fixed inset-x-0 top-0 z-50 border-b border-stroke bg-white"
-      style={{ paddingTop: "env(safe-area-inset-top)" }}
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}
     >
       <div className="flex h-14 items-center gap-0.5 px-1">
         <Link href="/" aria-label="Back to my studies" className="flex h-11 w-11 items-center justify-center rounded-lg text-black">
@@ -159,6 +176,14 @@ export const PhoneHeader = ({
           </div>
           <div className="truncate text-xs leading-4 text-body">{study.name}</div>
         </div>
+        {landscape && (
+          // Sideways: the second row's controls join this one.
+          <div className="flex items-center gap-1 px-1">
+            {languageSwitch}
+            {!ctxInViewMode && <BoxlessBtn setBoxStyle={setBoxStyle} />}
+            <UniformWidthBtn setBoxStyle={setBoxStyle} />
+          </div>
+        )}
         {!ctxInViewMode && (
           <div className="flex items-center">
             <UndoBtn />
@@ -177,24 +202,15 @@ export const PhoneHeader = ({
         </button>
       </div>
 
-      <div className="flex h-[56px] items-center gap-2 border-t border-stroke px-2">
-        <Segmented
-          label="Language"
-          tour="language-switcher"
-          value={ctxLanguageMode}
-          onChange={setLanguage}
-          // Same markers as the desktop language switch, for the tutorial.
-          options={[
-            { value: LanguageMode.English, label: "A", ariaLabel: "English gloss", tour: "lang-English" },
-            { value: LanguageMode.Parallel, label: "Aא", ariaLabel: "English and Hebrew", tour: "lang-Parallel" },
-            { value: LanguageMode.Hebrew, label: "א", ariaLabel: "Hebrew", lang: "he", tour: "lang-Hebrew" },
-          ]}
-        />
-        <div className="ml-auto flex items-center">
-          {!ctxInViewMode && <BoxlessBtn setBoxStyle={setBoxStyle} />}
-          <UniformWidthBtn setBoxStyle={setBoxStyle} />
+      {!landscape && (
+        <div className="flex h-[56px] items-center gap-2 border-t border-stroke px-2">
+          {languageSwitch}
+          <div className="ml-auto flex items-center">
+            {!ctxInViewMode && <BoxlessBtn setBoxStyle={setBoxStyle} />}
+            <UniformWidthBtn setBoxStyle={setBoxStyle} />
+          </div>
         </div>
-      </div>
+      )}
 
       {menuOpen && (
         <>

@@ -26,6 +26,7 @@ const InfoPane = ({
   variant = "side",
   fold = false,
   top = 0,
+  bottom = 0,
 }: {
   infoPaneAction: InfoPaneActionType;
   setInfoPaneAction: (arg: InfoPaneActionType) => void;
@@ -35,6 +36,8 @@ const InfoPane = ({
   fold?: boolean;
   /** Drawer only: where the passage area starts (below the header). */
   top?: number;
+  /** Drawer: how far above the window's bottom it stops (the tablet footer). */
+  bottom?: number;
 }) => {
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
 
@@ -124,8 +127,8 @@ const InfoPane = ({
     return (
       <aside
         data-tour="info-pane"
-        className={`${drawer ? "absolute bottom-0 right-0 z-30 shadow-[-16px_0_40px_rgba(15,23,42,0.16)]" : "relative h-full shrink-0"} flex flex-col overflow-hidden border-l-2 border-stroke bg-white`}
-        style={{ width: fold ? "env(viewport-segment-width 1 0, 50%)" : drawer ? "min(380px, 90vw)" : 360, top: drawer ? top : undefined }}
+        className={`${drawer ? "absolute right-0 z-30 shadow-[-16px_0_40px_rgba(15,23,42,0.16)]" : "relative h-full shrink-0"} flex flex-col overflow-hidden border-l-2 border-stroke bg-white`}
+        style={{ width: fold ? "env(viewport-segment-width 1 0, 50%)" : drawer ? "min(380px, 90vw)" : 360, top: drawer ? top : undefined, bottom: drawer ? bottom : undefined }}
       >
         <button className="absolute right-4 top-4" onClick={handleClick} aria-label="Close tools" style={{ zIndex: 1000 }}>
           <MdClose size="24px" />

@@ -78,6 +78,19 @@ const useHeight = (onHeight?: (h: number) => void) => {
   return ref;
 };
 
+/** Sideways phones: tools and sheets sit in a panel down the right side. */
+export const SIDE_PANEL = "min(420px, 50vw)";
+const sidePanelStyle = (headerHeight: number): React.CSSProperties => ({
+  left: "auto",
+  right: 0,
+  top: headerHeight,
+  width: SIDE_PANEL,
+  maxHeight: "none",
+  borderRadius: 0,
+  borderLeft: "1px solid #E2E8F0",
+  paddingRight: "env(safe-area-inset-right)",
+});
+
 const SheetChrome = ({
   title,
   children,
@@ -147,7 +160,7 @@ export const PhoneDock = ({
     ctxSetNumSelectedStrophes,
     ctxPassageProps,
   } = useContext(FormatContext);
-  const { fold } = useLayout();
+  const { fold, landscape } = useLayout();
   const [tray, setTray] = useState<Tray | null>(null);
   const [sheet, setSheet] = useState<"color" | "info" | null>(null);
   const [full, setFull] = useState(false);
@@ -178,6 +191,12 @@ export const PhoneDock = ({
       : ctxNumSelectedStrophes === 1
         ? "Strophe selected"
         : `${ctxNumSelectedStrophes} strophes selected`;
+
+  // The one-row bar (sideways) has room for the count only.
+  const shortSelectionLabel =
+    ctxNumSelectedWords > 0
+      ? `${ctxNumSelectedWords} word${ctxNumSelectedWords === 1 ? "" : "s"}`
+      : `${ctxNumSelectedStrophes} strophe${ctxNumSelectedStrophes === 1 ? "" : "s"}`;
 
   const closeColor = useCallback(() => {
     setSheet((s) => (s === "color" ? null : s));
@@ -253,9 +272,19 @@ export const PhoneDock = ({
       {toolsOpen && (
         <section
           aria-label={toolsTitle}
-          className="fixed inset-x-0 bottom-0 z-40 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_32px_rgba(15,23,42,0.18)]"
-          style={{ height: `calc(${toolsHeight} + ${dockHeight}px)`, paddingBottom: dockHeight }}
+          className={
+            landscape
+              ? "fixed right-0 z-40 flex flex-col border-l border-stroke bg-white shadow-[-12px_0_32px_rgba(15,23,42,0.12)]"
+              : "fixed inset-x-0 bottom-0 z-40 flex flex-col rounded-t-2xl bg-white shadow-[0_-12px_32px_rgba(15,23,42,0.18)]"
+          }
+          style={
+            // Sideways: a panel down the right side, beside the passage.
+            landscape
+              ? { top: headerHeight, bottom: 0, width: SIDE_PANEL, paddingRight: "env(safe-area-inset-right)" }
+              : { height: `calc(${toolsHeight} + ${dockHeight}px)`, paddingBottom: dockHeight }
+          }
         >
+          {!landscape && (
           <button
             type="button"
             aria-label={full ? "Shrink the tools to half height" : "Expand the tools to full height"}
@@ -264,8 +293,10 @@ export const PhoneDock = ({
           >
             <span className="h-1.5 w-10 rounded-full bg-bodydark" />
           </button>
+          )}
           <div className="flex h-11 shrink-0 items-center gap-1 border-b border-stroke pl-4 pr-2">
             <h2 className="min-w-0 flex-1 truncate text-[17px] font-bold text-black">{toolsTitle}</h2>
+            {!landscape && (
             <button
               type="button"
               aria-label={full ? "Shrink the tools" : "Expand the tools"}
@@ -274,6 +305,7 @@ export const PhoneDock = ({
             >
               {full ? <LuMinimize2 size={18} /> : <LuMaximize2 size={18} />}
             </button>
+            )}
             <button
               type="button"
               aria-label="Close tools"
@@ -301,8 +333,14 @@ export const PhoneDock = ({
           role="menu"
           aria-label={TRAY_TITLES[tray]}
           data-phone-tools
-          className="fixed inset-x-2 z-50 rounded-2xl border border-stroke bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
-          style={{ bottom: dockHeight + 8 }}
+          className="fixed z-50 overflow-y-auto rounded-2xl border border-stroke bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
+          style={{
+            bottom: dockHeight + 8,
+            left: 8,
+            right: landscape ? "auto" : 8,
+            width: landscape ? "min(460px, calc(100vw - 16px))" : undefined,
+            maxHeight: `calc(100dvh - ${headerHeight + dockHeight + 16}px)`,
+          }}
         >
           <div className="flex h-9 items-center pl-3 pr-1">
             <span className="flex-1 text-xs font-bold uppercase tracking-wider text-body">{TRAY_TITLES[tray]}</span>
@@ -358,10 +396,57 @@ export const PhoneDock = ({
       <div
         ref={dockRef}
         data-bottom-bar
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pt-2"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
+        className="pointer-events-none fixed bottom-0 left-0 z-50 px-3 pt-2"
+        style={{
+          paddingBottom: landscape ? 8 : "max(env(safe-area-inset-bottom), 12px)",
+          // Sideways with a tool open: the bar sits under the passage, beside the panel.
+          right: landscape && toolsOpen ? SIDE_PANEL : 0,
+          paddingLeft: landscape ? "max(env(safe-area-inset-left), 12px)" : undefined,
+        }}
       >
-        {showSelectionBar ? (
+        {showSelectionBar && landscape ? (
+          // Sideways: one row (count, groups, Select repeats, Done).
+          <div role="toolbar" aria-label="Edit the selection" data-phone-tools className={`${floatingBar} mx-auto flex h-[60px] max-w-[760px] items-center gap-1 rounded-full px-2`}>
+            <span className="w-[72px] shrink-0 truncate pl-2 text-[13px] font-semibold leading-4 text-black">{shortSelectionLabel}</span>
+            <div className="grid h-full flex-1 grid-cols-6 py-1">
+              <button type="button" data-tour="dock-color" onClick={() => openColor()} className={`${groupButton} gap-0.5 text-black`}>
+                <LuPaintBucket size={19} />
+                Color
+              </button>
+              {(["word", "line", "strophe", "stanza"] as Tray[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-expanded={tray === t}
+                  data-tour={`dock-${t}`}
+                  onClick={() => setTray(tray === t ? null : t)}
+                  className={`${groupButton} gap-0.5 ${tray === t ? "bg-stroke" : ""} text-black`}
+                >
+                  {t === "word" ? <LuType size={19} /> : <StructureIcon level={t} action="new" size={19} />}
+                  {TRAY_TITLES[t]}
+                </button>
+              ))}
+              <button
+                type="button"
+                data-tour="word-info"
+                aria-expanded={sheet === "info"}
+                onClick={() => { setTray(null); setSheet("info"); }}
+                className={`${groupButton} gap-0.5 text-black`}
+              >
+                <LuInfo size={19} />
+                Info
+              </button>
+            </div>
+            {ctxNumSelectedWords > 0 && (
+              <button type="button" data-tour="select-repeats" onClick={selectRepeats} className="h-10 shrink-0 rounded-full px-2 text-[13px] font-semibold text-primary">
+                Select repeats
+              </button>
+            )}
+            <button type="button" onClick={clearSelection} className="h-10 shrink-0 rounded-full bg-white px-4 text-sm font-semibold text-black shadow-sm">
+              Done
+            </button>
+          </div>
+        ) : showSelectionBar ? (
           <div role="toolbar" aria-label="Edit the selection" data-phone-tools className={`${floatingBar} rounded-[28px] p-1.5`}>
             <div className="flex h-10 items-center gap-2 pl-3 pr-0.5">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{selectionLabel}</span>
@@ -406,7 +491,10 @@ export const PhoneDock = ({
             </div>
           </div>
         ) : (
-          <nav aria-label="Study tools" className={`${floatingBar} grid h-[68px] grid-cols-5 rounded-full p-1.5`}>
+          <nav
+            aria-label="Study tools"
+            className={`${floatingBar} grid grid-cols-5 rounded-full p-1.5 ${landscape ? "mx-auto h-[56px] max-w-[600px]" : "h-[68px]"}`}
+          >
             {TABS.map(({ action, label, Icon, tour }) => {
               const on = infoPaneAction === action;
               return (
@@ -416,7 +504,11 @@ export const PhoneDock = ({
                   data-tour={tour}
                   aria-pressed={on}
                   onClick={() => openTool(action)}
-                  className={`flex flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold text-black transition-colors ${on ? "bg-stroke" : ""}`}
+                  className={`flex items-center justify-center rounded-full font-semibold text-black transition-colors ${
+                    // Sideways: icon beside label, or icon over a small label when a
+                    // tool panel leaves the bar only half the width.
+                    landscape && !toolsOpen ? "flex-row gap-1.5 text-[13px]" : landscape ? "flex-col gap-0 text-[10px]" : "flex-col gap-0.5 text-[11px]"
+                  } ${on ? "bg-stroke" : ""}`}
                 >
                   <Icon size={21} />
                   {label}
@@ -428,7 +520,7 @@ export const PhoneDock = ({
       </div>
 
       {sheet === "color" && (
-        <SheetChrome title={`Color · ${selectionLabel}`} onClose={closeColor} tour="color-sheet" tools>
+        <SheetChrome title={`Color · ${selectionLabel}`} onClose={closeColor} tour="color-sheet" tools style={landscape ? sidePanelStyle(headerHeight) : undefined}>
           <ToolbarVariantContext.Provider value={{ variant: "row" }}>
             <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
             <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
@@ -442,7 +534,7 @@ export const PhoneDock = ({
       )}
 
       {sheet === "info" && (
-        <SheetChrome title="Word information" onClose={() => setSheet(null)} closeLabel="Close" tour="word-info-sheet">
+        <SheetChrome title="Word information" onClose={() => setSheet(null)} closeLabel="Close" tour="word-info-sheet" style={landscape ? sidePanelStyle(headerHeight) : undefined}>
           {info ? (
             <div className="flex flex-col gap-3 px-2">
               <div className="flex items-end justify-between gap-3 border-b border-stroke pb-3">

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { modeForWidth, ToolbarVariantContext } from "./layout";
+import { layoutForSize, modeForWidth, ToolbarVariantContext } from "./layout";
 import { ToolbarButton } from "../Toolbar/ToolbarButton";
 
 describe("layout mode", () => {
@@ -12,6 +12,20 @@ describe("layout mode", () => {
     expect(modeForWidth(884)).toBe("tablet");
     expect(modeForWidth(1180)).toBe("tabletWide");
     expect(modeForWidth(1280)).toBe("desktop");
+  });
+});
+
+describe("a phone on its side", () => {
+  it("gets the phone layout, arranged for landscape", () => {
+    expect(layoutForSize(844, 390)).toEqual({ mode: "phone", landscape: true });
+    expect(layoutForSize(932, 430)).toEqual({ mode: "phone", landscape: true });
+    expect(layoutForSize(667, 375)).toEqual({ mode: "phone", landscape: true });
+  });
+  it("leaves tablets, upright phones and laptops alone", () => {
+    expect(layoutForSize(390, 844)).toEqual({ mode: "phone", landscape: false });
+    expect(layoutForSize(1180, 820)).toEqual({ mode: "tabletWide", landscape: false });
+    expect(layoutForSize(1024, 768)).toEqual({ mode: "tabletWide", landscape: false });
+    expect(layoutForSize(1440, 480)).toEqual({ mode: "desktop", landscape: false });
   });
 });
 

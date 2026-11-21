@@ -135,6 +135,12 @@ export type TourStep = {
     bar and its menus instead of a toolbar. See `forLayout`.
   */
   phone?: Partial<Omit<TourStep, "id" | "section" | "phone">>;
+  /**
+    The side panel (Motif, Syntax, Layer...) the step works in. If it isn't
+    open (closed, or another one is), the step points at its tab and says to
+    open it first, instead of pointing at nothing. See `withPanelOpen`.
+  */
+  panel?: InfoPaneActionType;
 };
 
 /* ------------------------------------------------------------------------ */
@@ -262,6 +268,34 @@ export const resolveResult = (
   start: TourSnapshot | null = s
 ): string | undefined =>
   typeof step.result === "function" ? (s ? step.result(s, start ?? s) : undefined) : step.result;
+
+const PANEL_TABS: Partial<Record<InfoPaneActionType, { marker: string; name: string; phoneName: string }>> = {
+  [InfoPaneActionType.layers]: { marker: "tab-layer", name: "Layer", phoneName: "Layers" },
+  [InfoPaneActionType.structure]: { marker: "tab-structure", name: "Structure", phoneName: "Structure" },
+  [InfoPaneActionType.motif]: { marker: "tab-motif", name: "Motif", phoneName: "Motif" },
+  [InfoPaneActionType.syntax]: { marker: "tab-syntax", name: "Syntax", phoneName: "Syntax" },
+  [InfoPaneActionType.sounds]: { marker: "tab-sounds", name: "Sounds", phoneName: "Sounds" },
+};
+
+/**
+  A step that works in a side panel, while that panel isn't open: point at
+  the panel's tab and say to open it first (the step's own text follows).
+*/
+export const withPanelOpen = (step: TourStep, s: TourSnapshot | null, layout: TourLayout): TourStep => {
+  if (step.panel === undefined || !s || s.infoPaneAction === step.panel) return step;
+  const tab = PANEL_TABS[step.panel];
+  if (!tab) return step;
+  const where = layout === "phone" ? `${tab.phoneName} in the bar at the bottom` : tab.name;
+  const lead = `First open ${where}: that panel isn’t open.`;
+  return {
+    ...step,
+    target: `[data-tour="${tab.marker}"]`,
+    // The tab can be used even on a read-and-continue step.
+    allow: [step.allow, `[data-tour="${tab.marker}"]`].filter(Boolean).join(", "),
+    result: undefined,
+    body: (now, start) => `${lead} ${resolveBody(step, now, start)}`,
+  };
+};
 
 /** Is this step something the user does (as opposed to read)? */
 export const isActionStep = (step: TourStep) => !!step.isDone || !!step.checks?.length;

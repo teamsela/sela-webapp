@@ -9,7 +9,7 @@ import InfoPane from "./InfoPane";
 import { Footer } from "./Footer";
 import { LayoutContext, useStudyLayout } from "./Responsive/layout";
 import PhoneHeader from "./Responsive/PhoneHeader";
-import PhoneDock from "./Responsive/PhoneDock";
+import PhoneDock, { SIDE_PANEL } from "./Responsive/PhoneDock";
 
 import { ColorData, ColorSource, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata, LayerDef, WordMap } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle, BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
@@ -782,7 +782,17 @@ const StudyPane = ({
           // (flex-none: the box grows with the passage, so its bottom padding,
           // the room for the floating bar, comes after the last line.)
           className={`relative flex ${layout.mode === "phone" ? "flex-none" : "flex-1 overflow-hidden"} ${layout.mode === "desktop" ? "pt-32 pb-14 max-[645px]:!pb-0" : ""}`}
-          style={layout.mode === "desktop" ? undefined : { paddingTop: headerHeight, paddingBottom: layout.mode === "phone" ? dockHeight : 56 }}
+          style={
+            layout.mode === "desktop"
+              ? undefined
+              : {
+                  paddingTop: headerHeight,
+                  paddingBottom: layout.mode === "phone" ? dockHeight : 56,
+                  // Sideways phone with a tool open: the passage keeps clear of the panel on the right.
+                  paddingRight: layout.landscape && infoPaneAction !== InfoPaneActionType.none ? SIDE_PANEL : undefined,
+                  paddingLeft: layout.landscape ? "env(safe-area-inset-left)" : undefined,
+                }
+          }
         >
           <main data-tour="passage-area" className={`flex flex-row ${layout.mode === "phone" ? "overflow-x-clip" : "overflow-y-auto overflow-x-auto h-full"} relative flex-1 ${languageMode == LanguageMode.Hebrew && nonEnglishDisplayMode == NonEnglishDisplayMode.Hebrew ? "hbFont" : ""}`}>
             {/* Scrollable Passage Pane */}
@@ -815,6 +825,8 @@ const StudyPane = ({
                   }
                   fold={layout.fold === "book"}
                   top={headerHeight}
+                  // Stop above the fixed footer, so the drawer's end can be scrolled into view.
+                  bottom={56}
                 />
               )
           }

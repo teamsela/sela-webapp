@@ -269,6 +269,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "way-chip",
+    panel: InfoPaneActionType.motif,
     onStart: { clearSelection: true },
     section: "Smart tools",
     target: `[data-tour="motif-chip"][data-strong="${WAY}"]`,
@@ -311,6 +312,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "verb-conjugations",
+    panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-section"][data-section-id="${VERB_CONJUGATIONS}"]`,
     title: "Verb conjugations",
@@ -322,6 +324,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "smart-highlight-on",
+    panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-smart-highlight"][data-highlight-id="${VERB_CONJUGATIONS}"]`,
     title: "Try the Smart Highlighter",
@@ -333,6 +336,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "smart-highlight-off",
+    panel: InfoPaneActionType.syntax,
     section: "Smart tools",
     target: `[data-tour="syntax-smart-highlight"][data-highlight-id="${VERB_CONJUGATIONS}"]`,
     title: "Clear the colors",
@@ -379,6 +383,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-new",
+    panel: InfoPaneActionType.layers,
     section: "Layers",
     target: '[data-tour="new-layer"]',
     title: "A new layer for a new idea",

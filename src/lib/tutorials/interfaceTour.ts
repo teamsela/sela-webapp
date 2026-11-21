@@ -668,6 +668,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-create",
+    panel: InfoPaneActionType.layers,
     section: "Layers",
     target: '[data-tour="new-layer"]',
     title: "Create a layer",
@@ -693,6 +694,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
   },
   {
     id: "layers-back",
+    panel: InfoPaneActionType.layers,
     section: "Layers",
     target: (s) => s.firstLayerId === undefined ? '[data-tour="tab-layer"]' : `[data-tour="layer-card"][data-layer-id="${s.firstLayerId}"]`,
     title: "Switch back to your first layer",

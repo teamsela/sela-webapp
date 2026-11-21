@@ -12,6 +12,7 @@ import { announceTourStep } from "@/lib/tutorials/tourEvents";
 import {
   buildTourSnapshot,
   forLayout,
+  withPanelOpen,
   isActionStep,
   isStepDone,
   resolveBody,
@@ -194,7 +195,8 @@ const InterfaceTour = ({
     [key]
   );
 
-  const step = progress ? steps[progress.step] : undefined;
+  // A panel step whose panel isn't open points at the panel's tab instead.
+  const step = progress && steps[progress.step] ? withPanelOpen(steps[progress.step], snapshot, mode) : undefined;
   const isLast = !!progress && progress.step === steps.length - 1;
 
   // A fresh "start" snapshot whenever a step begins (or the tour reopens).
@@ -210,14 +212,15 @@ const InterfaceTour = ({
       setStartStepId(stepId);
       // Let tucked-away controls (ribbon groups, the phone's menus) show this step's target.
       const st = steps[progress.step];
-      if (st) announceTourStep(resolveTarget(st, now, now));
+      if (st) announceTourStep(resolveTarget(withPanelOpen(st, now, mode), now, now));
     }, 150);
     return () => window.clearTimeout(id);
-  }, [progress?.step, progress?.open, steps, takeSnapshot]);
+  }, [progress?.step, progress?.open, steps, takeSnapshot, mode]);
 
   // Watch the screen a few times a second while an action step is showing.
   useEffect(() => {
-    if (!progress?.open || !step || !isActionStep(step)) return;
+    // (Panel steps are watched too: their target changes once the panel opens.)
+    if (!progress?.open || !step || (!isActionStep(step) && step.panel === undefined)) return;
     const id = window.setInterval(() => setSnapshot(takeSnapshot()), 300);
     return () => window.clearInterval(id);
   }, [progress?.open, step, takeSnapshot]);

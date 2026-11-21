@@ -357,11 +357,16 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     const header = chrome.header;
     const bar = chrome.bar || window.innerHeight;
     const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
+    // A phone on its side is wide: keep the bubble to a readable width on
+    // the left, clear of the tools panel on the right.
+    const wide = window.innerWidth > 600;
     const common: React.CSSProperties = {
       position: "fixed",
       left: DOCK_EDGE,
-      right: DOCK_EDGE,
-      maxHeight: "45dvh",
+      right: wide ? "auto" : DOCK_EDGE,
+      width: wide ? Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2) : undefined,
+      // Upright, under half the screen; sideways (short), whatever fits between header and bar.
+      maxHeight: wide ? Math.max(160, bar - header - 16) : "45dvh",
       overflowY: "auto",
       zIndex: Z + 1,
     };
@@ -376,7 +381,10 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     // Only on steps where the user has to reach what the bubble would cover;
     // a read-and-continue step always shows its whole text.
     if (litBox && !expanded && interactive) {
-      compact = targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height;
+      const bubbleRight = DOCK_EDGE + (wide ? Math.min(420, window.innerWidth / 2 - DOCK_EDGE * 2) : window.innerWidth);
+      // Sideways, the target may sit beside the bubble (the tools panel): no overlap then.
+      const besideIt = wide && litBox.left >= bubbleRight;
+      compact = !besideIt && (targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height);
     }
     shrinkable = compact || (expanded && interactive);
   } else if (targetInPanel && place) {
@@ -516,7 +524,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         ) : (
           <p className="mt-2 leading-relaxed">{body}</p>
         )}
-        {!done && interactive && !!target && (
+        {!done && interactive && !!target && !!rect && (
           <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-primary">
             <span aria-hidden className="h-3 w-3 shrink-0 rounded-[3px] ring-2 ring-primary" />
             Your turn: what to use is outlined in blue.

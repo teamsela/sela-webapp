@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { forLayout, resolveBody, resolveTarget, touchWords, withPhoneGroupButton, type TourStep } from "./tour";
+import { forLayout, resolveBody, resolveTarget, touchWords, withPanelOpen, withPhoneGroupButton, type TourStep } from "./tour";
+import { InfoPaneActionType } from "@/lib/types";
 import { colorKindOf, toolGroupOf } from "./tourEvents";
 import { ORIENTATION_TOUR_STEPS } from "./orientationTour";
 import { INTERFACE_TOUR_STEPS } from "./interfaceTour";
@@ -111,5 +112,28 @@ describe("menus the user opens first", () => {
     expect(forLayout(readOnly, "phone").body).toBe("Tap New strophe. Verse 4 moves into a new strophe.");
     const own = { ...newStrophe, phone: { body: "Own words." } };
     expect(forLayout(own, "phone").body).toBe("Own words.");
+  });
+});
+
+describe("steps that work in a side panel", () => {
+  const chip: TourStep = {
+    id: "c",
+    section: "S",
+    title: "Select a chip",
+    target: '[data-tour="motif-chip"]',
+    body: "Tap the chip.",
+    isDone: () => false,
+    panel: InfoPaneActionType.motif,
+  };
+  const snapWith = (infoPaneAction: InfoPaneActionType) => ({ infoPaneAction }) as any;
+  it("point at the panel's tab while it isn't open", () => {
+    const s = snapWith(InfoPaneActionType.syntax);
+    const p = withPanelOpen(chip, s, "phone");
+    expect(resolveTarget(p, s)).toBe('[data-tour="tab-motif"]');
+    expect(resolveBody(p, s)).toBe("First open Motif in the bar at the bottom: that panel isn’t open. Tap the chip.");
+    expect(p.allow).toContain("tab-motif");
+  });
+  it("are unchanged once it is", () => {
+    expect(withPanelOpen(chip, snapWith(InfoPaneActionType.motif), "desktop")).toBe(chip);
   });
 });
