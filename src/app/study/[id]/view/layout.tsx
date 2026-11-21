@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {loading ? (
         <Loader />
       ) : (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden max-sm:h-auto max-sm:min-h-dvh max-sm:overflow-visible">
           {/* <!-- ===== Sidebar Start ===== --> */}
           {/*<Sidebar
             sidebarOpen={sidebarOpen}
@@ -34,7 +34,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* <!-- ===== Sidebar End ===== --> */}
 
           {/* <!-- ===== Content Area Start ===== --> */}
-          <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden max-sm:overflow-visible">
             {/* <!-- ===== Study Content Start ===== --> */}
             {children}
             {/* <!-- ===== Study Content End ===== --> */}

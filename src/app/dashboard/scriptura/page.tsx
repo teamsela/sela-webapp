@@ -29,7 +29,7 @@ const ScripturaPage = async ({
     <>
       <Breadcrumb pageName="Scriptura Studies" />
 
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4 lg:gap-10">
         <section
           aria-labelledby="about-scriptura-studies"
           className="rounded-sm border border-stroke bg-white px-5 py-5 text-sm leading-relaxed text-body shadow-default dark:border-strokedark dark:bg-boxdark dark:text-bodydark sm:px-7.5"

@@ -5,17 +5,30 @@ import { updateStar } from '@/lib/actions';
 
 const StarToggler = ({
   studyId,
-  isStarred
+  isStarred,
+  label,
+  className = "",
 }: {
   studyId: string;
   isStarred: boolean;
+  label?: string;
+  className?: string;
 } ) => {
 
   const [starred, setStarred] = useState(isStarred);
 
   return (
     <>
-      <button className="hover:text-primary">
+      <button
+        type="button"
+        className={`hover:text-primary ${className}`}
+        aria-label={label ? `${starred ? "Unstar" : "Star"} ${label}` : starred ? "Unstar" : "Star"}
+        aria-pressed={starred}
+        onClick={() => {
+          setStarred(() => !starred);
+          updateStar(studyId, !starred);
+        }}
+      >
 
       <svg
         width="30"
@@ -23,10 +36,7 @@ const StarToggler = ({
         viewBox="0 0 24 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        onClick={() => {
-          setStarred(() => !starred);
-          updateStar(studyId, !starred);
-        }}
+        aria-hidden="true"
         className={
           starred ? "fill-[#FFD02C] " : "fill-[#E5E7EE] dark:fill-[#E5E7EE]/70"
         }

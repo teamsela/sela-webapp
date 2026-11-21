@@ -6,11 +6,21 @@ import { Analytics } from "@vercel/analytics/next"
 
 import { ClerkProvider } from "@clerk/nextjs";
 
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Sign in | Sela Bible Poetry"
   // other metadata
+};
+
+// viewport-fit=cover lets the phone layouts pad themselves around the notch
+// and home indicator (env(safe-area-inset-*)); themeColor tints the browser's
+// own bars to match the app.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({

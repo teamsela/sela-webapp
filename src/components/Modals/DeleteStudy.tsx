@@ -9,13 +9,23 @@ import { StudyData } from '@/lib/data';
 
 const DeleteStudyModal = ({
   studyItem,
-  setTriggerFetch
+  setTriggerFetch,
+  open,
+  onOpenChange,
+  hideTrigger = false,
 }: {
   studyItem: StudyData;
   setTriggerFetch: (arg: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 } ) => {
 
-  const [modalOpen, setModalOpen] = useState(false);
+  // Controlled when \`open\`/\`onOpenChange\` are given (the phone's study menu
+  // opens it); otherwise it opens from its own icon button.
+  const [innerOpen, setInnerOpen] = useState(false);
+  const modalOpen = open ?? innerOpen;
+  const setModalOpen = (value: boolean) => (onOpenChange ? onOpenChange(value) : setInnerOpen(value));
 
   const trigger = useRef<any>(null);
   const modal = useRef<any>(null);
@@ -39,7 +49,7 @@ const DeleteStudyModal = ({
       if (
         !modalOpen ||
         modal.current.contains(target) ||
-        trigger.current.contains(target)
+        trigger.current?.contains(target)
       )
         return;
       setModalOpen(false);
@@ -60,12 +70,14 @@ const DeleteStudyModal = ({
 
   return (
     <>
-      <button 
-        className="hover:text-primary"
-        ref={trigger}
-        onClick={() => setModalOpen(!modalOpen)} >
-        <IconTrash />
-      </button>
+      {!hideTrigger && (
+        <button 
+          className="hover:text-primary"
+          ref={trigger}
+          onClick={() => setModalOpen(!modalOpen)} >
+          <IconTrash />
+        </button>
+      )}
 
       <div
         className={`fixed left-0 top-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-4 py-5 ${

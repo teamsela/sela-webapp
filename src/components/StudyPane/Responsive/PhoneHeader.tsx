@@ -10,6 +10,7 @@ import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { FormatContext } from "../index";
 import ScaleDropDown from "../Toolbar/ScaleDropDown";
 import { BoxlessBtn, RedoBtn, UndoBtn, UniformWidthBtn } from "../Toolbar/Buttons";
+import CopyrightLinks from "@/components/Footer/CopyrightLinks";
 
 /*
   The phone's header.
@@ -18,7 +19,8 @@ import { BoxlessBtn, RedoBtn, UndoBtn, UniformWidthBtn } from "../Toolbar/Button
   Second row: the language switch (A, English + Hebrew, Hebrew) and the two
   word-box toggles (Boxes, Uniform width), each shown once.
   The menu: how Hebrew is shown (script or transliteration), the Hebrew
-  reader view, text size, and Copy to My Studies where allowed.
+  reader view, text size, Copy to My Studies where allowed, and the
+  copyright notices (the desktop footer's links, which phones don't show).
 
   "Notes beside strophes" is left out on phones: there is no room beside a
   strophe, so it would only show the note. Each strophe's own note button
@@ -188,7 +190,7 @@ export const PhoneHeader = ({
             className="fixed inset-0 z-40 cursor-default bg-black/10"
             onClick={() => setMenuOpen(false)}
           />
-          <div role="menu" aria-label="More options" className="absolute right-2 top-14 z-50 w-[296px] rounded-2xl border border-stroke bg-white p-2 shadow-xl">
+          <div role="menu" aria-label="More options" className="absolute right-2 top-14 z-50 max-h-[calc(100dvh-72px)] w-[296px] overflow-y-auto rounded-2xl border border-stroke bg-white p-2 shadow-xl">
             <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-body">View</p>
 
             <div className="flex min-h-[56px] items-center justify-between gap-2 px-3">
@@ -240,6 +242,10 @@ export const PhoneHeader = ({
                 </button>
               </>
             )}
+
+            <div className="mx-2 my-1 h-px bg-stroke" />
+            <p className="px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider text-body">Copyright information</p>
+            <CopyrightLinks chips className="px-3 pb-2" />
           </div>
         </>
       )}

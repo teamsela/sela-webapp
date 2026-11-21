@@ -69,17 +69,17 @@ const CopyrightModal = ({
         aria-labelledby={modalTitleId}
         onClick={handleOverlayClick}
       >
-        <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 text-left text-sm text-gray-700 shadow-2xl dark:bg-gray-900 dark:text-gray-200">
+        <div className="relative max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 text-left text-sm text-gray-700 shadow-2xl dark:bg-gray-900 dark:text-gray-200">
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             aria-label="Close copyright information"
           >
             <IconX size={18} stroke={2} />
           </button>
 
-          <h3 id={modalTitleId} className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 id={modalTitleId} className="pr-10 text-lg font-semibold text-gray-900 dark:text-gray-100">
             {title}
           </h3>
 

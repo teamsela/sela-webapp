@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {loading ? (
         <Loader />
       ) : (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col max-sm:h-auto max-sm:min-h-dvh">
           {/* <!-- ===== Study Content Start ===== --> */}
           {children}
           {/* <!-- ===== Study Content End ===== --> */}

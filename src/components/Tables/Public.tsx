@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 import Pagination from "@/components/Paginations/Pagination";
 import SearchBar from "@/components/Tables/Search";
+import { BrowseCard, SortSelect, PUBLIC_SORTS } from "@/components/Dashboard/StudyCards";
 import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import { fetchPublicStudies } from '@/lib/actions';
 import { FetchStudiesResult } from '@/lib/data';
@@ -46,9 +47,13 @@ export default function PublicTable({
 
   return (
     <>
-    <SearchBar placeholder="Search study by name or passage..." />
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="min-w-0 flex-1"><SearchBar placeholder="Search study by name or passage..." /></div>
+      <SortSelect options={PUBLIC_SORTS} className="lg:hidden" />
+    </div>
+    <div className="lg:rounded-sm lg:border lg:border-stroke lg:bg-white lg:px-7.5 lg:pt-6 lg:pb-2.5 lg:shadow-default dark:border-strokedark lg:dark:bg-boxdark xl:pb-1">
+      {/* Desktop: the table. Under 1024px: the cards below. */}
+      <div className="hidden max-w-full overflow-x-auto lg:block">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -107,6 +112,11 @@ export default function PublicTable({
           </tbody>
         </table>
       </div>
+      <ul className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3.5 lg:hidden">
+        {studiesResult.records.map((studyItem) => (
+          <BrowseCard key={studyItem.id} study={studyItem} showOwner />
+        ))}
+      </ul>
       {
         studiesResult.totalPages > 0 
           ? <Pagination totalPages={ studiesResult.totalPages } /> 
