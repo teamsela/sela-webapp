@@ -157,7 +157,10 @@ export const PhoneDock = ({
 
   const hasSelection = ctxNumSelectedWords > 0 || ctxNumSelectedStrophes > 0;
   const toolsOpen = infoPaneAction !== InfoPaneActionType.none;
-  const showSelectionBar = hasSelection && !toolsOpen && !ctxInViewMode;
+  // One bar at the bottom, one rule: with words selected it is the selection
+  // bar (with every action), whether or not a tool is open; the tool's panel
+  // stays open above it. Done brings the tool tabs back.
+  const showSelectionBar = hasSelection && !ctxInViewMode;
   const selectionLabel =
     ctxNumSelectedWords > 0
       ? ctxNumSelectedWords === 1
@@ -223,7 +226,9 @@ export const PhoneDock = ({
     ? `calc(100dvh - ${headerHeight}px - ${dockHeight}px - 8px)`
     : fold === "tabletop"
       ? `calc(env(viewport-segment-height 0 1, 50dvh) - ${dockHeight}px)`
-      : "50dvh";
+      : showSelectionBar
+        ? "40dvh" // the selection bar is taller than the tabs: keep the passage in view
+        : "50dvh";
 
   const groupButton = "flex flex-col items-center justify-center gap-1 rounded-[22px] text-[11px] font-semibold";
   // The floating pill: light grey, a hairline white edge and a soft shadow.
@@ -277,17 +282,6 @@ export const PhoneDock = ({
               setInfoPaneWidth={setInfoPaneWidth}
             />
           </div>
-          {hasSelection && !ctxInViewMode && (
-            <div className="flex h-14 shrink-0 items-center gap-2 border-t border-stroke px-3">
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{selectionLabel}</span>
-              <button type="button" onClick={openColor} className="h-10 rounded-full bg-primary px-4 text-sm font-semibold text-white">
-                Color
-              </button>
-              <button type="button" onClick={clearSelection} className="h-10 rounded-full bg-whiten px-4 text-sm font-semibold text-black">
-                Done
-              </button>
-            </div>
-          )}
         </section>
       )}
 
