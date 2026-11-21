@@ -368,9 +368,15 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   const panelOpen = panelLeft !== null && panelLeft - EDGE - BUBBLE_WIDTH >= EDGE;
   const rightLimit = panelOpen ? panelLeft - EDGE : window.innerWidth - EDGE;
   const targetInPanel = panelOpen && !!place && place.left >= panelLeft;
-  let bubbleStyle: React.CSSProperties;
+  let bubbleStyle: React.CSSProperties = {};
   let compact = false;
   // Whether the bubble would shrink if not expanded (offers "Hide" when expanded).
+  // What the bubble keeps clear of: the target while the step is to do, the
+  // result (lit in green) once it's done.
+  const showingResult = tone === "result" && !!rect;
+  const avoidBox = showingResult ? rect : place;
+  const avoidSelector = showingResult ? lit : target;
+
   if (docked) {
     const header = chrome.header;
     const bar = chrome.bar || window.innerHeight;
@@ -384,13 +390,13 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       // Judged by what is drawn there: an outline around a whole line spans the
       // screen, but its words sit to the left (English) or right (Hebrew).
       const cx = (() => {
-        const els = target ? findTargets(target) : [];
+        const els = avoidSelector ? findTargets(avoidSelector) : [];
         const words = els.flatMap((el) => Array.from(el.querySelectorAll("[data-word-id]")));
         const boxes = (words.length ? words : els).map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0);
-        if (!boxes.length) return place ? place.left + place.width / 2 : window.innerWidth / 2;
+        if (!boxes.length) return avoidBox ? avoidBox.left + avoidBox.width / 2 : window.innerWidth / 2;
         return (Math.min(...boxes.map((r) => r.left)) + Math.max(...boxes.map((r) => r.right))) / 2;
       })();
-      const onRight = !!place && cx < window.innerWidth / 2;
+      const onRight = !!avoidBox && cx < window.innerWidth / 2;
       const left = onRight ? window.innerWidth - DOCK_EDGE - width : DOCK_EDGE;
       const top = header + 8;
       bubbleStyle = !place && !lit
@@ -404,7 +410,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     } else {
       // Upright: full width, above the bottom bar, or under the header when
       // the target is in the lower part of the screen.
-      const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
+      const targetLow = !!avoidBox && avoidBox.top + avoidBox.height / 2 > window.innerHeight * 0.5;
       const common: React.CSSProperties = {
         position: "fixed",
         left: DOCK_EDGE,
@@ -454,6 +460,27 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       width: BUBBLE_WIDTH + 100,
       zIndex: Z + 1,
     };
+  }
+
+  // Larger screens: once a step is done, the bubble stays by the button the
+  // user pressed, which can put it over the result. If it would cover the
+  // result, try the corners (right of the panel edge first), then the
+  // other side of the screen.
+  if (!docked && showingResult && rect && typeof bubbleStyle.top === "number" && typeof bubbleStyle.left === "number") {
+    const h = bubbleHeight;
+    const covers = (top: number, left: number) =>
+      left < rect.left + rect.width + PAD && left + BUBBLE_WIDTH > rect.left - PAD && top < rect.top + rect.height + PAD && top + h > rect.top - PAD;
+    if (covers(bubbleStyle.top, bubbleStyle.left)) {
+      const right = rightLimit - BUBBLE_WIDTH;
+      const spots = [
+        { top: window.innerHeight - 80 - h, left: right }, // bottom right
+        { top: 160, left: right }, // top right, under the toolbar
+        { top: window.innerHeight - 80 - h, left: EDGE }, // bottom left
+        { top: 160, left: EDGE }, // top left
+      ].filter((p) => p.top >= EDGE);
+      const free = spots.find((p) => !covers(p.top, p.left));
+      if (free) bubbleStyle = { position: "fixed", top: free.top, left: free.left, width: BUBBLE_WIDTH, zIndex: Z + 1 };
+    }
   }
 
   // The user shrank it: one line on every step until they expand it again.
@@ -625,7 +652,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
 
 
-        <div className="mt-4 flex items-center justify-end gap-3">
+        {/* Pinned to the bubble's bottom when its text scrolls (short screens), so
+            Continue is always in reach. */}
+        <div className={`flex items-center justify-end gap-3 ${docked ? "sticky -bottom-4 -mx-4 mt-3 bg-white px-4 pb-4 pt-3 dark:bg-gray-900" : "mt-4"}`}>
           {actions}
         </div>
         </>
