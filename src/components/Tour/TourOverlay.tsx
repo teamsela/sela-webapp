@@ -319,7 +319,7 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     const h = bubbleRef.current.offsetHeight;
     setBubbleHeight((prev) => (prev === h ? prev : h));
     if (bubbleRef.current.dataset.compact !== "true") setFullHeight((prev) => (prev === h ? prev : h));
-  });
+  }, [title, body, rect, anchor, offscreen, done, checklist, expanded, fullHeight]);
 
   // The bubble sits by the target (anchor), not by the result, and never on
   // top of the side panel: `rightLimit` is how far right it may reach.
