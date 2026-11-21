@@ -88,11 +88,11 @@ describe("Psalm 1 orientation tour", () => {
     expect(ORIENTATION_TOUR.finish).toBe("next");
   });
 
-  it("has 22 tasks, with the boxes and headings steps interactive", () => {
+  it("has 21 tasks, with the boxes and headings steps interactive", () => {
     const tasks = ORIENTATION_TOUR_STEPS.filter(isActionStep).map((s) => s.id);
-    expect(tasks).toHaveLength(22);
+    expect(tasks).toHaveLength(21);
     expect(tasks).toEqual(
-      expect.arrayContaining(["boxes-off", "boxes-on", "strophe-heading-open", "strophe-heading-write", "strophe-heading-close", "stanza-heading"])
+      expect.arrayContaining(["boxes-off", "boxes-on", "strophe-heading", "strophe-heading-close", "stanza-heading"])
     );
   });
 
@@ -127,13 +127,16 @@ describe("Psalm 1 orientation tour", () => {
     expect(resolveResult(step("stanza-new"), stanzas)).toBe('[data-stanza-block="1"]');
   });
 
-  it("opens a strophe note, waits for a heading, then closes it", () => {
+  it("opens a strophe note and waits for a heading in one step, then closes it", () => {
     const start = snap();
-    expect(resolveTarget(step("strophe-heading-open"), start)).toBe('[data-tour="strophe-note-open"][data-strophe-id="0"]');
-    expect(isStepDone(step("strophe-heading-open"), snap({ openNoteStropheIds: [0] }), start)).toBe(true);
+    expect(resolveTarget(step("strophe-heading"), start)).toBe(
+      '[data-tour="strophe-note-open"][data-strophe-id="0"], [data-strophe-block="0"] [data-tour="strophe-note"]',
+    );
+    const opened = snap({ openNoteStropheIds: [0] });
     const titled = snap({ openNoteStropheIds: [0], studyNotes: JSON.stringify({ strophes: [{ title: "The righteous" }] }) });
-    expect(isStepDone(step("strophe-heading-write"), snap({ openNoteStropheIds: [0] }), start)).toBe(false);
-    expect(isStepDone(step("strophe-heading-write"), titled, start)).toBe(true);
+    expect(step("strophe-heading").checks!.map((c) => c.isDone(opened, start))).toEqual([true, false]);
+    expect(isStepDone(step("strophe-heading"), opened, start)).toBe(false);
+    expect(isStepDone(step("strophe-heading"), titled, start)).toBe(true);
     expect(isStepDone(step("strophe-heading-close"), titled, titled)).toBe(false);
     expect(isStepDone(step("strophe-heading-close"), snap(), titled)).toBe(true);
   });

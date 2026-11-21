@@ -52,7 +52,7 @@ const firstStanza = (s: TourSnapshot) => s.stanzas[0];
 const noteOpen = (s: TourSnapshot, stropheId: number | undefined) =>
   stropheId !== undefined && s.openNoteStropheIds.includes(stropheId);
 
-export const ORIENTATION_TOUR_ID = "orientation-ps1-v1";
+export const ORIENTATION_TOUR_ID = "orientation-ps1-v2";
 
 export const ORIENTATION_TOUR_STEPS: TourStep[] = [
   {
@@ -151,28 +151,26 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     result: (s) => stanzaBlock(s.stanzas.find((st) => st.firstVerse === 4)),
   },
   {
-    id: "strophe-heading-open",
+    // Opening the note and typing in it are one step, so the note can be typed
+    // in as soon as it opens (a separate "type" step left it blocked until
+    // Continue was pressed).
+    id: "strophe-heading",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Headings",
     target: (_s, start) => {
       const sp = firstStrophe(start);
-      return sp ? `[data-tour="strophe-note-open"][data-strophe-id="${sp.stropheId}"]` : undefined;
+      return sp
+        ? `[data-tour="strophe-note-open"][data-strophe-id="${sp.stropheId}"], [data-strophe-block="${sp.stropheId}"] [data-tour="strophe-note"]`
+        : undefined;
     },
     title: "Give a strophe a heading",
-    body: "Strophes and stanzas can be labeled with headings. Click this pencil to open the first strophe’s note.",
-    isDone: (s, start) => noteOpen(s, firstStrophe(start)?.stropheId),
+    body:
+      "Strophes and stanzas can be labeled with headings. Click this pencil to open the first strophe’s note, then click into the note, type a short heading (for example “The righteous”) and press [ENTER]. The first line of a note is the strophe’s heading.",
+    checks: [
+      { label: "Open the first strophe’s note", isDone: (s, start) => noteOpen(s, firstStrophe(start)?.stropheId) || s.titledNoteStropheIds.length > 0 },
+      { label: "Type a heading and press [ENTER]", isDone: (s) => s.titledNoteStropheIds.length > 0 },
+    ],
     result: (_s, start) => stropheBlock(firstStrophe(start)),
-  },
-  {
-    id: "strophe-heading-write",
-    section: "Headings",
-    target: (_s, start) => stropheBlock(firstStrophe(start)),
-    title: "Type a heading",
-    body: "Click into the note, type a short heading (for example “The righteous”) and press [ENTER]. The first line of a note is the strophe’s heading.",
-    isDone: (s) => s.titledNoteStropheIds.length > 0,
-    // Only this strophe (its note sits in place of its words) can be typed in.
-    dim: false,
-    placement: "corner",
   },
   {
     id: "strophe-heading-close",

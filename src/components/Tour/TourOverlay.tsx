@@ -266,6 +266,25 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   // the user expanded a bubble that had shrunk to one line.
   const [fullHeight, setFullHeight] = useState(180);
   const [expanded, setExpanded] = useState(false);
+  // Phones: where the header ends and the bottom bar begins. The bar grows
+  // when words are selected (the selection bar), and the bubble must move
+  // with it so it never covers Select repeats or Done.
+  const [chrome, setChrome] = useState({ header: 0, bar: 0 });
+  useEffect(() => {
+    if (!docked) return;
+    const read = () => {
+      const header = Math.round(document.getElementById("selaHeader")?.getBoundingClientRect().bottom ?? 0);
+      const bar = Math.round(document.querySelector("[data-bottom-bar]")?.getBoundingClientRect().top ?? window.innerHeight);
+      setChrome((prev) => (prev.header === header && prev.bar === bar ? prev : { header, bar }));
+    };
+    read();
+    const id = window.setInterval(read, 150);
+    window.addEventListener("resize", read);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("resize", read);
+    };
+  }, [docked]);
   useEffect(() => setExpanded(false), [title]);
 
   // Track the side panel (open, closed, resized) for every kind of step.
@@ -333,8 +352,8 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   if (docked) {
     // Full width, above the bottom bar, or under the header when the target
     // is in the lower part of the screen.
-    const header = document.getElementById("selaHeader")?.getBoundingClientRect().bottom ?? 0;
-    const bar = document.querySelector("[data-bottom-bar]")?.getBoundingClientRect().top ?? window.innerHeight;
+    const header = chrome.header;
+    const bar = chrome.bar || window.innerHeight;
     const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
     const common: React.CSSProperties = {
       position: "fixed",

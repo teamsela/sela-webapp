@@ -57,7 +57,7 @@ export * from "./tour";
 /* Steps                                                                     */
 /* ------------------------------------------------------------------------ */
 
-export const INTERFACE_TOUR_ID = "interface-v4";
+export const INTERFACE_TOUR_ID = "interface-v5";
 
 const PASSAGE = '[data-strophe-line="true"]';
 const SELECT_REPEATS = '[data-tour="select-repeats"]';
@@ -588,36 +588,32 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
 
   // Notes
   {
+    // Opening the notes and writing in one are one step, so a note can be
+    // typed in as soon as it shows.
     id: "notes-on",
     onStart: { clearSelection: true, closeInfoPane: true },
     section: "Notes",
-    target: '[data-tour="notes-toggle"]',
-    title: "Open the strophe notes",
-    body: "Click the notes button to open a note beside every strophe.",
-    isDone: (s) => s.notesOn,
-    result: '[data-tour="strophe-note"]',
+    target: '[data-tour="notes-toggle"], [data-tour="strophe-note"]',
+    title: "Write a strophe note",
+    body:
+      "Click the notes button to open a note beside every strophe. Then click into any note and write something: a short title on the first line, press [ENTER], then your observation underneath.",
+    checks: [
+      { label: "Open the notes", isDone: (s) => s.notesOn || s.anyNoteTitle },
+      { label: "Write a title and press [ENTER]", isDone: (s) => s.anyNoteTitle },
+    ],
+    allow: PASSAGE_AREA,
+    result: (s) => (s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined),
     // Phones have no room for notes beside strophes: each strophe opens its own.
     phone: {
-      target: '[data-tour="strophe-note-open"]',
-      title: "Open a strophe’s note",
-      body: "Tap the note button at the top of a strophe. Its note opens in place of its words.",
-      isDone: (s) => s.openNoteStropheIds.length > 0,
-      result: (s) => (s.openNoteStropheIds.length ? `[data-strophe-block="${s.openNoteStropheIds[0]}"]` : undefined),
+      target: '[data-tour="strophe-note-open"], [data-tour="strophe-note"]',
+      title: "Write a strophe note",
+      body:
+        "Tap the note button at the top of a strophe: its note opens in place of its words. Then tap into the note and write something: a short title on the first line, press [ENTER], then your observation underneath.",
+      checks: [
+        { label: "Open a strophe’s note", isDone: (s) => s.openNoteStropheIds.length > 0 || s.anyNoteTitle },
+        { label: "Write a title and press [ENTER]", isDone: (s) => s.anyNoteTitle },
+      ],
     },
-  },
-  {
-    id: "notes-write",
-    section: "Notes",
-    target: PASSAGE,
-    title: "Write a note",
-    body:
-      "Click into any strophe’s note and write something. Put a short title on the first line, press [ENTER], then write your observation underneath.",
-    phone: {
-      body: "Tap into the note and write something. Put a short title on the first line, press [ENTER], then write your observation underneath.",
-    },
-    isDone: (s) => s.anyNoteTitle,
-    ...WORK_IN_PASSAGE,
-    result: (s) => s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined,
   },
   {
     id: "notes-format",
