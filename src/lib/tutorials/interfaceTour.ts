@@ -60,6 +60,7 @@ export * from "./tour";
 export const INTERFACE_TOUR_ID = "interface-v4";
 
 const PASSAGE = '[data-strophe-line="true"]';
+const SELECT_REPEATS = '[data-tour="select-repeats"]';
 
 export const INTERFACE_TOUR_STEPS: TourStep[] = [
   // Welcome
@@ -95,6 +96,11 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     target: '[data-tour="lang-chevron-Hebrew"], [data-tour="language-dropdown"]',
     title: "See the transliteration",
     body: "Click the small arrow next to א and choose Transliteration to read the Hebrew in English letters.",
+    phone: {
+      target: '[data-tour="more-menu"], [data-tour="hebrew-display"]',
+      body: "Open ⋯ at the top right and, under Show Hebrew as, tap Abc to read the Hebrew in English letters.",
+      placement: "near",
+    },
     isDone: (s) =>
       s.languageMode === LanguageMode.Hebrew &&
       s.nonEnglishDisplayMode === NonEnglishDisplayMode.HebrewTransliteration,
@@ -372,6 +378,12 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Double-click this word, \u201cYahweh\u201d. Every place the same Hebrew word appears in the passage is selected. Hebrew poetry often repeats key words to tie a poem together, and here God’s name frames the whole psalm.",
     isDone: (s) => s.identicalWordsSelected,
+    phone: {
+      target: (_s, start) => `${wordSelector(yahwehInVerseOne(start))}, ${SELECT_REPEATS}`,
+      body:
+        "Tap this word, \u201cYahweh\u201d, then Select repeats in the bar at the bottom. Every place the same Hebrew word appears in the passage is selected. Hebrew poetry often repeats key words to tie a poem together, and here God’s name frames the whole psalm.",
+      allow: both(PASSAGE_AREA, SELECT_REPEATS),
+    },
     ...WORK_IN_PASSAGE,
     // Each selected repeat, wherever it is in the psalm.
     result: (s) => s.selectedWordIds.map((id) => wordById(id)).filter(Boolean).join(", ") || undefined,
@@ -385,6 +397,11 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
       "Open Word Information. It shows the selected word in Hebrew, its transliteration, English gloss and grammar. The info icon there opens a fuller analysis.",
     isDone: (s) => s.wordInfoOpen,
     result: '#word-information-bar',
+    phone: {
+      body:
+        "Tap Info in the bar at the bottom. It shows the selected word in Hebrew, its transliteration, English gloss and grammar, and Open word analysis gives a fuller one.",
+      result: '[data-tour="word-info-sheet"]',
+    },
   },
   {
     id: "motif-tab",
@@ -413,6 +430,13 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="fill-color"]'),
+    phone: {
+      body: "With words selected (the repeated “Yahweh” from before, or any others you tap), open the colors panel (Color in the bar at the bottom), choose Fill and pick a color for the background. Then tap Done.",
+      checks: [
+        { label: "Pick a fill color", isDone: (s) => s.anyFill },
+        { label: "Close the colors: tap Done", isDone: (s) => s.anyFill && !s.colorPickerOpen },
+      ],
+    },
   },
   {
     id: "color-font",
@@ -427,6 +451,13 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="font-color"]'),
+    phone: {
+      body: "open the colors panel (Color in the bar at the bottom), choose Text and pick a color for the text itself. Then tap Done.",
+      checks: [
+        { label: "Pick a font color", isDone: (s) => s.anyTextColor },
+        { label: "Close the colors: tap Done", isDone: (s) => s.anyTextColor && !s.colorPickerOpen },
+      ],
+    },
   },
   {
     id: "color-border",
@@ -441,6 +472,13 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     result: coloredWords,
     ...WORK_IN_PASSAGE,
     allow: both(PASSAGE_AREA, '[data-tour="border-color"]'),
+    phone: {
+      body: "open the colors panel (Color in the bar at the bottom), choose Border and pick a color for the box around each word. Then tap Done.",
+      checks: [
+        { label: "Pick a border color", isDone: (s) => s.anyBorder },
+        { label: "Close the colors: tap Done", isDone: (s) => s.anyBorder && !s.colorPickerOpen },
+      ],
+    },
   },
 
   // Lines again, gloss, word display
@@ -558,6 +596,14 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body: "Click the notes button to open a note beside every strophe.",
     isDone: (s) => s.notesOn,
     result: '[data-tour="strophe-note"]',
+    // Phones have no room for notes beside strophes: each strophe opens its own.
+    phone: {
+      target: '[data-tour="strophe-note-open"]',
+      title: "Open a strophe’s note",
+      body: "Tap the note button at the top of a strophe. Its note opens in place of its words.",
+      isDone: (s) => s.openNoteStropheIds.length > 0,
+      result: (s) => (s.openNoteStropheIds.length ? `[data-strophe-block="${s.openNoteStropheIds[0]}"]` : undefined),
+    },
   },
   {
     id: "notes-write",
@@ -566,6 +612,9 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     title: "Write a note",
     body:
       "Click into any strophe’s note and write something. Put a short title on the first line, press [ENTER], then write your observation underneath.",
+    phone: {
+      body: "Tap into the note and write something. Put a short title on the first line, press [ENTER], then write your observation underneath.",
+    },
     isDone: (s) => s.anyNoteTitle,
     ...WORK_IN_PASSAGE,
     result: (s) => s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined,
@@ -588,6 +637,14 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     body:
       "Click the notes button again to close the notes. The first line of each note now shows as that strophe’s title.",
     isDone: (s) => !s.notesOn,
+    phone: {
+      target: (s) =>
+        s.openNoteStropheIds.length
+          ? `[data-tour="strophe-note-open"][data-strophe-id="${s.openNoteStropheIds[0]}"]`
+          : '[data-tour="strophe-note-open"]',
+      body: "Tap the note button again to close the note. Its first line now shows as the strophe’s title.",
+      isDone: (s) => s.openNoteStropheIds.length === 0,
+    },
     result: (s) => s.titledNoteStropheIds.length ? `[data-strophe-block="${s.titledNoteStropheIds[0]}"]` : undefined,
   },
   {
@@ -596,7 +653,7 @@ export const INTERFACE_TOUR_STEPS: TourStep[] = [
     section: "Notes",
     target: '[data-tour="stanza-title"]',
     title: "Name a stanza",
-    body: "Each stanza can have a title too. Click just above a stanza’s first line (“Add stanza title…” appears when you hover), type a title and press [ENTER].",
+    body: "Each stanza can have a title too. Click the space just above a stanza’s first line (it reads “Add stanza title…”), type a title and press [ENTER].",
     isDone: (s) => s.anyStanzaTitle,
     dim: false,
     allow: PASSAGE_AREA,

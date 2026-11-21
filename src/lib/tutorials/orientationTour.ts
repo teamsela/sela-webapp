@@ -34,6 +34,7 @@ const WAY = 1870; // derek, "way" (verse 1 once, verse 6 twice)
 const WALK = 1980; // halak, "does walk" (verse 1)
 
 const FILL = '[data-tour="fill-color"]';
+const SELECT_REPEATS = '[data-tour="select-repeats"]';
 const BORDER = '[data-tour="border-color"]';
 const FONT = '[data-tour="font-color"]';
 const COLOR_BUTTONS = [FILL, BORDER, FONT].join(", ");
@@ -194,7 +195,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       return st ? `[data-tour="stanza-title"][data-stanza-id="${st.stanzaId}"]` : '[data-tour="stanza-title"]';
     },
     title: "Give a stanza a heading",
-    body: "Stanzas have headings too. Click just above the first stanza’s first strophe (“Add stanza title…” appears when you hover), type a heading and press [ENTER].",
+    body: "Stanzas have headings too. Click the space just above the first stanza’s first strophe (it reads “Add stanza title…”), type a heading and press [ENTER].",
     isDone: (s) => s.anyStanzaTitle,
     result: (s) => stanzaBlock(firstStanza(s)),
     dim: false,
@@ -209,6 +210,11 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     title: "Color tools",
     body:
       "Sela includes a variety of color tools to help keep track of observations: fill, border and font color. Every word unit and strophe can be selected and colored.",
+    phone: {
+      target: undefined,
+      body:
+        "Sela includes a variety of color tools to help keep track of observations: fill, border and font color. Select words or a strophe, and Color appears in the bar at the bottom.",
+    },
   },
   {
     id: "not-select",
@@ -219,6 +225,12 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     body: (_s, start) =>
       `Double-click ${quoted(firstNot(start))} in verse 1. Every place the same Hebrew word appears is selected: all ${nots(start).length} of them.`,
     isDone: (s) => allSelected(s, nots(s)),
+    phone: {
+      target: (_s, start) => `${wordSelector(firstNot(start))}, ${SELECT_REPEATS}`,
+      body: (_s, start) =>
+        `Tap ${quoted(firstNot(start))} in verse 1, then Select repeats in the bar at the bottom. Every place the same Hebrew word appears is selected: all ${nots(start).length} of them.`,
+      allow: SELECT_REPEATS,
+    },
     result: (s) => eachWord(nots(s)),
     dim: false,
     placement: "corner",
@@ -233,6 +245,13 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Fill every “not” with a color", isDone: (s) => allColored(s, nots(s)) },
       { label: "Close the picker: click Fill color again", isDone: (s) => allColored(s, nots(s)) && !s.colorPickerOpen },
     ],
+    phone: {
+      body: "Pick a fill color from the colors panel (Color in the bar at the bottom opens it). Then tap Done.",
+      checks: [
+        { label: "Fill every “not” with a color", isDone: (s) => allColored(s, nots(s)) },
+        { label: "Close the colors: tap Done", isDone: (s) => allColored(s, nots(s)) && !s.colorPickerOpen },
+      ],
+    },
     result: (s) => eachWord(nots(s)),
     dim: false,
     placement: "corner",
@@ -271,6 +290,13 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Color every “way”", isDone: (s) => allColored(s, ways(s)) },
       { label: "Close the picker", isDone: (s) => allColored(s, ways(s)) && !s.colorPickerOpen },
     ],
+    phone: {
+      body: "Choose any color in the colors panel: Fill, Border or Text. Then tap Done.",
+      checks: [
+        { label: "Color every “way”", isDone: (s) => allColored(s, ways(s)) },
+        { label: "Close the colors: tap Done", isDone: (s) => allColored(s, ways(s)) && !s.colorPickerOpen },
+      ],
+    },
     result: (s) => eachWord(ways(s)),
     dim: false,
     placement: "corner",
@@ -335,6 +361,11 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       "Open Word Information to see that data for the selected word. The tools work beautifully with Sela’s English gloss, since it is a word-by-word rendition of the Hebrew text. Most of the smart tools do not work with translations, because translations were not designed to reflect Hebrew syntax.",
     isDone: (s) => s.wordInfoOpen,
     result: "#word-information-bar",
+    phone: {
+      body:
+        "Tap Info in the bar at the bottom to see that data for the selected word. The tools work beautifully with Sela’s English gloss, since it is a word-by-word rendition of the Hebrew text. Most of the smart tools do not work with translations, because translations were not designed to reflect Hebrew syntax.",
+      result: '[data-tour="word-info-sheet"]',
+    },
   },
 
   // V. Layers

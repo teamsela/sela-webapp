@@ -48,6 +48,12 @@ import { IconArrowDown, IconArrowUp, IconCircle, IconCircleCheckFilled, IconX } 
   next move is Continue.
 
   `tone="result"` draws a slightly heavier ring around what an action did.
+  `docked` (phones): the bubble spans the screen, less 12px each side, and
+  docks above the bottom bar, or under the header when what it points at is
+  in the lower part of the screen (the bottom bar, its menus, a tool panel).
+  The bottom bar's selection tools, menus and color panel stay usable on
+  every step the user acts in, since on a phone that is where the tools are.
+  `touch`: "tap" rather than "click" in the bubble's own words.
 */
 
 const BUBBLE_WIDTH = 340;
@@ -78,9 +84,18 @@ const visibleArea = (el: Element): Box => {
   let box: Box = { top: 0, left: 0, bottom: window.innerHeight, right: window.innerWidth };
   for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
     const st = window.getComputedStyle(p);
-    if (/(auto|scroll|hidden|clip)/.test(`${st.overflowX} ${st.overflowY}`)) {
+    // Each direction separately: a box that only clips sideways (phones'
+    // passage) doesn't hide what is above or below it.
+    const clipsX = /(auto|scroll|hidden|clip)/.test(st.overflowX);
+    const clipsY = /(auto|scroll|hidden|clip)/.test(st.overflowY);
+    if (clipsX || clipsY) {
       const r = p.getBoundingClientRect();
-      box = intersect(box, { top: r.top, left: r.left, bottom: r.bottom, right: r.right });
+      box = intersect(box, {
+        top: clipsY ? r.top : -Infinity,
+        left: clipsX ? r.left : -Infinity,
+        bottom: clipsY ? r.bottom : Infinity,
+        right: clipsX ? r.right : Infinity,
+      });
     }
   }
   return box;
@@ -184,6 +199,10 @@ export type TourOverlayProps = {
   highlight?: string;
   /** "result": a slightly heavier ring, showing what the user's action did. */
   tone?: "target" | "result";
+  /** Phones: dock the bubble above the bottom bar or under the header (see the note at the top). */
+  docked?: boolean;
+  /** Touch screens: "tap" in the bubble's own words. */
+  touch?: boolean;
   onClose: () => void;
   /** Buttons in the bubble's footer, right-aligned. */
   actions: ReactNode;
@@ -192,7 +211,10 @@ export type TourOverlayProps = {
 const NAVIGATION_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " ", "Tab", "Escape"]);
 const BLOCKED_EVENTS = ["pointerdown", "mousedown", "click", "dblclick", "contextmenu", "touchstart", "keydown"] as const;
 
-const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", onClose, actions }: TourOverlayProps) => {
+const PHONE_TOOLS = "[data-phone-tools]";
+const DOCK_EDGE = 12;
+
+const TourOverlay = ({ target, title, body, checklist, progress, done, clearance = 0, dim = true, placement = "near", allow, interactive = true, highlight, tone = "target", docked = false, touch = false, onClose, actions }: TourOverlayProps) => {
   const [measured, setMeasured] = useState<Measured>(NOTHING);
   const { rect, offscreen } = measured;
   // Where the bubble is anchored: the target itself (no tooltips), kept while
@@ -206,7 +228,9 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
 
   // Block interaction outside the step (see the note at the top).
   useEffect(() => {
-    const allowed = plainSelector([interactive ? target : undefined, allow].filter(Boolean).join(", "));
+    const allowed = plainSelector(
+      [interactive ? target : undefined, allow, docked && interactive ? PHONE_TOOLS : undefined].filter(Boolean).join(", ")
+    );
     const isAllowed = (node: EventTarget | null) => {
       if (!(node instanceof Node)) return true;
       if (bubbleRef.current?.contains(node)) return true;
@@ -234,9 +258,14 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       BLOCKED_EVENTS.forEach((type) => window.removeEventListener(type, block, true));
       window.clearTimeout(nudgeTimer);
     };
-  }, [target, interactive, allow]);
+  }, [target, interactive, allow, docked]);
 
   const [bubbleHeight, setBubbleHeight] = useState(180);
+  // Phones: the bubble's full height (measured while it is full), and whether
+  // the user expanded a bubble that had shrunk to one line.
+  const [fullHeight, setFullHeight] = useState(180);
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => setExpanded(false), [title]);
 
   // Track the side panel (open, closed, resized) for every kind of step.
   useEffect(() => {
@@ -286,8 +315,11 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   }, [lit, target]);
 
   useLayoutEffect(() => {
-    if (bubbleRef.current) setBubbleHeight(bubbleRef.current.offsetHeight);
-  }, [title, body, rect, offscreen, done, checklist]);
+    if (!bubbleRef.current) return;
+    const h = bubbleRef.current.offsetHeight;
+    setBubbleHeight((prev) => (prev === h ? prev : h));
+    if (bubbleRef.current.dataset.compact !== "true") setFullHeight((prev) => (prev === h ? prev : h));
+  });
 
   // The bubble sits by the target (anchor), not by the result, and never on
   // top of the side panel: `rightLimit` is how far right it may reach.
@@ -296,7 +328,33 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   const rightLimit = panelOpen ? panelLeft - EDGE : window.innerWidth - EDGE;
   const targetInPanel = panelOpen && !!place && place.left >= panelLeft;
   let bubbleStyle: React.CSSProperties;
-  if (targetInPanel && place) {
+  let compact = false;
+  if (docked) {
+    // Full width, above the bottom bar, or under the header when the target
+    // is in the lower part of the screen.
+    const header = document.getElementById("selaHeader")?.getBoundingClientRect().bottom ?? 0;
+    const bar = document.querySelector("[data-bottom-bar]")?.getBoundingClientRect().top ?? window.innerHeight;
+    const targetLow = !!place && place.top + place.height / 2 > window.innerHeight * 0.5;
+    const common: React.CSSProperties = {
+      position: "fixed",
+      left: DOCK_EDGE,
+      right: DOCK_EDGE,
+      maxHeight: "45dvh",
+      overflowY: "auto",
+      zIndex: Z + 1,
+    };
+    bubbleStyle = !place && !lit
+      ? { ...common, top: "50%", transform: "translateY(-50%)", maxHeight: "70dvh" }
+      : targetLow
+        ? { ...common, top: header + 8 }
+        : { ...common, bottom: window.innerHeight - bar + 8 };
+    // Shrink to one line when the full bubble would cover what the step
+    // points at (a tall panel such as the colors), unless the user expanded it.
+    const litBox = rect ?? place;
+    if (litBox && !expanded) {
+      compact = targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height;
+    }
+  } else if (targetInPanel && place) {
     // Beside the panel, level with the target inside it.
     const top = Math.min(Math.max(place.top + place.height / 2 - bubbleHeight / 2, EDGE), window.innerHeight - bubbleHeight - EDGE);
     bubbleStyle = { position: "fixed", top, left: rightLimit - BUBBLE_WIDTH, width: BUBBLE_WIDTH, zIndex: Z + 1 };
@@ -367,8 +425,28 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         role="dialog"
         aria-label={title}
         style={bubbleStyle}
-        className={`rounded-2xl bg-white p-5 text-left text-sm text-gray-700 shadow-2xl transition-shadow dark:bg-gray-900 dark:text-gray-200 ${nudge ? "ring-4 ring-primary/50" : ""}`}
+        data-compact={compact ? "true" : "false"}
+        className={`rounded-2xl bg-white ${compact ? "px-3 py-2" : docked ? "p-4" : "p-5"} text-left text-sm text-gray-700 shadow-2xl transition-shadow dark:bg-gray-900 dark:text-gray-200 ${nudge ? "ring-4 ring-primary/50" : ""}`}
       >
+        {compact ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              aria-label={`${title}: show the step`}
+              className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 text-left"
+            >
+              {done ? (
+                <IconCircleCheckFilled size={20} className="shrink-0 text-primary" aria-hidden />
+              ) : (
+                <IconArrowDown size={18} stroke={2.2} className="shrink-0 rotate-180 text-primary" aria-hidden />
+              )}
+              <span className="truncate text-[15px] font-semibold text-black dark:text-white">{title}</span>
+            </button>
+            <div className="flex shrink-0 items-center gap-2 [&>button:not(:last-child)]:hidden">{actions}</div>
+          </div>
+        ) : (
+        <>
         <button
           type="button"
           onClick={onClose}
@@ -419,10 +497,12 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
 
         {done && (
-          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is highlighted." : ""} Take a look, then click Continue.</p>
+          <p className="mt-3 text-sm font-medium text-primary" role="status">Nice, that&rsquo;s it.{tone === "result" ? " The result is highlighted." : ""} Take a look, then {touch ? "tap" : "click"} Continue.</p>
         )}
 
         <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>
+        </>
+        )}
       </div>
     </>
   );

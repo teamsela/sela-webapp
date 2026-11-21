@@ -7,8 +7,11 @@ import { IconRoute } from "@tabler/icons-react";
 import { FormatContext } from "@/components/StudyPane";
 import { InfoPaneActionType } from "@/lib/types";
 import NewStudyModal from "@/components/Modals/NewStudy";
+import { useLayout } from "@/components/StudyPane/Responsive/layout";
+import { announceTourStep } from "@/lib/tutorials/tourEvents";
 import {
   buildTourSnapshot,
+  forLayout,
   isActionStep,
   isStepDone,
   resolveBody,
@@ -113,7 +116,10 @@ const InterfaceTour = ({
   const practiceRef = useRef(practice);
   practiceRef.current = practice;
   const ctx = useContext(FormatContext);
-  const steps = tour.steps;
+  // Each step as it runs at this screen size (phone menus, touch wording).
+  const { mode } = useLayout();
+  const steps = useMemo(() => tour.steps.map((st) => forLayout(st, mode)), [tour.steps, mode]);
+  const touch = mode === "phone" || mode === "tablet";
   const key = storageKey(tour.id, studyId);
   const actionStepIds = useMemo(() => steps.filter(isActionStep).map((s) => s.id), [steps]);
   const [newStudyOpen, setNewStudyOpen] = useState(false);
@@ -202,6 +208,9 @@ const InterfaceTour = ({
       setStart(now);
       setSnapshot(now);
       setStartStepId(stepId);
+      // Let tucked-away controls (ribbon groups, the phone's menus) show this step's target.
+      const st = steps[progress.step];
+      if (st) announceTourStep(resolveTarget(st, now, now));
     }, 150);
     return () => window.clearTimeout(id);
   }, [progress?.step, progress?.open, steps, takeSnapshot]);
@@ -335,14 +344,22 @@ const InterfaceTour = ({
           clearance={step.clearance}
           dim={step.dim}
           placement={step.placement}
+          docked={mode === "phone"}
+          touch={touch}
           onClose={close}
           actions={actions}
         />
       )}
 
       {!progress.open && (
-        <div className="fixed bottom-20 left-4 z-50 flex items-center gap-3 rounded-full border border-primary/40 bg-white py-1.5 pl-4 pr-1.5 text-sm text-slate-600 shadow-default dark:bg-boxdark dark:text-bodydark">
-          <span>Practice copy: changes aren&rsquo;t saved</span>
+        <div
+          className={`fixed z-50 flex items-center gap-3 rounded-full border border-primary/40 bg-white py-1.5 pl-4 pr-1.5 text-sm text-body shadow-default dark:bg-boxdark dark:text-bodydark ${
+            // Phones: under the header, clear of the bottom bar.
+            mode === "phone" ? "left-1/2 -translate-x-1/2 whitespace-nowrap" : "bottom-20 left-4"
+          }`}
+          style={mode === "phone" ? { top: (document.getElementById("selaHeader")?.getBoundingClientRect().bottom ?? 112) + 8 } : undefined}
+        >
+          <span>{mode === "phone" ? "Practice copy" : <>Practice copy: changes aren&rsquo;t saved</>}</span>
           <button
             type="button"
             onClick={() => goTo(isLast ? 0 : progress.step)}

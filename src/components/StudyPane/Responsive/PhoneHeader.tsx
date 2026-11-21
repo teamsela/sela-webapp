@@ -11,6 +11,7 @@ import { FormatContext } from "../index";
 import ScaleDropDown from "../Toolbar/ScaleDropDown";
 import { BoxlessBtn, RedoBtn, UndoBtn, UniformWidthBtn } from "../Toolbar/Buttons";
 import CopyrightLinks from "@/components/Footer/CopyrightLinks";
+import { useTourStep } from "@/lib/tutorials/tourEvents";
 
 /*
   The phone's header.
@@ -41,14 +42,17 @@ const Segmented = <T extends string | number>({
   value,
   onChange,
   disabled,
+  tour,
 }: {
   label: string;
-  options: { value: T; label: string; ariaLabel?: string; lang?: string }[];
+  options: { value: T; label: string; ariaLabel?: string; lang?: string; tour?: string }[];
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  /** data-tour marker, for the tutorial. */
+  tour?: string;
 }) => (
-  <div role="radiogroup" aria-label={label} className={`flex rounded-lg bg-whiten p-[3px] ${disabled ? "opacity-50" : ""}`}>
+  <div role="radiogroup" aria-label={label} data-tour={tour} className={`flex rounded-lg bg-whiten p-[3px] ${disabled ? "opacity-50" : ""}`}>
     {options.map((o) => {
       const on = o.value === value;
       return (
@@ -58,6 +62,7 @@ const Segmented = <T extends string | number>({
           role="radio"
           aria-checked={on}
           aria-label={o.ariaLabel}
+          data-tour={o.tour}
           lang={o.lang}
           disabled={disabled}
           onClick={() => onChange(o.value)}
@@ -115,6 +120,12 @@ export const PhoneHeader = ({
     if (ctxStropheNoteBtnOn) ctxSetStropheNoteBtnOn(false);
   }, [ctxStropheNoteBtnOn, ctxSetStropheNoteBtnOn]);
 
+  // A tutorial step about anything else starts with this menu closed (its
+  // backdrop would otherwise cover what the step points at).
+  useTourStep((target) => {
+    if (!target?.includes("more-menu") && !target?.includes("hebrew-display")) setMenuOpen(false);
+  });
+
   const setLanguage = (mode: LanguageMode) => {
     if (mode === ctxLanguageMode) return;
     ctxStudyMetadata.lang = mode;
@@ -157,6 +168,7 @@ export const PhoneHeader = ({
         <button
           type="button"
           aria-label="More options"
+          data-tour="more-menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
           className="flex h-11 w-11 items-center justify-center rounded-lg text-black"
@@ -168,12 +180,14 @@ export const PhoneHeader = ({
       <div className="flex h-[56px] items-center gap-2 border-t border-stroke px-2">
         <Segmented
           label="Language"
+          tour="language-switcher"
           value={ctxLanguageMode}
           onChange={setLanguage}
+          // Same markers as the desktop language switch, for the tutorial.
           options={[
-            { value: LanguageMode.English, label: "A", ariaLabel: "English gloss" },
-            { value: LanguageMode.Parallel, label: "Aא", ariaLabel: "English and Hebrew" },
-            { value: LanguageMode.Hebrew, label: "א", ariaLabel: "Hebrew", lang: "he" },
+            { value: LanguageMode.English, label: "A", ariaLabel: "English gloss", tour: "lang-English" },
+            { value: LanguageMode.Parallel, label: "Aא", ariaLabel: "English and Hebrew", tour: "lang-Parallel" },
+            { value: LanguageMode.Hebrew, label: "א", ariaLabel: "Hebrew", lang: "he", tour: "lang-Hebrew" },
           ]}
         />
         <div className="ml-auto flex items-center">
@@ -200,6 +214,7 @@ export const PhoneHeader = ({
               </span>
               <Segmented
                 label="Show Hebrew as"
+                tour="hebrew-display"
                 value={ctxNonEnglishDisplayMode}
                 onChange={setHebrewDisplay}
                 disabled={!hebrewShown}

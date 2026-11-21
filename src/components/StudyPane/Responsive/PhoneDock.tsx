@@ -17,6 +17,7 @@ import {
 
 import type { WordProps } from "@/lib/data";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { colorKindOf, toolGroupOf, useTourStep } from "@/lib/tutorials/tourEvents";
 import { FormatContext } from "../index";
 import InfoPane from "../InfoPane";
 import WordAnalysisModal from "../Footer/WordAnalysisModal";
@@ -50,12 +51,13 @@ import { SwatchSlotContext, ToolbarVariantContext, useLayout } from "./layout";
 
 type Tray = "word" | "line" | "strophe" | "stanza";
 
-const TABS: { action: InfoPaneActionType; label: string; Icon: typeof LuLayers }[] = [
-  { action: InfoPaneActionType.layers, label: "Layers", Icon: LuLayers },
-  { action: InfoPaneActionType.structure, label: "Structure", Icon: LuAlignLeft },
-  { action: InfoPaneActionType.motif, label: "Motif", Icon: LuShapes },
-  { action: InfoPaneActionType.syntax, label: "Syntax", Icon: LuNetwork },
-  { action: InfoPaneActionType.sounds, label: "Sounds", Icon: LuAudioLines },
+// `tour`: the same data-tour markers as the desktop header's tabs.
+const TABS: { action: InfoPaneActionType; label: string; Icon: typeof LuLayers; tour: string }[] = [
+  { action: InfoPaneActionType.layers, label: "Layers", Icon: LuLayers, tour: "tab-layer" },
+  { action: InfoPaneActionType.structure, label: "Structure", Icon: LuAlignLeft, tour: "tab-structure" },
+  { action: InfoPaneActionType.motif, label: "Motif", Icon: LuShapes, tour: "tab-motif" },
+  { action: InfoPaneActionType.syntax, label: "Syntax", Icon: LuNetwork, tour: "tab-syntax" },
+  { action: InfoPaneActionType.sounds, label: "Sounds", Icon: LuAudioLines, tour: "tab-sounds" },
 ];
 
 const TRAY_TITLES: Record<Tray, string> = { word: "Word", line: "Line", strophe: "Strophe", stanza: "Stanza" };
@@ -83,15 +85,23 @@ const SheetChrome = ({
   onClose,
   closeLabel = "Done",
   style,
+  tour,
+  tools = false,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   onClose: () => void;
   closeLabel?: string;
   style?: React.CSSProperties;
+  /** data-tour marker, for the tutorial. */
+  tour?: string;
+  /** Part of the editing tools (the tutorial lets the user work in these). */
+  tools?: boolean;
 }) => (
   <section
     aria-label={typeof title === "string" ? title : undefined}
+    data-tour={tour}
+    data-phone-tools={tools ? "" : undefined}
     className="fixed inset-x-0 bottom-0 z-[60] flex max-h-[85dvh] flex-col rounded-t-2xl bg-white shadow-[0_-12px_32px_rgba(15,23,42,0.2)]"
     style={{ paddingBottom: "env(safe-area-inset-bottom)", ...style }}
   >
@@ -213,13 +223,30 @@ export const PhoneDock = ({
     setInfoPaneAction(infoPaneAction === action ? InfoPaneActionType.none : action);
   };
 
-  const openColor = () => {
+  const openColor = (action: ColorActionType = ColorActionType.colorFill) => {
     setTray(null);
     setInfoPaneAction(InfoPaneActionType.none);
     setSheet("color");
-    setColorAction(ColorActionType.colorFill);
+    setColorAction(action);
     setSelectedColor("");
   };
+
+  // The tutorial points at a control that lives in one of this bar's menus
+  // (or the color panel): with something selected, open it, so the control
+  // is on screen when the step begins.
+  useTourStep((target) => {
+    if (!showSelectionBar) return;
+    const kind = colorKindOf(target);
+    if (kind) {
+      openColor(kind === "border" ? ColorActionType.borderColor : kind === "font" ? ColorActionType.textColor : ColorActionType.colorFill);
+      return;
+    }
+    const group = toolGroupOf(target);
+    if (group && group !== "format") {
+      setSheet(null);
+      setTray(group);
+    }
+  });
 
   const toolsTitle = TABS.find((t) => t.action === infoPaneAction)?.label ?? "";
   const toolsHeight = full
@@ -290,6 +317,7 @@ export const PhoneDock = ({
         <div
           role="menu"
           aria-label={TRAY_TITLES[tray]}
+          data-phone-tools
           className="fixed inset-x-2 z-50 rounded-2xl border border-stroke bg-white p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
           style={{ bottom: dockHeight + 8 }}
         >
@@ -351,11 +379,11 @@ export const PhoneDock = ({
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
         {showSelectionBar ? (
-          <div role="toolbar" aria-label="Edit the selection" className={`${floatingBar} rounded-[28px] p-1.5`}>
+          <div role="toolbar" aria-label="Edit the selection" data-phone-tools className={`${floatingBar} rounded-[28px] p-1.5`}>
             <div className="flex h-10 items-center gap-2 pl-3 pr-0.5">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-black">{selectionLabel}</span>
               {ctxNumSelectedWords > 0 && (
-                <button type="button" onClick={selectRepeats} className="h-9 rounded-lg px-2 text-sm font-semibold text-primary">
+                <button type="button" data-tour="select-repeats" onClick={selectRepeats} className="h-9 rounded-lg px-2 text-sm font-semibold text-primary">
                   Select repeats
                 </button>
               )}
@@ -364,7 +392,7 @@ export const PhoneDock = ({
               </button>
             </div>
             <div className="grid h-[60px] grid-cols-6 gap-0.5">
-              <button type="button" onClick={openColor} className={`${groupButton} text-black`}>
+              <button type="button" data-tour="dock-color" onClick={() => openColor()} className={`${groupButton} text-black`}>
                 <LuPaintBucket size={21} />
                 Color
               </button>
@@ -373,6 +401,7 @@ export const PhoneDock = ({
                   key={t}
                   type="button"
                   aria-expanded={tray === t}
+                  data-tour={`dock-${t}`}
                   onClick={() => setTray(tray === t ? null : t)}
                   className={`${groupButton} ${tray === t ? "bg-stroke" : ""} text-black`}
                 >
@@ -380,7 +409,14 @@ export const PhoneDock = ({
                   {TRAY_TITLES[t]}
                 </button>
               ))}
-              <button type="button" onClick={() => { setTray(null); setSheet("info"); }} className={`${groupButton} text-black`}>
+              <button
+                type="button"
+                // The tutorial's "Word information" marker (the footer's on larger screens).
+                data-tour="word-info"
+                aria-expanded={sheet === "info"}
+                onClick={() => { setTray(null); setSheet("info"); }}
+                className={`${groupButton} text-black`}
+              >
                 <LuInfo size={21} />
                 Info
               </button>
@@ -388,12 +424,13 @@ export const PhoneDock = ({
           </div>
         ) : (
           <nav aria-label="Study tools" className={`${floatingBar} grid h-[68px] grid-cols-5 rounded-full p-1.5`}>
-            {TABS.map(({ action, label, Icon }) => {
+            {TABS.map(({ action, label, Icon, tour }) => {
               const on = infoPaneAction === action;
               return (
                 <button
                   key={label}
                   type="button"
+                  data-tour={tour}
                   aria-pressed={on}
                   onClick={() => openTool(action)}
                   className={`flex flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold text-black transition-colors ${on ? "bg-stroke" : ""}`}
@@ -408,7 +445,7 @@ export const PhoneDock = ({
       </div>
 
       {sheet === "color" && (
-        <SheetChrome title={`Color · ${selectionLabel}`} onClose={closeColor}>
+        <SheetChrome title={`Color · ${selectionLabel}`} onClose={closeColor} tour="color-sheet" tools>
           <ToolbarVariantContext.Provider value={{ variant: "row" }}>
             <ColorActionBtn colorAction={ColorActionType.colorFill} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
             <ColorActionBtn colorAction={ColorActionType.borderColor} setColorAction={setColorAction} setSelectedColor={setSelectedColor} />
@@ -422,7 +459,7 @@ export const PhoneDock = ({
       )}
 
       {sheet === "info" && (
-        <SheetChrome title="Word information" onClose={() => setSheet(null)} closeLabel="Close">
+        <SheetChrome title="Word information" onClose={() => setSheet(null)} closeLabel="Close" tour="word-info-sheet">
           {info ? (
             <div className="flex flex-col gap-3 px-2">
               <div className="flex items-end justify-between gap-3 border-b border-stroke pb-3">

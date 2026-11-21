@@ -130,6 +130,74 @@ export type TourStep = {
     together and the bubble would otherwise cover the words.
   */
   placement?: "near" | "corner";
+  /**
+    What changes on a phone (under 640px), where the tools sit in the bottom
+    bar and its menus instead of a toolbar. See `forLayout`.
+  */
+  phone?: Partial<Omit<TourStep, "id" | "section" | "phone">>;
+};
+
+/* ------------------------------------------------------------------------ */
+/* Phones, tablets and foldables                                             */
+/* ------------------------------------------------------------------------ */
+
+export type TourLayout = "phone" | "tablet" | "tabletWide" | "desktop";
+
+/** Words for a touch screen: tap rather than click, no right-click or hover. */
+export const touchWords = (text: string) =>
+  text
+    .replace(/ \(or a right-click inside it\)/g, "")
+    .replace(/Double-click/g, "Double-tap")
+    .replace(/double-click/g, "double-tap")
+    .replace(/Clicking/g, "Tapping")
+    .replace(/clicking/g, "tapping")
+    .replace(/\bClicks?\b/g, (m) => (m.endsWith("s") ? "Taps" : "Tap"))
+    .replace(/\bclicks?\b/g, (m) => (m.endsWith("s") ? "taps" : "tap"));
+
+// On a phone the structure, word and color buttons live in the bottom bar's
+// menus (Line, Strophe, Stanza, Word, Color), which open once something is
+// selected. Lighting the menu's button with the control means the user can
+// always see where it is, open or closed.
+const PHONE_GROUP_BUTTONS: [RegExp, string][] = [
+  [/data-tour="structure-[A-Za-z]*Line"/, '[data-tour="dock-line"]'],
+  [/data-tour="structure-[A-Za-z]*Strophe"/, '[data-tour="dock-strophe"]'],
+  [/data-tour="structure-[A-Za-z]*Stanza"/, '[data-tour="dock-stanza"]'],
+  [/data-tour="(indent-add|indent-remove|edit-gloss)"/, '[data-tour="dock-word"]'],
+  [/data-tour="(fill|border|font)-color"/, '[data-tour="dock-color"]'],
+];
+
+export const withPhoneGroupButton = (target: string | undefined) => {
+  if (!target) return target;
+  const extra = PHONE_GROUP_BUTTONS.find(([re]) => re.test(target))?.[1];
+  return extra && !target.includes(extra) ? `${target}, ${extra}` : target;
+};
+
+const mapText = (
+  value: TourStep["body"] | undefined,
+  fn: (text: string) => string,
+): TourStep["body"] | undefined =>
+  value === undefined ? undefined : typeof value === "string" ? fn(value) : (s, start) => fn(value(s, start));
+
+/**
+  The step as it should run at this screen size: on a phone, its `phone`
+  changes, and controls that sit in the bottom bar's menus lit with the
+  menu's button; on phones and tablets, touch wording.
+*/
+export const forLayout = (step: TourStep, layout: TourLayout): TourStep => {
+  let out: TourStep = step;
+  if (layout === "phone") {
+    out = { ...step, ...(step.phone ?? {}) };
+    if (typeof out.target === "string") out = { ...out, target: withPhoneGroupButton(out.target) };
+  }
+  if (layout === "phone" || layout === "tablet") {
+    out = {
+      ...out,
+      title: touchWords(out.title),
+      body: mapText(out.body, touchWords) as TourStep["body"],
+      checks: out.checks?.map((c) => ({ ...c, label: touchWords(c.label) })),
+    };
+  }
+  return out;
 };
 
 export const PASSAGE_AREA = '[data-tour="passage-area"]';
