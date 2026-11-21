@@ -29,7 +29,7 @@ const PremarkedPage = async ({
     <>
       <Breadcrumb pageName="Pre-Marked Studies" />
 
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4 lg:gap-10">
         <Suspense key={query + currentPage}>
           <PremarkedTable query={query} currentPage={currentPage} sortBy={sortBy} sortAsc={sortAsc}/>
         </Suspense>        

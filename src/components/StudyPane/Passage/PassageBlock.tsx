@@ -4,18 +4,26 @@ import { useState, useEffect } from "react";
 import { StanzaBlock } from './StanzaBlock';
 import { CounterStanzaBlock } from './CounterStanzaBlock';
 import { LanguageMode } from '@/lib/types';
+import { useLayout } from "../Responsive/layout";
 
 export type PassageDisplayMode = "gloss" | "hebrew" | "transliteration" | "counter";
 
-export const LanguageContext = createContext({
+export const LanguageContext = createContext<{
+  ctxIsHebrew: boolean;
+  ctxDisplayMode: PassageDisplayMode;
+  ctxInterlinear?: boolean;
+}>({
   ctxIsHebrew: false,
   ctxDisplayMode: "gloss" as PassageDisplayMode,
+  /** Phone "English + Hebrew": each word box shows the Hebrew under the English. */
+  ctxInterlinear: false,
 })
 
 export const PassageBlock = ({
   displayMode,
   columnRef,
   sharedMinWidth,
+  interlinear = false,
 }: {
   displayMode: PassageDisplayMode;
   // Set by Passage on the two parallel language columns: a callback ref to the
@@ -24,6 +32,7 @@ export const PassageBlock = ({
   // title wraps identically in each. Undefined for single-language columns.
   columnRef?: (node: HTMLDivElement | null) => void;
   sharedMinWidth?: number | null;
+  interlinear?: boolean;
 }) => {
 
   const { ctxPassageProps, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn, ctxInTextCounterOn } = useContext(FormatContext);
@@ -51,10 +60,13 @@ export const PassageBlock = ({
   const languageContextValue = {
     ctxIsHebrew: isNonEnglish,
     ctxDisplayMode: displayMode,
+    ctxInterlinear: interlinear,
   }
 
   const isParallel = ctxLanguageMode == LanguageMode.Parallel;
-  const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel || ctxReadmeBtnOn;
+  const { mode } = useLayout();
+  // Phones and narrow tablets are too narrow for stanzas side by side: stack them.
+  const shouldStackStanzas = ctxStropheNoteBtnOn || isParallel || ctxReadmeBtnOn || mode === "phone" || mode === "tablet";
   const allowPassageGrowth = ctxStropheNoteBtnOn && !ctxReadmeBtnOn;
   const stackedWidthClass = allowPassageGrowth
     ? 'w-fit min-w-full max-w-none'

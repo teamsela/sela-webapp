@@ -1,4 +1,5 @@
 'use client'
+import { isPracticeMode } from "@/lib/practiceMode";
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LuTextSelect, LuChevronUp } from "react-icons/lu";
 import { IconTrash } from "@tabler/icons-react";
@@ -88,7 +89,7 @@ const Layers = () => {
   const lastSavedPayloadRef = useRef<string | null>(null);
 
   const saveNow = useCallback(async (payload: string, { keepalive = false } = {}) => {
-    if (!ctxStudyId) return;
+    if (!ctxStudyId || isPracticeMode()) return;
     if (lastSavedPayloadRef.current === payload) return;
     try {
       const res = await fetch("/api/noteSync", {
@@ -472,6 +473,8 @@ const Layers = () => {
               {/* Header row: dot, name, action icons */}
               <div
                 className="flex items-center gap-3 px-5 py-4"
+                data-tour="layer-card"
+                data-layer-id={layer.id}
                 onClick={() => handleBoxClick(layer.id)}
               >
                 {/* Active/inactive status dot */}
@@ -587,6 +590,7 @@ const Layers = () => {
         <div
           className="flex gap-3 px-5 py-4 cursor-pointer items-center justify-center rounded-xl border border-dashed border-stroke text-gray-400 transition hover:border-primary hover:text-primary dark:border-strokedark"
           onClick={() => !creating && setCreating(true)}
+          data-tour="new-layer"
         >
           {creating ? (
             <input

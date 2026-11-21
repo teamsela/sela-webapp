@@ -1,7 +1,7 @@
 import { useContext, useState, useRef, useEffect } from 'react';
 import { FormatContext } from '../index';
 import { LanguageMode, NonEnglishDisplayMode } from "@/lib/types";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 
 type DropdownOption = { label: string; value?: NonEnglishDisplayMode };
 
@@ -105,12 +105,14 @@ const LanguageSwitcher = () => {
     return (
       <div className={`flex items-stretch ${outerClass}`}>
         <span
+          data-tour={`lang-${LanguageMode[mode]}`}
           onClick={() => handleMainClick(mode)}
           className={`flex items-center pl-[14px] pr-[6px] py-[6px] cursor-pointer select-none transition-colors ${hoverClass} ${labelRoundClass} ${isActive ? activeClass : ""}`}
         >
           {label}
         </span>
         <span
+          data-tour={`lang-chevron-${LanguageMode[mode]}`}
           onClick={(e) => { e.stopPropagation(); handleChevronClick(mode); }}
           className={`flex items-center justify-center w-[14px] py-[6px] cursor-pointer select-none transition-colors border-l border-l-transparent ${hoverClass} ${chevronRoundClass} ${isActive ? activeClass : ""}`}
         >
@@ -121,7 +123,7 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} data-tour="language-switcher">
       <label
         htmlFor="toggleLang"
         className="flex cursor-pointer select-none items-center ml-2"
@@ -134,7 +136,7 @@ const LanguageSwitcher = () => {
       </label>
 
       {dropdownOpen && (
-        <div className={`absolute top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg ${ctxLanguageMode === LanguageMode.English ? "left-0" : "right-0"}`}>
+        <div data-tour="language-dropdown" className={`absolute top-full mt-1 z-50 min-w-[280px] rounded-md border border-[#D9D9D9] bg-white py-1 shadow-lg ${ctxLanguageMode === LanguageMode.English ? "left-0" : "right-0"}`}>
           {options.map((opt) => (
             <button
               key={opt.label}

@@ -29,7 +29,7 @@ const PublicPage = async ({
     <>
       <Breadcrumb pageName="Public Studies" />
 
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4 lg:gap-10">
         <Suspense key={query + currentPage}>
           <PublicTable query={query} currentPage={currentPage} sortBy={sortBy} sortAsc={sortAsc}/>
         </Suspense>        

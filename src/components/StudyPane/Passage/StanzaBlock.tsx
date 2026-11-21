@@ -4,8 +4,9 @@ import { useContext, useEffect, useState, useRef, useMemo } from "react";
 import { FormatContext, DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR } from "..";
 import { StropheBlock } from "./StropheBlock";
 import { CounterStropheBlock } from "./CounterStropheBlock";
-import { TbArrowBarLeft, TbArrowBarRight } from "react-icons/tb";
-import { updateMetadataInDb } from "@/lib/actions";
+import { LuArrowLeftToLine, LuArrowRightToLine } from "react-icons/lu";
+import { useLayout } from "../Responsive/layout";
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from "./PassageBlock";
 import { getReadableTextColor } from "@/lib/color";
 
@@ -35,7 +36,9 @@ export const StanzaBlock = ({
     []
   );
 
-  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn;
+  // Stanzas stack on phones and narrow tablets (see PassageBlock), so the collapse arrow points up there too.
+  const { mode: layoutMode } = useLayout();
+  const shouldStackStanzas = ctxLanguageMode == LanguageMode.Parallel || ctxStropheNoteBtnOn || layoutMode === "phone" || layoutMode === "tablet";
   const shouldStretchReadmeStanza = ctxReadmeBtnOn && ctxLanguageMode != LanguageMode.Parallel;
   const isParallelMode = ctxLanguageMode == LanguageMode.Parallel;
   const stanzaHorizontalPaddingClass = isParallelMode
@@ -158,14 +161,14 @@ export const StanzaBlock = ({
     if (shouldStackStanzas) {
       if (expanded) {
         return (
-            <TbArrowBarLeft className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
+            <LuArrowLeftToLine className="rotate-[-90deg]" fontSize="1.1em" style={{pointerEvents:'none'}} />
         )
       }
       else {
         return (
           <>
           { 
-            ctxIsHebrew ? <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> : <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} />
+            ctxIsHebrew ? <LuArrowRightToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> : <LuArrowLeftToLine fontSize="1.1em" style={{pointerEvents:'none'}} />
           } 
           </>
         )  
@@ -175,8 +178,8 @@ export const StanzaBlock = ({
     else {
       return (
         <>
-          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <TbArrowBarLeft fontSize="1.1em" style={{pointerEvents:'none'}} /> }
-          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <TbArrowBarRight fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
+          { ((!expanded && ctxIsHebrew) || (expanded && !ctxIsHebrew)) && <LuArrowLeftToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> }
+          { ((!expanded && !ctxIsHebrew) || (expanded && ctxIsHebrew)) && <LuArrowRightToLine fontSize="1.1em" style={{pointerEvents:'none'}} /> }        
         </>
       )        
     }
@@ -204,6 +207,9 @@ export const StanzaBlock = ({
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
           onBlur={saveTitle}
+          // The tutorial points at the title; it stays the target while typed in.
+          data-tour="stanza-title"
+          data-stanza-id={stanzaProps.stanzaId}
           dir="auto"
           className={`w-full resize-none rounded border border-primary bg-transparent py-1 text-base font-semibold outline-none ${titleReservedSidePaddingClass}`}
           style={{ color: contrastingForegroundColor }}
@@ -231,14 +237,18 @@ export const StanzaBlock = ({
     }
 
     return (
+      // (Touch screens have no hover, so "Add stanza title…" always shows there,
+      // faintly, or the space to tap would look empty.)
       <button
         type="button"
         onClick={startEditing}
+        data-tour="stanza-title"
+        data-stanza-id={stanzaProps.stanzaId}
         className={`group flex w-full items-center rounded py-1 hover:bg-theme active:bg-transparent ${titleReservedSidePaddingClass}`}
         title={hasTitle ? "Edit title" : "Add title"}
       >
         <span
-          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
+          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50 [@media(hover:none)]:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
           dir="auto"
           style={{ color: contrastingForegroundColor }}
         >
@@ -251,6 +261,7 @@ export const StanzaBlock = ({
   return(
       <div
       key={"stanza_" + stanzaProps.stanzaId}
+      data-stanza-block={stanzaProps.stanzaId}
       className={`relative flex flex-col ${ctxLanguageMode == LanguageMode.Parallel || useCounterColumns ? '' : 'pt-10'} ${shouldStretchReadmeStanza ? 'w-full min-w-0 flex-1 grow' : 'grow-0'} ${expanded ? 'flex-1' : ''} ${stanzaHorizontalPaddingClass} rounded border`}
       >
       <div

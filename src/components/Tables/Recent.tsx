@@ -9,6 +9,7 @@ import Pagination from "@/components/Paginations/Pagination";
 import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
 import SearchBar from "@/components/Tables/Search";
+import { MyStudyCard, SortSelect, MY_SORTS } from "@/components/Dashboard/StudyCards";
 import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
 import { fetchRecentStudies } from '@/lib/actions';
 import { FetchStudiesResult } from '@/lib/data';
@@ -56,9 +57,13 @@ export default function RecentTable({
 
   return (
     <>
-    <SearchBar placeholder="Search study by name or passage..." />
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <div className="max-w-full overflow-x-auto">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="min-w-0 flex-1"><SearchBar placeholder="Search study by name or passage..." /></div>
+      <SortSelect options={MY_SORTS} className="lg:hidden" />
+    </div>
+    <div className="lg:rounded-sm lg:border lg:border-stroke lg:bg-white lg:px-7.5 lg:pt-6 lg:pb-2.5 lg:shadow-default dark:border-strokedark lg:dark:bg-boxdark xl:pb-1">
+      {/* Desktop: the table. Under 1024px: the cards below. */}
+      <div className="hidden max-w-full overflow-x-auto lg:block">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -68,7 +73,7 @@ export default function RecentTable({
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
                 < SortableColumnHeader displayHeader={"Passage"} sortKey={"passage"}/>
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+              <th className="hidden min-w-[120px] py-4 px-4 font-medium text-black dark:text-white xl:table-cell xl:pl-11">
                 < SortableColumnHeader displayHeader={"Created At"} sortKey={"created_at"}/>
               </th>
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
@@ -97,7 +102,7 @@ export default function RecentTable({
                     {formatBookAndPassage(studyItem.book, studyItem.passage)}
                   </p>
                 </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                <td className="hidden border-b border-[#eee] py-5 px-4 dark:border-strokedark xl:table-cell">
                   <p className="text-black dark:text-white">
                     {studyItem.createdAt?.toLocaleString()}
                   </p>
@@ -122,6 +127,11 @@ export default function RecentTable({
           </tbody>
         </table>
       </div>
+      <ul className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3.5 lg:hidden">
+        {studiesResult.records.map((studyItem) => (
+          <MyStudyCard key={studyItem.id} study={studyItem} setTriggerFetch={setTriggerFetch} />
+        ))}
+      </ul>
       {
         studiesResult.totalPages > 0 
           ? <Pagination totalPages={ studiesResult.totalPages } /> 

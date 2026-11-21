@@ -445,6 +445,14 @@ const RichTextEditor = ({
           editable ? "pb-10" : ""
         }`}
         onContextMenu={allowContextMenu ? openAtEvent : undefined}
+        // The text itself may be a line or two tall inside a larger panel (a
+        // strophe's note fills the strophe): a click or tap on the empty space
+        // puts the cursor at the end, so the whole panel is the place to type.
+        onClick={(e) => {
+          if (!editable || editor.isFocused) return;
+          if ((e.target as HTMLElement).closest(".ProseMirror")) return;
+          editor.chain().focus("end").run();
+        }}
       >
         {editable && editor.isEmpty && (
           <span className="pointer-events-none absolute left-5 top-3 text-black/40 dark:text-white/40">

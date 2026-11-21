@@ -29,7 +29,7 @@ const HomePage = async ({
     <>
       <Breadcrumb pageName="My Studies" />
 
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4 lg:gap-10">
         <Suspense key={query + currentPage}>
           <RecentTable query={query} currentPage={currentPage} sortBy={sortBy} sortAsc={sortAsc}/>
         </Suspense>        

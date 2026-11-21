@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useContext, useRef, useMemo, useCallback, useLayoutEffect } from 'react';
-import { LuTextSelect } from "react-icons/lu";
-import { IoIosArrowForward, IoIosArrowBack, IoIosArrowDown } from "react-icons/io";
-import { PiNotePencil } from "react-icons/pi";
+import { LuTextSelect, LuNotebookPen, LuChevronDown, LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { DEFAULT_COLOR_FILL, DEFAULT_BORDER_COLOR, FormatContext } from '../index';
 import { WordBlock } from './WordBlock';
 import { ColorActionType, BoxDisplayStyle, LanguageMode } from "@/lib/types";
 import { ColorData, StropheProps } from '@/lib/data';
 import { readStropheNoteTitle } from "@/lib/counter";
 import { strophesHasSameColor } from "@/lib/utils";
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { LanguageContext } from './PassageBlock';
 import { StropheAlignContext } from './stropheAlign';
 import { StropheNotes } from './StropheNotes';
 import { getReadableTextColor } from '@/lib/color';
+import { useLayout } from '../Responsive/layout';
 
 const getLineRenderKey = (stropheId: number, line: StropheProps["lines"][number]) => {
   const firstWordId = line.words[0]?.wordId ?? "empty";
@@ -39,6 +38,10 @@ export const StropheBlock = ({
     ctxInViewMode, ctxSetNoteBox, ctxStudyNotes, ctxBoxDisplayConfig, ctxStropheNoteBtnOn, ctxLanguageMode, ctxScaleValue,
     ctxActiveLayerId, ctxReadmeBtnOn, ctxInTextCounterOn,
   } = useContext(FormatContext);
+  const { mode: layoutMode } = useLayout();
+  const isPhone = layoutMode === 'phone';
+  // Phones and narrow tablets (and an opened foldable's half): wrap long lines.
+  const wrapLines = isPhone || layoutMode === 'tablet';
   const { ctxIsHebrew } = useContext(LanguageContext)
   const stropheAlign = useContext(StropheAlignContext);
 
@@ -74,8 +77,12 @@ export const StropheBlock = ({
     () => (ctxIsHebrew ? 'text-right' : 'text-left'),
     [ctxIsHebrew]
   );
+  const phoneActionRow = isPhone && stanzaExpanded && expanded;
   const actionButtonWrapperClass = useMemo(
     () => {
+      if (phoneActionRow) {
+        return `relative flex h-10 items-center gap-1 -mx-2 -mt-1 mb-1 ${ctxIsHebrew ? 'justify-start' : 'justify-end'}`;
+      }
       const base = 'z-1 absolute p-[0.5] m-[0.5] bg-transparent';
       if (!stanzaExpanded) {
         const shouldPinToLanguageSide = ctxStropheNoteBtnOn || ctxLanguageMode === LanguageMode.Parallel;
@@ -86,8 +93,10 @@ export const StropheBlock = ({
       }
       return `${base} top-0 ${ctxIsHebrew ? 'left-0' : 'right-0'}`;
     },
-    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode]
+    [ctxIsHebrew, stanzaExpanded, ctxStropheNoteBtnOn, ctxLanguageMode, phoneActionRow]
   );
+  // Touch-size buttons on phones.
+  const actionButtonClass = phoneActionRow ? 'flex h-10 w-10 items-center justify-center rounded-lg' : '';
 
   const handleNoteAreaMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Stop bubbling so drag-select handler does not steal the first click
@@ -319,9 +328,17 @@ export const StropheBlock = ({
   // in-text counter is on (single or parallel) each line must stay on a single
   // row so its count box stays aligned, breaking only where the data (or the
   // user) put a line break. With the counter off, keep wrapping.
-  const wrapReaderLines = ctxReadmeBtnOn && !ctxInTextCounterOn;
+  // Phones: lines wrap onto more rows instead of running off the screen.
+  const wrapReaderLines = (ctxReadmeBtnOn && !ctxInTextCounterOn) || wrapLines;
   const renderWordRow = (line: StropheProps["lines"][number], lineId: number) => (
-    <div data-strophe-line="true" className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''}`}>
+    // On phones and narrow tablets a long line wraps with a hanging indent, so
+    // the rows it continues onto can't be mistaken for lines of their own.
+    <div
+      data-strophe-line="true"
+      data-line-id={line.lineId}
+      data-line-start={line.words[0]?.wordId}
+      className={`flex my-1 ${wrapReaderLines ? 'flex-wrap' : ''} ${wrapLines && !ctxReadmeBtnOn ? (ctxIsHebrew ? 'gap-y-1 pr-6 [&>*:first-child]:-mr-6' : 'gap-y-1 pl-6 [&>*:first-child]:-ml-6') : ''}`}
+    >
       {renderWords(line, lineId)}
     </div>
   );
@@ -363,7 +380,8 @@ export const StropheBlock = ({
   return (
     <div 
       key={"strophe_" + stropheProps.stropheId}
-      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded?ctxIsHebrew?'pl-20':'pr-20':'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
+      data-strophe-block={stropheProps.stropheId}
+      className={`w-full relative flex flex-col px-5 py-2 mx-1 my-1 min-h-[45px] ${stanzaExpanded ? (isPhone ? 'px-3' : (ctxIsHebrew ? 'pl-20' : 'pr-20')) : 'pr-5'} ${selected ? 'rounded border outline outline-offset-1 outline-2 outline-[#FFC300] drop-shadow-md' : 'rounded border'}`}
       style={
         {
           background: `${colorFillLocal}`,
@@ -379,7 +397,10 @@ export const StropheBlock = ({
       !ctxInViewMode &&
       <button
         key={"strophe" + stropheProps.stropheId + "Selector"}
-        className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent`}
+        data-tour="strophe-select"
+        data-strophe-id={stropheProps.stropheId}
+        className={`${stanzaExpanded ? 'mx-[0.5]' : 'mx-1'} hover:bg-theme active:bg-transparent ${actionButtonClass}`}
+        aria-label="Select strophe"
         onClick={() => handleStropheBlockClick()}
         data-clicktype={'clickable'}
       >
@@ -394,10 +415,14 @@ export const StropheBlock = ({
       expanded && stanzaExpanded && !ctxStropheNoteBtnOn && !ctxInViewMode ?
       <button
         key={"strophe" + stropheProps.stropheId + "notepad"}
-        className={`mx-[0.5] hover:bg-theme active:bg-transparent`}
+        data-tour="strophe-note-open"
+        data-strophe-id={stropheProps.stropheId}
+        className={`mx-[0.5] hover:bg-theme active:bg-transparent ${actionButtonClass}`}
         onClick={() => setShowNote(!showNote)}
+        aria-label="Strophe note"
+        aria-pressed={showNote}
       >
-        <PiNotePencil size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} />
+        <LuNotebookPen size={ACTION_ICON_SIZE - 2} color={contrastingForegroundColor} style={{pointerEvents:'none'}} />
       </button>
       :
       <></>
@@ -406,13 +431,17 @@ export const StropheBlock = ({
         stanzaExpanded?
         <button
           key={"strophe" + stropheProps.stropheId + "CollapseButton"}
-          className={`mt-2 mx-[0.5] hover:bg-theme active:bg-transparent`}
+          data-tour="strophe-collapse"
+          data-strophe-id={stropheProps.stropheId}
+          className={`${phoneActionRow ? '' : 'mt-2'} mx-[0.5] hover:bg-theme active:bg-transparent ${actionButtonClass}`}
           onClick={() => handleCollapseBlockClick()}
+          aria-label={expanded ? "Collapse strophe" : "Expand strophe"}
+          aria-expanded={expanded}
           data-clicktype={'clickable'}
         >
-          { (!expanded && ctxIsHebrew) && <IoIosArrowForward size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
-          { (!expanded && !ctxIsHebrew)  && <IoIosArrowBack size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
-          { expanded && <IoIosArrowDown size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { (!expanded && ctxIsHebrew) && <LuChevronRight size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { (!expanded && !ctxIsHebrew)  && <LuChevronLeft size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
+          { expanded && <LuChevronDown size={ACTION_ICON_SIZE} color={contrastingForegroundColor} style={{pointerEvents:'none'}} /> }
         </button>
         :
         <></>

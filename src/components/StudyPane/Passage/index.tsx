@@ -7,11 +7,12 @@ import { StropheAlignContext } from './stropheAlign';
 import { WordProps } from '@/lib/data';
 import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishDisplayMode } from '@/lib/types';
 import { RichDoc, mergeRichDocs } from '@/lib/richText';
-import { updateMetadataInDb } from '@/lib/actions';
+import { updateMetadataInDb } from "@/lib/studyPersistence";
 import { eventBus } from "@/lib/eventBus";
 import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
+import { useLayout } from '../Responsive/layout';
 
 
 // Line-break helpers shared by the structure-edit logic. In reader mode the
@@ -44,13 +45,15 @@ const Passage = ({
   bibleData: WordProps[];
 }) => {
 
+  const formatContext = useContext(FormatContext);
+  const { mode: layoutMode } = useLayout();
   const { ctxStudyId, ctxPassageProps, ctxSetPassageProps, ctxStudyMetadata,
     ctxSetStudyMetadata, ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
     ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
     ctxNonEnglishDisplayMode, ctxActiveLayerId,
-  } = useContext(FormatContext);
+  } = formatContext;
 
   const nonEnglishDisplayMode =
     ctxNonEnglishDisplayMode === NonEnglishDisplayMode.Transliteration ||
@@ -674,7 +677,10 @@ const Passage = ({
       onMouseDown={handleMouseDown}
       ref={containerRef}
       style={{ WebkitUserSelect: 'text', userSelect: 'text' }}
-      className='h-0 w-[100%]'
+      // Elsewhere the passage scrolls inside <main>, so this box takes no
+      // height of its own; phones scroll the page, so it needs its real height
+      // (otherwise the room left for the floating bar comes before the end).
+      className={`${layoutMode === 'phone' ? '' : 'h-0'} w-[100%]`}
     >
       <div className="h-4 w-full" />
       {/* displayMode: this new class is here in case we need to redefine how 'fit' in zoom in/out feature works for parallel display mode */}
@@ -688,7 +694,17 @@ const Passage = ({
             <PassageBlock displayMode="gloss"/>
           </div>
         }
-        { ctxLanguageMode == LanguageMode.Parallel &&
+        { ctxLanguageMode == LanguageMode.Parallel && layoutMode === "phone" &&
+          // Phones have no room for three columns: one column of word boxes,
+          // each with the Hebrew under the English. The column is drawn as a
+          // single-language passage.
+          <FormatContext.Provider value={{ ...formatContext, ctxLanguageMode: LanguageMode.English }}>
+            <div className="flex flex-row mx-auto w-[100%]">
+              <PassageBlock displayMode="gloss" interlinear />
+            </div>
+          </FormatContext.Provider>
+        }
+        { ctxLanguageMode == LanguageMode.Parallel && layoutMode !== "phone" &&
           // px-1 pairs with the columns' px-1 so the outer edges keep the same 8px
           // as the (now un-doubled) 8px gaps between columns.
           <div className={`flex flex-row mx-auto px-1 ${(ctxStropheNoteBtnOn || ctxLanguageMode == LanguageMode.Parallel) ? 'w-fit max-w-full' : 'w-[100%]'}`}>

@@ -26,14 +26,16 @@ const SearchBar = ({ placeholder } : { placeholder: string }) => {
   return (
     <div className="sm:block">
       <div className="relative">
-        <button className="absolute left-2 top-1/2 -translate-y-1/2">
+        <button type="button" tabIndex={-1} aria-hidden="true" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-body">
         <IconSearch />  
         </button>
         <label htmlFor="search" className="sr-only">
           Search
         </label>
       <input
-        className="peer block w-1/2 rounded-md border py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
+        id="search"
+        type="search"
+        className="peer block h-11 w-full rounded-xl border border-stroke bg-white pl-10 text-base outline-2 placeholder:text-body lg:h-auto lg:w-1/2 lg:rounded-md lg:py-[9px] lg:text-sm"
         placeholder={placeholder}
         onChange={(e) => {
           handleSearch(e.target.value);

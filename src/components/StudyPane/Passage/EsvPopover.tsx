@@ -23,7 +23,6 @@ const EsvPopover = ({
   const [esvData, setEsvData] = useState("Loading...");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
-  const [popoverAlign, setPopoverAlign] = useState<"left" | "right">("left");
 
   const trigger = useRef<any>(null);
   const popovers = useRef<any>(null);
@@ -42,7 +41,9 @@ const EsvPopover = ({
       if (
         !popoversOpen ||
         popovers.current.contains(target) ||
-        trigger.current.contains(target)
+        trigger.current.contains(target) ||
+        // The tutorial's bubble (Continue, Back) isn't a click on the page.
+        (target instanceof Element && target.closest("[data-tour-ui]"))
       )
         return;
       setPopoversOpen(false);
@@ -61,27 +62,50 @@ const EsvPopover = ({
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
+  // Where the box goes: beside the verse number (above it, or below with
+  // renderFromBottom), lined up with whichever edge keeps it over the line,
+  // then nudged so the whole box stays on screen. On a phone that means a
+  // 12px margin each side, and flipping below the number when it would run
+  // under the fixed header (or below it when it would run under the bottom bar).
   useLayoutEffect(() => {
     if (!popoversOpen) return;
     const updatePosition = () => {
-      if (!trigger.current) return;
+      if (!trigger.current || !popovers.current) return;
       const rect = trigger.current.getBoundingClientRect();
+      const box = popovers.current as HTMLElement;
+      const width = box.offsetWidth;
+      const height = box.offsetHeight;
       const lineEl = trigger.current.closest('[data-strophe-line="true"]');
       const lineRect = lineEl?.getBoundingClientRect();
       const triggerCenter = rect.left + rect.width / 2;
-      const margin = 4;
-      const top = renderFromBottom ? rect.bottom + margin : rect.top - margin;
+      const gap = 4;
+      const edge = 12;
+
       const baseAlign: "left" | "right" = isHebrew ? "right" : "left";
       const lineMidpoint = lineRect ? lineRect.left + lineRect.width / 2 : null;
       const isSecondHalf = lineMidpoint !== null
         ? (isHebrew ? triggerCenter < lineMidpoint : triggerCenter > lineMidpoint)
         : false;
-      const nextAlign: "left" | "right" = isSecondHalf
+      const align: "left" | "right" = isSecondHalf
         ? (baseAlign === "left" ? "right" : "left")
         : baseAlign;
-      const left = nextAlign === "right" ? rect.right + margin : rect.left;
+      const preferredLeft = align === "right" ? rect.right + gap - width : rect.left;
+      const left = Math.max(edge, Math.min(preferredLeft, window.innerWidth - width - edge));
+
+      const header = document.getElementById("selaHeader");
+      const topLimit = Math.max(edge, header ? header.getBoundingClientRect().bottom + gap : 0);
+      const above = rect.top - gap - height;
+      const below = rect.bottom + gap;
+      // The phone's floating bottom bar (or the window's bottom edge).
+      const bottomBar = document.querySelector("[data-bottom-bar]");
+      const bottomLimit = (bottomBar ? bottomBar.getBoundingClientRect().top : window.innerHeight) - gap;
+      const fitsAbove = above >= topLimit;
+      const fitsBelow = below + height <= bottomLimit;
+      const top = renderFromBottom
+        ? (fitsBelow || !fitsAbove ? below : above)
+        : (fitsAbove || !fitsBelow ? above : below);
+
       setPopoverPosition({ top, left });
-      setPopoverAlign(nextAlign);
     };
     updatePosition();
     window.addEventListener("resize", updatePosition);
@@ -90,19 +114,25 @@ const EsvPopover = ({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [popoversOpen, renderFromBottom, isHebrew]);
+  }, [popoversOpen, renderFromBottom, isHebrew, esvData]);
 
   const popoverContent = (
     <div
       ref={popovers}
+      data-tour="esv-popover"
+      data-open={popoversOpen ? "true" : "false"}
       onFocus={() => setPopoversOpen(true)}
       onBlur={() => setPopoversOpen(false)}
-      style={{ top: popoverPosition.top, left: popoverPosition.left }}
-      className={`fixed ${renderFromBottom ? '' : '-translate-y-full'} ${popoverAlign === 'right' ? '-translate-x-full' : ''} ${isHebrew ? 'max-w-[420px]' : 'max-w-[560px]'} text-left z-20 w-max rounded bg-black bg-opacitiy-50 dark:bg-meta-4 sm:p-3 xl:p-3 ${
+      style={{
+        top: popoverPosition.top,
+        left: popoverPosition.left,
+        maxWidth: `min(${isHebrew ? 420 : 560}px, calc(100vw - 24px))`,
+      }}
+      className={`fixed text-left z-[45] w-max rounded-lg bg-black px-3.5 py-3 shadow-lg dark:bg-meta-4 ${
         popoversOpen === true ? "block" : "hidden"
       }`}
     >
-      <p className="text-sm text-white text-wrap">
+      <p className="text-[15px] leading-6 text-white text-wrap sm:text-sm sm:leading-5">
         {esvData}
       </p>
     </div>
@@ -114,6 +144,8 @@ const EsvPopover = ({
         <div className={`relative inline-block ${popoversOpen ? 'z-30' : 'z-0'}`}>
           <button
             ref={trigger}
+            // Only verse 1 is marked, so the tutorial lights up one verse number.
+            data-tour={verseNumber === 1 ? "verse-number" : undefined}
             onClick={() => {
               const esvContent = fetchESVTranslation(bookName, chapterNumber, verseNumber);
               esvContent.then((data) =>

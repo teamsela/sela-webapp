@@ -638,6 +638,9 @@ const Syntax = () => {
                 type="button"
                 className="ClickBlock flex w-full items-center gap-2 py-4 px-2 text-left text-sm font-medium md:text-base"
                 onClick={() => toggleSection(section.type)}
+                data-tour="syntax-section"
+                data-section-id={section.id}
+                aria-expanded={isOpen}
               >
                 <AccordionToggleIcon isOpen={isOpen} />
                 <span className={isOpen ? "text-primary" : "text-black dark:text-white"}>

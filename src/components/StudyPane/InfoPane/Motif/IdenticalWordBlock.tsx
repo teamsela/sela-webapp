@@ -91,6 +91,8 @@ export const IdenticalWordBlock = ({
         <span
           className="flex mx-1 my-1"
           onClick={handleClick}
+          data-tour="motif-chip"
+          data-strong={identicalWords[0].strongNumber}
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
