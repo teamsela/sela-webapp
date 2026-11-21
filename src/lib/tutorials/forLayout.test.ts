@@ -85,3 +85,31 @@ describe("the tours on a phone", () => {
     expect(String(yahweh.allow)).toContain("select-repeats");
   });
 });
+
+describe("menus the user opens first", () => {
+  const newStrophe: TourStep = {
+    id: "n",
+    section: "S",
+    title: "Click New strophe",
+    target: '[data-tour="structure-newStrophe"]',
+    body: "Click New strophe. Verse 4 moves into a new strophe.",
+    isDone: () => false,
+  };
+  it("phones: open Strophe in the bar, then the control; both lit", () => {
+    const p = forLayout(newStrophe, "phone");
+    expect(p.body).toBe("In the bar at the bottom, open Strophe. Then tap New strophe. Verse 4 moves into a new strophe.");
+    expect(p.target).toContain('[data-tour="dock-strophe"]');
+  });
+  it("tablets: choose the ribbon group, then the control; both lit", () => {
+    const t = forLayout(newStrophe, "tablet");
+    expect(t.body).toBe("In the toolbar, choose Strophe. Then tap New strophe. Verse 4 moves into a new strophe.");
+    expect(t.target).toBe('[data-tour="structure-newStrophe"], [data-tour="ribbon-Strophe"]');
+  });
+  it("leaves desktop, read-only steps and phone-specific wording alone", () => {
+    expect(forLayout(newStrophe, "desktop").body).toBe(newStrophe.body);
+    const readOnly = { ...newStrophe, isDone: undefined };
+    expect(forLayout(readOnly, "phone").body).toBe("Tap New strophe. Verse 4 moves into a new strophe.");
+    const own = { ...newStrophe, phone: { body: "Own words." } };
+    expect(forLayout(own, "phone").body).toBe("Own words.");
+  });
+});

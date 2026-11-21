@@ -25,7 +25,6 @@ import {
   UniformWidthBtn,
 } from "../Toolbar/Buttons";
 import { ToolbarVariantContext } from "./layout";
-import { toolGroupOf, useTourStep, type ToolGroup } from "@/lib/tutorials/tourEvents";
 
 /*
   The tablet toolbar: a ribbon. The desktop toolbar shows every button in
@@ -37,7 +36,6 @@ import { toolGroupOf, useTourStep, type ToolGroup } from "@/lib/tutorials/tourEv
 */
 
 const GROUPS: InfoModalSection[] = ["Format", "Word", "Line", "Strophe", "Stanza"];
-const GROUP_FOR: Record<ToolGroup, InfoModalSection> = { format: "Format", word: "Word", line: "Line", strophe: "Strophe", stanza: "Stanza" };
 
 export const TabletToolbar = ({
   study,
@@ -56,11 +54,6 @@ export const TabletToolbar = ({
 }) => {
   const { ctxInViewMode, ctxLanguageMode, ctxPracticeMode } = useContext(FormatContext);
   const [group, setGroup] = useState<InfoModalSection>("Format");
-  // The tutorial points at a button in another group: show that group.
-  useTourStep((target) => {
-    const g = toolGroupOf(target);
-    if (g) setGroup(GROUP_FOR[g]);
-  });
   const [infoSection, setInfoSection] = useState<InfoModalSection | null>(null);
   const isHebrew = ctxLanguageMode == LanguageMode.Hebrew;
 
@@ -92,6 +85,8 @@ export const TabletToolbar = ({
               key={g}
               type="button"
               role="tab"
+              // The tutorial lights the group to open (lib/tutorials/tour.ts forLayout).
+              data-tour={`ribbon-${g}`}
               aria-selected={group === g}
               onClick={() => {
                 setGroup(g);

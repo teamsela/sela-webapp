@@ -172,6 +172,37 @@ export const withPhoneGroupButton = (target: string | undefined) => {
   return extra && !target.includes(extra) ? `${target}, ${extra}` : target;
 };
 
+const GROUP_NAMES: [RegExp, string, string][] = [
+  // [control, phone bar button, tablet ribbon group]
+  [/data-tour="structure-[A-Za-z]*Line"/, "Line", "Line"],
+  [/data-tour="structure-[A-Za-z]*Strophe"/, "Strophe", "Strophe"],
+  [/data-tour="structure-[A-Za-z]*Stanza"/, "Stanza", "Stanza"],
+  [/data-tour="(indent-add|indent-remove|edit-gloss)"/, "Word", "Word"],
+  [/data-tour="(boxes|uniform-width)"/, "", "Word"],
+  [/data-tour="(fill|border|font)-color"/, "Color", "Format"],
+];
+
+/**
+  On phones and tablets a step's control can sit in a menu the user has to
+  open first (the phone bar's Strophe menu, the ribbon's Strophe group). The
+  tutorial lights that menu's button too and says to open it, rather than
+  opening it for them.
+*/
+const menuLeadIn = (target: string | undefined, layout: TourLayout): { name: string; marker: string; lead: string } | undefined => {
+  if (!target || (layout !== "phone" && layout !== "tablet")) return undefined;
+  const hit = GROUP_NAMES.find(([re]) => re.test(target));
+  if (!hit) return undefined;
+  const name = layout === "phone" ? hit[1] : hit[2];
+  if (!name) return undefined;
+  return layout === "phone"
+    ? { name, marker: `[data-tour="dock-${name.toLowerCase()}"]`, lead: `In the bar at the bottom, open ${name}.` }
+    : { name, marker: `[data-tour="ribbon-${name}"]`, lead: `In the toolbar, choose ${name}.` };
+};
+
+/** "In the bar at the bottom, open Strophe. Then tap New strophe. …" */
+const withLeadIn = (lead: string) => (text: string) =>
+  /^Tap /.test(text) ? `${lead} Then tap ${text.slice(4)}` : `${lead} ${text}`;
+
 const mapText = (
   value: TourStep["body"] | undefined,
   fn: (text: string) => string,
@@ -196,6 +227,14 @@ export const forLayout = (step: TourStep, layout: TourLayout): TourStep => {
       body: mapText(out.body, touchWords) as TourStep["body"],
       checks: out.checks?.map((c) => ({ ...c, label: touchWords(c.label) })),
     };
+    // A control in a menu: say to open the menu first (unless the phone
+    // wording already does), and light the menu's button.
+    const menu = isActionStep(out) && typeof step.target === "string" ? menuLeadIn(step.target, layout) : undefined;
+    if (menu) {
+      const target = typeof out.target === "string" && !out.target.includes(menu.marker) ? `${out.target}, ${menu.marker}` : out.target;
+      const explained = layout === "phone" && step.phone?.body !== undefined;
+      out = { ...out, target, body: explained ? out.body : (mapText(out.body, withLeadIn(menu.lead)) as TourStep["body"]) };
+    }
   }
   return out;
 };

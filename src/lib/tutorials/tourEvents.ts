@@ -1,15 +1,11 @@
 import { useEffect, useRef } from "react";
 
 /*
-  The tour announces each step's target as the step begins, so the screen
-  can bring it into view where it would otherwise be tucked away:
-
-    tablet ribbon   switches to the group holding the button
-    phone           opens the bottom bar's menu (or the color panel) holding
-                    it, when something is selected; closes the ⋯ menu unless
-                    the step is about it
-
-  (The desktop toolbar shows every button, so it ignores this.)
+  The tour announces each step's target as the step begins. The phone's
+  ⋯ menu listens and closes unless the step is about it (its backdrop would
+  cover the step's target). Menus that hold a step's control are not opened
+  for the user: opening them is part of what the tutorial teaches (see
+  forLayout in ./tour.ts, which lights the menu's button and says to open it).
 */
 
 export const TOUR_STEP_EVENT = "sela:tour-step";

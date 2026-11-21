@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconArrowDown, IconArrowUp, IconCheck, IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
+import { IconArrowDown, IconArrowUp, IconCheck, IconChevronDown, IconChevronUp, IconCircle, IconCircleCheckFilled, IconX } from "@tabler/icons-react";
 
 /*
   Highlight-and-bubble for a guided tour, in the app's own style.
@@ -349,6 +349,8 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
   const targetInPanel = panelOpen && !!place && place.left >= panelLeft;
   let bubbleStyle: React.CSSProperties;
   let compact = false;
+  // Whether the bubble would shrink if not expanded (offers "Hide" when expanded).
+  let shrinkable = false;
   if (docked) {
     // Full width, above the bottom bar, or under the header when the target
     // is in the lower part of the screen.
@@ -371,9 +373,12 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
     // Shrink to one line when the full bubble would cover what the step
     // points at (a tall panel such as the colors), unless the user expanded it.
     const litBox = rect ?? place;
-    if (litBox && !expanded) {
+    // Only on steps where the user has to reach what the bubble would cover;
+    // a read-and-continue step always shows its whole text.
+    if (litBox && !expanded && interactive) {
       compact = targetLow ? header + 8 + fullHeight > litBox.top : bar - 8 - fullHeight < litBox.top + litBox.height;
     }
+    shrinkable = compact || (expanded && interactive);
   } else if (targetInPanel && place) {
     // Beside the panel, level with the target inside it.
     const top = Math.min(Math.max(place.top + place.height / 2 - bubbleHeight / 2, EDGE), window.innerHeight - bubbleHeight - EDGE);
@@ -464,16 +469,18 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              aria-label={`${title}: show the step`}
-              className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 text-left"
+              aria-expanded={false}
+              className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2.5 text-left"
             >
-              {done ? (
-                <IconCircleCheckFilled size={20} className="shrink-0" style={{ color: DONE }} aria-hidden />
-              ) : (
-                <IconArrowDown size={18} stroke={2.2} className="shrink-0 rotate-180 text-primary" aria-hidden />
-              )}
-              <span className="truncate text-[15px] font-semibold text-black dark:text-white" style={done ? { color: "#0B6E4F" } : undefined}>
-                {done ? "Done, that\u2019s right" : title}
+              {done && <IconCircleCheckFilled size={22} className="shrink-0" style={{ color: DONE }} aria-hidden />}
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-[15px] font-semibold text-black dark:text-white" style={done ? { color: "#0B6E4F" } : undefined}>
+                  {done ? "Done, that\u2019s right" : title}
+                </span>
+                <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                  Show the full step
+                  <IconChevronDown size={14} stroke={2.4} aria-hidden />
+                </span>
               </span>
             </button>
             <div className="flex shrink-0 items-center gap-2 [&>button:not(:last-child)]:hidden">{actions}</div>
@@ -551,7 +558,15 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
         )}
 
 
-        <div className="mt-4 flex items-center justify-end gap-3">{actions}</div>
+        <div className="mt-4 flex items-center justify-end gap-3">
+          {shrinkable && expanded && (
+            <button type="button" onClick={() => setExpanded(false)} className="mr-auto flex items-center gap-1 text-sm font-semibold text-primary">
+              <IconChevronUp size={16} stroke={2.4} aria-hidden />
+              Hide
+            </button>
+          )}
+          {actions}
+        </div>
         </>
         )}
       </div>

@@ -244,7 +244,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Close the picker: click Fill color again", isDone: (s) => allColored(s, nots(s)) && !s.colorPickerOpen },
     ],
     phone: {
-      body: "Pick a fill color from the colors panel (Color in the bar at the bottom opens it). Then tap Done.",
+      body: "Tap Color in the bar at the bottom and pick a fill color. Then tap Done to close the colors.",
       checks: [
         { label: "Fill every “not” with a color", isDone: (s) => allColored(s, nots(s)) },
         { label: "Close the colors: tap Done", isDone: (s) => allColored(s, nots(s)) && !s.colorPickerOpen },
@@ -289,7 +289,7 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
       { label: "Close the picker", isDone: (s) => allColored(s, ways(s)) && !s.colorPickerOpen },
     ],
     phone: {
-      body: "Choose any color in the colors panel: Fill, Border or Text. Then tap Done.",
+      body: "Tap Color in the bar at the bottom and choose any color: Fill, Border or Text. Then tap Done to close the colors.",
       checks: [
         { label: "Color every “way”", isDone: (s) => allColored(s, ways(s)) },
         { label: "Close the colors: tap Done", isDone: (s) => allColored(s, ways(s)) && !s.colorPickerOpen },

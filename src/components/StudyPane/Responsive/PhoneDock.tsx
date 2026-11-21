@@ -17,7 +17,6 @@ import {
 
 import type { WordProps } from "@/lib/data";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
-import { colorKindOf, toolGroupOf, useTourStep } from "@/lib/tutorials/tourEvents";
 import { FormatContext } from "../index";
 import InfoPane from "../InfoPane";
 import WordAnalysisModal from "../Footer/WordAnalysisModal";
@@ -231,22 +230,6 @@ export const PhoneDock = ({
     setSelectedColor("");
   };
 
-  // The tutorial points at a control that lives in one of this bar's menus
-  // (or the color panel): with something selected, open it, so the control
-  // is on screen when the step begins.
-  useTourStep((target) => {
-    if (!showSelectionBar) return;
-    const kind = colorKindOf(target);
-    if (kind) {
-      openColor(kind === "border" ? ColorActionType.borderColor : kind === "font" ? ColorActionType.textColor : ColorActionType.colorFill);
-      return;
-    }
-    const group = toolGroupOf(target);
-    if (group && group !== "format") {
-      setSheet(null);
-      setTray(group);
-    }
-  });
 
   const toolsTitle = TABS.find((t) => t.action === infoPaneAction)?.label ?? "";
   const toolsHeight = full
