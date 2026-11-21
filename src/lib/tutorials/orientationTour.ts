@@ -204,7 +204,11 @@ export const ORIENTATION_TOUR_STEPS: TourStep[] = [
     title: "Give a stanza a heading",
     body: "Stanzas have headings too. Click the space just above the first stanza’s first strophe (it reads “Add stanza title…”), type a heading and press [ENTER].",
     isDone: (s) => s.anyStanzaTitle,
-    result: (s) => stanzaBlock(firstStanza(s)),
+    // The title itself (the whole stanza would scroll it off screen).
+    result: (s) => {
+      const st = firstStanza(s);
+      return st ? `[data-tour="stanza-title"][data-stanza-id="${st.stanzaId}"]` : stanzaBlock(st);
+    },
     dim: false,
   },
 

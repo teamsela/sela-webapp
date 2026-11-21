@@ -237,6 +237,8 @@ export const StanzaBlock = ({
     }
 
     return (
+      // (Touch screens have no hover, so "Add stanza title…" always shows there,
+      // faintly, or the space to tap would look empty.)
       <button
         type="button"
         onClick={startEditing}
@@ -246,7 +248,7 @@ export const StanzaBlock = ({
         title={hasTitle ? "Edit title" : "Add title"}
       >
         <span
-          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
+          className={`block w-full truncate text-base font-semibold ${!hasTitle ? 'italic opacity-0 transition-opacity group-hover:opacity-50 [@media(hover:none)]:opacity-50' : ''} ${ctxIsHebrew ? 'text-right' : 'text-left'}`}
           dir="auto"
           style={{ color: contrastingForegroundColor }}
         >

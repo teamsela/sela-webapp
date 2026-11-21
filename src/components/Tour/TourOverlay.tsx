@@ -392,6 +392,15 @@ const TourOverlay = ({ target, title, body, checklist, progress, done, clearance
       const cx = (() => {
         const els = avoidSelector ? findTargets(avoidSelector) : [];
         const words = els.flatMap((el) => Array.from(el.querySelectorAll("[data-word-id]")));
+        if (!words.length && els[0]) {
+          // No words in it (a title box, a text field): the text starts at
+          // its left in English, its right in Hebrew; that's the side to keep free.
+          const r = els[0].getBoundingClientRect();
+          const textEl = els[0].querySelector("span, textarea, input") ?? els[0];
+          const st = window.getComputedStyle(textEl);
+          const fromRight = st.textAlign === "right" || (st.direction === "rtl" && st.textAlign !== "left");
+          return fromRight ? r.right - 60 : r.left + 60;
+        }
         const boxes = (words.length ? words : els).map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0);
         if (!boxes.length) return avoidBox ? avoidBox.left + avoidBox.width / 2 : window.innerWidth / 2;
         return (Math.min(...boxes.map((r) => r.left)) + Math.max(...boxes.map((r) => r.right))) / 2;
