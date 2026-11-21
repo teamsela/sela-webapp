@@ -17,6 +17,7 @@ import {
 
 import type { WordProps } from "@/lib/data";
 import { ColorActionType, InfoPaneActionType, StructureUpdateType } from "@/lib/types";
+import { useTourStep } from "@/lib/tutorials/tourEvents";
 import { FormatContext } from "../index";
 import InfoPane from "../InfoPane";
 import WordAnalysisModal from "../Footer/WordAnalysisModal";
@@ -234,6 +235,16 @@ export const PhoneDock = ({
     ctxSetNumSelectedStrophes(0);
     setTray(null);
   };
+
+  // Each tutorial step starts with this bar's menus and panels closed, so the
+  // screen matches what the step describes (a Word information panel left
+  // open would cover the Info button the next visit to that step points at).
+  useTourStep(() => {
+    setTray(null);
+    setAnalysisOpen(false);
+    if (sheet === "color") closeColor();
+    else if (sheet) setSheet(null);
+  });
 
   const openTool = (action: InfoPaneActionType) => {
     setTray(null);

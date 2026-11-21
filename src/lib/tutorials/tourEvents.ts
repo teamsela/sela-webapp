@@ -1,11 +1,18 @@
 import { useEffect, useRef } from "react";
 
 /*
-  The tour announces each step's target as the step begins. The phone's
-  ⋯ menu listens and closes unless the step is about it (its backdrop would
-  cover the step's target). Menus that hold a step's control are not opened
-  for the user: opening them is part of what the tutorial teaches (see
-  forLayout in ./tour.ts, which lights the menu's button and says to open it).
+  The tour announces each step as it begins (with its target). Listeners
+  tidy the screen so it matches what the step describes:
+
+    phone ⋯ menu        closes unless the step is about it (its backdrop
+                        would cover the step's target)
+    phone bottom bar    closes its menus, the colors panel and Word
+                        information
+    footer              folds Word Information
+
+  Menus that hold a step's control are not opened for the user: opening
+  them is part of what the tutorial teaches (see forLayout in ./tour.ts,
+  which lights the menu's button and says to open it).
 */
 
 export const TOUR_STEP_EVENT = "sela:tour-step";

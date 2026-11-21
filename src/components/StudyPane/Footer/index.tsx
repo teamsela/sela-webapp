@@ -5,6 +5,7 @@ import { IconChevronDown, IconCopyright, IconInfoCircle } from "@tabler/icons-re
 import clsx from "clsx";
 
 import CopyrightLinks from "@/components/Footer/CopyrightLinks";
+import { useTourStep } from "@/lib/tutorials/tourEvents";
 import { FormatContext } from "../index";
 
 import WordAnalysisModal from "./WordAnalysisModal";
@@ -14,6 +15,12 @@ export const Footer = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
+  // Each tutorial step starts with Word Information folded (a step that asks
+  // to open it can't tell it was opened if it already is).
+  useTourStep(() => {
+    setIsExpanded(false);
+    setShowAnalysisModal(false);
+  });
 
   const activeWord = useMemo(() => {
     if (!ctxSelectedWords.length) {
