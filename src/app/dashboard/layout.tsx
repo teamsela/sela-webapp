@@ -6,11 +6,13 @@ import Loader from "@/components/common/Loader";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/StudyPane/Header";
 import NewStudyModal from "@/components/Modals/NewStudy";
+import NewClassroomModal from "@/components/Modals/NewClassroom";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [createStudyOpen, setCreateStudyOpen] = useState(false)
+  const [createClassroomOpen, setCreateClassroomOpen] = useState(false)
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -31,6 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             setSidebarOpen={setSidebarOpen}
             createStudyOpen={createStudyOpen}
             setCreateStudyOpen={setCreateStudyOpen}
+            setCreateClassroomOpen={setCreateClassroomOpen}
           />
           {/* <!-- ===== Sidebar End ===== --> */}
 
@@ -52,6 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* <!-- ===== Main Content End ===== --> */}
             {/* <!-- ===== Create Study Modal Start ===== --> */}
             <NewStudyModal open={createStudyOpen} setOpen={setCreateStudyOpen} />
+            <NewClassroomModal open={createClassroomOpen} setOpen={setCreateClassroomOpen} />
             {/* <!-- ===== Create Study Modal End ===== --> */}
 
           </div>

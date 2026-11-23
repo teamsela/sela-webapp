@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 
 import DeleteStudyModal from '@/components/Modals/DeleteStudy';
 import EditStudyModal from '@/components/Modals/EditStudy';
+import ShareStudyModal from '@/components/Modals/ShareStudy';
 import Pagination from "@/components/Paginations/Pagination";
-import PublicSwitcher from '@/components/Tables/Recent/PublicSwitcher';
 import StarToggler from '@/components/Tables/Recent/StarToggler';
 import SearchBar from "@/components/Tables/Search";
 import SortableColumnHeader from "@/components/Tables/SortableColumnHeader";
@@ -34,7 +34,6 @@ export default function RecentTable({
     passage: "passage",
     created_at: "createdTime",
     last_modified: "updatedTime",
-    shared_to_public: "public"
   };
   
   const sortKey = sortBy !== "" ? sortDict[sortBy] ?? "xata.updatedAt" : "xata.updatedAt";
@@ -74,9 +73,6 @@ export default function RecentTable({
               <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                 < SortableColumnHeader displayHeader={"Last Modified"} sortKey={"last_modified"}/>
               </th>
-              <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-              < SortableColumnHeader displayHeader={"Shared to Public"} sortKey={"shared_to_public"}/>
-              </th>
               <th className="py-4 px-4 font-medium text-black dark:text-white">
                 Actions
               </th>
@@ -108,12 +104,10 @@ export default function RecentTable({
                   </p>
                 </td>
                 <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                    <PublicSwitcher studyId={studyItem.id} publicAccess={studyItem.public ? true : false} />
-                </td>
-                <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                   <div className="flex items-center space-x-3.5">
                     <EditStudyModal studyId={studyItem.id} studyName={studyItem.name} setTriggerFetch={setTriggerFetch} />
                     <DeleteStudyModal studyItem={studyItem} setTriggerFetch={setTriggerFetch} />
+                    <ShareStudyModal studyItem={studyItem} />
                     <StarToggler studyId={studyItem.id} isStarred={studyItem.starred ? true : false} />
                   </div>
                 </td>
