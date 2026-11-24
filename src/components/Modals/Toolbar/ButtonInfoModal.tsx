@@ -23,7 +23,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 
-export type InfoModalSection = "Format" | "Word" | "Line" | "Strophe" | "Stanza";
+export type InfoModalSection = "Format" | "Word Box" | "Line" | "Strophe" | "Stanza";
 
 type ButtonInfoModalProps = {
   section: InfoModalSection;
@@ -75,8 +75,8 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
       },
     ],
   },
-  Word: {
-    title: "Word",
+  "Word Box": {
+    title: "Word Box",
     items: [
       {
         icon: TbBoxModel2,

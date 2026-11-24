@@ -88,7 +88,7 @@ const Toolbar = ({
                 </div>
                 <div className="border-r border-stroke flex flex-col items-center px-2">
                   <ButtonInfoModal
-                    section="Word"
+                    section="Word Box"
                     activeSection={activeInfoSection}
                     setActiveSection={setActiveInfoSection}
                   />
