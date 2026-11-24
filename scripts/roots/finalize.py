@@ -65,7 +65,7 @@ for r in R:
     if r['kind']=='word':
         if '‹' in r['root']: gl.setdefault(r['root'],r['root'].split('‹')[1].rstrip('›'))
         elif r['root_gloss']: gl.setdefault(r['root'],r['root_gloss'])
-out=['strong','aug','in_db','occurrences','lemma','lang','kind','gloss','root','root_gloss','name_roots','notes','root_source','strongs_etymology','bdb_ids']
+out=['strong','aug','in_db','occurrences','lemma','lang','kind','gloss','root','root_display','root_gloss','name_roots','notes','root_source','strongs_etymology','bdb_ids']
 with open(OUT,'w',newline='',encoding='utf-8-sig') as fh:
     w=csv.DictWriter(fh,fieldnames=out,extrasaction='ignore'); w.writeheader()
     for r in R: r['root_gloss']=gl.get(r['root'],r['root_gloss']) if r['kind']=='word' else ''; w.writerow(r)

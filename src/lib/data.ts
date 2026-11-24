@@ -1,5 +1,6 @@
 import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
 import type { PersonGenderNumberCode } from "@/lib/personGenderNumber";
+import type { RootRef } from "@/lib/roots";
 
 // The /demo route opens this real, shared study (also at
 // /study/guest_psalm1_template/view). Visitors can mark it up, but their
@@ -88,16 +89,15 @@ export type LexiconData = {
 }
 
 export type MotifData = {
+    /** Dictionary form (BDB) for words without a root; legacy lexicon lemma otherwise. */
     lemma: string;
+    /** English gloss of `lemma`, for words without a root. */
+    lemmaGloss?: string;
     categories: string[];
-    /** Root group id (see src/lib/roots). Undefined for particles and unrooted words. */
-    rootId?: string;
-    /** Root consonants for display, e.g. "ישב" or "ענה I". */
-    rootLabel?: string;
-    /** Short English sense of the root group. */
-    rootGloss?: string;
+    /** Root group (see src/lib/roots). Undefined for particles and unrooted words. */
+    root?: RootRef;
     /** For proper names: root groups the name is built from. */
-    nameRootIds?: string[];
+    nameRoots?: RootRef[];
 }
 
 export type WordInformation = {

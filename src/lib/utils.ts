@@ -168,7 +168,7 @@ const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
 
 /**
  * Keys under which a word counts as "repeated" in a passage:
- * - its root group (motifData.rootId) when it has one,
+ * - its root group (motifData.root) when it has one,
  * - otherwise its Strong's number (particles, unrooted words: exact match),
  * - otherwise (untagged words such as לוֹ) its consonantal spelling.
  * With includeNames, a proper name also joins the root groups it is built from (Azariah → עזר).
@@ -176,8 +176,8 @@ const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
 export function wordGroupKeys(word: WordProps, includeNames: boolean): string[] {
   const keys: string[] = [];
   const motif = word.motifData;
-  if (motif?.rootId) {
-    keys.push(motif.rootId);
+  if (motif?.root) {
+    keys.push(motif.root.id);
   } else if (word.strongNumber) {
     keys.push(`s${word.strongNumber}`);
   } else {
@@ -185,11 +185,76 @@ export function wordGroupKeys(word: WordProps, includeNames: boolean): string[] 
     if (consonants) keys.push(`w${consonants}`);
   }
   if (includeNames) {
-    motif?.nameRootIds?.forEach((rootId) => {
-      if (!keys.includes(rootId)) keys.push(rootId);
+    motif?.nameRoots?.forEach((root) => {
+      if (!keys.includes(root.id)) keys.push(root.id);
     });
   }
   return keys;
+}
+
+const CANTILLATION = /[֑-ֽ֯׀׃־]/g; // accents, meteg, paseq, sof pasuq, maqaf
+
+export type GroupLabel = {
+  /** Hebrew chip text: the root (ישׁב), or the dictionary form for exact-match words (כִּי) */
+  hebrew: string;
+  /** English chip text: the root's sense, or the word's gloss */
+  english: string;
+  /** BDB homonym numeral, used only to tell apart chips that would otherwise look the same */
+  homonym?: string;
+};
+
+/**
+ * Concise STEP Bible gloss ("heart", "servant") of the most frequent word in the group,
+ * counting only words that satisfy `include`.
+ */
+function passageGloss(words: WordProps[], include: (w: WordProps) => boolean): string | undefined {
+  const byStrong = new Map<number, { count: number; gloss: string }>();
+  words.filter(include).forEach((w) => {
+    const gloss = w.wordInformation?.gloss?.trim();
+    if (!gloss) return;
+    const entry = byStrong.get(w.strongNumber) ?? { count: 0, gloss };
+    entry.count += 1;
+    byStrong.set(w.strongNumber, entry);
+  });
+  return Array.from(byStrong.values()).sort((a, b) => b.count - a.count)[0]?.gloss;
+}
+
+/** Chip label for a repeated-word group (see wordGroupKeys). */
+export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
+  const lead = words[0];
+  if (groupKey.startsWith("r")) {
+    // root group: take the root from a member word, or from a name that joined via its name roots
+    const root = words.map((w) => w.motifData?.root).find((r) => r?.id === groupKey)
+      ?? words.flatMap((w) => w.motifData?.nameRoots ?? []).find((r) => r.id === groupKey);
+    if (root) {
+      const english = passageGloss(words, (w) => w.motifData?.root?.id === groupKey) || root.gloss || root.label;
+      return { hebrew: root.label, english, homonym: root.homonym };
+    }
+  }
+  const motif = lead?.motifData;
+  const hebrew = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
+  const english = passageGloss(words, () => true) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || hebrew;
+  return { hebrew, english };
+}
+
+/**
+ * When two chips in the same panel would read the same (e.g. ענה "answer" and ענה "sing" both
+ * appear), add the homonym numeral to the Hebrew label and the root sense to tell them apart.
+ */
+export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
+  // compare Hebrew by letters only, so ענה (root) and עָנָה (single word) count as the same
+  const letters = (s: string) => s.replace(HEBREW_LETTERS, "");
+  const hebrewCounts = new Map<string, number>();
+  const englishCounts = new Map<string, number>();
+  labels.forEach((l) => {
+    hebrewCounts.set(letters(l.hebrew), (hebrewCounts.get(letters(l.hebrew)) ?? 0) + 1);
+    englishCounts.set(l.english, (englishCounts.get(l.english) ?? 0) + 1);
+  });
+  return labels.map((l) => ({
+    ...l,
+    hebrew: (hebrewCounts.get(letters(l.hebrew)) ?? 0) > 1 && l.homonym ? `${l.hebrew} ${l.homonym}` : l.hebrew,
+    english: (englishCounts.get(l.english) ?? 0) > 1 && l.hebrew !== l.english ? `${l.english} (${l.hebrew})` : l.english,
+  }));
 }
 
 /** Map of group key (see wordGroupKeys) to the passage's words in that group, in passage order. */

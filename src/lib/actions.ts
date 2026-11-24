@@ -930,12 +930,12 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
     const rootInfo = lookupRoot(passageInfo.book ?? book, hebWord.chapter, hebWord.verse, hebWord.strongNumber, nthInVerse);
 
     hebWord.motifData = {
-      lemma: word.motifLemma || "",
+      // BDB dictionary form when available (the legacy lexicon lemma is misaligned for some entries)
+      lemma: rootInfo.lemma || word.motifLemma || "",
+      lemmaGloss: rootInfo.lemmaGloss,
       categories: word.motifCategories || [],
-      rootId: rootInfo.rootId,
-      rootLabel: rootInfo.rootLabel,
-      rootGloss: rootInfo.rootGloss,
-      nameRootIds: rootInfo.nameRootIds,
+      root: rootInfo.root,
+      nameRoots: rootInfo.nameRoots,
     };
 
     const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;

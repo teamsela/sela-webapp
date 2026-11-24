@@ -58,7 +58,7 @@ const StepBibleModal: React.FC = () => {
           </h3>
           <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
           <p className="text-left mb-10">
-            Related words data drawn from <a href="https://www.stepbible.org">STEP Bible&apos;s</a> data available under <a href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> 
+            Word information data drawn from <a href="https://www.stepbible.org">STEP Bible&apos;s</a> data available under <a href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> 
           </p>
           <p className="text-left mb-10">
             Datasets from Step Bible is based on scholars&apos; work at <a href="https://tyndalehouse.com">Tyndale House</a>&mdash;an international Biblical Studies research Institute in Cambridge, UK.

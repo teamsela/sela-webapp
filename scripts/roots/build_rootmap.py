@@ -33,9 +33,17 @@ hom=collections.defaultdict(list)
 for i in order:
     if E[i]['root']: hom[(E[i]['lang'],cons(E[i]['root']))].append(i)
 ROM=['I','II','III','IV','V','VI','VII','VIII']; KEY={}
+def disp_dotted(root):
+    """BDB root as written (keeps shin/sin dots) with a final-form last letter, e.g. 'שׂער', 'דרך'."""
+    letters=[m.start() for m in re.finditer(r'[א-ת]',root or '')]
+    if not letters: return root or ''
+    i=letters[-1]; return root[:i]+TOFIN.get(root[i],root[i])+root[i+1:]
+ROOTDISP={}  # root key -> display form (dotted)
 for (lang,c),ids in hom.items():
     ids.sort(key=lambda i:E[i]['bdb'] or 'zzz')
-    for n,i in enumerate(ids): KEY[i]=('arc:' if lang=='arc' else '')+disp(c)+(' '+ROM[n] if len(ids)>1 else '')
+    for n,i in enumerate(ids):
+        KEY[i]=('arc:' if lang=='arc' else '')+disp(c)+(' '+ROM[n] if len(ids)>1 else '')
+        ROOTDISP[KEY[i]]=disp_dotted(E[i]['root'])
 def members(r):
     out=[];st=[r]
     while st: x=st.pop(); out.append(x); st+=[k for k in E[x]['kids'] if k in E]
@@ -110,7 +118,7 @@ for s in sorted(bystrong):
             lemma=(ent['w'] if ent else si.get('w','')),lang=lang,kind='name' if is_name else ('particle' if is_particle else 'word'),pos=bpos,
             gloss=(ent['df'] if ent else '') or si.get('df',''),
             root=('' if is_name else ('exact:H%d%s'%(s,a) if is_particle else (fam[0] or 'word:'+(si.get('w') or '')))),root_source=('name' if is_name else (fam[1] or 'strongs-only')),
-            root_gloss=('' if is_name else fam[2]),name_root_strongs='|'.join(nr),
+            root_gloss=('' if is_name else fam[2]),root_display=('' if is_name or is_particle else ROOTDISP.get(fam[0] or '','')),name_root_strongs='|'.join(nr),
             flags='|'.join(flags),strongs_etymology=si.get('src','')[:110],bdb_ids='|'.join(E[i]['bdb'] for i in ids)))
 with open(sys.argv[2],'w',newline='',encoding='utf-8') as f:
     w=csv.DictWriter(f,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)

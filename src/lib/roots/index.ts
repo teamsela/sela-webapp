@@ -6,48 +6,50 @@ import rootData from "./rootData.json";
 
   A word's root depends on its Strong's number and, for the few Strong's numbers that cover
   several unrelated roots (homonyms such as ענה "answer" / "sing"), on which homonym this
-  occurrence is. Those occurrences are listed in `exceptions`, keyed by verse and by the
-  word's position among same-Strong's words in that verse.
+  occurrence is. Those occurrences are listed in `exceptions`, keyed by verse (heb_bible's
+  English numbering) and by the word's position among same-Strong's words in that verse.
 */
 
 type RootData = {
-  roots: [string, string][];
+  /** [chip label, English sense, homonym numeral or ""] */
+  roots: [string, string, string][];
   strong: Record<string, number>;
   names: Record<string, number[]>;
+  /** dictionary form + gloss for words without a root */
+  lemmas: Record<string, [string, string]>;
   exceptions: Record<string, number>;
 };
 
 const data = rootData as unknown as RootData;
 
-export type RootInfo = {
-  /** Root group id, e.g. "r42". Undefined for particles/unrooted words (exact match only). */
-  rootId?: string;
-  /** Display label: root consonants (with homonym numeral when needed), e.g. "ענה I". */
-  rootLabel?: string;
-  /** Short English sense of the root group. */
-  rootGloss?: string;
-  /** Root groups contained in a proper name (Azariah → עזר). Empty for other words. */
-  nameRootIds: string[];
+export type RootRef = {
+  /** Root group id, e.g. "r42". */
+  id: string;
+  /** Chip label: the root with shin/sin dots (ישׁב, שׂער), or for groups split off by meaning,
+   *  their representative word (דְּבוֹרָה "bee"). */
+  label: string;
+  /** Short English sense, e.g. "sit". */
+  gloss?: string;
+  /** BDB homonym numeral ("I", "II"...) for telling identically spelled roots apart, if any. */
+  homonym?: string;
 };
 
-const toId = (index: number) => `r${index}`;
+export type RootInfo = {
+  /** The word's root group. Undefined for particles and unrooted words (exact match only). */
+  root?: RootRef;
+  /** Roots a proper name is built from (Azariah → עזר). Empty for other words. */
+  nameRoots: RootRef[];
+  /** Dictionary form and gloss, for words without a root (כִּי, names). */
+  lemma?: string;
+  lemmaGloss?: string;
+};
 
-/** "דבר ‹bee›" → "דבר", "word:בַּ֫יִת" → "בַּיִת", "arc:פשר" → "פשר" */
-export function formatRootLabel(key: string): string {
-  return key
-    .replace(/\s*‹[^›]*›\s*$/, "")
-    .replace(/^(word|arc):/, "")
-    .replace(/\s*\(arc\)$/, "")
-    .replace(/[֑-ֽ֯]/g, "") // cantillation marks and meteg
-    .trim();
-}
-
-function rootFields(index: number | undefined): Pick<RootInfo, "rootId" | "rootLabel" | "rootGloss"> {
+function rootRef(index: number | undefined): RootRef | undefined {
   if (index === undefined || index < 0 || !data.roots[index]) {
-    return {};
+    return undefined;
   }
-  const [key, gloss] = data.roots[index];
-  return { rootId: toId(index), rootLabel: formatRootLabel(key), rootGloss: gloss || undefined };
+  const [label, gloss, homonym] = data.roots[index];
+  return { id: `r${index}`, label, gloss: gloss || undefined, homonym: homonym || undefined };
 }
 
 /**
@@ -62,14 +64,20 @@ export function lookupRoot(
   nthInVerse: number
 ): RootInfo {
   if (!strongNumber) {
-    return { nameRootIds: [] };
+    return { nameRoots: [] };
   }
   const exceptionKey = `${book.toLowerCase()}|${chapter}|${verse}|${strongNumber}|${nthInVerse}`;
   const index = exceptionKey in data.exceptions
     ? data.exceptions[exceptionKey]
     : data.strong[String(strongNumber)];
+  const root = rootRef(index);
+  const lemma = root ? undefined : data.lemmas[String(strongNumber)];
   return {
-    ...rootFields(index),
-    nameRootIds: (data.names[String(strongNumber)] ?? []).map(toId),
+    root,
+    nameRoots: (data.names[String(strongNumber)] ?? [])
+      .map(rootRef)
+      .filter((r): r is RootRef => r !== undefined),
+    lemma: lemma?.[0] || undefined,
+    lemmaGloss: lemma?.[1] || undefined,
   };
 }

@@ -20,6 +20,16 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 - Function words (prepositions, conjunctions, particles, pronouns) match exactly only.
 - Aramaic words join their Hebrew cognate's root, including regular sound shifts (ד=ז, ת=שׁ).
 
+## Motif chip labels
+
+- Root groups show BDB's root with shin/sin dots (ישׁב, שׁער "gate" vs שׂער "hair").
+- Groups split off by meaning, and roots with only one word in the Bible, show that word
+  (דְּבוֹרָה "bee", שָׁמַיִם "heavens") instead of root letters.
+- Words without a root (particles, names) show their dictionary form (כִּי), not the inflected word.
+- Homonym numerals (ענה I / עָנָה IV) appear only when two chips in the same passage share letters.
+- English labels and tooltips use the STEP Bible gloss of the group's most frequent word in the
+  passage ("heart"), falling back to the lexicon sense.
+
 `decisions/` holds the reviewed decisions: `meaning_out_*.json` (meaning-based splits; borderline
 cases resolved to the reviewed defaults) and `review_aramaic_out.json` (Aramaic merges).
 `data/roots/root_map.csv` is the human-readable result, one row per Strong's number + homonym letter.

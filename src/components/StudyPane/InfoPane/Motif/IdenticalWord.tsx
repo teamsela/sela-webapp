@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 
 import { WordProps } from "@/lib/data";
-import { extractIdenticalWordsFromPassage } from "@/lib/utils";
+import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel } from "@/lib/utils";
 
 import { FormatContext } from '../../index';
 import { IdenticalWordBlock } from "./IdenticalWordBlock";
@@ -13,20 +13,10 @@ export type IdenticalWordProps = {
     wordId: number,
     count: number,
     identicalWords: WordProps[],
-    /** Hebrew label: root consonants, or the lemma for exact-match groups */
+    /** Hebrew chip text: the root (ישׁב), or the dictionary form for exact-match words */
     label: string,
-    /** English label: root sense, or the word's gloss */
+    /** English chip text: the root's sense, or the word's gloss */
     gloss: string,
-};
-
-const blockLabels = (groupKey: string, words: WordProps[]) => {
-    // Prefer a word that belongs to the group by root (not a proper name joining via its name roots)
-    const rootWord = words.find(w => w.motifData?.rootId === groupKey);
-    const lead = rootWord ?? words[0];
-    return {
-        label: rootWord?.motifData?.rootLabel || lead.motifData?.lemma || lead.wlcWord,
-        gloss: rootWord?.motifData?.rootGloss || lead.ETCBCgloss || lead.gloss,
-    };
 };
 
 const IdenticalWord = () => {
@@ -34,17 +24,15 @@ const IdenticalWord = () => {
 
     // map of root group (or Strong's number for exact-match words) to the passage's words in it
     const groups = extractIdenticalWordsFromPassage(ctxPassageProps, ctxIncludeNameRoots);
-    const identicalWordPropsArray: IdenticalWordProps[] = [];
-    groups.forEach((words, groupKey) => {
-        if (words.length > 1) {
-            identicalWordPropsArray.push({
-                wordId: words[0].wordId,
-                count: words.length,
-                identicalWords: words,
-                ...blockLabels(groupKey, words),
-            });
-        }
-    });
+    const repeated = Array.from(groups.entries()).filter(([, words]) => words.length > 1);
+    const labels = disambiguateGroupLabels(repeated.map(([groupKey, words]) => groupLabel(groupKey, words)));
+    const identicalWordPropsArray: IdenticalWordProps[] = repeated.map(([, words], i) => ({
+        wordId: words[0].wordId,
+        count: words.length,
+        identicalWords: words,
+        label: labels[i].hebrew,
+        gloss: labels[i].english,
+    }));
     identicalWordPropsArray.sort((a, b) => b.count - a.count);
 
     return (
