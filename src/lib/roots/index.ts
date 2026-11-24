@@ -11,8 +11,8 @@ import rootData from "./rootData.json";
 */
 
 type RootData = {
-  /** [chip label, English sense, homonym numeral or ""] */
-  roots: [string, string, string][];
+  /** [chip label (pointed), English sense, homonym numeral or "", bare root letters or ""] */
+  roots: [string, string, string, string?][];
   strong: Record<string, number>;
   names: Record<string, number[]>;
   /** dictionary form + gloss for words without a root */
@@ -25,13 +25,16 @@ const data = rootData as unknown as RootData;
 export type RootRef = {
   /** Root group id, e.g. "r42". */
   id: string;
-  /** Chip label: the root with shin/sin dots (ישׁב, שׂער), or for groups split off by meaning,
-   *  their representative word (דְּבוֹרָה "bee"). */
+  /** Chip label, always pointed: the verb's qatal (יָשַׁב, דִּבֵּר) when the verb is common in the
+   *  root's family, otherwise its most common word (לֵב, מַיִם); groups split off by meaning show
+   *  their own word (דְּבוֹרָה "bee"). */
   label: string;
   /** Short English sense, e.g. "sit". */
   gloss?: string;
   /** BDB homonym numeral ("I", "II"...) for telling identically spelled roots apart, if any. */
   homonym?: string;
+  /** Bare root letters with shin/sin dot (ישׁב), shown in the tooltip; absent for single words. */
+  letters?: string;
 };
 
 export type RootInfo = {
@@ -48,8 +51,8 @@ function rootRef(index: number | undefined): RootRef | undefined {
   if (index === undefined || index < 0 || !data.roots[index]) {
     return undefined;
   }
-  const [label, gloss, homonym] = data.roots[index];
-  return { id: `r${index}`, label, gloss: gloss || undefined, homonym: homonym || undefined };
+  const [label, gloss, homonym, letters] = data.roots[index];
+  return { id: `r${index}`, label, gloss: gloss || undefined, homonym: homonym || undefined, letters: letters || undefined };
 }
 
 /**

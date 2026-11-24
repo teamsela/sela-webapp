@@ -201,6 +201,8 @@ export type GroupLabel = {
   english: string;
   /** BDB homonym numeral, used only to tell apart chips that would otherwise look the same */
   homonym?: string;
+  /** Bare root letters (ישׁב) for the tooltip, when the chip stands for a root */
+  letters?: string;
 };
 
 /**
@@ -228,7 +230,7 @@ export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
       ?? words.flatMap((w) => w.motifData?.nameRoots ?? []).find((r) => r.id === groupKey);
     if (root) {
       const english = passageGloss(words, (w) => w.motifData?.root?.id === groupKey) || root.gloss || root.label;
-      return { hebrew: root.label, english, homonym: root.homonym };
+      return { hebrew: root.label, english, homonym: root.homonym, letters: root.letters };
     }
   }
   const motif = lead?.motifData;

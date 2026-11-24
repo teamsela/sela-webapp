@@ -57,14 +57,24 @@ describe("lookupRoot", () => {
 });
 
 describe("chip labels", () => {
-  it("shows the root with its shin/sin dot", () => {
-    expect(nfc(root(3427).root?.label)).toBe(nfc("ישׁב")); // sit
-    expect(nfc(root(8179).root?.label)).toBe(nfc("שׁער")); // gate
-    expect(nfc(root(8181).root?.label)).toBe(nfc("שׂער")); // hair
+  it("labels every root chip with a pointed word: the verb's qatal when the verb is common", () => {
+    expect(nfc(root(3427).root?.label)).toBe(nfc("יָשַׁב")); // sit: qal qatal
+    expect(nfc(root(1696).root?.label)).toBe(nfc("דִּבֵּר")); // speak: piel dominates, textbook form (not דָּבַר, not דִּבֶּר)
+    expect(nfc(root(238).root?.label)).toBe(nfc("הֶאֱזִין")); // listen: hiphil only, not BDB's unused qal
+  });
+
+  it("uses the most common word when the verb is rare or missing", () => {
+    expect(nfc(root(3820).root?.label)).toBe(nfc("לֵב")); // heart, not the rare verb לָבַב
+    expect(nfc(root(68).root?.label)).toBe(nfc("אֶבֶן")); // stone: no verb
+  });
+
+  it("keeps the bare root, with shin/sin dot, for the tooltip", () => {
+    expect(nfc(root(3427).root?.letters)).toBe(nfc("ישׁב"));
+    expect(nfc(root(8179).root?.letters)).toBe(nfc("שׁער")); // gate
+    expect(nfc(root(8181).root?.letters)).toBe(nfc("שׂער")); // hair / goat
   });
 
   it("names groups split off by meaning after their own word, not the parent root", () => {
-    expect(root(1696).root?.label).toBe("דבר"); // speak
     expect(nfc(root(1698).root?.label)).toBe(nfc("דֶּבֶר")); // pestilence
     expect(nfc(root(4057).root?.label)).toBe(nfc("מִדְבָּר")); // wilderness
     expect(nfc(root(6256).root?.label)).toBe(nfc("עַתָּה")); // time, now (not ענה)
@@ -120,12 +130,13 @@ describe("repeated-word grouping", () => {
     const groups = extractIdenticalWordsFromPassage(passage, true);
     const key = wordGroupKeys(seat, true)[0];
     const seatLabel = groupLabel(key, groups.get(key)!);
-    expect(nfc(seatLabel.hebrew)).toBe(nfc("ישׁב"));
+    expect(nfc(seatLabel.hebrew)).toBe(nfc("יָשַׁב"));
+    expect(nfc(seatLabel.letters)).toBe(nfc("ישׁב"));
     expect(seatLabel.english).toBe("sit");
 
     const names = [word(10, 5838), word(11, 5838)]; // two Azariahs, no עֵזֶר
     const nameKey = wordGroupKeys(names[0], true).find((k) => k.startsWith("r"))!;
-    expect(groupLabel(nameKey, names).hebrew).toBe("עזר");
+    expect(nfc(groupLabel(nameKey, names).hebrew)).toBe(nfc("עָזַר"));
   });
 
   it("labels exact-match groups with the dictionary form, not the inflected word", () => {
@@ -138,11 +149,11 @@ describe("repeated-word grouping", () => {
   it("adds the homonym numeral only when two chips would otherwise read the same", () => {
     const answer = groupLabel(rootId(6030, "psalms", 3, 4)!, [word(30, 6030, "", "psalms", 3, 4)]);
     const sing = groupLabel(rootId(6030, "exodus", 15, 21)!, [word(31, 6030, "", "exodus", 15, 21)]);
-    expect(answer.hebrew).toBe("ענה");
+    expect(nfc(answer.hebrew)).toBe(nfc("עָנָה"));
     const [a, s] = disambiguateGroupLabels([answer, sing]);
-    expect(a.hebrew).toBe("ענה I");
-    expect(nfc(s.hebrew)).toBe(nfc("עָנָה IV")); // "sing" is the only word under ענה IV, so its chip shows the word
-    expect(disambiguateGroupLabels([answer])[0].hebrew).toBe("ענה");
+    expect(nfc(a.hebrew)).toBe(nfc("עָנָה I"));
+    expect(nfc(s.hebrew)).toBe(nfc("עָנָה IV"));
+    expect(nfc(disambiguateGroupLabels([answer])[0].hebrew)).toBe(nfc("עָנָה"));
   });
 });
 

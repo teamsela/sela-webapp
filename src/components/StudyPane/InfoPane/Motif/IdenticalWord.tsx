@@ -17,6 +17,8 @@ export type IdenticalWordProps = {
     label: string,
     /** English chip text: the root's sense, or the word's gloss */
     gloss: string,
+    /** Bare root letters (ישׁב) for the tooltip, when the chip stands for a root */
+    letters?: string,
 };
 
 const IdenticalWord = () => {
@@ -32,6 +34,7 @@ const IdenticalWord = () => {
         identicalWords: words,
         label: labels[i].hebrew,
         gloss: labels[i].english,
+        letters: labels[i].letters,
     }));
     identicalWordPropsArray.sort((a, b) => b.count - a.count);
 
@@ -47,7 +50,7 @@ const IdenticalWord = () => {
                     {identicalWordPropsArray.map((idWordProps, index) => (
                         <IdenticalWordBlock key={index} id={idWordProps.wordId}
                             count={idWordProps.count} identicalWords={idWordProps.identicalWords}
-                            label={idWordProps.label} gloss={idWordProps.gloss}/>
+                            label={idWordProps.label} gloss={idWordProps.gloss} letters={idWordProps.letters}/>
                     ))
                     }
                 </div>

@@ -22,10 +22,19 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 
 ## Motif chip labels
 
-- Root groups show BDB's root with shin/sin dots (ישׁב, שׁער "gate" vs שׂער "hair").
+Every chip shows a **pointed word** (students rarely read unpointed Hebrew); the bare root letters
+appear in the tooltip ("ישׁב · sit").
+
+- Root groups show the verb's qatal (3ms perfect), the form lexicons and vocabulary lists cite:
+  - qal is the verb's main stem → the qal qatal (יָשַׁב, אָמַר)
+  - another stem dominates → that stem's attested qatal, in its textbook form (דִּבֵּר, הֶאֱזִין,
+    הִשְׁחִית), not BDB's rare or unused qal; hollow verbs keep their usual citation form (שׁוּב, קוּם)
+  - the verb is under 10% of the root's uses, or there is no verb → the root's most common word
+    (לֵב, not the rare לָבַב; אֶבֶן)
 - Groups split off by meaning, and roots with only one word in the Bible, show that word
-  (דְּבוֹרָה "bee", שָׁמַיִם "heavens") instead of root letters.
+  (דְּבוֹרָה "bee", שָׁמַיִם "heavens").
 - Words without a root (particles, names) show their dictionary form (כִּי), not the inflected word.
+  יהוה stays unpointed. The few lexicon forms without vowels use the word as pointed in the text.
 - Familiar forms: nouns that only ever occur in the plural or dual show their real plural form
   from the text (מַיִם, not the lexicons' unused singular מַי), taken from standalone occurrences
   (no prefix dagesh), with dagesh lene restored and the non-pausal ‑ַיִם ending preferred.

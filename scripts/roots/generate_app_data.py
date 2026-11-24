@@ -2,8 +2,8 @@
 Usage: python3 -I generate_app_data.py <root_map.csv from step 2> <morphhb_dir> <out rootData.json> [heb_bible_layout.txt]
 
 Output format (kept compact; indices refer to `roots`):
-  roots:      [[label, gloss, homonym], ...]  label = chip text: BDB root with shin/sin dots (שׂער),
-              or the representative word for meaning-split groups (דְּבוֹרָה); homonym = 'I'/'II'... or ''
+  roots:      [[label, gloss, homonym, letters], ...]  label = pointed chip word (יָשַׁב, דִּבֵּר, לֵב),
+              letters = bare root for the tooltip (ישׁב); homonym = "I"/"II"... or ""
   strong:     {strongNumber: rootIndex}   default root for the Strong's number (its most frequent homonym)
   names:      {strongNumber: [rootIndex, ...]}  roots contained in a proper name
   lemmas:     {strongNumber: [lemma, gloss]}   dictionary form for words without a root (exact match)
@@ -39,16 +39,27 @@ def citation_spelling(form):
 
 noun_numbers = collections.defaultdict(collections.Counter)  # strong -> {'s': n, 'p': n, 'd': n}
 plural_forms = collections.defaultdict(collections.Counter)  # strong -> unsuffixed plural/dual absolute forms
+verb_stems = collections.defaultdict(collections.Counter)    # strong -> {stem code: uses}, q = qal
+any_forms = collections.defaultdict(collections.Counter)     # strong -> attested forms (prefix dropped), last resort
+qatal_forms = collections.defaultdict(collections.Counter)   # (strong, stem) -> standalone 3ms perfect forms (non-qal)
 for f in sorted(glob.glob(os.path.join(MORPH, 'wlc', '*.xml'))):
-    for lem, morph, text in re.findall(r'<w lemma="([^"]*)"[^>]*?morph="([^"]*)"[^>]*>([^<]*)</w>', open(f, encoding='utf-8').read()):
+    for lem, morph, text, after in re.findall(r'<w lemma="([^"]*)"[^>]*?morph="([^"]*)"[^>]*>([^<]*)</w>(<seg type="x-maqqef")?', open(f, encoding='utf-8').read()):
         lsegs, tsegs, msegs = lem.split('/'), text.split('/'), morph[1:].split('/')
         m = re.match(r'\s*(\d+)', lsegs[-1])
         if not m or len(msegs) < len(lsegs): continue
         s, code = int(m.group(1)), msegs[len(lsegs) - 1]   # e.g. Ncmpa = noun common masc plural absolute
+        if len(tsegs) >= len(lsegs):
+            any_forms[s][citation_spelling(plain(tsegs[len(lsegs) - 1]))] += 1
+        if code.startswith('V') and len(code) >= 3:          # e.g. Vpp3ms = verb piel perfect 3ms
+            verb_stems[s][code[1]] += 1
+            # standalone, not joined by maqqef (which shortens vowels: דִּבֶּר־ vs דִּבֵּר)
+            if code[1] != 'q' and code[2:6] == 'p3ms' and len(lsegs) == 1 and len(tsegs) == 1 and not after:
+                qatal_forms[(s, code[1])][citation_spelling(plain(tsegs[0]))] += 1
+            continue
         if not code.startswith('Nc') or len(code) < 5: continue
         noun_numbers[s][code[3]] += 1
         # standalone plural/dual absolute: no prefix (its dagesh would leak in) and no pronoun suffix
-        if code[3] in 'pd' and code[4] == 'a' and len(lsegs) == 1 and len(tsegs) == 1:
+        if code[3] in 'pd' and code[4] == 'a' and len(lsegs) == 1 and len(tsegs) == 1 and not after:
             form = citation_spelling(plain(tsegs[0]))
             if form: plural_forms[s][form] += 1
 
@@ -67,8 +78,47 @@ members_of = collections.defaultdict(list)
 for r in rows:
     if r['kind'] == 'word' and r['root']: members_of[r['root']].append(r)
 
+VERB_SHARE = 0.10  # below this share of the root's uses, the verb is too rare to name the chip
+
+def root_word(members):
+    """Pointed chip word for a root with several words: the verb's qatal (3ms perfect) when the verb
+    is a real presence in the family, otherwise the family's most common word.
+      qal is the verb's main stem  → BDB's citation form, the qal qatal (יָשַׁב)
+      another stem dominates       → that stem's attested qatal (דִּבֵּר, הֶאֱזִין), not a rare/unused qal
+      rare or no verb              → most common word (לֵב, not לָבַב; אֶבֶן)"""
+    total = sum(int(r['occurrences'] or 0) for r in members) or 1
+    verbs = [r for r in members if verb_stems.get(int(r['strong']))]
+    if verbs:
+        verb = max(verbs, key=lambda r: sum(verb_stems[int(r['strong'])].values()))
+        s = int(verb['strong'])
+        if sum(verb_stems[s].values()) >= VERB_SHARE * total:
+            main_stem = verb_stems[s].most_common(1)[0][0]
+            if main_stem != 'q':
+                forms = qatal_forms.get((s, main_stem)) or collections.Counter(
+                    {f: n for (t, st), c in qatal_forms.items() if t == s for f, n in c.items()})
+                if forms:
+                    best = forms.most_common(1)[0][0]
+                    # textbooks cite the regular paradigm form (דִּבֵּר) where the text also has it,
+                    # even when a segol variant is more frequent (דִּבֶּר)
+                    i = best.rfind('ֶ')
+                    regular = best[:i] + 'ֵ' + best[i + 1:] if i >= 0 else best
+                    return regular if regular in forms else best
+            return pointed(verb['lemma'], s)
+    return pointed(familiar(members[0]['strong'], members[0]['lemma']), members[0]['strong'])
+
+VOWELS = re.compile('[' + chr(0x05B0) + '-' + chr(0x05BC) + chr(0x05C7) + ']')  # vowel points and dagesh/shuruq
+
+def pointed(word, strong_number=None):
+    """Pointed citation spelling (restores an initial dagesh lene: דָבַר → דָּבַר). The few lexicon
+    forms without vowels fall back to the word as pointed in the text."""
+    word = clean(word)
+    if VOWELS.search(word):
+        return citation_spelling(word)
+    forms = any_forms.get(int(strong_number)) if strong_number else None
+    return forms.most_common(1)[0][0] if forms else word
+
 def label_for(key):
-    """Chip label for a root group: (label, gloss, homonym numeral or '')."""
+    """Chip label for a root group: (pointed label, gloss, homonym numeral or '', bare root letters or '')."""
     members = sorted(members_of.get(key, []), key=lambda r: -int(r['occurrences'] or 0))
     # English: the sense of the group's most frequent word (לֵב 'heart', not the rare verb 'encourage')
     split_sense = key.split('‹')[1].rstrip('›') if '‹' in key else ''
@@ -76,16 +126,20 @@ def label_for(key):
     if key.startswith('word:'):  # primary word with no verbal root, e.g. בַּיִת (with יוֹם/יוֹמָם under יוֹם)
         head = clean(key[5:].replace(' (arc)', ''))
         lead = next((r for r in members if clean(r['lemma']) == head), members[0] if members else None)
-        return (familiar(lead['strong'], lead['lemma']) if lead else head), gloss, ''
+        return (pointed(familiar(lead['strong'], lead['lemma']), lead['strong']) if lead else head), gloss, '', ''
     m = re.search(r' ([IVX]+)$', key)
-    if '‹' in key or len({r['strong'] for r in members}) == 1:
-        # a group split off by meaning (דְּבוֹרָה 'bee'), or a root with a single word in the Bible
-        # (שָׁמַיִם, not BDB's conjectural שׁמה): show the word itself
-        word = familiar(members[0]['strong'], members[0]['lemma']) if members else key
-        return word, gloss, (m.group(1) if m and '‹' not in key else '')
+    homonym = m.group(1) if m and '‹' not in key else ''
+    if '‹' in key:  # split off by meaning: show its own word (דְּבוֹרָה 'bee'), not the parent root
+        return (pointed(familiar(members[0]['strong'], members[0]['lemma']), members[0]['strong']) if members else key), gloss, '', ''
     hebrew = [r for r in members if r['lang'] == 'heb' and 'Aramaic' not in r['notes'] and r['root_display']]
     display = (hebrew or [r for r in members if r['root_display']] or [{'root_display': ''}])[0]['root_display']
-    return unicodedata.normalize('NFC', display or re.sub(r'^arc:| [IVX]+$', '', key)), gloss, (m.group(1) if m else '')
+    letters = unicodedata.normalize('NFC', display or re.sub(r'^arc:| [IVX]+$', '', key))
+    if not members:
+        return letters, gloss, homonym, letters
+    if len({r['strong'] for r in members}) == 1:
+        # a root with a single word in the Bible (שָׁמַיִם, not BDB's conjectural שׁמה): show that word
+        return pointed(familiar(members[0]['strong'], members[0]['lemma']), members[0]['strong']), gloss, homonym, ''
+    return root_word(members), gloss, homonym, letters
 
 roots, ridx = [], {}
 def idx(key):
@@ -104,7 +158,8 @@ for s, rs in by_strong.items():
     if word_root(main) >= 0:
         strong[str(s)] = word_root(main)
     else:  # exact-match words (particles, names, unrooted): dictionary form + gloss for the chip
-        lemmas[str(s)] = [familiar(s, main['lemma']), main['gloss']]
+        # יהוה stays unpointed: the text points it with the qere (אֲדֹנָי/יְהוִה), not as a word to read
+        lemmas[str(s)] = [clean(main['lemma']) if s in (3068, 3069) else pointed(familiar(s, main['lemma']), s), main['gloss']]
     nm = [r for r in rs if r['kind'] == 'name' and r['name_roots']]
     if nm:
         names[str(s)] = [idx(k) for k in nm[0]['name_roots'].split('|')]
