@@ -299,7 +299,7 @@ const ButtonInfoModal = ({
       <button
         type="button"
         onClick={() => setActiveSection(section)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
+        className="absolute right-0 top-1/2 -translate-y-1/2 text-primary transition hover:opacity-80"
       >
         <BsInfoCircle aria-hidden="true" />
       </button>
