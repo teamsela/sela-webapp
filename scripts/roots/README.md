@@ -31,8 +31,8 @@ Chips show **unpointed** letters, so they name the root and its family rather th
   - qal is the verb's main stem → the qal qatal (יָשַׁב, אָמַר)
   - another stem dominates → that stem's attested qatal, in its textbook form (דִּבֵּר, הֶאֱזִין,
     הִשְׁחִית), not BDB's rare or unused qal; hollow verbs keep their usual citation form (שׁוּב, קוּם)
-  - the verb is under 10% of the root's uses, or there is no verb → the root's most common word
-    (לֵב, not the rare לָבַב; אֶבֶן)
+  - the verb is under 35% of the root's uses (nouns dominate), or there is no verb → the root's
+    most common word (מֶלֶךְ 'king', not מָלַךְ; זֶרַע 'seed'; לֵב; אֶבֶן)
 - Groups split off by meaning, and roots with only one word in the Bible, show that word
   (דְּבוֹרָה "bee", שָׁמַיִם "heavens").
 - Words without a root (particles, names) show their dictionary form (כִּי), not the inflected word.
@@ -42,8 +42,10 @@ Chips show **unpointed** letters, so they name the root and its family rather th
   (no prefix dagesh), with dagesh lene restored and the non-pausal ‑ַיִם ending preferred.
   Verbs, names, particles and ordinary nouns keep their dictionary form.
 - Homonym numerals (ענה I / עָנָה IV) appear only when two chips in the same passage share letters.
-- English labels and tooltips use the STEP Bible gloss of the group's most frequent word in the
-  passage ("heart"), falling back to the lexicon sense.
+- English labels come from `decisions/chip_glosses.json`: reviewed plain-English labels per root
+  group and per small word (טוב 'good', not BDB's first sense 'pleasant'; קוה II 'to gather').
+  They are not taken from the STEP word lookup, which cannot tell the senses of one Strong's
+  number apart. Divine names show their Hebrew name: Yahweh, Elohim, El, Adonai.
 
 `decisions/` holds the reviewed decisions: `meaning_out_*.json` (meaning-based splits; borderline
 cases resolved to the reviewed defaults) and `review_aramaic_out.json` (Aramaic merges).

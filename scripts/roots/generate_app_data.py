@@ -78,9 +78,12 @@ members_of = collections.defaultdict(list)
 for r in rows:
     if r['kind'] == 'word' and r['root']: members_of[r['root']].append(r)
 
-VERB_SHARE = 0.10  # below this share of the root's uses, the verb is too rare to name the chip
+VERB_SHARE = 0.35  # below this share of the root's uses, the root is named by its most common word (מֶלֶךְ, not מָלַךְ)
+# Roots whose most common word belongs to a side sense, so they are named by the verb anyway:
+# דין 'to judge' (its most common word is מְדִינָה 'province').
+NAMED_BY_VERB = {'דין'}
 
-def root_word(members):
+def root_word(members, key=''):
     """Pointed chip word for a root with several words: the verb's qatal (3ms perfect) when the verb
     is a real presence in the family, otherwise the family's most common word.
       qal is the verb's main stem  → BDB's citation form, the qal qatal (יָשַׁב)
@@ -91,7 +94,7 @@ def root_word(members):
     if verbs:
         verb = max(verbs, key=lambda r: sum(verb_stems[int(r['strong'])].values()))
         s = int(verb['strong'])
-        if sum(verb_stems[s].values()) >= VERB_SHARE * total:
+        if sum(verb_stems[s].values()) >= VERB_SHARE * total or key in NAMED_BY_VERB:
             main_stem = verb_stems[s].most_common(1)[0][0]
             if main_stem != 'q':
                 forms = qatal_forms.get((s, main_stem)) or collections.Counter(
@@ -145,7 +148,7 @@ def label_for(key):
     if len({r['strong'] for r in members}) == 1:
         # a root with a single word in the Bible (שָׁמַיִם, not BDB's conjectural שׁמה): show that word
         return pointed(familiar(members[0]['strong'], members[0]['lemma']), members[0]['strong']), gloss, homonym, ''
-    return root_word(members), gloss, homonym, letters
+    return root_word(members, key), gloss, homonym, letters
 
 roots, ridx = [], {}
 def idx(key):

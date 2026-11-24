@@ -24,8 +24,8 @@ describe("lookupRoot", () => {
   it("resolves homonyms per occurrence: ענה 'answer' vs ענה 'sing' (Exod 15:21)", () => {
     const answer = root(6030, "psalms", 3, 4).root;
     const sing = root(6030, "exodus", 15, 21).root;
-    expect(answer?.gloss).toBe("answer");
-    expect(sing?.gloss).toBe("sing");
+    expect(answer?.gloss).toBe("to answer");
+    expect(sing?.gloss).toBe("to sing");
     expect(answer?.id).not.toBe(sing?.id);
   });
 
@@ -56,13 +56,15 @@ describe("lookupRoot", () => {
 });
 
 describe("chip labels", () => {
-  it("labels every root chip with a pointed word: the verb's qatal when the verb is common", () => {
+  it("gives each root a pointed tooltip word: the verb's qatal when the verb is common", () => {
     expect(nfc(root(3427).root?.label)).toBe(nfc("יָשַׁב")); // sit: qal qatal
     expect(nfc(root(1696).root?.label)).toBe(nfc("דִּבֵּר")); // speak: piel dominates, textbook form (not דָּבַר, not דִּבֶּר)
-    expect(nfc(root(238).root?.label)).toBe(nfc("הֶאֱזִין")); // listen: hiphil only, not BDB's unused qal
+    expect(nfc(root(7843).root?.label)).toBe(nfc("הִשְׁחִית")); // destroy: hiphil dominates, not BDB's unused qal
   });
 
-  it("uses the most common word when the verb is rare or missing", () => {
+  it("uses the most common word when nouns dominate (verb under 35%) or there is no verb", () => {
+    expect(nfc(root(4428).root?.label)).toBe(nfc("מֶלֶךְ")); // king, not מָלַךְ 'to reign'
+    expect(nfc(root(238).root?.label)).toBe(nfc("אֹזֶן")); // ear, not הֶאֱזִין 'to listen'
     expect(nfc(root(3820).root?.label)).toBe(nfc("לֵב")); // heart, not the rare verb לָבַב
     expect(nfc(root(68).root?.label)).toBe(nfc("אֶבֶן")); // stone: no verb
   });
@@ -128,7 +130,7 @@ describe("repeated-word grouping", () => {
     const seatLabel = groupLabel(key, groups.get(key)!);
     expect(nfc(seatLabel.hebrew)).toBe(nfc("ישׁב")); // unpointed root on the chip
     expect(nfc(seatLabel.word)).toBe(nfc("יָשַׁב")); // pointed word in the tooltip
-    expect(seatLabel.english).toBe("sit");
+    expect(seatLabel.english).toBe("to sit");
   });
 
   it("matches a repeated name with itself", () => {
@@ -143,7 +145,7 @@ describe("repeated-word grouping", () => {
     const label = groupLabel("s3588", ki);
     expect(nfc(label.hebrew)).toBe(nfc("כי"));
     expect(nfc(label.word)).toBe(nfc("כִּי"));
-    expect(label.english).toBe("that");
+    expect(label.english).toBe("for");
   });
 
   it("adds the homonym numeral only when two chips would otherwise read the same", () => {
@@ -169,9 +171,12 @@ describe("English chip labels", () => {
     expect(label.english).not.toBe("to await");
   });
 
-  it("falls back to the lexicon sense when no STEP gloss is loaded", () => {
-    const words = [word(43, 3427), word(44, 3427)];
-    expect(groupLabel(wordGroupKey(words[0])!, words).english).toBe("sit");
+  it("uses the reviewed plain-English labels (טוב 'good', not BDB's first sense 'pleasant')", () => {
+    expect(root(2896).root?.gloss).toBe("good");
+    expect(root(1984).root?.gloss).toBe("to praise");
+    expect(root(3820).root?.gloss).toBe("heart");
+    expect(root(6960, "genesis", 1, 9).root?.gloss).toBe("to gather");
+    expect(root(853).lemmaGloss).toBe("object marker");
   });
 });
 
