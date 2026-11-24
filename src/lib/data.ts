@@ -250,3 +250,61 @@ export type PassageData = {
     stanzas: StanzaData[];
 }
 // TO BE DEPRECATED - END
+
+export type ClassroomRole = 'member' | 'admin';
+
+export type ClassroomSummary = {
+    id: string;
+    name: string;
+    canManage: boolean; // viewer is a sys_admin or an admin of this classroom
+}
+
+export type MyClassroomsResult = {
+    isClassAdmin: boolean; // may create classrooms (class_admin or sys_admin)
+    isSysAdmin: boolean;
+    classrooms: ClassroomSummary[];
+}
+
+export type ClassroomMemberInfo = {
+    email: string;
+    role: ClassroomRole;
+    displayName?: string;
+    hasAccount: boolean;
+}
+
+export type ClassroomDetails = {
+    id: string;
+    name: string;
+    canManage: boolean;       // rename, invite and remove members
+    canManageAdmins: boolean; // grant/revoke classroom admin (sys_admin only)
+    members: ClassroomMemberInfo[]; // only populated when canManage
+}
+
+export type ClassroomOverview = {
+    id: string;
+    name: string;
+    createdAt?: string;
+    admins: string[]; // emails
+    memberCount: number;
+    studyCount: number;
+}
+
+export type ShareTarget = ClassroomSummary & {
+    shared: boolean;
+}
+
+// Everything the share dialog shows for one of the viewer's studies.
+export type StudySharing = {
+    isSysAdmin: boolean;
+    public: boolean;
+    model: boolean;      // listed under Pre-Marked Studies (sys_admin only)
+    scriptura: boolean;  // listed under Scriptura Studies (sys_admin only)
+    classrooms: ShareTarget[];
+}
+
+export type StudySharingUpdate = {
+    public: boolean;
+    model?: boolean;
+    scriptura?: boolean;
+    classroomIds: string[];
+}

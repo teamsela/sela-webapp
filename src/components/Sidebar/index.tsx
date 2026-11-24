@@ -1,24 +1,42 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { HiPlus, HiOutlineClock, HiUserGroup } from "react-icons/hi2";
+import { HiPlus, HiOutlineClock, HiUserGroup, HiAcademicCap, HiShieldCheck } from "react-icons/hi2";
 import { FaBookReader } from "react-icons/fa";
 import { PiBookBookmarkFill } from "react-icons/pi";
 
 import { UserButton } from '@clerk/nextjs';
+
+import { fetchMyClassrooms } from "@/lib/classroomActions";
+import { MyClassroomsResult } from "@/lib/data";
+import { eventBus } from "@/lib/eventBus";
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
   createStudyOpen: boolean;
   setCreateStudyOpen: (arg: boolean) => void;
+  setCreateClassroomOpen: (arg: boolean) => void;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen, setCreateClassroomOpen }: SidebarProps) => {
   const pathname = usePathname();
+
+  const [classroomInfo, setClassroomInfo] = useState<MyClassroomsResult>({ isClassAdmin: false, isSysAdmin: false, classrooms: [] });
+
+  useEffect(() => {
+    const load = () => {
+      fetchMyClassrooms()
+        .then(setClassroomInfo)
+        .catch((error) => console.error("Failed to fetch classrooms:", error));
+    };
+    load();
+    eventBus.on("classroomsChanged", load);
+    return () => eventBus.off("classroomsChanged", load);
+  }, []);
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
@@ -85,7 +103,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
 
       <div className="flex flex-col justify-between h-full">
         {/* <!-- Sidebar Menu --> */}
-        <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
+        <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6 overflow-y-auto">
           {/* <!-- Menu Group --> */}
           <div>
 
@@ -122,7 +140,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
               <li>
                 <Link
                   href="/dashboard/premarked"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("model") && "bg-graydark dark:bg-meta-4"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes("premarked") && "bg-graydark dark:bg-meta-4"
                     }`}
                 >
                   <PiBookBookmarkFill size="20px" />
@@ -154,6 +172,64 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, setCreateStudyOpen}: SidebarProp
 
             </ul>
           </div>
+
+          {/* <!-- System Admin --> */}
+          {classroomInfo.isSysAdmin && (
+            <ul className="mb-6 flex flex-col gap-1.5">
+              <li>
+                <Link
+                  href="/admin"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.startsWith("/admin") && "bg-graydark dark:bg-meta-4"
+                    }`}
+                >
+                  <HiShieldCheck size="20px" />
+                  System Admin
+                </Link>
+              </li>
+            </ul>
+          )}
+          {/* <!-- System Admin --> */}
+
+          {/* <!-- Classrooms Group --> */}
+          {(classroomInfo.isClassAdmin || classroomInfo.classrooms.length > 0) && (
+            <div>
+              <div className="mb-3 flex items-center justify-between px-4">
+                <h3 className="text-sm font-semibold uppercase text-bodydark2">Classrooms</h3>
+                {classroomInfo.isClassAdmin && (
+                  <button
+                    onClick={() => setCreateClassroomOpen(true)}
+                    title="New classroom"
+                    aria-label="New classroom"
+                    className="rounded-sm p-1 text-bodydark1 hover:bg-graydark dark:hover:bg-meta-4"
+                  >
+                    <HiPlus size="16px" />
+                  </button>
+                )}
+              </div>
+              <ul className="mb-6 flex flex-col gap-1.5">
+                {classroomInfo.classrooms.map((room) => {
+                  const href = "/dashboard/classroom/" + room.id;
+                  return (
+                    <li key={room.id}>
+                      <Link
+                        href={href}
+                        title={room.name}
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname === href && "bg-graydark dark:bg-meta-4"
+                          }`}
+                      >
+                        <HiAcademicCap size="20px" className="shrink-0" />
+                        <span className="truncate">{room.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+                {classroomInfo.isClassAdmin && classroomInfo.classrooms.length === 0 && (
+                  <li className="px-4 text-sm text-bodydark2">No classrooms yet.</li>
+                )}
+              </ul>
+            </div>
+          )}
+          {/* <!-- Classrooms Group --> */}
 
         </nav>
         {/* <!-- Sidebar Menu --> */}

@@ -5,7 +5,7 @@ import { unstable_cache } from 'next/cache';
 import { currentUser, clerkClient } from '@clerk/nextjs/server';
 
 import { db } from '../db';
-import { hebBible, lemmaLink, motifLink, stepbibleTbesh, study } from '../schema';
+import { classroomStudy, hebBible, lemmaLink, motifLink, stepbibleTbesh, study } from '../schema';
 import { and, or, ilike, like, eq, asc, desc, count, gte, lte, gt, lt, SQL, sql } from 'drizzle-orm';
 
 import { nanoid } from 'nanoid';
@@ -188,6 +188,11 @@ export async function deleteStudy(studyId: string) {
     }
   } catch (error) {
     return { message: 'Database Error: Failed to delete study.' };
+  }
+  try {
+    await db.delete(classroomStudy).where(eq(classroomStudy.studyId, studyId));
+  } catch (error) {
+    console.error('Failed to remove classroom links for deleted study:', (error as Error).message);
   }
 }
 

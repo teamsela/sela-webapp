@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
 
 import { fetchStudyById, fetchPassageData } from '@/lib/actions';
+import { canViewStudyViaClassroom } from '@/lib/classroomActions';
 import StudyPane from "@/components/StudyPane";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,13 @@ export default async function StudyPage({ params }: { params: Promise<{ id: stri
   const isSharedStudy =
     !!result.study && (result.study.public || result.study.model || result.study.scriptura);
 
-  if (!result.study || (thisUser?.id != result.study.owner && !isSharedStudy)) {
+  // Studies shared into a classroom are readable by that classroom's members.
+  const isClassroomStudy =
+    !!result.study && !isSharedStudy && !!thisUser && thisUser.id != result.study.owner
+      ? await canViewStudyViaClassroom(studyId)
+      : false;
+
+  if (!result.study || (thisUser?.id != result.study.owner && !isSharedStudy && !isClassroomStudy)) {
     notFound();
   }
   else if (thisUser?.id == result.study.owner) {

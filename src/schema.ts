@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, jsonb, integer, doublePrecision } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, jsonb, integer, doublePrecision, primaryKey } from 'drizzle-orm/pg-core';
 
 export const study = pgTable('study', {
   id: text('xata_id').primaryKey(),
@@ -58,3 +58,34 @@ export const stepbibleTbesh = pgTable('stepbible_tbesh', {
   dStrong: text('dStrong'),
   uStrong: text('uStrong'),
 });
+
+/*
+  Classrooms. An admin creates a classroom and invites members by email; members
+  share their own studies into it. Tables are created by
+  scripts/create-classroom-tables.js.
+
+  Membership is keyed by (lower-cased) email rather than Clerk user id so an
+  admin can invite someone who has not signed up yet: they see the classroom as
+  soon as they sign in with that address.
+*/
+export const classroom = pgTable('classroom', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  owner: text('owner').notNull(), // Clerk user id of the creator (informational; admins are classroom_member rows with role 'admin')
+  createdAt: text('createdTime'),
+});
+
+export const classroomMember = pgTable('classroom_member', {
+  classroomId: text('classroomId').notNull(),
+  email: text('email').notNull(),
+  role: text('role').notNull().default('member'), // 'member' | 'admin' (manages this classroom)
+  invitedBy: text('invitedBy'),
+  createdAt: text('createdTime'),
+}, (t) => [primaryKey({ columns: [t.classroomId, t.email] })]);
+
+export const classroomStudy = pgTable('classroom_study', {
+  classroomId: text('classroomId').notNull(),
+  studyId: text('studyId').notNull(),
+  sharedBy: text('sharedBy'),
+  createdAt: text('createdTime'),
+}, (t) => [primaryKey({ columns: [t.classroomId, t.studyId] })]);
