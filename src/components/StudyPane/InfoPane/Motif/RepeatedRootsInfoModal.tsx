@@ -64,9 +64,9 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
         <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
           Each chip is one root that appears more than once in the passage, with the number of
           times it appears. Click a chip to select all of its words. The chip shows the
-          root&apos;s verb in its dictionary form (<span dir="rtl" lang="he">יָשַׁב</span>), or its
-          most common word when the root has no common verb (<span dir="rtl" lang="he">לֵב</span>).
-          Hover over a chip to see the bare root and its meaning.
+          root&apos;s letters without vowels (<span dir="rtl" lang="he">ישׁב</span>), standing for
+          the whole family of words built on it. Hover over a chip to see a typical word from the
+          family and its meaning (<span dir="rtl" lang="he">יָשַׁב</span> &ldquo;sit&rdquo;).
         </p>
 
         <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">

@@ -22,10 +22,11 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 
 ## Motif chip labels
 
-Every chip shows a **pointed word** (students rarely read unpointed Hebrew); the bare root letters
-appear in the tooltip ("ישׁב · sit").
+Chips show **unpointed** letters, so they name the root and its family rather than one word
+(ישׁב, not יָשַׁב; shin/sin dots are kept). The pointed `label` below is shown in the tooltip
+("יָשַׁב · sit"); for root groups the chip shows the root letters, otherwise the word's letters.
 
-- Root groups show the verb's qatal (3ms perfect), the form lexicons and vocabulary lists cite:
+- Tooltip word: root groups use the verb's qatal (3ms perfect), the form lexicons and vocabulary lists cite:
   - qal is the verb's main stem → the qal qatal (יָשַׁב, אָמַר)
   - another stem dominates → that stem's attested qatal, in its textbook form (דִּבֵּר, הֶאֱזִין,
     הִשְׁחִית), not BDB's rare or unused qal; hollow verbs keep their usual citation form (שׁוּב, קוּם)

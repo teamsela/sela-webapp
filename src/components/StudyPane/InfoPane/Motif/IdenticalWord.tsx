@@ -13,12 +13,12 @@ export type IdenticalWordProps = {
     wordId: number,
     count: number,
     identicalWords: WordProps[],
-    /** Hebrew chip text: the root (ישׁב), or the dictionary form for exact-match words */
+    /** Hebrew chip text, unpointed: the root letters (ישׁב), or the word's letters (כי) */
     label: string,
     /** English chip text: the root's sense, or the word's gloss */
     gloss: string,
-    /** Bare root letters (ישׁב) for the tooltip, when the chip stands for a root */
-    letters?: string,
+    /** A pointed word from the group (יָשַׁב) for the tooltip */
+    word?: string,
 };
 
 const IdenticalWord = () => {
@@ -34,7 +34,7 @@ const IdenticalWord = () => {
         identicalWords: words,
         label: labels[i].hebrew,
         gloss: labels[i].english,
-        letters: labels[i].letters,
+        word: labels[i].word,
     }));
     identicalWordPropsArray.sort((a, b) => b.count - a.count);
 
@@ -50,7 +50,7 @@ const IdenticalWord = () => {
                     {identicalWordPropsArray.map((idWordProps, index) => (
                         <IdenticalWordBlock key={index} id={idWordProps.wordId}
                             count={idWordProps.count} identicalWords={idWordProps.identicalWords}
-                            label={idWordProps.label} gloss={idWordProps.gloss} letters={idWordProps.letters}/>
+                            label={idWordProps.label} gloss={idWordProps.gloss} word={idWordProps.word}/>
                     ))
                     }
                 </div>

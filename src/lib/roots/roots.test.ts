@@ -130,8 +130,8 @@ describe("repeated-word grouping", () => {
     const groups = extractIdenticalWordsFromPassage(passage, true);
     const key = wordGroupKeys(seat, true)[0];
     const seatLabel = groupLabel(key, groups.get(key)!);
-    expect(nfc(seatLabel.hebrew)).toBe(nfc("יָשַׁב"));
-    expect(nfc(seatLabel.letters)).toBe(nfc("ישׁב"));
+    expect(nfc(seatLabel.hebrew)).toBe(nfc("ישׁב")); // unpointed root on the chip
+    expect(nfc(seatLabel.word)).toBe(nfc("יָשַׁב")); // pointed word in the tooltip
     expect(seatLabel.english).toBe("sit");
   });
 
@@ -146,18 +146,19 @@ describe("repeated-word grouping", () => {
   it("labels exact-match groups with the dictionary form, not the inflected word", () => {
     const ki = [word(20, 3588, "כִּ֤י"), word(21, 3588, "כִּֽי")];
     const label = groupLabel("s3588", ki);
-    expect(nfc(label.hebrew)).toBe(nfc("כִּי"));
+    expect(nfc(label.hebrew)).toBe(nfc("כי"));
+    expect(nfc(label.word)).toBe(nfc("כִּי"));
     expect(label.english).toBe("that");
   });
 
   it("adds the homonym numeral only when two chips would otherwise read the same", () => {
     const answer = groupLabel(rootId(6030, "psalms", 3, 4)!, [word(30, 6030, "", "psalms", 3, 4)]);
     const sing = groupLabel(rootId(6030, "exodus", 15, 21)!, [word(31, 6030, "", "exodus", 15, 21)]);
-    expect(nfc(answer.hebrew)).toBe(nfc("עָנָה"));
+    expect(nfc(answer.hebrew)).toBe(nfc("ענה"));
     const [a, s] = disambiguateGroupLabels([answer, sing]);
-    expect(nfc(a.hebrew)).toBe(nfc("עָנָה I"));
-    expect(nfc(s.hebrew)).toBe(nfc("עָנָה IV"));
-    expect(nfc(disambiguateGroupLabels([answer])[0].hebrew)).toBe(nfc("עָנָה"));
+    expect(nfc(a.hebrew)).toBe(nfc("ענה I"));
+    expect(nfc(s.hebrew)).toBe(nfc("ענה IV"));
+    expect(nfc(disambiguateGroupLabels([answer])[0].hebrew)).toBe(nfc("ענה"));
   });
 });
 
@@ -186,6 +187,16 @@ describe("familiar forms", () => {
   it("keeps ordinary dictionary forms", () => {
     expect(nfc(root(1004).root?.label)).toBe(nfc("בַּיִת"));
     expect(nfc(root(3117).root?.label)).toBe(nfc("יוֹם"));
+  });
+});
+
+describe("unpointed chip labels", () => {
+  it("strips vowels, dagesh and accents but keeps the shin/sin dot", async () => {
+    const { unpointed } = await import("../utils");
+    expect(nfc(unpointed("שָׁמַיִם"))).toBe(nfc("שׁמים"));
+    expect(nfc(unpointed("שְׂעֹרָה"))).toBe(nfc("שׂערה"));
+    expect(unpointed("כִּֽי")).toBe("כי");
+    expect(unpointed("וּבְמוֹשַׁב")).toBe(nfc("ובמושׁב"));
   });
 });
 

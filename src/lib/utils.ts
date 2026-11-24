@@ -196,15 +196,26 @@ export function wordGroupKeys(word: WordProps, includeNames: boolean): string[] 
 const CANTILLATION = /[֑-ֽ֯׀׃־]/g; // accents, meteg, paseq, sof pasuq, maqaf
 
 export type GroupLabel = {
-  /** Hebrew chip text: the root (ישׁב), or the dictionary form for exact-match words (כִּי) */
+  /** Hebrew chip text, unpointed so it names the root and its family rather than one word:
+   *  the root letters (ישׁב), or the letters of the word for exact-match groups (כי) */
   hebrew: string;
   /** English chip text: the root's sense, or the word's gloss */
   english: string;
   /** BDB homonym numeral, used only to tell apart chips that would otherwise look the same */
   homonym?: string;
-  /** Bare root letters (ישׁב) for the tooltip, when the chip stands for a root */
-  letters?: string;
+  /** A pointed word from the group for the tooltip (יָשַׁב, דִּבֵּר, כִּי) */
+  word?: string;
 };
+
+/** Removes vowel points, dagesh and accents, keeping the letters and the shin/sin dot (שׁ/שׂ). */
+export function unpointed(hebrew: string): string {
+  return hebrew
+    .normalize("NFD")
+    .replace(/[\u0591-\u05BD\u05BF\u05C4\u05C5\u05C7]/g, "")
+    .replace(/\u05C0|\u05C3|\u05BE/g, "")
+    .normalize("NFC")
+    .trim();
+}
 
 /**
  * Concise STEP Bible gloss ("heart", "servant") of the most frequent word in the group,
@@ -246,13 +257,13 @@ export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
       ?? words.flatMap((w) => w.motifData?.nameRoots ?? []).find((r) => r.id === groupKey);
     if (root) {
       const english = passageGloss(words, (w) => w.motifData?.root?.id === groupKey) || root.gloss || root.label;
-      return { hebrew: root.label, english, homonym: root.homonym, letters: root.letters };
+      return { hebrew: root.letters || unpointed(root.label), english, homonym: root.homonym, word: root.label };
     }
   }
   const motif = lead?.motifData;
-  const hebrew = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
-  const english = passageGloss(words, () => true) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || hebrew;
-  return { hebrew, english };
+  const word = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
+  const english = passageGloss(words, () => true) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || word;
+  return { hebrew: unpointed(word), english, word };
 }
 
 /**
@@ -260,7 +271,7 @@ export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
  * appear), add the homonym numeral to the Hebrew label and the root sense to tell them apart.
  */
 export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
-  // compare Hebrew by letters only, so ענה (root) and עָנָה (single word) count as the same
+  // compare Hebrew by letters only (shin/sin dots aside), so labels of homonymous roots collide
   const letters = (s: string) => s.replace(HEBREW_LETTERS, "");
   const hebrewCounts = new Map<string, number>();
   const englishCounts = new Map<string, number>();

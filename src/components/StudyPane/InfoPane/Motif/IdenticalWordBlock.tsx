@@ -6,14 +6,14 @@ import { DEFAULT_BORDER_COLOR, DEFAULT_COLOR_FILL, DEFAULT_TEXT_COLOR, FormatCon
 import { deriveUniformWordPalette } from '@/lib/utils';
 
 export const IdenticalWordBlock = ({
-  id, count, identicalWords, label, gloss, letters
+  id, count, identicalWords, label, gloss, word
 }: {
   id: number,
   count: number,
   identicalWords: WordProps[],
   label: string,
   gloss: string,
-  letters?: string
+  word?: string
 }) => {
 
   const { ctxColorAction, ctxSelectedColor,
@@ -95,8 +95,9 @@ export const IdenticalWordBlock = ({
         >
           <span
             className={`flex select-none px-2 py-1 items-center justify-center text-center hover:opacity-60 leading-none text-lg`}
-            // tooltip: the bare root and its sense ("ישׁב · sit"), or the Hebrew in English mode
-            title={isHebrew ? (letters ? `${letters} · ${gloss}` : gloss) : (letters ? `${label} (${letters})` : label)}
+            // tooltip: a pointed word from the root's family and its sense ("יָשַׁב · sit");
+            // in English mode, the Hebrew root and that word
+            title={isHebrew ? (word ? `${word} · ${gloss}` : gloss) : (word && word !== label ? `${label} · ${word}` : label)}
           >
             {isHebrew ? label : gloss}</span>
           <span className="flex h-6.5 w-full min-w-6.5 max-w-6.5 items-center justify-center rounded-full bg-[#EFEFEF] text-black text-sm">{count}</span>
