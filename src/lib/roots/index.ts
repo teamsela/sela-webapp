@@ -11,10 +11,9 @@ import rootData from "./rootData.json";
 */
 
 type RootData = {
-  /** [chip label (pointed), English sense, homonym numeral or "", bare root letters or ""] */
+  /** [pointed word (tooltip), English sense, homonym numeral or "", bare root letters or ""] */
   roots: [string, string, string, string?][];
   strong: Record<string, number>;
-  names: Record<string, number[]>;
   /** dictionary form + gloss for words without a root */
   lemmas: Record<string, [string, string]>;
   exceptions: Record<string, number>;
@@ -25,23 +24,20 @@ const data = rootData as unknown as RootData;
 export type RootRef = {
   /** Root group id, e.g. "r42". */
   id: string;
-  /** Chip label, always pointed: the verb's qatal (יָשַׁב, דִּבֵּר) when the verb is common in the
-   *  root's family, otherwise its most common word (לֵב, מַיִם); groups split off by meaning show
-   *  their own word (דְּבוֹרָה "bee"). */
+  /** A pointed word from the root's family, shown in the chip's tooltip: the verb's qatal
+   *  (יָשַׁב, דִּבֵּר) when the verb is common, otherwise its most common word (לֵב, מַיִם). */
   label: string;
   /** Short English sense, e.g. "sit". */
   gloss?: string;
   /** BDB homonym numeral ("I", "II"...) for telling identically spelled roots apart, if any. */
   homonym?: string;
-  /** Bare root letters with shin/sin dot (ישׁב), shown in the tooltip; absent for single words. */
+  /** Bare root letters with shin/sin dot (ישׁב), shown on the chip; absent for single words. */
   letters?: string;
 };
 
 export type RootInfo = {
   /** The word's root group. Undefined for particles and unrooted words (exact match only). */
   root?: RootRef;
-  /** Roots a proper name is built from (Azariah → עזר). Empty for other words. */
-  nameRoots: RootRef[];
   /** Dictionary form and gloss, for words without a root (כִּי, names). */
   lemma?: string;
   lemmaGloss?: string;
@@ -67,7 +63,7 @@ export function lookupRoot(
   nthInVerse: number
 ): RootInfo {
   if (!strongNumber) {
-    return { nameRoots: [] };
+    return {};
   }
   const exceptionKey = `${book.toLowerCase()}|${chapter}|${verse}|${strongNumber}|${nthInVerse}`;
   const index = exceptionKey in data.exceptions
@@ -77,9 +73,6 @@ export function lookupRoot(
   const lemma = root ? undefined : data.lemmas[String(strongNumber)];
   return {
     root,
-    nameRoots: (data.names[String(strongNumber)] ?? [])
-      .map(rootRef)
-      .filter((r): r is RootRef => r !== undefined),
     lemma: lemma?.[0] || undefined,
     lemmaGloss: lemma?.[1] || undefined,
   };

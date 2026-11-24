@@ -49,7 +49,7 @@ const Passage = ({
     ctxSelectedStrophes, ctxSetSelectedStrophes, ctxSetNumSelectedStrophes,
     ctxStructureUpdateType, ctxSetStructureUpdateType, ctxAddToHistory, 
     ctxStudyNotes, ctxSetStudyNotes, ctxSetNoteMerge, ctxLanguageMode, ctxStropheNoteBtnOn, ctxReadmeBtnOn,
-    ctxNonEnglishDisplayMode, ctxActiveLayerId, ctxIncludeNameRoots,
+    ctxNonEnglishDisplayMode, ctxActiveLayerId,
   } = useContext(FormatContext);
 
   const nonEnglishDisplayMode =
@@ -644,10 +644,10 @@ const Passage = ({
     }
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn, ctxActiveLayerId]);
 
-  const repeatedWordGroups = extractIdenticalWordsFromPassage(ctxPassageProps, ctxIncludeNameRoots);
+  const repeatedWordGroups = extractIdenticalWordsFromPassage(ctxPassageProps);
   useEffect(() => { // handler select/deselect words sharing a root (or identical words)
     const handler = (word: WordProps) => {
-      const identicalWords = wordsInSameGroups(word, repeatedWordGroups, ctxIncludeNameRoots);
+      const identicalWords = wordsInSameGroups(word, repeatedWordGroups);
       if (identicalWords.length === 0) {
         return;
       }
@@ -667,7 +667,7 @@ const Passage = ({
 
     eventBus.on("selectAllIdenticalWords", handler);
     return () => eventBus.off("selectAllIdenticalWords", handler);
-  }, [ctxSelectedWords, ctxPassageProps, ctxIncludeNameRoots]);
+  }, [ctxSelectedWords, ctxPassageProps]);
 
   return (
     <StropheAlignContext.Provider value={alignContextValue}>

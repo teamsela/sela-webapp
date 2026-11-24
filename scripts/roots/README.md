@@ -15,8 +15,9 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 - A root group means a **shared meaning**. Words with the same letters but unrelated meanings are split
   (e.g. דבר "speak" / מִדְבָּר "wilderness" / דֶּבֶר "plague"). Sound-alikes are left to rhyme tools.
 - Homonyms are separate roots (no "sound-alike" mode).
-- Proper names carry the roots of the words they are built from (Azariah → עזר). Divine elements
-  (אֵל, יָהּ, יהוה) are ignored, and יהוה is not linked to הָיָה. Name matching is on by default (toggle).
+- Proper names never join a root group; a name only matches the same name. Name etymologies
+  (Strong's, often folk etymology) proved too unreliable for a primary tool; a name's components
+  are visible in its dictionary entry. God's name is one group: יהוה, יָהּ and יֱהוִה ("Yahweh").
 - Function words (prepositions, conjunctions, particles, pronouns) match exactly only.
 - Aramaic words join their Hebrew cognate's root, including regular sound shifts (ד=ז, ת=שׁ).
 

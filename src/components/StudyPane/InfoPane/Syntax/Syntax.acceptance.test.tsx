@@ -285,8 +285,6 @@ function Harness({
     ctxSetNonEnglishDisplayMode: noop,
     ctxInTextCounterOn: false,
     ctxSetInTextCounterOn: noop,
-    ctxIncludeNameRoots: true,
-    ctxSetIncludeNameRoots: noop,
     ctxCounterMode: "words",
     ctxSetCounterMode: noop,
     ctxSelectedSoundChipIds: [],

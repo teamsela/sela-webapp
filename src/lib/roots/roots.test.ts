@@ -4,7 +4,7 @@ const nfc = (s: string | undefined) => s?.normalize("NFC");
 
 import { lookupRoot } from "./index";
 import { PassageProps, WordProps } from "../data";
-import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel, wordGroupKeys, wordsInSameGroups } from "../utils";
+import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel, wordGroupKey, wordsInSameGroups } from "../utils";
 
 const root = (strong: number, book = "psalms", chapter = 1, verse = 1, nth = 0) =>
   lookupRoot(book, chapter, verse, strong, nth);
@@ -42,11 +42,10 @@ describe("lookupRoot", () => {
     expect(rootId(8421)).toBe(rootId(7725));
   });
 
-  it("gives proper names the roots they are built from, ignoring divine elements", () => {
-    const ids = (strong: number) => root(strong).nameRoots.map((r) => r.id);
-    expect(ids(5838)).toContain(rootId(5826)); // Azariah → עזר 'help'
-    expect(ids(3068)).toEqual([]); // יהוה is not linked to הָיָה
-    expect(ids(3478)).not.toContain(rootId(410)); // Israel does not link to אֵל
+  it("gives proper names no root: they only match the same name", () => {
+    expect(root(5838).root).toBeUndefined(); // Azariah is not grouped with עזר 'help'
+    expect(root(3478).root).toBeUndefined(); // Israel
+    expect(root(3389).root).toBeUndefined(); // Jerusalem is not grouped with שָׁלוֹם
   });
 
   it("leaves function words without a root (exact match only), with their dictionary form", () => {
@@ -90,7 +89,7 @@ const word = (wordId: number, strongNumber: number, wlcWord = "", book = "psalms
   const info = lookupRoot(book, chapter, verse, strongNumber, nth);
   return {
     wordId, strongNumber, wlcWord, chapter, verse, gloss: "", ETCBCgloss: "",
-    motifData: { lemma: info.lemma ?? "", lemmaGloss: info.lemmaGloss, categories: [], root: info.root, nameRoots: info.nameRoots },
+    motifData: { lemma: info.lemma ?? "", lemmaGloss: info.lemmaGloss, categories: [], root: info.root },
   } as unknown as WordProps;
 };
 
@@ -108,39 +107,35 @@ describe("repeated-word grouping", () => {
   const passage = passageOf([seat, sat, help, azariah, lo1, lo2, lahem]);
 
   it("double-click on a word selects every word sharing its root", () => {
-    const groups = extractIdenticalWordsFromPassage(passage, true);
-    expect(wordsInSameGroups(seat, groups, true).map((w) => w.wordId)).toEqual([1, 2]);
+    const groups = extractIdenticalWordsFromPassage(passage);
+    expect(wordsInSameGroups(seat, groups).map((w) => w.wordId)).toEqual([1, 2]);
   });
 
-  it("includes proper names when the names toggle is on, and not when off", () => {
-    const withNames = extractIdenticalWordsFromPassage(passage, true);
-    expect(wordsInSameGroups(help, withNames, true).map((w) => w.wordId)).toEqual([3, 4]);
-    expect(wordsInSameGroups(azariah, withNames, true).map((w) => w.wordId)).toEqual([4, 3]);
-
-    const withoutNames = extractIdenticalWordsFromPassage(passage, false);
-    expect(wordsInSameGroups(help, withoutNames, false).map((w) => w.wordId)).toEqual([3]);
+  it("does not group proper names with words of the same root", () => {
+    const groups = extractIdenticalWordsFromPassage(passage);
+    expect(wordsInSameGroups(help, groups).map((w) => w.wordId)).toEqual([3]);
+    expect(wordsInSameGroups(azariah, groups).map((w) => w.wordId)).toEqual([4]);
   });
 
   it("matches untagged words by spelling instead of lumping them together", () => {
-    const groups = extractIdenticalWordsFromPassage(passage, true);
-    expect(wordsInSameGroups(lo1, groups, true).map((w) => w.wordId)).toEqual([5, 6]);
+    const groups = extractIdenticalWordsFromPassage(passage);
+    expect(wordsInSameGroups(lo1, groups).map((w) => w.wordId)).toEqual([5, 6]);
   });
 
   it("labels a group by its root", () => {
-    const groups = extractIdenticalWordsFromPassage(passage, true);
-    const key = wordGroupKeys(seat, true)[0];
+    const groups = extractIdenticalWordsFromPassage(passage);
+    const key = wordGroupKey(seat)!;
     const seatLabel = groupLabel(key, groups.get(key)!);
     expect(nfc(seatLabel.hebrew)).toBe(nfc("ישׁב")); // unpointed root on the chip
     expect(nfc(seatLabel.word)).toBe(nfc("יָשַׁב")); // pointed word in the tooltip
     expect(seatLabel.english).toBe("sit");
   });
 
-  it("never makes a root group out of names alone (no chip for a root absent from the text)", () => {
-    const azariahs = passageOf([word(10, 5838), word(11, 5838)]); // two Azariahs, no עֵזֶר
-    const groups = extractIdenticalWordsFromPassage(azariahs, true);
-    const rootKey = root(5838).nameRoots[0].id;
-    expect(groups.has(rootKey)).toBe(false);
-    expect(groups.get("s5838")?.map((w) => w.wordId)).toEqual([10, 11]); // the name still repeats as itself
+  it("matches a repeated name with itself", () => {
+    const azariahs = passageOf([word(10, 5838), word(11, 5838)]);
+    const groups = extractIdenticalWordsFromPassage(azariahs);
+    expect(groups.get("s5838")?.map((w) => w.wordId)).toEqual([10, 11]);
+    expect(Array.from(groups.keys())).toEqual(["s5838"]);
   });
 
   it("labels exact-match groups with the dictionary form, not the inflected word", () => {
@@ -168,13 +163,13 @@ describe("English chip labels", () => {
 
   it("prefers the concise STEP gloss of the group's most frequent word in the passage", () => {
     const words = [withStepGloss(word(40, 3820), "heart"), withStepGloss(word(41, 3824), "heart"), withStepGloss(word(42, 3820), "heart")];
-    const key = wordGroupKeys(words[0], true)[0];
+    const key = wordGroupKey(words[0])!;
     expect(groupLabel(key, words).english).toBe("heart");
   });
 
   it("falls back to the lexicon sense when no STEP gloss is loaded", () => {
     const words = [word(43, 3427), word(44, 3427)];
-    expect(groupLabel(wordGroupKeys(words[0], true)[0], words).english).toBe("sit");
+    expect(groupLabel(wordGroupKey(words[0])!, words).english).toBe("sit");
   });
 });
 
@@ -205,7 +200,7 @@ describe("divine names", () => {
     expect(rootId(3050)).toBe(rootId(3068));
     expect(rootId(3069)).toBe(rootId(3068));
     const words = [word(50, 3068), word(51, 3050)];
-    const label = groupLabel(wordGroupKeys(words[0], true)[0], words);
+    const label = groupLabel(wordGroupKey(words[0])!, words);
     expect(label.hebrew).toBe("יהוה");
     expect(label.english).toBe("Yahweh");
   });
@@ -214,6 +209,6 @@ describe("divine names", () => {
     const withStepGloss = (w: WordProps, gloss: string): WordProps =>
       ({ ...w, wordInformation: { hebrew: "", transliteration: "", gloss, morphology: "", strongsNumber: "", meaning: "" } }) as WordProps;
     const elohim = [withStepGloss(word(60, 430), "God"), withStepGloss(word(61, 430), "God")];
-    expect(groupLabel(wordGroupKeys(elohim[0], true)[0], elohim).english).toBe("Elohim");
+    expect(groupLabel(wordGroupKey(elohim[0])!, elohim).english).toBe("Elohim");
   });
 });

@@ -949,7 +949,6 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
       lemmaGloss: rootInfo.lemmaGloss,
       categories: word.motifCategories || [],
       root: rootInfo.root,
-      nameRoots: rootInfo.nameRoots,
     };
 
     const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;

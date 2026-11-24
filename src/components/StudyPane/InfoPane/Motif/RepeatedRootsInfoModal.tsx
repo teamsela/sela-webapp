@@ -5,7 +5,7 @@ import { IconX } from "@tabler/icons-react";
 
 const REPEATED_ROOTS_INFO_TITLE_ID = "repeated-roots-info-title";
 
-// Reference popup describing what Repeated Roots finds and the three ways to select or color
+// Reference popup describing what Repeated Roots finds and the ways to select or color
 // the words. Portaled to document.body so it overlays the whole study view (same format as the
 // Pausal Forms and Accent Levels info popups).
 const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
@@ -49,6 +49,13 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
           <span dir="rtl" lang="he">כִּי</span> and <span dir="rtl" lang="he">אֵת</span> are only
           matched with the same word.
         </p>
+        <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          Proper names are only matched with the same name, so{" "}
+          <span dir="rtl" lang="he">עֲזַרְיָה</span> &ldquo;Azariah&rdquo; is not grouped with{" "}
+          <span dir="rtl" lang="he">עֵזֶר</span> &ldquo;help&rdquo;. God&apos;s name{" "}
+          <span dir="rtl" lang="he">יהוה</span> and its short form{" "}
+          <span dir="rtl" lang="he">יָהּ</span> count as one: Yahweh.
+        </p>
 
         <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">
           Double-Click a Word
@@ -75,16 +82,6 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
         <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
           Click Smart Highlight to color every repeated root at once, each root in its own color.
           Click it again to clear the highlight.
-        </p>
-
-        <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">
-          Include Names
-        </h4>
-        <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          When this is on, proper names join the root they are built from, so{" "}
-          <span dir="rtl" lang="he">עֲזַרְיָה</span> &ldquo;Azariah&rdquo; is grouped with{" "}
-          <span dir="rtl" lang="he">עֵזֶר</span> &ldquo;help&rdquo;. Turn it off to group ordinary
-          words only.
         </p>
 
         <p className="mt-5 border-t border-gray-200 pt-3 text-xs leading-relaxed text-gray-500 dark:border-gray-700 dark:text-gray-400">

@@ -96,8 +96,6 @@ export type MotifData = {
     categories: string[];
     /** Root group (see src/lib/roots). Undefined for particles and unrooted words. */
     root?: RootRef;
-    /** For proper names: root groups the name is built from. */
-    nameRoots?: RootRef[];
 }
 
 export type WordInformation = {

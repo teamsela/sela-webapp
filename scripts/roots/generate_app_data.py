@@ -5,13 +5,13 @@ Output format (kept compact; indices refer to `roots`):
   roots:      [[label, gloss, homonym, letters], ...]  label = pointed chip word (יָשַׁב, דִּבֵּר, לֵב),
               letters = bare root for the tooltip (ישׁב); homonym = "I"/"II"... or ""
   strong:     {strongNumber: rootIndex}   default root for the Strong's number (its most frequent homonym)
-  names:      {strongNumber: [rootIndex, ...]}  roots contained in a proper name
   lemmas:     {strongNumber: [lemma, gloss]}   dictionary form for words without a root (exact match)
   exceptions: {"book|chapter|verse|strong|n": rootIndex or -1}
               words whose homonym (OSHB augmented Strong's) differs from the default; chapter/verse use
               heb_bible's English numbering; n = nth occurrence of that Strong's number in the verse
               (0-based); -1 = no root (exact match only)
-Strong's numbers absent from `strong` (particles, unrooted words) fall back to exact Strong's matching.
+Strong's numbers absent from `strong` (particles, proper names, unrooted words) fall back to exact
+Strong's matching. Proper names never join a root group; God's name (יהוה, יָהּ, יֱהוִה) is one group.
 """
 import csv, json, re, sys, glob, os, collections, unicodedata
 MAP, MORPH, OUT = sys.argv[1:4]
@@ -157,7 +157,7 @@ def word_root(r):
     return idx(r['root'])
 by_strong = collections.defaultdict(list)
 for r in sorted(rows, key=lambda r: (int(r['strong']), r['aug'])): by_strong[int(r['strong'])].append(r)
-strong, names, aug_root, lemmas = {}, {}, {}, {}
+strong, aug_root, lemmas = {}, {}, {}
 for s, rs in by_strong.items():
     if s in YAHWEH_STRONGS:
         strong[str(s)] = idx(YAHWEH_KEY)
@@ -170,9 +170,6 @@ for s, rs in by_strong.items():
     else:  # exact-match words (particles, names, unrooted): dictionary form + gloss for the chip
         # יהוה stays unpointed: the text points it with the qere (אֲדֹנָי/יְהוִה), not as a word to read
         lemmas[str(s)] = [clean(main['lemma']) if s in (3068, 3069) else pointed(familiar(s, main['lemma']), s), main['gloss']]
-    nm = [r for r in rs if r['kind'] == 'name' and r['name_roots']]
-    if nm:
-        names[str(s)] = [idx(k) for k in nm[0]['name_roots'].split('|')]
 # heb_bible uses English (KJV) verse numbering. OSHB marks where English verses start with
 # <note>KJV:Book.c.v</note>; a Hebrew verse without a marker continues the current offset within
 # the chapter, and psalm titles fold into English verse 1.
@@ -217,5 +214,5 @@ if len(sys.argv) > 4:  # optional: compare chapter/verse layout with heb_bible (
             bad += 1; print('layout mismatch', bk, {c: (db.get(c), layout[bk].get(c)) for c in set(db) | set(layout[bk]) if db.get(c) != layout[bk].get(c)})
     print('layout check:', 'all books match' if not bad else f'{bad} books differ')
 json.dump(dict(source='Open Scriptures HebrewLexicon (BDB/Strong) + OSHB morphhb, CC BY 4.0; see scripts/roots/README.md',
-               roots=roots, strong=strong, names=names, lemmas=lemmas, exceptions=exceptions), open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
-print(f'roots {len(roots)}  strong {len(strong)}  names {len(names)}  exceptions {len(exceptions)}  size {os.path.getsize(OUT)//1024} KB')
+               roots=roots, strong=strong, lemmas=lemmas, exceptions=exceptions), open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+print(f'roots {len(roots)}  strong {len(strong)}  lemmas {len(lemmas)}  exceptions {len(exceptions)}  size {os.path.getsize(OUT)//1024} KB')

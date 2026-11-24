@@ -5,7 +5,6 @@ import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel }
 
 import { FormatContext } from '../../index';
 import { IdenticalWordBlock } from "./IdenticalWordBlock";
-import NameRootSwitcher from "./NameRootSwitcher";
 
 import SmartHighlight from '@/components/StudyPane/InfoPane/Motif/SmartHighlight';
 
@@ -22,10 +21,10 @@ export type IdenticalWordProps = {
 };
 
 const IdenticalWord = () => {
-    const { ctxPassageProps, ctxIncludeNameRoots, ctxSetIncludeNameRoots } = useContext(FormatContext)
+    const { ctxPassageProps } = useContext(FormatContext)
 
     // map of root group (or Strong's number for exact-match words) to the passage's words in it
-    const groups = extractIdenticalWordsFromPassage(ctxPassageProps, ctxIncludeNameRoots);
+    const groups = extractIdenticalWordsFromPassage(ctxPassageProps);
     const repeated = Array.from(groups.entries()).filter(([, words]) => words.length > 1);
     const labels = disambiguateGroupLabels(repeated.map(([groupKey, words]) => groupLabel(groupKey, words)));
     const identicalWordPropsArray: IdenticalWordProps[] = repeated.map(([, words], i) => ({
@@ -40,9 +39,6 @@ const IdenticalWord = () => {
 
     return (
         <div className="flex flex-col h-full">
-            <div>
-                <NameRootSwitcher selectRelated={ctxIncludeNameRoots} setSelectRelated={ctxSetIncludeNameRoots}/>
-            </div>
             <div
                 style={{ height: 'fit-content' }}
                 className=" gap-4 pb-8 overflow-y-auto">
