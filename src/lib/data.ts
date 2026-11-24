@@ -89,8 +89,15 @@ export type LexiconData = {
 
 export type MotifData = {
     lemma: string;
-    relatedStrongNums: number[] | undefined;
     categories: string[];
+    /** Root group id (see src/lib/roots). Undefined for particles and unrooted words. */
+    rootId?: string;
+    /** Root consonants for display, e.g. "ישב" or "ענה I". */
+    rootLabel?: string;
+    /** Short English sense of the root group. */
+    rootGloss?: string;
+    /** For proper names: root groups the name is built from. */
+    nameRootIds?: string[];
 }
 
 export type WordInformation = {
@@ -219,8 +226,6 @@ export type HebWord = {
     firstStropheInStanza: boolean;
     lastStropheInStanza: boolean;
     lemma: string | undefined;
-    relatedWords: LexiconData | undefined;
-    relatedStrongNums: number[] | undefined;
     categories: string[];
 }
 

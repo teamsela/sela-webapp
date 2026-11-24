@@ -1,4 +1,5 @@
-const RelatedWordSwitcher = ({
+/** Toggle: include proper names built on a root (e.g. Azariah with עֵזֶר "help") in repeated-word groups. */
+const NameRootSwitcher = ({
     selectRelated, setSelectRelated
 }: {
     selectRelated: boolean,
@@ -7,17 +8,17 @@ const RelatedWordSwitcher = ({
   return (
     <div className="mb-3 flex items-center gap-1 ">
         <div className="flex-initial">
-            <span className="text-black dark:text-white">Select Related Words</span>
+            <span className="text-black dark:text-white" title="Include proper names built on a root, e.g. Azariah with עֵזֶר (help)">Include Names</span>
         </div>
         <div className="flex-initial">
             <label
-            htmlFor="toggle3"
+            htmlFor="toggleNameRoots"
             className="flex cursor-pointer select-none items-center"
             >
                 <div className="relative">
                 <input
                     type="checkbox"
-                    id="toggle3"
+                    id="toggleNameRoots"
                     className="sr-only"
                     checked={selectRelated}
                     onChange={() => {
@@ -72,4 +73,4 @@ const RelatedWordSwitcher = ({
   );
 };
 
-export default RelatedWordSwitcher;
+export default NameRootSwitcher;

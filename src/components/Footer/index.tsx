@@ -2,6 +2,7 @@ import BSBModal from "@/components/Modals/Footer/BSBModal";
 import DiscoveryModal from "@/components/Modals/Footer/DiscoveryModal";
 import ESVModal from "@/components/Modals/Footer/ESVModal";
 import OHBModal from "@/components/Modals/Footer/OHBModal";
+import HebrewLexiconModal from "@/components/Modals/Footer/HebrewLexiconModal";
 import StepBibleModal from "@/components/Modals/Footer/StepBibleModal";
 
 export const FooterComponent = () => {
@@ -17,6 +18,8 @@ export const FooterComponent = () => {
           <ESVModal triggerClassName="px-0 hover:underline" />
           <span>,</span>
           <OHBModal triggerClassName="px-0 hover:underline" />
+          <span>,</span>
+          <HebrewLexiconModal triggerClassName="px-0 hover:underline" />
         </footer>
     )
 }

@@ -164,25 +164,69 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
   return result;
 }
 
-export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : Map<number, WordProps[]>  {
-  const strongNumWordsMap = new Map<number, WordProps[]>();
-  passageProps.stanzaProps.forEach((stanzas) => {
-    stanzas.strophes.forEach((strophe) => {
-        strophe.lines.forEach((line) => {
-            line.words.forEach((word) => {
-                const currentWord = strongNumWordsMap.get(word.strongNumber);
-                if (currentWord !== undefined) {
-                    currentWord.push(word);
-                }
-                else {
-                  strongNumWordsMap.set(word.strongNumber, [word]);
-                }
-            })
-        })
+const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
+
+/**
+ * Keys under which a word counts as "repeated" in a passage:
+ * - its root group (motifData.rootId) when it has one,
+ * - otherwise its Strong's number (particles, unrooted words: exact match),
+ * - otherwise (untagged words such as לוֹ) its consonantal spelling.
+ * With includeNames, a proper name also joins the root groups it is built from (Azariah → עזר).
+ */
+export function wordGroupKeys(word: WordProps, includeNames: boolean): string[] {
+  const keys: string[] = [];
+  const motif = word.motifData;
+  if (motif?.rootId) {
+    keys.push(motif.rootId);
+  } else if (word.strongNumber) {
+    keys.push(`s${word.strongNumber}`);
+  } else {
+    const consonants = (word.wlcWord || "").replace(HEBREW_LETTERS, "");
+    if (consonants) keys.push(`w${consonants}`);
+  }
+  if (includeNames) {
+    motif?.nameRootIds?.forEach((rootId) => {
+      if (!keys.includes(rootId)) keys.push(rootId);
+    });
+  }
+  return keys;
+}
+
+/** Map of group key (see wordGroupKeys) to the passage's words in that group, in passage order. */
+export function extractIdenticalWordsFromPassage(passageProps: PassageProps, includeNames = true): Map<string, WordProps[]> {
+  const groups = new Map<string, WordProps[]>();
+  passageProps.stanzaProps.forEach((stanza) => {
+    stanza.strophes.forEach((strophe) => {
+      strophe.lines.forEach((line) => {
+        line.words.forEach((word) => {
+          wordGroupKeys(word, includeNames).forEach((key) => {
+            const group = groups.get(key);
+            if (group) {
+              if (!group.includes(word)) group.push(word);
+            } else {
+              groups.set(key, [word]);
+            }
+          });
+        });
+      });
     });
   });
+  return groups;
+}
 
-  return strongNumWordsMap;
+/** All words sharing a group with `word` (including itself), deduplicated, in passage order. */
+export function wordsInSameGroups(word: WordProps, groups: Map<string, WordProps[]>, includeNames: boolean): WordProps[] {
+  const result: WordProps[] = [];
+  const seen = new Set<number>();
+  wordGroupKeys(word, includeNames).forEach((key) => {
+    groups.get(key)?.forEach((w) => {
+      if (!seen.has(w.wordId)) {
+        seen.add(w.wordId);
+        result.push(w);
+      }
+    });
+  });
+  return result;
 }
 
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {

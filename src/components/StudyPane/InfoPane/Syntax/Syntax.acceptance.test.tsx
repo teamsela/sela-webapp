@@ -94,7 +94,7 @@ function makeWord(wordId: number, morphology?: string): WordProps {
     gloss: `word-${wordId}`, ETCBCgloss: undefined, metadata: {},
     newLine: false, BSBnewLine: false, newVerse: false, showVerseNum: false,
     firstWordInStrophe: false, firstStropheInStanza: false, lastStropheInStanza: false,
-    motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+    motifData: { lemma: "", categories: [] },
   };
 }
 
@@ -285,6 +285,8 @@ function Harness({
     ctxSetNonEnglishDisplayMode: noop,
     ctxInTextCounterOn: false,
     ctxSetInTextCounterOn: noop,
+    ctxIncludeNameRoots: true,
+    ctxSetIncludeNameRoots: noop,
     ctxCounterMode: "words",
     ctxSetCounterMode: noop,
     ctxSelectedSoundChipIds: [],

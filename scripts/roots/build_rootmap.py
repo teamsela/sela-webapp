@@ -41,7 +41,7 @@ def members(r):
     while st: x=st.pop(); out.append(x); st+=[k for k in E[x]['kids'] if k in E]
     return out
 def gloss_of(t):
-    ms=[E[m] for m in members(t) if m!=t]; v=[m for m in ms if m['pos']=='V']
+    ms=[E[m] for m in members(t) if m!=t or E[t]['pos']]; v=[m for m in ms if m['pos']=='V']
     def f(m): return sum(occ.get((int(x),m['aug']),0) for x in re.findall(r'\d+',m['strong'] or ''))
     if v: return max(v,key=f)['df'] or ''
     return (max(ms,key=f)['df'] if ms else E[t]['df']) or ''

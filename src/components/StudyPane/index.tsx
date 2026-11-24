@@ -120,6 +120,9 @@ export const FormatContext = createContext({
   ctxSetNonEnglishDisplayMode: (arg: NonEnglishDisplayMode) => {},
   ctxInTextCounterOn: false,
   ctxSetInTextCounterOn: (arg: boolean) => {},
+  // Repeated-word grouping: include proper names built on a root (Azariah with עזר)
+  ctxIncludeNameRoots: true,
+  ctxSetIncludeNameRoots: (_arg: boolean) => {},
   ctxCounterMode: "words" as CounterMode,
   ctxSetCounterMode: (arg: CounterMode) => {},
   ctxSelectedSoundChipIds: [] as string[],
@@ -280,6 +283,7 @@ const StudyPane = ({
     NonEnglishDisplayMode.Hebrew,
   );
   const [inTextCounterOn, setInTextCounterOn] = useState(false);
+  const [includeNameRoots, setIncludeNameRoots] = useState(true);
   const [counterMode, setCounterMode] = useState<CounterMode>("words");
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
   const [selectedSoundChipIds, setSelectedSoundChipIds] = useState<string[]>([]);
@@ -582,6 +586,8 @@ const StudyPane = ({
     ctxSetNonEnglishDisplayMode: setNonEnglishDisplayMode,
     ctxInTextCounterOn: inTextCounterOn,
     ctxSetInTextCounterOn: setInTextCounterOn,
+    ctxIncludeNameRoots: includeNameRoots,
+    ctxSetIncludeNameRoots: setIncludeNameRoots,
     ctxCounterMode: counterMode,
     ctxSetCounterMode: setCounterMode,
     ctxSelectedSoundChipIds: selectedSoundChipIds,

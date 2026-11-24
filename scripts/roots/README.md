@@ -33,7 +33,12 @@ git clone https://github.com/openscriptures/morphhb.git
 cd -   # back to the repo root
 python3 -I scripts/roots/build_rootmap.py /tmp/roots-src /tmp/rootmap_raw.csv
 python3 -I scripts/roots/finalize.py /tmp/rootmap_raw.csv data/roots/root_map.csv
-python3 -I scripts/roots/generate_app_data.py data/roots/root_map.csv /tmp/roots-src/morphhb src/lib/roots/rootData.json
+python3 -I scripts/roots/generate_app_data.py data/roots/root_map.csv /tmp/roots-src/morphhb src/lib/roots/rootData.json scripts/roots/decisions/heb_bible_layout.txt
 ```
+
+`heb_bible` uses English (KJV) verse numbering; the generator converts OSHB's Hebrew verses using
+OSHB's `KJV:` markers and, with the optional last argument, checks every book's chapter/verse
+layout against `heb_bible` (snapshot in `decisions/heb_bible_layout.txt`). It should print
+`layout check: all books match`.
 
 To change a decision, edit the relevant group in `decisions/meaning_out_*.json` and rerun the last two steps.
