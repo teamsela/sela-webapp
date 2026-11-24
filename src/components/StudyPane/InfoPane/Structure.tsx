@@ -196,7 +196,7 @@ const ACCENT_INFO_CONJUNCTIVES =
 const AccentsInfoModal = ({ onClose }: { onClose: () => void }) =>
   createPortal(
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+      className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 px-4 py-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby={ACCENT_INFO_TITLE_ID}

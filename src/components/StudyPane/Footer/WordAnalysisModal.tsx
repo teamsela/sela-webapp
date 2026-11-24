@@ -43,7 +43,7 @@ const WordAnalysisModal = ({ open, onClose, wordInformation }: WordAnalysisModal
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+      className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 px-4 py-8"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"

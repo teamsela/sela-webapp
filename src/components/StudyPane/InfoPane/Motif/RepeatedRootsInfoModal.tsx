@@ -11,7 +11,7 @@ const REPEATED_ROOTS_INFO_TITLE_ID = "repeated-roots-info-title";
 const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
   createPortal(
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4 py-8"
+      className="fixed inset-0 z-99999 flex items-center justify-center bg-black/60 px-4 py-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby={REPEATED_ROOTS_INFO_TITLE_ID}
