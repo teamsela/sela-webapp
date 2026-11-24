@@ -292,3 +292,19 @@ export type ClassroomOverview = {
 export type ShareTarget = ClassroomSummary & {
     shared: boolean;
 }
+
+// Everything the share dialog shows for one of the viewer's studies.
+export type StudySharing = {
+    isSysAdmin: boolean;
+    public: boolean;
+    model: boolean;      // listed under Pre-Marked Studies (sys_admin only)
+    scriptura: boolean;  // listed under Scriptura Studies (sys_admin only)
+    classrooms: ShareTarget[];
+}
+
+export type StudySharingUpdate = {
+    public: boolean;
+    model?: boolean;
+    scriptura?: boolean;
+    classroomIds: string[];
+}

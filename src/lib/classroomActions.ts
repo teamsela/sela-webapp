@@ -12,8 +12,9 @@ import {
   ClassroomRole,
   FetchStudiesResult,
   MyClassroomsResult,
-  ShareTarget,
   StudyMetadata,
+  StudySharing,
+  StudySharingUpdate,
 } from './data';
 
 const PAGINATION_SIZE = 10;
@@ -448,19 +449,20 @@ export async function fetchClassroomStudies(
   return searchResult;
 }
 
-async function ownsStudy(viewer: Viewer, studyId: string) {
+async function ownedStudyFlags(viewer: Viewer, studyId: string) {
   const [row] = await db
-    .select({ owner: study.owner })
+    .select({ owner: study.owner, public: study.public, model: study.model, scriptura: study.scriptura })
     .from(study)
     .where(eq(study.id, studyId))
     .limit(1);
-  return !!row && row.owner === viewer.id;
+  return row && row.owner === viewer.id ? row : null;
 }
 
-// Classrooms the viewer can share this (their own) study into, and which already have it.
-export async function fetchShareTargets(studyId: string): Promise<ShareTarget[]> {
+export async function fetchStudySharing(studyId: string): Promise<StudySharing | null> {
   const viewer = await getViewer();
-  if (!viewer || !(await ownsStudy(viewer, studyId))) return [];
+  if (!viewer) return null;
+  const flags = await ownedStudyFlags(viewer, studyId);
+  if (!flags) return null;
 
   const [rooms, sharedRows] = await Promise.all([
     db
@@ -474,24 +476,41 @@ export async function fetchShareTargets(studyId: string): Promise<ShareTarget[]>
       .where(eq(classroomStudy.studyId, studyId)),
   ]);
   const shared = new Set(sharedRows.map((r) => r.classroomId));
-  return rooms.map((r) => ({ id: r.id, name: r.name, canManage: false, shared: shared.has(r.id) }));
+  return {
+    isSysAdmin: viewer.isSysAdmin,
+    public: !!flags.public,
+    model: !!flags.model,
+    scriptura: !!flags.scriptura,
+    classrooms: rooms.map((r) => ({ id: r.id, name: r.name, canManage: false, shared: shared.has(r.id) })),
+  };
 }
 
 /*
-  Makes the study shared to exactly `classroomIds` among the classrooms the
-  viewer belongs to. Links to classrooms the viewer is not in are left alone.
+  Saves the share dialog for one of the viewer's own studies:
+    - public: any owner may set it.
+    - model / scriptura (Pre-Marked / Scriptura Studies): only a sys_admin;
+      ignored for anyone else.
+    - classroomIds: the study ends up shared to exactly these among the
+      classrooms the viewer belongs to; links to other classrooms are left alone.
 */
-export async function updateStudyClassrooms(studyId: string, classroomIds: string[]): Promise<{ message?: string }> {
+export async function updateStudySharing(studyId: string, update: StudySharingUpdate): Promise<{ message?: string }> {
   const viewer = await getViewer();
-  if (!viewer || !(await ownsStudy(viewer, studyId))) {
+  if (!viewer || !(await ownedStudyFlags(viewer, studyId))) {
     return { message: 'Unauthorized: You can only share your own studies.' };
   }
 
   const mine = (await db.select({ id: classroom.id }).from(classroom).where(memberOf(viewer))).map((r) => r.id);
-  const wanted = classroomIds.filter((id) => mine.includes(id));
+  const wanted = update.classroomIds.filter((id) => mine.includes(id));
   const unwanted = mine.filter((id) => !wanted.includes(id));
 
+  const flags: { public: boolean; model?: boolean; scriptura?: boolean } = { public: !!update.public };
+  if (viewer.isSysAdmin) {
+    if (typeof update.model === 'boolean') flags.model = update.model;
+    if (typeof update.scriptura === 'boolean') flags.scriptura = update.scriptura;
+  }
+
   try {
+    await db.update(study).set(flags).where(eq(study.id, studyId));
     if (unwanted.length > 0) {
       await db
         .delete(classroomStudy)

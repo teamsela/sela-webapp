@@ -3,13 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconShare } from '@tabler/icons-react';
 
-import { fetchShareTargets, updateStudyClassrooms } from '@/lib/classroomActions';
+import { fetchStudySharing, updateStudySharing } from '@/lib/classroomActions';
 import { ShareTarget, StudyData } from '@/lib/data';
+
+type Flags = { public: boolean; model: boolean; scriptura: boolean };
 
 const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [targets, setTargets] = useState<ShareTarget[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [flags, setFlags] = useState<Flags>({ public: false, model: false, scriptura: false });
+  const [isSysAdmin, setIsSysAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -20,12 +24,19 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
     setTargets(null);
     setError(null);
     try {
-      const result = await fetchShareTargets(studyItem.id);
-      setTargets(result);
-      setSelected(new Set(result.filter((t) => t.shared).map((t) => t.id)));
+      const result = await fetchStudySharing(studyItem.id);
+      if (!result) {
+        setTargets([]);
+        setError('You can only share your own studies.');
+        return;
+      }
+      setIsSysAdmin(result.isSysAdmin);
+      setFlags({ public: result.public, model: result.model, scriptura: result.scriptura });
+      setTargets(result.classrooms);
+      setSelected(new Set(result.classrooms.filter((t) => t.shared).map((t) => t.id)));
     } catch (e) {
       setTargets([]);
-      setError('Failed to load classrooms.');
+      setError('Failed to load sharing settings.');
     }
   };
 
@@ -41,7 +52,11 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
   const onConfirm = async () => {
     setSaving(true);
     try {
-      const result = await updateStudyClassrooms(studyItem.id, Array.from(selected));
+      const result = await updateStudySharing(studyItem.id, {
+        public: flags.public,
+        ...(isSysAdmin ? { model: flags.model, scriptura: flags.scriptura } : {}),
+        classroomIds: Array.from(selected),
+      });
       if (result.message) {
         setError(result.message);
         return;
@@ -67,7 +82,7 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
 
   return (
     <>
-      <button className="hover:text-primary" title="Share to classrooms" onClick={open}>
+      <button className="hover:text-primary" title="Share" onClick={open}>
         <IconShare />
       </button>
 
@@ -87,7 +102,39 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
             </h3>
             <span className="mx-auto mb-6 inline-block h-1 w-22.5 rounded bg-primary"></span>
 
-            <div className="max-h-[50vh] overflow-y-auto rounded-sm border border-stroke text-left dark:border-strokedark">
+            <div className="mb-6 rounded-sm border border-stroke text-left dark:border-strokedark">
+              <div className="bg-gray-2 py-4 px-4 font-medium text-black dark:bg-meta-4 dark:text-white">Share as</div>
+              {targets === null ? (
+                <div className="py-5 px-4 text-center">Loading…</div>
+              ) : (
+                <>
+                  <FlagRow
+                    label="Public"
+                    hint="Anyone with the link can view this study."
+                    checked={flags.public}
+                    onChange={(v) => setFlags((f) => ({ ...f, public: v }))}
+                  />
+                  {isSysAdmin && (
+                    <>
+                      <FlagRow
+                        label="Pre-Marked Study"
+                        hint="Listed on the Pre-Marked Studies page."
+                        checked={flags.model}
+                        onChange={(v) => setFlags((f) => ({ ...f, model: v }))}
+                      />
+                      <FlagRow
+                        label="Scriptura Study"
+                        hint="Listed on the Scriptura Studies page."
+                        checked={flags.scriptura}
+                        onChange={(v) => setFlags((f) => ({ ...f, scriptura: v }))}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="max-h-[40vh] overflow-y-auto rounded-sm border border-stroke text-left dark:border-strokedark">
               <table className="w-full table-auto">
                 <thead>
                   <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -152,7 +199,7 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
                 <button
                   type="button"
                   onClick={onConfirm}
-                  disabled={saving || !targets || targets.length === 0}
+                  disabled={saving || !targets}
                   className="block w-full rounded border border-primary bg-primary p-3 text-center font-medium text-white transition hover:bg-opacity-90 disabled:opacity-60"
                 >
                   {saving ? 'Saving…' : 'Confirm'}
@@ -168,5 +215,31 @@ const ShareStudyModal = ({ studyItem }: { studyItem: StudyData }) => {
     </>
   );
 };
+
+const FlagRow = ({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) => (
+  <label className="flex cursor-pointer items-center gap-4 border-t border-[#eee] py-4 px-4 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4">
+    <input
+      type="checkbox"
+      aria-label={`Share as ${label}`}
+      className="h-4 w-4 cursor-pointer accent-primary"
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+    />
+    <span>
+      <span className="block font-medium text-black dark:text-white">{label}</span>
+      <span className="block text-sm">{hint}</span>
+    </span>
+  </label>
+);
 
 export default ShareStudyModal;
