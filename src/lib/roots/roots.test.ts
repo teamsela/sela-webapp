@@ -212,11 +212,11 @@ describe("divine names", () => {
     expect(label.english).toBe("Yahweh");
   });
 
-  it("shows other divine names by their Hebrew name in English chips", () => {
+  it("shows the divine titles in common English: אֱלֹהִים is God", () => {
     const withStepGloss = (w: WordProps, gloss: string): WordProps =>
       ({ ...w, wordInformation: { hebrew: "", transliteration: "", gloss, morphology: "", strongsNumber: "", meaning: "" } }) as WordProps;
     const elohim = [withStepGloss(word(60, 430), "God"), withStepGloss(word(61, 430), "God")];
-    expect(groupLabel(wordGroupKey(elohim[0])!, elohim).english).toBe("Elohim");
+    expect(groupLabel(wordGroupKey(elohim[0])!, elohim).english).toBe("God");
   });
 });
 

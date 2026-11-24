@@ -45,7 +45,7 @@ Chips show **unpointed** letters, so they name the root and its family rather th
 - English labels come from `decisions/chip_glosses.json`: reviewed plain-English labels per root
   group and per small word (טוב 'good', not BDB's first sense 'pleasant'; קוה II 'to gather').
   They are not taken from the STEP word lookup, which cannot tell the senses of one Strong's
-  number apart. Divine names show their Hebrew name: Yahweh, Elohim, El, Adonai.
+  number apart. God's personal name shows as "Yahweh"; the titles as "God" (אֱלֹהִים, אֵל) and "Lord" (אֲדֹנָי).
 
 `decisions/` holds the reviewed decisions: `meaning_out_*.json` (meaning-based splits; borderline
 cases resolved to the reviewed defaults) and `review_aramaic_out.json` (Aramaic merges).

@@ -209,21 +209,21 @@ export function unpointed(hebrew: string): string {
 }
 
 /**
- * Divine names are shown in English by their Hebrew name rather than a translation
- * ("Yahweh", not "LORD"), to point readers to the original.
+ * English for divine names: God's personal name is shown as the name itself ("Yahweh", not
+ * "LORD"); the titles use the common English that readers and scholars accept ("God", "Lord").
  */
 const DIVINE_NAME_ENGLISH: Record<number, string> = {
   3068: "Yahweh", // יהוה
   3050: "Yahweh", // יָהּ
   3069: "Yahweh", // יֱהוִה
-  430: "Elohim", // אֱלֹהִים
-  410: "El", // אֵל
-  433: "Eloah", // אֱלוֹהַּ
-  426: "Elah", // Aramaic אֱלָהּ
-  136: "Adonai", // אֲדֹנָי
+  430: "God", // אֱלֹהִים
+  410: "God", // אֵל
+  433: "God", // אֱלוֹהַּ
+  426: "God", // Aramaic אֱלָהּ
+  136: "Lord", // אֲדֹנָי
 };
 
-/** Hebrew name for a group made of divine names (most frequent one in the group), if any. */
+/** English for a group made of divine names (most frequent one in the group), if any. */
 function divineName(words: WordProps[]): string | undefined {
   const counts = new Map<string, number>();
   words.forEach((w) => {
