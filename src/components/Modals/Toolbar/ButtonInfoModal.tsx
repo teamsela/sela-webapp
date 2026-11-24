@@ -301,7 +301,7 @@ const ButtonInfoModal = ({
         onClick={() => setActiveSection(section)}
         className="absolute right-0 top-1/2 -translate-y-1/2 text-primary transition hover:opacity-80"
       >
-        <BsInfoCircle aria-hidden="true" />
+        <BsInfoCircle aria-hidden="true" className="overflow-visible" stroke="currentColor" strokeWidth={0.3} />
       </button>
       {isMounted && modalMarkup ? createPortal(modalMarkup, document.body) : null}
       </div>
