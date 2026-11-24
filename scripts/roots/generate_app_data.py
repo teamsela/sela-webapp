@@ -22,9 +22,9 @@ BOOKS = {'Gen':'genesis','Exod':'exodus','Lev':'leviticus','Num':'numbers','Deut
  'Zeph':'zephaniah','Hag':'haggai','Zech':'zechariah','Mal':'malachi'}
 rows = [r for r in csv.DictReader(open(MAP, encoding='utf-8-sig')) if r['in_db'] == 'yes']
 ACCENTS = re.compile(r'[֑-ֽ֯]')  # cantillation and meteg; vowels and shin/sin dots stay
-def clean(word): return unicodedata.normalize('NFC', ACCENTS.sub('', word or '').strip())
+def clean(word): return unicodedata.normalize('NFC', ACCENTS.sub('', (word or '').replace(chr(0x034F), '')).strip())  # U+034F joiner in some lemmas
 TEXT_MARKS = re.compile(r'[֑-ֽ֯־׀׃]')  # accents, meteg, maqqef, paseq, sof pasuq
-def plain(word): return unicodedata.normalize('NFC', TEXT_MARKS.sub('', word or '').strip())
+def plain(word): return unicodedata.normalize('NFC', TEXT_MARKS.sub('', (word or '').replace(chr(0x034F), '')).strip())
 
 # ---- Familiar forms for plural-only nouns. Lexicons cite these in a singular that never occurs
 # (BDB/STEP מַי 'water', but the Bible only has מַיִם). For common nouns (OSHB morph Nc...) that

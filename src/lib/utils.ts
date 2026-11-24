@@ -202,7 +202,7 @@ export type GroupLabel = {
 export function unpointed(hebrew: string): string {
   return hebrew
     .normalize("NFD")
-    .replace(/[\u0591-\u05BD\u05BF\u05C4\u05C5\u05C7]/g, "")
+    .replace(/[\u0591-\u05BD\u05BF\u05C4\u05C5\u05C7\u034F]/g, "") // \u034F: joiner in some source words
     .replace(/\u05C0|\u05C3|\u05BE/g, "")
     .normalize("NFC")
     .trim();

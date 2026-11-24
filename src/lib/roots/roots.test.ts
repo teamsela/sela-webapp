@@ -212,3 +212,11 @@ describe("divine names", () => {
     expect(groupLabel(wordGroupKey(elohim[0])!, elohim).english).toBe("Elohim");
   });
 });
+
+describe("label cleanup", () => {
+  it("drops the invisible joiner some source words carry (ירושׁלם)", async () => {
+    const { unpointed } = await import("../utils");
+    expect(unpointed("יְרוּשָׁלִַ͏ם")).toBe("ירושׁלם".normalize("NFC"));
+    expect(root(3389).lemma).not.toContain("͏");
+  });
+});
