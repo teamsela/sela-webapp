@@ -23,6 +23,46 @@ BOOKS = {'Gen':'genesis','Exod':'exodus','Lev':'leviticus','Num':'numbers','Deut
 rows = [r for r in csv.DictReader(open(MAP, encoding='utf-8-sig')) if r['in_db'] == 'yes']
 ACCENTS = re.compile(r'[֑-ֽ֯]')  # cantillation and meteg; vowels and shin/sin dots stay
 def clean(word): return unicodedata.normalize('NFC', ACCENTS.sub('', word or '').strip())
+TEXT_MARKS = re.compile(r'[֑-ֽ֯־׀׃]')  # accents, meteg, maqqef, paseq, sof pasuq
+def plain(word): return unicodedata.normalize('NFC', TEXT_MARKS.sub('', word or '').strip())
+
+# ---- Familiar forms for plural-only nouns. Lexicons cite these in a singular that never occurs
+# (BDB/STEP מַי 'water', but the Bible only has מַיִם). For common nouns (OSHB morph Nc...) that
+# occur only in the plural or dual, the chip shows their most frequent plural/dual absolute form.
+# Everything else (verbs, names, particles, ordinary nouns) keeps its dictionary form.
+def citation_spelling(form):
+    """A word as cited on its own: an initial בגדכפת takes dagesh lene (lost after a vowel-final word)."""
+    first_marks = re.match(r'.[֑-ׇ]*', form or '')
+    if form and form[0] in 'בגדכפת' and 'ּ' not in first_marks.group(0):
+        form = unicodedata.normalize('NFC', form[0] + 'ּ' + form[1:])
+    return form
+
+noun_numbers = collections.defaultdict(collections.Counter)  # strong -> {'s': n, 'p': n, 'd': n}
+plural_forms = collections.defaultdict(collections.Counter)  # strong -> unsuffixed plural/dual absolute forms
+for f in sorted(glob.glob(os.path.join(MORPH, 'wlc', '*.xml'))):
+    for lem, morph, text in re.findall(r'<w lemma="([^"]*)"[^>]*?morph="([^"]*)"[^>]*>([^<]*)</w>', open(f, encoding='utf-8').read()):
+        lsegs, tsegs, msegs = lem.split('/'), text.split('/'), morph[1:].split('/')
+        m = re.match(r'\s*(\d+)', lsegs[-1])
+        if not m or len(msegs) < len(lsegs): continue
+        s, code = int(m.group(1)), msegs[len(lsegs) - 1]   # e.g. Ncmpa = noun common masc plural absolute
+        if not code.startswith('Nc') or len(code) < 5: continue
+        noun_numbers[s][code[3]] += 1
+        # standalone plural/dual absolute: no prefix (its dagesh would leak in) and no pronoun suffix
+        if code[3] in 'pd' and code[4] == 'a' and len(lsegs) == 1 and len(tsegs) == 1:
+            form = citation_spelling(plain(tsegs[0]))
+            if form: plural_forms[s][form] += 1
+
+def familiar(strong_number, lemma):
+    """Dictionary form, except plural-only nouns, which show their real plural (מַי → מַיִם)."""
+    s = int(strong_number)
+    numbers = noun_numbers.get(s)
+    # plural-only: at most 2% of uses tagged singular (OSHB has a stray singular tag on one מַיִם)
+    if numbers and numbers.get('s', 0) <= 0.02 * sum(numbers.values()) and plural_forms.get(s):
+        best = plural_forms[s].most_common(1)[0][0]
+        contextual = best.replace('ָיִם', 'ַיִם')  # pausal ָיִם → ַיִם
+        return contextual if contextual in plural_forms[s] else best
+    return clean(lemma)
+
 members_of = collections.defaultdict(list)
 for r in rows:
     if r['kind'] == 'word' and r['root']: members_of[r['root']].append(r)
@@ -34,12 +74,15 @@ def label_for(key):
     split_sense = key.split('‹')[1].rstrip('›') if '‹' in key else ''
     gloss = (members[0]['gloss'] if members else '') or split_sense or next((r['root_gloss'] for r in members if r['root_gloss']), '')
     if key.startswith('word:'):  # primary word with no verbal root, e.g. בַּיִת (with יוֹם/יוֹמָם under יוֹם)
-        return clean(key[5:].replace(' (arc)', '')), gloss, ''
+        head = clean(key[5:].replace(' (arc)', ''))
+        lead = next((r for r in members if clean(r['lemma']) == head), members[0] if members else None)
+        return (familiar(lead['strong'], lead['lemma']) if lead else head), gloss, ''
     m = re.search(r' ([IVX]+)$', key)
     if '‹' in key or len({r['strong'] for r in members}) == 1:
         # a group split off by meaning (דְּבוֹרָה 'bee'), or a root with a single word in the Bible
         # (שָׁמַיִם, not BDB's conjectural שׁמה): show the word itself
-        return clean(members[0]['lemma']) if members else key, gloss, (m.group(1) if m and '‹' not in key else '')
+        word = familiar(members[0]['strong'], members[0]['lemma']) if members else key
+        return word, gloss, (m.group(1) if m and '‹' not in key else '')
     hebrew = [r for r in members if r['lang'] == 'heb' and 'Aramaic' not in r['notes'] and r['root_display']]
     display = (hebrew or [r for r in members if r['root_display']] or [{'root_display': ''}])[0]['root_display']
     return unicodedata.normalize('NFC', display or re.sub(r'^arc:| [IVX]+$', '', key)), gloss, (m.group(1) if m else '')
@@ -61,7 +104,7 @@ for s, rs in by_strong.items():
     if word_root(main) >= 0:
         strong[str(s)] = word_root(main)
     else:  # exact-match words (particles, names, unrooted): dictionary form + gloss for the chip
-        lemmas[str(s)] = [clean(main['lemma']), main['gloss']]
+        lemmas[str(s)] = [familiar(s, main['lemma']), main['gloss']]
     nm = [r for r in rs if r['kind'] == 'name' and r['name_roots']]
     if nm:
         names[str(s)] = [idx(k) for k in nm[0]['name_roots'].split('|')]

@@ -161,3 +161,15 @@ describe("English chip labels", () => {
     expect(groupLabel(wordGroupKeys(words[0], true)[0], words).english).toBe("sit");
   });
 });
+
+describe("familiar forms", () => {
+  it("shows plural-only nouns as they occur in the Bible, not the lexicon's unused singular", () => {
+    expect(nfc(root(4325).root?.label)).toBe(nfc("מַיִם")); // water: BDB/STEP cite מַי
+    expect(nfc(root(8064).root?.label)).toBe(nfc("שָׁמַיִם")); // no dagesh leaking in from הַשָּׁמַיִם
+  });
+
+  it("keeps ordinary dictionary forms", () => {
+    expect(nfc(root(1004).root?.label)).toBe(nfc("בַּיִת"));
+    expect(nfc(root(3117).root?.label)).toBe(nfc("יוֹם"));
+  });
+});

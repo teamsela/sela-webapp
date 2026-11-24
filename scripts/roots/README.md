@@ -26,6 +26,10 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 - Groups split off by meaning, and roots with only one word in the Bible, show that word
   (דְּבוֹרָה "bee", שָׁמַיִם "heavens") instead of root letters.
 - Words without a root (particles, names) show their dictionary form (כִּי), not the inflected word.
+- Familiar forms: nouns that only ever occur in the plural or dual show their real plural form
+  from the text (מַיִם, not the lexicons' unused singular מַי), taken from standalone occurrences
+  (no prefix dagesh), with dagesh lene restored and the non-pausal ‑ַיִם ending preferred.
+  Verbs, names, particles and ordinary nouns keep their dictionary form.
 - Homonym numerals (ענה I / עָנָה IV) appear only when two chips in the same passage share letters.
 - English labels and tooltips use the STEP Bible gloss of the group's most frequent word in the
   passage ("heart"), falling back to the lexicon sense.
