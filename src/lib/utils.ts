@@ -171,7 +171,8 @@ const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
  * - its root group (motifData.root) when it has one,
  * - otherwise its Strong's number (particles, unrooted words: exact match),
  * - otherwise (untagged words such as לוֹ) its consonantal spelling.
- * With includeNames, a proper name also joins the root groups it is built from (Azariah → עזר).
+ * With includeNames, a proper name also joins the root groups it is built from (Azariah → עזר);
+ * extractIdenticalWordsFromPassage only adds it where the passage has an ordinary word of that root.
  */
 export function wordGroupKeys(word: WordProps, includeNames: boolean): string[] {
   const keys: string[] = [];
@@ -209,10 +210,25 @@ export type GroupLabel = {
  * Concise STEP Bible gloss ("heart", "servant") of the most frequent word in the group,
  * counting only words that satisfy `include`.
  */
+/**
+ * Divine names are shown in English by their Hebrew name rather than a translation
+ * ("Yahweh", not "LORD"), to point readers to the original.
+ */
+const DIVINE_NAME_ENGLISH: Record<number, string> = {
+  3068: "Yahweh", // יהוה
+  3050: "Yahweh", // יָהּ
+  3069: "Yahweh", // יֱהוִה
+  430: "Elohim", // אֱלֹהִים
+  410: "El", // אֵל
+  433: "Eloah", // אֱלוֹהַּ
+  426: "Elah", // Aramaic אֱלָהּ
+  136: "Adonai", // אֲדֹנָי
+};
+
 function passageGloss(words: WordProps[], include: (w: WordProps) => boolean): string | undefined {
   const byStrong = new Map<number, { count: number; gloss: string }>();
   words.filter(include).forEach((w) => {
-    const gloss = w.wordInformation?.gloss?.trim();
+    const gloss = DIVINE_NAME_ENGLISH[w.strongNumber] ?? w.wordInformation?.gloss?.trim();
     if (!gloss) return;
     const entry = byStrong.get(w.strongNumber) ?? { count: 0, gloss };
     entry.count += 1;
@@ -261,23 +277,41 @@ export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
 
 /** Map of group key (see wordGroupKeys) to the passage's words in that group, in passage order. */
 export function extractIdenticalWordsFromPassage(passageProps: PassageProps, includeNames = true): Map<string, WordProps[]> {
-  const groups = new Map<string, WordProps[]>();
+  const words: WordProps[] = [];
   passageProps.stanzaProps.forEach((stanza) => {
     stanza.strophes.forEach((strophe) => {
       strophe.lines.forEach((line) => {
-        line.words.forEach((word) => {
-          wordGroupKeys(word, includeNames).forEach((key) => {
-            const group = groups.get(key);
-            if (group) {
-              if (!group.includes(word)) group.push(word);
-            } else {
-              groups.set(key, [word]);
-            }
-          });
-        });
+        line.words.forEach((word) => words.push(word));
       });
     });
   });
+
+  // 1. every word under its own key: its root, or its Strong's number / spelling
+  const groups = new Map<string, WordProps[]>();
+  words.forEach((word) => {
+    const key = wordGroupKeys(word, false)[0];
+    if (!key) return;
+    const group = groups.get(key);
+    if (group) group.push(word);
+    else groups.set(key, [word]);
+  });
+
+  // 2. a proper name joins a root's group only when the passage has an ordinary word of that
+  //    root (Jerusalem with שָׁלוֹם), so names never create chips for roots absent from the text
+  if (includeNames) {
+    words.forEach((word) => {
+      word.motifData?.nameRoots?.forEach((root) => {
+        const group = groups.get(root.id);
+        if (group && !group.includes(word)) group.push(word);
+      });
+    });
+    const position = new Map(words.map((w, i) => [w, i] as const));
+    groups.forEach((group, key) => {
+      if (key.startsWith("r")) {
+        group.sort((a, b) => (position.get(a) ?? 0) - (position.get(b) ?? 0));
+      }
+    });
+  }
   return groups;
 }
 

@@ -117,8 +117,14 @@ def pointed(word, strong_number=None):
     forms = any_forms.get(int(strong_number)) if strong_number else None
     return forms.most_common(1)[0][0] if forms else word
 
+# God's personal name in all its forms is one group, labelled by the name itself (not "LORD").
+YAHWEH_KEY = 'divine:YHWH'
+YAHWEH_STRONGS = (3068, 3050, 3069)  # יהוה, יָהּ, יֱהוִה
+
 def label_for(key):
     """Chip label for a root group: (pointed label, gloss, homonym numeral or '', bare root letters or '')."""
+    if key == YAHWEH_KEY:
+        return 'יהוה', 'Yahweh', '', ''
     members = sorted(members_of.get(key, []), key=lambda r: -int(r['occurrences'] or 0))
     # English: the sense of the group's most frequent word (לֵב 'heart', not the rare verb 'encourage')
     split_sense = key.split('‹')[1].rstrip('›') if '‹' in key else ''
@@ -153,6 +159,10 @@ by_strong = collections.defaultdict(list)
 for r in sorted(rows, key=lambda r: (int(r['strong']), r['aug'])): by_strong[int(r['strong'])].append(r)
 strong, names, aug_root, lemmas = {}, {}, {}, {}
 for s, rs in by_strong.items():
+    if s in YAHWEH_STRONGS:
+        strong[str(s)] = idx(YAHWEH_KEY)
+        for r in rs: aug_root[(s, r['aug'])] = idx(YAHWEH_KEY)
+        continue
     for r in rs: aug_root[(s, r['aug'])] = word_root(r)
     main = max(rs, key=lambda r: int(r['occurrences'] or 0))
     if word_root(main) >= 0:

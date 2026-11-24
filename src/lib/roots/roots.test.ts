@@ -126,17 +126,21 @@ describe("repeated-word grouping", () => {
     expect(wordsInSameGroups(lo1, groups, true).map((w) => w.wordId)).toEqual([5, 6]);
   });
 
-  it("labels a group by its root, even when only proper names carry it", () => {
+  it("labels a group by its root", () => {
     const groups = extractIdenticalWordsFromPassage(passage, true);
     const key = wordGroupKeys(seat, true)[0];
     const seatLabel = groupLabel(key, groups.get(key)!);
     expect(nfc(seatLabel.hebrew)).toBe(nfc("יָשַׁב"));
     expect(nfc(seatLabel.letters)).toBe(nfc("ישׁב"));
     expect(seatLabel.english).toBe("sit");
+  });
 
-    const names = [word(10, 5838), word(11, 5838)]; // two Azariahs, no עֵזֶר
-    const nameKey = wordGroupKeys(names[0], true).find((k) => k.startsWith("r"))!;
-    expect(nfc(groupLabel(nameKey, names).hebrew)).toBe(nfc("עָזַר"));
+  it("never makes a root group out of names alone (no chip for a root absent from the text)", () => {
+    const azariahs = passageOf([word(10, 5838), word(11, 5838)]); // two Azariahs, no עֵזֶר
+    const groups = extractIdenticalWordsFromPassage(azariahs, true);
+    const rootKey = root(5838).nameRoots[0].id;
+    expect(groups.has(rootKey)).toBe(false);
+    expect(groups.get("s5838")?.map((w) => w.wordId)).toEqual([10, 11]); // the name still repeats as itself
   });
 
   it("labels exact-match groups with the dictionary form, not the inflected word", () => {
@@ -182,5 +186,23 @@ describe("familiar forms", () => {
   it("keeps ordinary dictionary forms", () => {
     expect(nfc(root(1004).root?.label)).toBe(nfc("בַּיִת"));
     expect(nfc(root(3117).root?.label)).toBe(nfc("יוֹם"));
+  });
+});
+
+describe("divine names", () => {
+  it("puts יהוה, יָהּ and יֱהוִה in one group labelled Yahweh", () => {
+    expect(rootId(3050)).toBe(rootId(3068));
+    expect(rootId(3069)).toBe(rootId(3068));
+    const words = [word(50, 3068), word(51, 3050)];
+    const label = groupLabel(wordGroupKeys(words[0], true)[0], words);
+    expect(label.hebrew).toBe("יהוה");
+    expect(label.english).toBe("Yahweh");
+  });
+
+  it("shows other divine names by their Hebrew name in English chips", () => {
+    const withStepGloss = (w: WordProps, gloss: string): WordProps =>
+      ({ ...w, wordInformation: { hebrew: "", transliteration: "", gloss, morphology: "", strongsNumber: "", meaning: "" } }) as WordProps;
+    const elohim = [withStepGloss(word(60, 430), "God"), withStepGloss(word(61, 430), "God")];
+    expect(groupLabel(wordGroupKeys(elohim[0], true)[0], elohim).english).toBe("Elohim");
   });
 });
