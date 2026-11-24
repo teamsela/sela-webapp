@@ -213,6 +213,23 @@ if len(sys.argv) > 4:  # optional: compare chapter/verse layout with heb_bible (
         if db != dict(layout[bk]):
             bad += 1; print('layout mismatch', bk, {c: (db.get(c), layout[bk].get(c)) for c in set(db) | set(layout[bk]) if db.get(c) != layout[bk].get(c)})
     print('layout check:', 'all books match' if not bad else f'{bad} books differ')
+# ---- English chip labels. Lexicon glosses are often a technical first sense (טוב 'pleasant',
+# הלל 'be boastful'), so decisions/chip_glosses.json holds reviewed plain-English labels:
+# {"roots": {root key: label}, "words": {strong: label}}. Names keep their name ("Isaac").
+HERE = os.path.dirname(os.path.abspath(__file__))
+glosses_path = os.path.join(HERE, 'decisions', 'chip_glosses.json')
+chip_glosses = json.load(open(glosses_path, encoding='utf-8')) if os.path.exists(glosses_path) else {'roots': {}, 'words': {}}
+root_keys = [None] * len(roots)
+for key, i in ridx.items(): root_keys[i] = key
+for i, key in enumerate(root_keys):
+    if key in chip_glosses['roots']: roots[i][1] = chip_glosses['roots'][key]
+name_strongs = {r['strong'] for r in rows if r['kind'] == 'name'}
+for s, entry in lemmas.items():
+    if s in chip_glosses['words']: entry[1] = chip_glosses['words'][s]
+    elif s in name_strongs: entry[1] = re.split(r'[.;,(]', entry[1])[0].strip()  # "Isaac. Compare" → "Isaac"
+if os.environ.get('ROOT_KEYS_OUT'):  # index-aligned root keys, for writing chip_glosses.json
+    json.dump(root_keys, open(os.environ['ROOT_KEYS_OUT'], 'w', encoding='utf-8'), ensure_ascii=False)
+
 json.dump(dict(source='Open Scriptures HebrewLexicon (BDB/Strong) + OSHB morphhb, CC BY 4.0; see scripts/roots/README.md',
                roots=roots, strong=strong, lemmas=lemmas, exceptions=exceptions), open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(f'roots {len(roots)}  strong {len(strong)}  lemmas {len(lemmas)}  exceptions {len(exceptions)}  size {os.path.getsize(OUT)//1024} KB')

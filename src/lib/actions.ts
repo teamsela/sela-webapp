@@ -824,7 +824,7 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
       return undefined;
     }
 
-    const matches = candidates.filter((record) => {
+    return candidates.find((record) => {
       const columnValue = record[column]?.trim();
 
       if (getStrongNumericValue(columnValue) !== baseStrong) {
@@ -837,20 +837,6 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
         ? normalizedColumnValue === normalizedCode
         : normalizedColumnValue.startsWith(normalizedCode);
     });
-
-    // A Strong's number can cover several STEP entries (H1121a "son", H1121b the name "Beno").
-    // Prefer a main entry over sub-senses ("= a Meaning of"), names and spellings, then an
-    // ordinary (lower-case) gloss, then the first letter, rather than whichever row came first.
-    const rank = (record: StepBibleRecord) => {
-      const qualified = /=\s*\S/.test(record.dStrong ?? "") ? 1 : 0; // "H1121G = a Meaning of"
-      const capitalized = /^[A-Z]/.test(record.Gloss?.trim() ?? "") ? 1 : 0;
-      return [qualified, capitalized, record[column] ?? ""] as const;
-    };
-    return matches.sort((a, b) => {
-      const [qa, ca, la] = rank(a);
-      const [qb, cb, lb] = rank(b);
-      return qa - qb || ca - cb || la.localeCompare(lb);
-    })[0];
   };
 
   const selectStepBibleRecord = (

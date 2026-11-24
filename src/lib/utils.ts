@@ -209,10 +209,6 @@ export function unpointed(hebrew: string): string {
 }
 
 /**
- * Concise STEP Bible gloss ("heart", "servant") of the most frequent word in the group,
- * counting only words that satisfy `include`.
- */
-/**
  * Divine names are shown in English by their Hebrew name rather than a translation
  * ("Yahweh", not "LORD"), to point readers to the original.
  */
@@ -227,16 +223,14 @@ const DIVINE_NAME_ENGLISH: Record<number, string> = {
   136: "Adonai", // אֲדֹנָי
 };
 
-function passageGloss(words: WordProps[], include: (w: WordProps) => boolean): string | undefined {
-  const byStrong = new Map<number, { count: number; gloss: string }>();
-  words.filter(include).forEach((w) => {
-    const gloss = DIVINE_NAME_ENGLISH[w.strongNumber] ?? w.wordInformation?.gloss?.trim();
-    if (!gloss) return;
-    const entry = byStrong.get(w.strongNumber) ?? { count: 0, gloss };
-    entry.count += 1;
-    byStrong.set(w.strongNumber, entry);
+/** Hebrew name for a group made of divine names (most frequent one in the group), if any. */
+function divineName(words: WordProps[]): string | undefined {
+  const counts = new Map<string, number>();
+  words.forEach((w) => {
+    const name = DIVINE_NAME_ENGLISH[w.strongNumber];
+    if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
   });
-  return Array.from(byStrong.values()).sort((a, b) => b.count - a.count)[0]?.gloss;
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
 }
 
 /** Chip label for a repeated-word group (see wordGroupKey). */
@@ -245,13 +239,15 @@ export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
   if (groupKey.startsWith("r")) {
     const root = words.map((w) => w.motifData?.root).find((r) => r?.id === groupKey);
     if (root) {
-      const english = passageGloss(words, (w) => w.motifData?.root?.id === groupKey) || root.gloss || root.label;
+      // English comes from the root data (a curated, sense-correct label for the root family),
+      // not from the STEP lookup, which cannot tell the senses of one Strong's number apart
+      const english = divineName(words) || root.gloss || root.label;
       return { hebrew: root.letters || unpointed(root.label), english, homonym: root.homonym, word: root.label };
     }
   }
   const motif = lead?.motifData;
   const word = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
-  const english = passageGloss(words, () => true) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || word;
+  const english = divineName(words) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || word;
   return { hebrew: unpointed(word), english, word };
 }
 

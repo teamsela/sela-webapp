@@ -161,10 +161,12 @@ describe("English chip labels", () => {
   const withStepGloss = (w: WordProps, gloss: string): WordProps =>
     ({ ...w, wordInformation: { hebrew: "", transliteration: "", gloss, morphology: "", strongsNumber: "", meaning: "" } }) as WordProps;
 
-  it("prefers the concise STEP gloss of the group's most frequent word in the passage", () => {
-    const words = [withStepGloss(word(40, 3820), "heart"), withStepGloss(word(41, 3824), "heart"), withStepGloss(word(42, 3820), "heart")];
-    const key = wordGroupKey(words[0])!;
-    expect(groupLabel(key, words).english).toBe("heart");
+  it("uses the root data's label, not the STEP lookup (which cannot tell senses apart)", () => {
+    // Gen 1:9 יִקָּווּ: STEP's first entry for H6960 is 'to await', but the word is קוה II 'gather'
+    const words = [withStepGloss(word(40, 6960, "", "genesis", 1, 9), "to await"), withStepGloss(word(41, 4723, "", "genesis", 1, 10), "hope")];
+    const label = groupLabel(wordGroupKey(words[0])!, words);
+    expect(label.english).toBe(root(6960, "genesis", 1, 9).root?.gloss);
+    expect(label.english).not.toBe("to await");
   });
 
   it("falls back to the lexicon sense when no STEP gloss is loaded", () => {
