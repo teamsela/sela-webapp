@@ -73,11 +73,23 @@ describe("chip labels", () => {
     expect(nfc(root(7843).root?.label)).toBe(nfc("הִשְׁחִית")); // destroy: hiphil dominates, not BDB's unused qal
   });
 
-  it("uses the most common word when nouns dominate (verb under 35%) or there is no verb", () => {
-    expect(nfc(root(4428).root?.label)).toBe(nfc("מֶלֶךְ")); // king, not מָלַךְ 'to reign'
-    expect(nfc(root(238).root?.label)).toBe(nfc("אֹזֶן")); // ear, not הֶאֱזִין 'to listen'
+  it("names a root by its verb by default, even when a noun is more common (סָפַר 'to count', not סֵפֶר 'book')", () => {
+    expect(nfc(root(5612).root?.label)).toBe(nfc("סָפַר")); // סֵפֶר 'book' belongs to the family of סָפַר
+    expect(root(5612).root?.gloss).toBe("to count");
+    expect(nfc(root(4428).root?.label)).toBe(nfc("מָלַךְ")); // מֶלֶךְ 'king'
+    expect(root(4428).root?.gloss).toBe("to reign");
+  });
+
+  it("keeps the noun where the verb is derived from it or too marginal (reviewed exceptions)", () => {
     expect(nfc(root(3820).root?.label)).toBe(nfc("לֵב")); // heart, not the rare verb לָבַב
+    expect(root(3605).root?.gloss).toBe("all"); // כֹּל, not כָּלַל 'to complete'
+    expect(root(7969).root?.gloss).toBe("three"); // not שָׁלַשׁ 'to do a third time'
     expect(nfc(root(68).root?.label)).toBe(nfc("אֶבֶן")); // stone: no verb
+  });
+
+  it("keeps homonyms' verbs apart: the 'bread' family is not named by לחם 'to fight'", () => {
+    expect(nfc(root(3899).root?.label)).toBe(nfc("לֶחֶם"));
+    expect(root(3899).root?.gloss).toBe("bread");
   });
 
   it("keeps the bare root, with shin/sin dot, for the tooltip", () => {
@@ -213,7 +225,7 @@ describe("English chip labels", () => {
   });
 
   it("uses the reviewed plain-English labels (טוב 'good', not BDB's first sense 'pleasant')", () => {
-    expect(root(2896).root?.gloss).toBe("good");
+    expect(root(2896).root?.gloss).toBe("to be good");
     expect(root(1984).root?.gloss).toBe("to praise");
     expect(root(3820).root?.gloss).toBe("heart");
     expect(root(6960, "genesis", 1, 9).root?.gloss).toBe("to gather");

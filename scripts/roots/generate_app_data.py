@@ -129,7 +129,9 @@ def root_word(members, key=''):
         if decided == 'verb' or (decided is None and (sum(stems.values()) >= VERB_SHARE * total or key in NAMED_BY_VERB)):
             main_stem = stems.most_common(1)[0][0]
             if main_stem != 'q':
-                forms = qatals_of(verb, main_stem) or qatals_of(verb)
+                # only that stem's own 3ms perfect; if the text has none, BDB's citation form (סָפַר),
+                # not a form of some other stem (passive סֻפַּר)
+                forms = qatals_of(verb, main_stem)
                 if forms:
                     best = forms.most_common(1)[0][0]
                     # textbooks cite the regular paradigm form (דִּבֵּר) where the text also has it,

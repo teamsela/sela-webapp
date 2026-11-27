@@ -4870,7 +4870,7 @@
 4603,,yes,36,מָעַל,heb,word,act unfaithfully,מעל,מעל,act unfaithfully,,,bdb-root,a primitive root;,m.cz.aa
 4604,,yes,28,מַ֫עַל,heb,word,unfaithful,מעל,מעל,act unfaithfully,,,bdb-root,from 4603;,m.cz.ab
 4605,,yes,140,מַ֫עַל,heb,word,higher part,עלה,עלה,go up,,,bdb-root,from 5927;,p.cs.am
-4606,,yes,1,מֶעָל,arc,word,going in,עלל III,עלל,go in,,Aramaic arc:עלל merged,bdb-root,(Aramaic) from 5954;,xp.ag.ab
+4606,,yes,1,מֶעָל,arc,word,going in,arc:עלל,עלל,go in,,,bdb-root,(Aramaic) from 5954;,xp.ag.ab
 4607,,yes,1,מֹ֫עַל,heb,word,lifting,עלה,עלה,go up,,,bdb-root,from 5927;,p.cs.ak
 4608,,yes,18,מַעֲלֶה,heb,word,ascent,עלה,עלה,go up,,,bdb-root,from 5927;,p.cs.al
 4609,a,yes,1,מַעֲלָה,heb,word,what comes up,עלה,עלה,go up,,,bdb-root,feminine of 4608;,p.cs.an
@@ -6315,7 +6315,7 @@
 5921,a,yes,5770,עַל,heb,particle,above,exact:H5921a,,,,,bdb-root,"properly, the same as 5920 used as a preposition (in the singular or plural often with prefix, or as conjuncti",p.cs.ar
 5921,b,yes,11,כִּי עַל כֵּן,heb,particle,forasmuch as,exact:H5921b,,,,,bdb-primary-word,"properly, the same as 5920 used as a preposition (in the singular or plural often with prefix, or as conjuncti",k.bg.ac
 5922,,yes,111,עַל,arc,particle,upon,exact:H5922,,,,,bdb-primary-word,(Aramaic) corresponding to 5921,xp.af.aa
-5923,,yes,40,עֹל,heb,word,yoke,עלל III,עלל,go in,,,bdb-root,or עוֹל; from 5953;,p.cw.ab
+5923,,yes,40,עֹל,heb,word,yoke,עלל III,עלל,insert,,,bdb-root,or עוֹל; from 5953;,p.cw.ab
 5924,,yes,1,עֵ֫לָּא,arc,word,above,word:עַל (arc),,upon,,,bdb-primary-word,(Aramaic) from 5922;,xp.af.ab
 5925,,yes,1,עֻלָּא,heb,name,Ulla,,,,עלל III,,name,feminine of 5923; burden;,p.cq.ah
 5926,,yes,1,עִלֵּג,heb,word,speaking inarticulately,עלג,עלג,speaking inarticulately,,,bdb-root,from an unused root meaning to stutter;,p.cr.ab
@@ -6351,7 +6351,7 @@
 5953,b,yes,5,עָלַל,heb,word,glean,עלל I,עלל,act severely,,,bdb-root,a primitive root;,p.cu.ac
 5953,c,yes,1,עָלַל,heb,word,act the child,עלל II,עלל,act the child,,,bdb-root,a primitive root;,p.cv.ac
 5953,d,yes,1,עָלַל,heb,word,insert,"עלל III ‹insert, thrust in›",עלל,"insert, thrust in",,split from עלל III (meaning),bdb-root,a primitive root;,p.cw.aa
-5954,,yes,17,עֲלַל,arc,word,go in,עלל III,עלל,go in,,Aramaic arc:עלל merged,bdb-root,"(Aramaic) corresponding to 5953 (in the sense of thrusting oneself in),",xp.ag.aa
+5954,,yes,17,עֲלַל,arc,word,go in,arc:עלל,עלל,go in,,,bdb-root,"(Aramaic) corresponding to 5953 (in the sense of thrusting oneself in),",xp.ag.aa
 5955,,yes,6,עֹלֵלוֹת,heb,word,gleaning,עלל I,עלל,act severely,,,bdb-root,feminine active participle of 5953;,p.cu.ab
 5956,,yes,28,עָלַם,heb,word,conceal,עלם I,עלם,conceal,,,bdb-root,a primitive root;,p.cx.aa
 5957,,yes,20,עָלַם,arc,word,perpetuity,word:עָלַם (arc),,perpetuity,,,bdb-primary-word,(Aramaic) corresponding to 5769;,xp.ag.ac

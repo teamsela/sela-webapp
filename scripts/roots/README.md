@@ -32,12 +32,17 @@ Chips show **unpointed** letters, so they name the root and its family rather th
 (ישׁב, not יָשַׁב; shin/sin dots are kept). The pointed `label` below is shown in the tooltip
 ("יָשַׁב · sit"); for root groups the chip shows the root letters, otherwise the word's letters.
 
-- Tooltip word: root groups use the verb's qatal (3ms perfect), the form lexicons and vocabulary lists cite:
+- A root with a verb is **named by its verb**, in both languages, even when a noun is more common:
+  סָפַר "to count" (not סֵפֶר "book"), מָלַךְ "to reign", עָבַד "to serve". Exceptions, reviewed one by one in
+  `decisions/root_naming.json`, keep the noun where the verb is derived from it or too marginal to
+  name the family: כֹּל "all" (not כָּלַל), the numbers (not שָׁלַשׁ "do a third time"), לֵב "heart",
+  רֶגֶל "foot", עָפָר "dust". Roots without a verb use their most common word (אֶבֶן "stone").
+- Tooltip word for a verb: its qatal (3ms perfect), the form lexicons and vocabulary lists cite:
   - qal is the verb's main stem → the qal qatal (יָשַׁב, אָמַר)
   - another stem dominates → that stem's attested qatal, in its textbook form (דִּבֵּר, הֶאֱזִין,
-    הִשְׁחִית), not BDB's rare or unused qal; hollow verbs keep their usual citation form (שׁוּב, קוּם)
-  - the verb is under 35% of the root's uses (nouns dominate), or there is no verb → the root's
-    most common word (מֶלֶךְ 'king', not מָלַךְ; זֶרַע 'seed'; לֵב; אֶבֶן)
+    הִשְׁחִית), not BDB's rare or unused qal; hollow verbs keep their usual citation form (שׁוּב, קוּם);
+    if the text has no 3ms perfect of that stem, BDB's citation form (סָפַר, not passive סֻפַּר)
+  - verb uses are counted per homonym (OSHB letters), so לחם "bread" is not named by לחם "to fight"
 - Groups split off by meaning, and roots with only one word in the Bible, show that word
   (דְּבוֹרָה "bee", שָׁמַיִם "heavens").
 - Words without a root (particles, names) show their dictionary form (כִּי), not the inflected word.
@@ -57,7 +62,8 @@ Chips show **unpointed** letters, so they name the root and its family rather th
 
 `decisions/` holds the reviewed decisions: `meaning_out_*.json` (meaning-based splits; borderline
 cases resolved to the reviewed defaults), `review_aramaic_out.json` (Aramaic merges),
-`chip_glosses.json` (English labels) and `chip_qualifiers.json` (English qualifiers).
+`chip_glosses.json` (English labels), `root_naming.json` (verb- or noun-named roots, with their
+English label) and `chip_qualifiers.json` (English qualifiers).
 `data/roots/root_map.csv` is the human-readable result, one row per Strong's number + homonym letter.
 
 ## Rebuild

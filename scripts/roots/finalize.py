@@ -42,6 +42,9 @@ for a in ar:
     target[k]=t
 manual={'arc:בית':heb_root_of_lemma('בַּיִת'),'arc:פחה':heb_root_of_lemma('פֶּחָה'),'arc:כסא':heb_root_of_lemma('כִּסֵּא'),'arc:גין':heb_root_of_lemma('גִּיר'),'arc:קבל':'קדם','arc:דרע':heb_root_of_lemma('זְרוֹעַ'),'arc:דחל':heb_root_of_lemma('זָחַל'),'arc:קצא':heb_root_of_lemma('קָצֶה')}
 target.update({k:v for k,v in manual.items() if v})
+# reviewed false matches: Aramaic roots kept apart from a same-letter Hebrew root of unrelated meaning
+# (Aramaic עֲלַל 'go in' vs Hebrew עֹל 'yoke')
+for k in ('arc:עלל',): target[k]=None
 roots_now={r['root'] for r in R}
 merged=0; unresolved=[]
 for r in R:
