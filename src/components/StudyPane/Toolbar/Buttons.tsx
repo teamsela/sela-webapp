@@ -621,15 +621,11 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
   const { ctxBoxDisplayConfig, ctxInViewMode, ctxStudyId, ctxStudyMetadata, ctxSetStudyMetadata, ctxAddToHistory } = useContext(FormatContext);
 
   const handleClick = () => {
-    let newStyle: BoxDisplayStyle;
-    if (ctxBoxDisplayConfig.style === BoxDisplayStyle.box) {
-      newStyle = BoxDisplayStyle.uniformBoxes;
-    } else if (ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes) {
-      newStyle = BoxDisplayStyle.box;
-    } else {
-      // If noBox, toggle to box
-      newStyle = BoxDisplayStyle.box;
-    }
+    // Turning uniform boxes on goes straight to uniform boxes, even from no boxes;
+    // turning it off falls back to regular boxes.
+    const newStyle = ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes
+      ? BoxDisplayStyle.box
+      : BoxDisplayStyle.uniformBoxes;
     
     const newConfig = { style: newStyle };
     ctxStudyMetadata.boxStyle = newConfig;
@@ -654,10 +650,10 @@ export const UniformWidthBtn = ({ setBoxStyle }: {
         }
       </button>
       {
-        ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <ToolTip text="Disable uniform width" />
+        ctxBoxDisplayConfig.style === BoxDisplayStyle.uniformBoxes && <ToolTip text="Disable uniform boxes" />
       }
       {
-        ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <ToolTip text="Enable uniform width" />
+        ctxBoxDisplayConfig.style !== BoxDisplayStyle.uniformBoxes && <ToolTip text="Enable uniform boxes" />
       }      
     </div>
   );

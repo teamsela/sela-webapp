@@ -86,7 +86,7 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
       },
       {
         icon: TbArrowAutofitContent,
-        title: "Enable Uniform Width",
+        title: "Enable Uniform Boxes",
         description:
           "Make all word boxes the same width to compare word counts and see how parallel lines correspond.",
       },
