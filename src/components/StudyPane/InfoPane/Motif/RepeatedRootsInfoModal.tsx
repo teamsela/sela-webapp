@@ -78,7 +78,7 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
           the whole family of words built on it. Hover over a chip to see a typical word from the
           family and its meaning (<span dir="rtl" lang="he">יָשַׁב</span> &ldquo;sit&rdquo;). In English,
           when two different roots share a meaning in the same passage, a short note tells them
-          apart: &ldquo;to gather (assemble)&rdquo; and &ldquo;to gather (glean)&rdquo;.
+          apart: &ldquo;gather (assemble)&rdquo; and &ldquo;gather (glean)&rdquo;.
         </p>
 
         <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">

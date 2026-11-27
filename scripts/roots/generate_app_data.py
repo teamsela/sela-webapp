@@ -262,11 +262,16 @@ if len(sys.argv) > 4:  # optional: compare chapter/verse layout with heb_bible (
 # {"roots": {root key: label}, "words": {strong: label}}. Names keep their name ("Isaac").
 glosses_path = os.path.join(HERE, 'decisions', 'chip_glosses.json')
 chip_glosses = json.load(open(glosses_path, encoding='utf-8')) if os.path.exists(glosses_path) else {'roots': {}, 'words': {}}
+fixes_path = os.path.join(HERE, 'decisions', 'chip_label_fixes.json')
+label_fixes = json.load(open(fixes_path, encoding='utf-8')) if os.path.exists(fixes_path) else {}
 root_keys = [None] * len(roots)
 for key, i in ridx.items(): root_keys[i] = key
 for i, key in enumerate(root_keys):
     if key in chip_glosses['roots']: roots[i][1] = chip_glosses['roots'][key]
     if root_naming.get(key, {}).get('label'): roots[i][1] = root_naming[key]['label']
+    # chips read "remember", "long for": the infinitive's "to" is noise on a label. A bare verb
+    # that would read as a noun is reworded (decisions/chip_label_fixes.json: "carry", not "bear").
+    roots[i][1] = label_fixes.get(key) or re.sub(r'^to (?=\S)', '', roots[i][1])
 name_strongs = {r['strong'] for r in rows if r['kind'] == 'name'}
 for s, entry in lemmas.items():
     if s in chip_glosses['words']: entry[1] = chip_glosses['words'][s]

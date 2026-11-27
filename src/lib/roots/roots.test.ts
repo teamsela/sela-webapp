@@ -24,8 +24,8 @@ describe("lookupRoot", () => {
   it("resolves homonyms per occurrence: ענה 'answer' vs ענה 'sing' (Exod 15:21)", () => {
     const answer = root(6030, "psalms", 3, 4).root;
     const sing = root(6030, "exodus", 15, 21).root;
-    expect(answer?.gloss).toBe("to answer");
-    expect(sing?.gloss).toBe("to sing");
+    expect(answer?.gloss).toBe("answer");
+    expect(sing?.gloss).toBe("sing");
     expect(answer?.id).not.toBe(sing?.id);
   });
 
@@ -75,9 +75,9 @@ describe("chip labels", () => {
 
   it("names a root by its verb by default, even when a noun is more common (סָפַר 'to count', not סֵפֶר 'book')", () => {
     expect(nfc(root(5612).root?.label)).toBe(nfc("סָפַר")); // סֵפֶר 'book' belongs to the family of סָפַר
-    expect(root(5612).root?.gloss).toBe("to count");
+    expect(root(5612).root?.gloss).toBe("count");
     expect(nfc(root(4428).root?.label)).toBe(nfc("מָלַךְ")); // מֶלֶךְ 'king'
-    expect(root(4428).root?.gloss).toBe("to reign");
+    expect(root(4428).root?.gloss).toBe("reign");
   });
 
   it("keeps the noun where the verb is derived from it or too marginal (reviewed exceptions)", () => {
@@ -157,7 +157,7 @@ describe("repeated-word grouping", () => {
     const seatLabel = groupLabel(key, groups.get(key)!);
     expect(nfc(seatLabel.hebrew)).toBe(nfc("ישׁב")); // unpointed root on the chip
     expect(nfc(seatLabel.word)).toBe(nfc("יָשַׁב")); // pointed word in the tooltip
-    expect(seatLabel.english).toBe("to sit");
+    expect(seatLabel.english).toBe("sit");
   });
 
   it("makes no chip for a repeated name, nor for a name written as two words (Ps 51:1 בַּת־שָׁבַע)", () => {
@@ -208,12 +208,12 @@ describe("English chip labels", () => {
   });
 
   it("tells apart chips with the same English label in English, never with Hebrew", () => {
-    const a = { hebrew: "קבץ", english: "to gather", qualifier: "assemble" };
-    const b = { hebrew: "לקט", english: "to gather", qualifier: "harvest" };
+    const a = { hebrew: "קבץ", english: "gather", qualifier: "assemble" };
+    const b = { hebrew: "לקט", english: "gather", qualifier: "harvest" };
     const [x, y] = disambiguateGroupLabels([a, b]);
-    expect(x.english).toBe("to gather (assemble)");
-    expect(y.english).toBe("to gather (harvest)");
-    expect(disambiguateGroupLabels([a])[0].english).toBe("to gather");
+    expect(x.english).toBe("gather (assemble)");
+    expect(y.english).toBe("gather (harvest)");
+    expect(disambiguateGroupLabels([a])[0].english).toBe("gather");
     const noQualifier = disambiguateGroupLabels([{ hebrew: "א", english: "x" }, { hebrew: "ב", english: "x" }]);
     noQualifier.forEach((l) => expect(l.english).not.toMatch(/[\u0590-\u05FF]/));
   });
@@ -225,10 +225,11 @@ describe("English chip labels", () => {
   });
 
   it("uses the reviewed plain-English labels (טוב 'good', not BDB's first sense 'pleasant')", () => {
-    expect(root(2896).root?.gloss).toBe("to be good");
-    expect(root(1984).root?.gloss).toBe("to praise");
+    expect(root(2896).root?.gloss).toBe("be good");
+    expect(root(1984).root?.gloss).toBe("praise");
+    expect(root(2142).root?.gloss).toBe("remember"); // no infinitive "to" on chips
     expect(root(3820).root?.gloss).toBe("heart");
-    expect(root(6960, "genesis", 1, 9).root?.gloss).toBe("to gather");
+    expect(root(6960, "genesis", 1, 9).root?.gloss).toBe("gather");
     expect(root(853).lemmaGloss).toBe("object marker");
   });
 });

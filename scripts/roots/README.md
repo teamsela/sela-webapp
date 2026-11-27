@@ -33,7 +33,7 @@ Chips show **unpointed** letters, so they name the root and its family rather th
 ("יָשַׁב · sit"); for root groups the chip shows the root letters, otherwise the word's letters.
 
 - A root with a verb is **named by its verb**, in both languages, even when a noun is more common:
-  סָפַר "to count" (not סֵפֶר "book"), מָלַךְ "to reign", עָבַד "to serve". Exceptions, reviewed one by one in
+  סָפַר "count" (not סֵפֶר "book"), מָלַךְ "reign", עָבַד "serve". Exceptions, reviewed one by one in
   `decisions/root_naming.json`, keep the noun where the verb is derived from it or too marginal to
   name the family: כֹּל "all" (not כָּלַל), the numbers (not שָׁלַשׁ "do a third time"), לֵב "heart",
   רֶגֶל "foot", עָפָר "dust". Roots without a verb use their most common word (אֶבֶן "stone").
@@ -52,11 +52,13 @@ Chips show **unpointed** letters, so they name the root and its family rather th
   (no prefix dagesh), with dagesh lene restored and the non-pausal ‑ַיִם ending preferred.
   Verbs, names, particles and ordinary nouns keep their dictionary form.
 - Homonym numerals (ענה I / עָנָה IV) appear only when two chips in the same passage share letters.
+- English verb labels drop the infinitive "to" ("remember", "long for", "be willing"). A bare verb
+  that would read as a noun is reworded in `decisions/chip_label_fixes.json` ("carry", not "bear").
 - English chips never show Hebrew. When two chips in one passage share an English label, each
-  gets its reviewed qualifier from `decisions/chip_qualifiers.json` ("to gather (assemble)" /
-  "to gather (glean)"; Hebrew/Aramaic pairs read "(Hebrew)" / "(Aramaic)").
+  gets its reviewed qualifier from `decisions/chip_qualifiers.json` ("gather (assemble)" /
+  "gather (glean)"; Hebrew/Aramaic pairs read "(Hebrew)" / "(Aramaic)").
 - English labels come from `decisions/chip_glosses.json`: reviewed plain-English labels per root
-  group and per small word (טוב 'good', not BDB's first sense 'pleasant'; קוה II 'to gather').
+  group and per small word (טוב 'good', not BDB's first sense 'pleasant'; קוה II 'gather').
   They are not taken from the STEP word lookup, which cannot tell the senses of one Strong's
   number apart. God's personal name shows as "Yahweh"; the titles as "God" (אֱלֹהִים, אֵל) and "Lord" (אֲדֹנָי).
 
