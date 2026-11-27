@@ -13,7 +13,7 @@ import { nanoid } from 'nanoid';
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, DEMO_STUDY_ID, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
-import { lookupRoot } from './roots';
+import { isCompoundWord, lookupRoot } from './roots';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -908,6 +908,7 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
 
   // nth occurrence of each Strong's number within its verse, used to resolve homonym roots
   const verseStrongCounts = new Map<string, number>();
+  let previousWord: WordProps | undefined;
   passageContent.forEach(word => {
     let hebWord = {} as WordProps;
     hebWord.wordId = word.hebId || 0;
@@ -929,13 +930,27 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
     verseStrongCounts.set(verseStrongKey, nthInVerse + 1);
     const rootInfo = lookupRoot(passageInfo.book ?? book, hebWord.chapter, hebWord.verse, hebWord.strongNumber, nthInVerse);
 
+    // a dictionary word written as several words (אַל־תַּשְׁחֵת) has one row per part: the later parts
+    // continue the same occurrence rather than repeat it
+    const continuesCompound = Boolean(
+      previousWord &&
+        isCompoundWord(hebWord.strongNumber) &&
+        previousWord.strongNumber === hebWord.strongNumber &&
+        previousWord.chapter === hebWord.chapter &&
+        previousWord.verse === hebWord.verse
+    );
+
     hebWord.motifData = {
       // BDB dictionary form when available (the legacy lexicon lemma is misaligned for some entries)
       lemma: rootInfo.lemma || word.motifLemma || "",
       lemmaGloss: rootInfo.lemmaGloss,
+      lemmaQualifier: rootInfo.lemmaQualifier,
       categories: word.motifCategories || [],
       root: rootInfo.root,
+      isName: rootInfo.isName,
+      compoundPart: continuesCompound || undefined,
     };
+    previousWord = hebWord;
 
     const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
     const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";

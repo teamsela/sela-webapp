@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 const nfc = (s: string | undefined) => s?.normalize("NFC");
 
-import { lookupRoot } from "./index";
+import { isCompoundWord, lookupRoot } from "./index";
 import { PassageProps, WordProps } from "../data";
-import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel, wordGroupKey, wordsInSameGroups } from "../utils";
+import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel, groupOccurrences, wordGroupKey, wordsInSameGroups } from "../utils";
 
 const root = (strong: number, book = "psalms", chapter = 1, verse = 1, nth = 0) =>
   lookupRoot(book, chapter, verse, strong, nth);
@@ -42,10 +42,21 @@ describe("lookupRoot", () => {
     expect(rootId(8421)).toBe(rootId(7725));
   });
 
-  it("gives proper names no root: they only match the same name", () => {
+  it("marks proper names, which get no root", () => {
     expect(root(5838).root).toBeUndefined(); // Azariah is not grouped with עזר 'help'
     expect(root(3478).root).toBeUndefined(); // Israel
     expect(root(3389).root).toBeUndefined(); // Jerusalem is not grouped with שָׁלוֹם
+    expect(root(5838).isName).toBe(true);
+    expect(root(1339).isName).toBe(true); // Bathsheba
+    expect(root(3068).isName).toBeUndefined(); // God's name is a group of its own
+    expect(root(430).isName).toBeUndefined();
+  });
+
+  it("knows which dictionary words are written as several words", () => {
+    expect(isCompoundWord(516)).toBe(true); // אַל־תַּשְׁחֵת (psalm headings)
+    expect(isCompoundWord(3304)).toBe(true); // יְפֵה־פִיָּה
+    expect(isCompoundWord(3588)).toBe(false); // כִּי, though one sub-sense is כִּי אִם
+    expect(isCompoundWord(6944)).toBe(false); // קֹדֶשׁ: קֹדֶשׁ הַקֳּדָשִׁים is two words
   });
 
   it("leaves function words without a root (exact match only), with their dictionary form", () => {
@@ -91,7 +102,10 @@ const word = (wordId: number, strongNumber: number, wlcWord = "", book = "psalms
   const info = lookupRoot(book, chapter, verse, strongNumber, nth);
   return {
     wordId, strongNumber, wlcWord, chapter, verse, gloss: "", ETCBCgloss: "",
-    motifData: { lemma: info.lemma ?? "", lemmaGloss: info.lemmaGloss, categories: [], root: info.root },
+    motifData: {
+      lemma: info.lemma ?? "", lemmaGloss: info.lemmaGloss, lemmaQualifier: info.lemmaQualifier,
+      categories: [], root: info.root, isName: info.isName,
+    },
   } as unknown as WordProps;
 };
 
@@ -113,10 +127,11 @@ describe("repeated-word grouping", () => {
     expect(wordsInSameGroups(seat, groups).map((w) => w.wordId)).toEqual([1, 2]);
   });
 
-  it("does not group proper names with words of the same root", () => {
+  it("leaves proper names out: not grouped with words of the same root, nor with themselves", () => {
     const groups = extractIdenticalWordsFromPassage(passage);
     expect(wordsInSameGroups(help, groups).map((w) => w.wordId)).toEqual([3]);
     expect(wordsInSameGroups(azariah, groups).map((w) => w.wordId)).toEqual([4]);
+    expect(wordGroupKey(azariah)).toBeUndefined();
   });
 
   it("matches untagged words by spelling instead of lumping them together", () => {
@@ -133,11 +148,20 @@ describe("repeated-word grouping", () => {
     expect(seatLabel.english).toBe("to sit");
   });
 
-  it("matches a repeated name with itself", () => {
+  it("makes no chip for a repeated name, nor for a name written as two words (Ps 51:1 בַּת־שָׁבַע)", () => {
     const azariahs = passageOf([word(10, 5838), word(11, 5838)]);
-    const groups = extractIdenticalWordsFromPassage(azariahs);
-    expect(groups.get("s5838")?.map((w) => w.wordId)).toEqual([10, 11]);
-    expect(Array.from(groups.keys())).toEqual(["s5838"]);
+    expect(extractIdenticalWordsFromPassage(azariahs).size).toBe(0);
+    const bathsheba = passageOf([word(12, 1339, "בַּת־", "psalms", 51, 1), word(13, 1339, "שָֽׁבַע׃", "psalms", 51, 1, 1)]);
+    expect(extractIdenticalWordsFromPassage(bathsheba).size).toBe(0);
+  });
+
+  it("counts a word written as several words once (Ps 57:1 אַל־תַּשְׁחֵת)", () => {
+    const parts = [word(14, 516, "אַל־", "psalms", 57, 1), { ...word(15, 516, "תַּשְׁחֵת", "psalms", 57, 1, 1) }];
+    parts[1].motifData = { ...parts[1].motifData!, compoundPart: true };
+    const groups = extractIdenticalWordsFromPassage(passageOf(parts));
+    const words = groups.get(wordGroupKey(parts[0])!)!;
+    expect(words.map((w) => w.wordId)).toEqual([14, 15]); // double-click still selects both parts
+    expect(groupOccurrences(words)).toBe(1); // but it is one occurrence: no chip
   });
 
   it("labels exact-match groups with the dictionary form, not the inflected word", () => {
@@ -169,6 +193,23 @@ describe("English chip labels", () => {
     const label = groupLabel(wordGroupKey(words[0])!, words);
     expect(label.english).toBe(root(6960, "genesis", 1, 9).root?.gloss);
     expect(label.english).not.toBe("to await");
+  });
+
+  it("tells apart chips with the same English label in English, never with Hebrew", () => {
+    const a = { hebrew: "קבץ", english: "to gather", qualifier: "assemble" };
+    const b = { hebrew: "לקט", english: "to gather", qualifier: "harvest" };
+    const [x, y] = disambiguateGroupLabels([a, b]);
+    expect(x.english).toBe("to gather (assemble)");
+    expect(y.english).toBe("to gather (harvest)");
+    expect(disambiguateGroupLabels([a])[0].english).toBe("to gather");
+    const noQualifier = disambiguateGroupLabels([{ hebrew: "א", english: "x" }, { hebrew: "ב", english: "x" }]);
+    noQualifier.forEach((l) => expect(l.english).not.toMatch(/[\u0590-\u05FF]/));
+  });
+
+  it("never falls back to Hebrew for the English label", () => {
+    const untagged = [word(42, 0, "לוֹ"), word(43, 0, "לוֹ")];
+    const label = groupLabel(wordGroupKey(untagged[0])!, untagged);
+    expect(label.english).not.toMatch(/[\u0590-\u05FF]/);
   });
 
   it("uses the reviewed plain-English labels (טוב 'good', not BDB's first sense 'pleasant')", () => {
@@ -217,6 +258,15 @@ describe("divine names", () => {
       ({ ...w, wordInformation: { hebrew: "", transliteration: "", gloss, morphology: "", strongsNumber: "", meaning: "" } }) as WordProps;
     const elohim = [withStepGloss(word(60, 430), "God"), withStepGloss(word(61, 430), "God")];
     expect(groupLabel(wordGroupKey(elohim[0])!, elohim).english).toBe("God");
+  });
+
+  it("puts אֱלֹהִים, אֵל, אֱלוֹהַּ and Aramaic אֱלָהּ in one group, shown as the full word אלהים", () => {
+    expect(new Set([430, 410, 433, 426].map((s) => rootId(s))).size).toBe(1);
+    const words = [word(62, 430), word(63, 410)];
+    const label = groupLabel(wordGroupKey(words[0])!, words);
+    expect(label.hebrew).toBe("אלהים"); // not the bare letters אלה, which read as אֵלֶּה 'these'
+    expect(label.english).toBe("God");
+    expect(rootId(428)).toBeUndefined(); // אֵלֶּה 'these' stays its own word
   });
 });
 

@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 
 import { WordProps } from "@/lib/data";
-import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel } from "@/lib/utils";
+import { disambiguateGroupLabels, extractIdenticalWordsFromPassage, groupLabel, groupOccurrences } from "@/lib/utils";
 
 import { FormatContext } from '../../index';
 import { IdenticalWordBlock } from "./IdenticalWordBlock";
@@ -25,11 +25,12 @@ const IdenticalWord = () => {
 
     // map of root group (or Strong's number for exact-match words) to the passage's words in it
     const groups = extractIdenticalWordsFromPassage(ctxPassageProps);
-    const repeated = Array.from(groups.entries()).filter(([, words]) => words.length > 1);
+    // a word written as several words (אַל־תַּשְׁחֵת) counts once
+    const repeated = Array.from(groups.entries()).filter(([, words]) => groupOccurrences(words) > 1);
     const labels = disambiguateGroupLabels(repeated.map(([groupKey, words]) => groupLabel(groupKey, words)));
     const identicalWordPropsArray: IdenticalWordProps[] = repeated.map(([, words], i) => ({
         wordId: words[0].wordId,
-        count: words.length,
+        count: groupOccurrences(words),
         identicalWords: words,
         label: labels[i].hebrew,
         gloss: labels[i].english,

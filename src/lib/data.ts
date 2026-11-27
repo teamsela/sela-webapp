@@ -94,8 +94,14 @@ export type MotifData = {
     /** English gloss of `lemma`, for words without a root. */
     lemmaGloss?: string;
     categories: string[];
+    /** English qualifier for lemmaGloss, used only to tell apart chips that share a label. */
+    lemmaQualifier?: string;
     /** Root group (see src/lib/roots). Undefined for particles and unrooted words. */
     root?: RootRef;
+    /** Proper name: left out of Repeated Roots (God's names are root groups instead). */
+    isName?: boolean;
+    /** Later part of a word written as several words (אַל־תַּשְׁחֵת): same occurrence as the part before it. */
+    compoundPart?: boolean;
 }
 
 export type WordInformation = {

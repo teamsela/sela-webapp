@@ -50,11 +50,14 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
           matched with the same word.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          Proper names are only matched with the same name, so{" "}
+          Proper names of people and places are left out, so{" "}
           <span dir="rtl" lang="he">עֲזַרְיָה</span> &ldquo;Azariah&rdquo; is not grouped with{" "}
-          <span dir="rtl" lang="he">עֵזֶר</span> &ldquo;help&rdquo;. God&apos;s name{" "}
-          <span dir="rtl" lang="he">יהוה</span> and its short form{" "}
-          <span dir="rtl" lang="he">יָהּ</span> count as one: Yahweh.
+          <span dir="rtl" lang="he">עֵזֶר</span> &ldquo;help&rdquo;. God&apos;s names are the
+          exception: <span dir="rtl" lang="he">יהוה</span> and its short form{" "}
+          <span dir="rtl" lang="he">יָהּ</span> count as one (Yahweh), and{" "}
+          <span dir="rtl" lang="he">אֱלֹהִים</span> with <span dir="rtl" lang="he">אֵל</span> as
+          another (God). A word written as two words, such as{" "}
+          <span dir="rtl" lang="he">אַל־תַּשְׁחֵת</span>, counts once.
         </p>
 
         <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">
@@ -73,7 +76,9 @@ const RepeatedRootsInfoModal = ({ onClose }: { onClose: () => void }) =>
           times it appears. Click a chip to select all of its words. The chip shows the
           root&apos;s letters without vowels (<span dir="rtl" lang="he">ישׁב</span>), standing for
           the whole family of words built on it. Hover over a chip to see a typical word from the
-          family and its meaning (<span dir="rtl" lang="he">יָשַׁב</span> &ldquo;sit&rdquo;).
+          family and its meaning (<span dir="rtl" lang="he">יָשַׁב</span> &ldquo;sit&rdquo;). In English,
+          when two different roots share a meaning in the same passage, a short note tells them
+          apart: &ldquo;to gather (assemble)&rdquo; and &ldquo;to gather (glean)&rdquo;.
         </p>
 
         <h4 className="mt-5 text-base font-bold text-gray-900 dark:text-gray-100">

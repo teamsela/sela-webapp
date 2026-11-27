@@ -169,11 +169,15 @@ const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
 /**
  * The group a word belongs to for "repeated" words in a passage:
  * - its root group (motifData.root) when it has one,
- * - otherwise its Strong's number (particles, proper names, unrooted words: exact match),
+ * - otherwise its Strong's number (particles, unrooted words: exact match),
  * - otherwise (untagged words such as לוֹ) its consonantal spelling.
- * Proper names never join a root group; God's name (יהוה, יָהּ) is one group of its own.
+ * Proper names are left out (undefined). God's names are root groups: "Yahweh" (יהוה, יָהּ)
+ * and "God" (אֱלֹהִים, אֵל, אֱלוֹהַּ).
  */
 export function wordGroupKey(word: WordProps): string | undefined {
+  if (word.motifData?.isName) {
+    return undefined;
+  }
   if (word.motifData?.root) {
     return word.motifData.root.id;
   }
@@ -196,7 +200,15 @@ export type GroupLabel = {
   homonym?: string;
   /** A pointed word from the group for the tooltip (יָשַׁב, דִּבֵּר, כִּי) */
   word?: string;
+  /** English qualifier, added only when two chips' English labels are the same ("assemble") */
+  qualifier?: string;
 };
+
+/** How many times a group's word occurs: the parts of a word written as several words
+ *  (אַל־תַּשְׁחֵת) count once. */
+export function groupOccurrences(words: WordProps[]): number {
+  return words.filter((w) => !w.motifData?.compoundPart).length;
+}
 
 /** Removes vowel points, dagesh and accents, keeping the letters and the shin/sin dot (שׁ/שׂ). */
 export function unpointed(hebrew: string): string {
@@ -241,19 +253,35 @@ export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
     if (root) {
       // English comes from the root data (a curated, sense-correct label for the root family),
       // not from the STEP lookup, which cannot tell the senses of one Strong's number apart
-      const english = divineName(words) || root.gloss || root.label;
-      return { hebrew: root.letters || unpointed(root.label), english, homonym: root.homonym, word: root.label };
+      const english = divineName(words) || root.gloss || englishGloss(lead);
+      return {
+        hebrew: root.letters || unpointed(root.label),
+        english,
+        homonym: root.homonym,
+        word: root.label,
+        qualifier: root.qualifier,
+      };
     }
   }
   const motif = lead?.motifData;
   const word = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
-  const english = divineName(words) || motif?.lemmaGloss || lead?.ETCBCgloss?.trim() || lead?.gloss || word;
-  return { hebrew: unpointed(word), english, word };
+  const english = divineName(words) || motif?.lemmaGloss || englishGloss(lead);
+  return { hebrew: unpointed(word), english, word, qualifier: motif?.lemmaQualifier };
+}
+
+const HEBREW_TEXT = /[\u0590-\u05FF]/;
+
+/** English fallback for a chip: the word's English gloss, never Hebrew. */
+function englishGloss(word: WordProps | undefined): string {
+  const gloss = [word?.ETCBCgloss, word?.gloss].map((g) => g?.trim() || "").find((g) => g && !HEBREW_TEXT.test(g));
+  return gloss || "";
 }
 
 /**
- * When two chips in the same panel would read the same (e.g. ענה "answer" and ענה "sing" both
- * appear), add the homonym numeral to the Hebrew label and the root sense to tell them apart.
+ * When two chips in the same panel would read the same, tell them apart:
+ * - Hebrew: add the homonym numeral (ענה I / ענה IV);
+ * - English: add the reviewed English qualifier ("to gather (assemble)" / "to gather (harvest)").
+ *   English chips never show Hebrew.
  */
 export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
   // compare Hebrew by letters only (shin/sin dots aside), so labels of homonymous roots collide
@@ -262,12 +290,13 @@ export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
   const englishCounts = new Map<string, number>();
   labels.forEach((l) => {
     hebrewCounts.set(letters(l.hebrew), (hebrewCounts.get(letters(l.hebrew)) ?? 0) + 1);
-    englishCounts.set(l.english, (englishCounts.get(l.english) ?? 0) + 1);
+    const english = l.english.toLowerCase();
+    englishCounts.set(english, (englishCounts.get(english) ?? 0) + 1);
   });
   return labels.map((l) => ({
     ...l,
     hebrew: (hebrewCounts.get(letters(l.hebrew)) ?? 0) > 1 && l.homonym ? `${l.hebrew} ${l.homonym}` : l.hebrew,
-    english: (englishCounts.get(l.english) ?? 0) > 1 && l.hebrew !== l.english ? `${l.english} (${l.hebrew})` : l.english,
+    english: (englishCounts.get(l.english.toLowerCase()) ?? 0) > 1 && l.qualifier ? `${l.english} (${l.qualifier})` : l.english,
   }));
 }
 

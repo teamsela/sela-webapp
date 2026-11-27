@@ -15,9 +15,14 @@ Identical Words panel. Output: `src/lib/roots/rootData.json` (loaded server-side
 - A root group means a **shared meaning**. Words with the same letters but unrelated meanings are split
   (e.g. דבר "speak" / מִדְבָּר "wilderness" / דֶּבֶר "plague"). Sound-alikes are left to rhyme tools.
 - Homonyms are separate roots (no "sound-alike" mode).
-- Proper names never join a root group; a name only matches the same name. Name etymologies
-  (Strong's, often folk etymology) proved too unreliable for a primary tool; a name's components
-  are visible in its dictionary entry. God's name is one group: יהוה, יָהּ and יֱהוִה ("Yahweh").
+- Proper names (people, places, peoples) are left out of Repeated Roots entirely: no chip, and
+  double-click selects only the word itself. Name etymologies (Strong's, often folk etymology) are
+  too unreliable for a primary tool, and a name's components are visible in its dictionary entry.
+  God's names are the exception, as two groups: יהוה, יָהּ, יֱהוִה ("Yahweh"), and אֱלֹהִים, אֵל,
+  אֱלוֹהַּ, Aramaic אֱלָהּ ("God", chip אלהים: BDB's bare letters אלה would read as אֵלֶּה "these").
+- Words written as several words (אַל־תַּשְׁחֵת, יְפֵה־פִיָּה; `compounds` in the data) have one heb_bible
+  row per part with the same Strong's number. The parts count as one occurrence, so a compound
+  is never its own "repetition". (Repeats such as קֹדֶשׁ הַקֳּדָשִׁים are two words and do count.)
 - Function words (prepositions, conjunctions, particles, pronouns) match exactly only.
 - Aramaic words join their Hebrew cognate's root, including regular sound shifts (ד=ז, ת=שׁ).
 
@@ -42,13 +47,17 @@ Chips show **unpointed** letters, so they name the root and its family rather th
   (no prefix dagesh), with dagesh lene restored and the non-pausal ‑ַיִם ending preferred.
   Verbs, names, particles and ordinary nouns keep their dictionary form.
 - Homonym numerals (ענה I / עָנָה IV) appear only when two chips in the same passage share letters.
+- English chips never show Hebrew. When two chips in one passage share an English label, each
+  gets its reviewed qualifier from `decisions/chip_qualifiers.json` ("to gather (assemble)" /
+  "to gather (glean)"; Hebrew/Aramaic pairs read "(Hebrew)" / "(Aramaic)").
 - English labels come from `decisions/chip_glosses.json`: reviewed plain-English labels per root
   group and per small word (טוב 'good', not BDB's first sense 'pleasant'; קוה II 'to gather').
   They are not taken from the STEP word lookup, which cannot tell the senses of one Strong's
   number apart. God's personal name shows as "Yahweh"; the titles as "God" (אֱלֹהִים, אֵל) and "Lord" (אֲדֹנָי).
 
 `decisions/` holds the reviewed decisions: `meaning_out_*.json` (meaning-based splits; borderline
-cases resolved to the reviewed defaults) and `review_aramaic_out.json` (Aramaic merges).
+cases resolved to the reviewed defaults), `review_aramaic_out.json` (Aramaic merges),
+`chip_glosses.json` (English labels) and `chip_qualifiers.json` (English qualifiers).
 `data/roots/root_map.csv` is the human-readable result, one row per Strong's number + homonym letter.
 
 ## Rebuild

@@ -11,15 +11,21 @@ import rootData from "./rootData.json";
 */
 
 type RootData = {
-  /** [pointed word (tooltip), English sense, homonym numeral or "", bare root letters or ""] */
-  roots: [string, string, string, string?][];
+  /** [pointed word (tooltip), English sense, homonym numeral or "", bare root letters or "", English qualifier?] */
+  roots: [string, string, string, string?, string?][];
   strong: Record<string, number>;
-  /** dictionary form + gloss for words without a root */
-  lemmas: Record<string, [string, string]>;
+  /** dictionary form + gloss (+ English qualifier) for words without a root */
+  lemmas: Record<string, [string, string, string?]>;
   exceptions: Record<string, number>;
+  /** proper names: left out of Repeated Roots */
+  names: number[];
+  /** dictionary words written as several words (אַל־תַּשְׁחֵת): their rows make one occurrence */
+  compounds: number[];
 };
 
 const data = rootData as unknown as RootData;
+const NAMES = new Set(data.names);
+const COMPOUNDS = new Set(data.compounds);
 
 export type RootRef = {
   /** Root group id, e.g. "r42". */
@@ -33,6 +39,8 @@ export type RootRef = {
   homonym?: string;
   /** Bare root letters with shin/sin dot (ישׁב), shown on the chip; absent for single words. */
   letters?: string;
+  /** English qualifier used when two chips share an English label ("assemble" in "to gather (assemble)"). */
+  qualifier?: string;
 };
 
 export type RootInfo = {
@@ -41,14 +49,31 @@ export type RootInfo = {
   /** Dictionary form and gloss, for words without a root (כִּי, names). */
   lemma?: string;
   lemmaGloss?: string;
+  /** English qualifier for lemmaGloss, see RootRef.qualifier. */
+  lemmaQualifier?: string;
+  /** Proper name: not part of Repeated Roots. */
+  isName?: boolean;
 };
+
+/** True for a dictionary word written as several words (אַל־תַּשְׁחֵת, יְפֵה־פִיָּה), whose parts are
+ *  separate heb_bible rows with the same Strong's number. */
+export function isCompoundWord(strongNumber: number): boolean {
+  return COMPOUNDS.has(strongNumber);
+}
 
 function rootRef(index: number | undefined): RootRef | undefined {
   if (index === undefined || index < 0 || !data.roots[index]) {
     return undefined;
   }
-  const [label, gloss, homonym, letters] = data.roots[index];
-  return { id: `r${index}`, label, gloss: gloss || undefined, homonym: homonym || undefined, letters: letters || undefined };
+  const [label, gloss, homonym, letters, qualifier] = data.roots[index];
+  return {
+    id: `r${index}`,
+    label,
+    gloss: gloss || undefined,
+    homonym: homonym || undefined,
+    letters: letters || undefined,
+    qualifier: qualifier || undefined,
+  };
 }
 
 /**
@@ -75,5 +100,7 @@ export function lookupRoot(
     root,
     lemma: lemma?.[0] || undefined,
     lemmaGloss: lemma?.[1] || undefined,
+    lemmaQualifier: lemma?.[2] || undefined,
+    isName: NAMES.has(strongNumber) || undefined,
   };
 }

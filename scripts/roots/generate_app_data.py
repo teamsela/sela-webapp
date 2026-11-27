@@ -10,8 +10,11 @@ Output format (kept compact; indices refer to `roots`):
               words whose homonym (OSHB augmented Strong's) differs from the default; chapter/verse use
               heb_bible's English numbering; n = nth occurrence of that Strong's number in the verse
               (0-based); -1 = no root (exact match only)
-Strong's numbers absent from `strong` (particles, proper names, unrooted words) fall back to exact
-Strong's matching. Proper names never join a root group; God's name (יהוה, יָהּ, יֱהוִה) is one group.
+  names:      [strongNumber, ...]   proper names, left out of Repeated Roots
+  compounds:  [strongNumber, ...]   dictionary words written as several words (one occurrence)
+  roots[i][4] / lemmas[s][2]: optional English qualifier, used only to tell apart chips that share a label
+Strong's numbers absent from `strong` (particles, unrooted words) fall back to exact Strong's matching.
+God's name (יהוה, יָהּ, יֱהוִה) is one group; אֱלֹהִים, אֵל, אֱלוֹהַּ and Aramaic אֱלָהּ are one group ("God").
 """
 import csv, json, re, sys, glob, os, collections, unicodedata
 MAP, MORPH, OUT = sys.argv[1:4]
@@ -123,11 +126,18 @@ def pointed(word, strong_number=None):
 # God's personal name in all its forms is one group, labelled by the name itself (not "LORD").
 YAHWEH_KEY = 'divine:YHWH'
 YAHWEH_STRONGS = (3068, 3050, 3069)  # יהוה, יָהּ, יֱהוִה
+# "God": אֱלֹהִים, אֵל, אֱלוֹהַּ and Aramaic אֱלָהּ are one group, shown as the full word אלהים.
+# BDB files them under the bare letters אלה, which read like אֵלֶּה "these" and the prepositions אֶל/אַל.
+GOD_KEY = 'divine:God'
+GOD_STRONGS = (430, 410, 433, 426)
+DIVINE = {YAHWEH_KEY: YAHWEH_STRONGS, GOD_KEY: GOD_STRONGS}
 
 def label_for(key):
     """Chip label for a root group: (pointed label, gloss, homonym numeral or '', bare root letters or '')."""
     if key == YAHWEH_KEY:
         return 'יהוה', 'Yahweh', '', ''
+    if key == GOD_KEY:
+        return 'אֱלֹהִים', 'God', '', 'אלהים'
     members = sorted(members_of.get(key, []), key=lambda r: -int(r['occurrences'] or 0))
     # English: the sense of the group's most frequent word (לֵב 'heart', not the rare verb 'encourage')
     split_sense = key.split('‹')[1].rstrip('›') if '‹' in key else ''
@@ -162,9 +172,10 @@ by_strong = collections.defaultdict(list)
 for r in sorted(rows, key=lambda r: (int(r['strong']), r['aug'])): by_strong[int(r['strong'])].append(r)
 strong, aug_root, lemmas = {}, {}, {}
 for s, rs in by_strong.items():
-    if s in YAHWEH_STRONGS:
-        strong[str(s)] = idx(YAHWEH_KEY)
-        for r in rs: aug_root[(s, r['aug'])] = idx(YAHWEH_KEY)
+    divine = next((k for k, ss in DIVINE.items() if s in ss), None)
+    if divine:
+        strong[str(s)] = idx(divine)
+        for r in rs: aug_root[(s, r['aug'])] = idx(divine)
         continue
     for r in rs: aug_root[(s, r['aug'])] = word_root(r)
     main = max(rs, key=lambda r: int(r['occurrences'] or 0))
@@ -230,9 +241,32 @@ name_strongs = {r['strong'] for r in rows if r['kind'] == 'name'}
 for s, entry in lemmas.items():
     if s in chip_glosses['words']: entry[1] = chip_glosses['words'][s]
     elif s in name_strongs: entry[1] = re.split(r'[.;,(]', entry[1])[0].strip()  # "Isaac. Compare" → "Isaac"
+# English qualifiers, shown only when two chips in one passage would read the same
+# ("to gather (assemble)" / "to gather (harvest)"): {"root:<key>" or "word:<strong>": qualifier}
+qual_path = os.path.join(HERE, 'decisions', 'chip_qualifiers.json')
+qualifiers = json.load(open(qual_path, encoding='utf-8')) if os.path.exists(qual_path) else {}
+for i, key in enumerate(root_keys):
+    q = qualifiers.get('root:' + key)
+    if q: roots[i] = roots[i][:4] + [''] * (4 - len(roots[i])) + [q]
+for s, entry in lemmas.items():
+    q = qualifiers.get('word:' + s)
+    if q: entry.append(q)
+
+# Proper names are left out of Repeated Roots entirely (only God's names are grouped, above).
+names = sorted({int(r['strong']) for r in rows if r['kind'] == 'name'} - set(YAHWEH_STRONGS) - set(GOD_STRONGS))
+# Dictionary words written as two or more words (אַל־תַּשְׁחֵת, יְפֵה־פִיָּה): heb_bible gives each part its
+# own row with the same Strong's number, and those rows are one occurrence, not a repetition.
+# Judged on the Strong's number's main entry: a sub-sense written as a phrase (כִּי אִם under כִּי) doesn't count.
+def multiword(lemma):
+    return bool(re.search(r'[־ ]', clean(lemma).strip('־ ')))
+main_entry = {}
+for r in rows:
+    if r['strong'] not in main_entry or not r['aug']: main_entry[r['strong']] = r
+compounds = sorted(int(s) for s, r in main_entry.items() if r['kind'] != 'name' and multiword(r['lemma']))
+
 if os.environ.get('ROOT_KEYS_OUT'):  # index-aligned root keys, for writing chip_glosses.json
     json.dump(root_keys, open(os.environ['ROOT_KEYS_OUT'], 'w', encoding='utf-8'), ensure_ascii=False)
 
 json.dump(dict(source='Open Scriptures HebrewLexicon (BDB/Strong) + OSHB morphhb, CC BY 4.0; see scripts/roots/README.md',
-               roots=roots, strong=strong, lemmas=lemmas, exceptions=exceptions), open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
-print(f'roots {len(roots)}  strong {len(strong)}  lemmas {len(lemmas)}  exceptions {len(exceptions)}  size {os.path.getsize(OUT)//1024} KB')
+               roots=roots, strong=strong, lemmas=lemmas, exceptions=exceptions, names=names, compounds=compounds), open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+print(f'roots {len(roots)}  strong {len(strong)}  lemmas {len(lemmas)}  exceptions {len(exceptions)}  names {len(names)}  compounds {len(compounds)}  size {os.path.getsize(OUT)//1024} KB')

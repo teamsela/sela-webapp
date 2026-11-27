@@ -20,7 +20,7 @@ describe("Motif tool: Repeated Roots", () => {
     expect(dialog).toHaveTextContent("Double-Click a Word");
     expect(dialog).toHaveTextContent("Root Chips");
     expect(dialog).toHaveTextContent("Smart Highlight");
-    expect(dialog).toHaveTextContent("Proper names are only matched with the same name");
+    expect(dialog).toHaveTextContent("Proper names of people and places are left out");
     expect(screen.getByText("root chips")).toBeInTheDocument(); // section stayed open
 
     fireEvent.click(screen.getByLabelText("Close"));
