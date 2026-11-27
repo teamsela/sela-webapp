@@ -16,7 +16,7 @@ import WordAnalysisModal from "./WordAnalysisModal";
 
 export const Footer = () => {
   const { ctxSelectedWords } = useContext(FormatContext);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
 

@@ -23,7 +23,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 
-export type InfoModalSection = "Format" | "Word" | "Line" | "Strophe" | "Stanza";
+export type InfoModalSection = "Format" | "Word Box" | "Line" | "Strophe" | "Stanza";
 
 type ButtonInfoModalProps = {
   section: InfoModalSection;
@@ -75,8 +75,8 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
       },
     ],
   },
-  Word: {
-    title: "Word",
+  "Word Box": {
+    title: "Word Box",
     items: [
       {
         icon: TbBoxModel2,
@@ -86,7 +86,7 @@ const INFO_SECTIONS: Record<InfoModalSection, InfoSection> = {
       },
       {
         icon: TbArrowAutofitContent,
-        title: "Enable Uniform Width",
+        title: "Enable Uniform Boxes",
         description:
           "Make all word boxes the same width to compare word counts and see how parallel lines correspond.",
       },
@@ -299,9 +299,9 @@ const ButtonInfoModal = ({
       <button
         type="button"
         onClick={() => setActiveSection(section)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
+        className="absolute right-0 top-1/2 -translate-y-1/2 text-primary transition hover:opacity-80"
       >
-        <BsInfoCircle aria-hidden="true" />
+        <BsInfoCircle aria-hidden="true" className="overflow-visible" stroke="currentColor" strokeWidth={0.3} />
       </button>
       {isMounted && modalMarkup ? createPortal(modalMarkup, document.body) : null}
       </div>
