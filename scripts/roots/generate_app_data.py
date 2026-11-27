@@ -42,22 +42,23 @@ def citation_spelling(form):
 
 noun_numbers = collections.defaultdict(collections.Counter)  # strong -> {'s': n, 'p': n, 'd': n}
 plural_forms = collections.defaultdict(collections.Counter)  # strong -> unsuffixed plural/dual absolute forms
-verb_stems = collections.defaultdict(collections.Counter)    # strong -> {stem code: uses}, q = qal
+verb_stems = collections.defaultdict(collections.Counter)    # (strong, homonym letter) -> {stem code: uses}, q = qal
 any_forms = collections.defaultdict(collections.Counter)     # strong -> attested forms (prefix dropped), last resort
-qatal_forms = collections.defaultdict(collections.Counter)   # (strong, stem) -> standalone 3ms perfect forms (non-qal)
+qatal_forms = collections.defaultdict(collections.Counter)   # (strong, homonym letter, stem) -> standalone 3ms perfect forms (non-qal)
 for f in sorted(glob.glob(os.path.join(MORPH, 'wlc', '*.xml'))):
     for lem, morph, text, after in re.findall(r'<w lemma="([^"]*)"[^>]*?morph="([^"]*)"[^>]*>([^<]*)</w>(<seg type="x-maqqef")?', open(f, encoding='utf-8').read()):
         lsegs, tsegs, msegs = lem.split('/'), text.split('/'), morph[1:].split('/')
-        m = re.match(r'\s*(\d+)', lsegs[-1])
+        m = re.match(r'\s*(\d+)\s*([a-z]?)', lsegs[-1])
         if not m or len(msegs) < len(lsegs): continue
         s, code = int(m.group(1)), msegs[len(lsegs) - 1]   # e.g. Ncmpa = noun common masc plural absolute
+        aug = m.group(2)  # OSHB homonym letter: לחם 'fight' and לחם 'eat' share a Strong's number
         if len(tsegs) >= len(lsegs):
             any_forms[s][citation_spelling(plain(tsegs[len(lsegs) - 1]))] += 1
         if code.startswith('V') and len(code) >= 3:          # e.g. Vpp3ms = verb piel perfect 3ms
-            verb_stems[s][code[1]] += 1
+            verb_stems[(s, aug)][code[1]] += 1
             # standalone, not joined by maqqef (which shortens vowels: דִּבֶּר־ vs דִּבֵּר)
             if code[1] != 'q' and code[2:6] == 'p3ms' and len(lsegs) == 1 and len(tsegs) == 1 and not after:
-                qatal_forms[(s, code[1])][citation_spelling(plain(tsegs[0]))] += 1
+                qatal_forms[(s, aug, code[1])][citation_spelling(plain(tsegs[0]))] += 1
             continue
         if not code.startswith('Nc') or len(code) < 5: continue
         noun_numbers[s][code[3]] += 1
@@ -81,7 +82,34 @@ members_of = collections.defaultdict(list)
 for r in rows:
     if r['kind'] == 'word' and r['root']: members_of[r['root']].append(r)
 
-VERB_SHARE = 0.35  # below this share of the root's uses, the root is named by its most common word (מֶלֶךְ, not מָלַךְ)
+# A root_map row is one homonym of a Strong's number: its own OSHB letter, or (no letter) every
+# occurrence not claimed by the number's other lettered rows.
+lettered = collections.defaultdict(set)
+verb_augs = collections.defaultdict(set)  # strong -> homonym letters seen on its verb forms
+for (t, a) in verb_stems: verb_augs[t].add(a)
+for r in rows:
+    if r['aug']: lettered[r['strong']].add(r['aug'])
+def row_augs(r):
+    if r['aug']: return {r['aug']}
+    s = int(r['strong'])
+    return verb_augs[s] - lettered[r['strong']]
+def stems_of(r):
+    """Verb uses of this row's homonym, by stem."""
+    total = collections.Counter()
+    for a in row_augs(r): total.update(verb_stems.get((int(r['strong']), a), {}))
+    return total
+def qatals_of(r, stem=None):
+    s, augs = int(r['strong']), row_augs(r)
+    return collections.Counter({f: n for (t, a, st), c in qatal_forms.items() if t == s and a in augs and (stem is None or st == stem) for f, n in c.items()})
+
+# A root with a verb is named by the verb (סָפַר 'to count', not סֵפֶר 'book'), except the reviewed
+# exceptions in decisions/root_naming.json whose verb is derived from the noun or too marginal to
+# name the family (כֹּל 'all', not כָּלַל; the numbers; לֵב 'heart'). Without a review entry, the old
+# frequency rule applies: named by the verb when it is at least VERB_SHARE of the family's uses.
+HERE = os.path.dirname(os.path.abspath(__file__))
+naming_path = os.path.join(HERE, 'decisions', 'root_naming.json')
+root_naming = json.load(open(naming_path, encoding='utf-8')) if os.path.exists(naming_path) else {}
+VERB_SHARE = 0.35
 # Roots whose most common word belongs to a side sense, so they are named by the verb anyway:
 # דין 'to judge' (its most common word is מְדִינָה 'province').
 NAMED_BY_VERB = {'דין'}
@@ -93,15 +121,15 @@ def root_word(members, key=''):
       another stem dominates       → that stem's attested qatal (דִּבֵּר, הֶאֱזִין), not a rare/unused qal
       rare or no verb              → most common word (לֵב, not לָבַב; אֶבֶן)"""
     total = sum(int(r['occurrences'] or 0) for r in members) or 1
-    verbs = [r for r in members if verb_stems.get(int(r['strong']))]
+    verbs = [r for r in members if stems_of(r)]
     if verbs:
-        verb = max(verbs, key=lambda r: sum(verb_stems[int(r['strong'])].values()))
-        s = int(verb['strong'])
-        if sum(verb_stems[s].values()) >= VERB_SHARE * total or key in NAMED_BY_VERB:
-            main_stem = verb_stems[s].most_common(1)[0][0]
+        verb = max(verbs, key=lambda r: sum(stems_of(r).values()))
+        s, stems = int(verb['strong']), stems_of(verb)
+        decided = root_naming.get(key, {}).get('name')
+        if decided == 'verb' or (decided is None and (sum(stems.values()) >= VERB_SHARE * total or key in NAMED_BY_VERB)):
+            main_stem = stems.most_common(1)[0][0]
             if main_stem != 'q':
-                forms = qatal_forms.get((s, main_stem)) or collections.Counter(
-                    {f: n for (t, st), c in qatal_forms.items() if t == s for f, n in c.items()})
+                forms = qatals_of(verb, main_stem) or qatals_of(verb)
                 if forms:
                     best = forms.most_common(1)[0][0]
                     # textbooks cite the regular paradigm form (דִּבֵּר) where the text also has it,
@@ -230,13 +258,13 @@ if len(sys.argv) > 4:  # optional: compare chapter/verse layout with heb_bible (
 # ---- English chip labels. Lexicon glosses are often a technical first sense (טוב 'pleasant',
 # הלל 'be boastful'), so decisions/chip_glosses.json holds reviewed plain-English labels:
 # {"roots": {root key: label}, "words": {strong: label}}. Names keep their name ("Isaac").
-HERE = os.path.dirname(os.path.abspath(__file__))
 glosses_path = os.path.join(HERE, 'decisions', 'chip_glosses.json')
 chip_glosses = json.load(open(glosses_path, encoding='utf-8')) if os.path.exists(glosses_path) else {'roots': {}, 'words': {}}
 root_keys = [None] * len(roots)
 for key, i in ridx.items(): root_keys[i] = key
 for i, key in enumerate(root_keys):
     if key in chip_glosses['roots']: roots[i][1] = chip_glosses['roots'][key]
+    if root_naming.get(key, {}).get('label'): roots[i][1] = root_naming[key]['label']
 name_strongs = {r['strong'] for r in rows if r['kind'] == 'name'}
 for s, entry in lemmas.items():
     if s in chip_glosses['words']: entry[1] = chip_glosses['words'][s]
