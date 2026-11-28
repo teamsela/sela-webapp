@@ -1,0 +1,1619 @@
+[
+ {
+  "aramaic_root": "arc:אבב",
+  "decision": "merge",
+  "hebrew_root": "אבב",
+  "confidence": "medium",
+  "reason": "Fruit / fresh growth; same root as Hebrew אֵב freshness"
+ },
+ {
+  "aramaic_root": "arc:אבד",
+  "decision": "merge",
+  "hebrew_root": "אבד",
+  "confidence": "high",
+  "reason": "Same root and meaning: perish"
+ },
+ {
+  "aramaic_root": "arc:אבה",
+  "decision": "merge",
+  "hebrew_root": "אבה II",
+  "confidence": "high",
+  "reason": "Father"
+ },
+ {
+  "aramaic_root": "arc:אוה",
+  "decision": "merge",
+  "hebrew_root": "אוה III",
+  "confidence": "high",
+  "reason": "Sign, cognate of אוֹת"
+ },
+ {
+  "aramaic_root": "arc:אול",
+  "decision": "merge",
+  "hebrew_root": "אול II",
+  "confidence": "medium",
+  "reason": "Tree; BDB groups אַיִל/אֵלָה/אֵלוֹן (big trees) under this root"
+ },
+ {
+  "aramaic_root": "arc:אזא",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:אזל",
+  "decision": "merge",
+  "hebrew_root": "אזל",
+  "confidence": "high",
+  "reason": "Go"
+ },
+ {
+  "aramaic_root": "arc:אזן",
+  "decision": "merge",
+  "hebrew_root": "אזן II",
+  "confidence": "high",
+  "reason": "Scales/balances"
+ },
+ {
+  "aramaic_root": "arc:אחד",
+  "decision": "merge",
+  "hebrew_root": "אחד I",
+  "confidence": "high",
+  "reason": "One"
+ },
+ {
+  "aramaic_root": "arc:אחה",
+  "decision": "merge",
+  "hebrew_root": "אחה",
+  "confidence": "high",
+  "reason": "Brother"
+ },
+ {
+  "aramaic_root": "arc:אחר",
+  "decision": "merge",
+  "hebrew_root": "אחר",
+  "confidence": "high",
+  "reason": "After/another/end"
+ },
+ {
+  "aramaic_root": "arc:אכל",
+  "decision": "merge",
+  "hebrew_root": "אכל",
+  "confidence": "high",
+  "reason": "Eat"
+ },
+ {
+  "aramaic_root": "arc:אמן",
+  "decision": "merge",
+  "hebrew_root": "אמן",
+  "confidence": "high",
+  "reason": "Trust/firmness"
+ },
+ {
+  "aramaic_root": "arc:אמר",
+  "decision": "merge",
+  "hebrew_root": "אמר",
+  "confidence": "high",
+  "reason": "Say/word; BDB also puts Aramaic אִמַּר lamb here"
+ },
+ {
+  "aramaic_root": "arc:אנס",
+  "decision": "merge",
+  "hebrew_root": "אנס",
+  "confidence": "high",
+  "reason": "Oppress/compel"
+ },
+ {
+  "aramaic_root": "arc:אנש I",
+  "decision": "merge",
+  "hebrew_root": "אנש II",
+  "confidence": "high",
+  "reason": "Man, cognate of אֱנוֹשׁ"
+ },
+ {
+  "aramaic_root": "arc:אנש II",
+  "decision": "merge",
+  "hebrew_root": "אנש III",
+  "confidence": "high",
+  "reason": "Wives/women, cognate of אִשָּׁה/נָשִׁים"
+ },
+ {
+  "aramaic_root": "arc:אסר",
+  "decision": "merge",
+  "hebrew_root": "אסר",
+  "confidence": "high",
+  "reason": "Bind/bond"
+ },
+ {
+  "aramaic_root": "arc:ארה",
+  "decision": "merge",
+  "hebrew_root": "ארה I",
+  "confidence": "high",
+  "reason": "Lion"
+ },
+ {
+  "aramaic_root": "arc:ארך I",
+  "decision": "merge",
+  "hebrew_root": "ארך",
+  "confidence": "high",
+  "reason": "Length/prolonging"
+ },
+ {
+  "aramaic_root": "arc:ארך II",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "BDB treats אֲרִיךְ fitting as a separate root; Hebrew ארך only means length"
+ },
+ {
+  "aramaic_root": "arc:אתה",
+  "decision": "merge",
+  "hebrew_root": "אתה",
+  "confidence": "high",
+  "reason": "Come"
+ },
+ {
+  "aramaic_root": "arc:אתר",
+  "decision": "suggest-cognate",
+  "hebrew_root": "אשׁר",
+  "confidence": "low",
+  "reason": "Place ~ Akkadian ašru; Aramaic ת = Hebrew שׁ; link to Hebrew אשׁר is speculative"
+ },
+ {
+  "aramaic_root": "arc:באש",
+  "decision": "merge",
+  "hebrew_root": "באש",
+  "confidence": "high",
+  "reason": "Be bad/evil, same root as stench/odious"
+ },
+ {
+  "aramaic_root": "arc:בדר",
+  "decision": "suggest-cognate",
+  "hebrew_root": "בזר",
+  "confidence": "medium",
+  "reason": "Scatter; Aramaic ד = Hebrew ז (בָּזַר scatter)"
+ },
+ {
+  "aramaic_root": "arc:בהל",
+  "decision": "merge",
+  "hebrew_root": "בהל",
+  "confidence": "high",
+  "reason": "Alarm/dismay"
+ },
+ {
+  "aramaic_root": "arc:בול",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root (mind)"
+ },
+ {
+  "aramaic_root": "arc:בטל",
+  "decision": "merge",
+  "hebrew_root": "בטל",
+  "confidence": "high",
+  "reason": "Cease"
+ },
+ {
+  "aramaic_root": "arc:בית",
+  "decision": "suggest-cognate",
+  "hebrew_root": "בית",
+  "confidence": "medium",
+  "reason": "Same word as Hebrew בַּיִת but no Hebrew key בית found; owner should find its key"
+ },
+ {
+  "aramaic_root": "arc:בנה",
+  "decision": "merge",
+  "hebrew_root": "בנה",
+  "confidence": "high",
+  "reason": "Build"
+ },
+ {
+  "aramaic_root": "arc:בנס",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:בקר",
+  "decision": "merge",
+  "hebrew_root": "בקר",
+  "confidence": "high",
+  "reason": "Inquire (Hebrew בָּקַר inquire)"
+ },
+ {
+  "aramaic_root": "arc:ברך",
+  "decision": "merge",
+  "hebrew_root": "ברך",
+  "confidence": "high",
+  "reason": "Kneel/knee/bless"
+ },
+ {
+  "aramaic_root": "arc:ברר",
+  "decision": "merge",
+  "hebrew_root": "ברר",
+  "confidence": "medium",
+  "reason": "Field; Hebrew בַּר open field sits under the same BDB root"
+ },
+ {
+  "aramaic_root": "arc:גאה",
+  "decision": "merge",
+  "hebrew_root": "גאה",
+  "confidence": "high",
+  "reason": "Pride"
+ },
+ {
+  "aramaic_root": "arc:גבר",
+  "decision": "merge",
+  "hebrew_root": "גבר",
+  "confidence": "high",
+  "reason": "Man/might"
+ },
+ {
+  "aramaic_root": "arc:גדד",
+  "decision": "merge",
+  "hebrew_root": "גדד",
+  "confidence": "high",
+  "reason": "Cut/hew down"
+ },
+ {
+  "aramaic_root": "arc:גזר",
+  "decision": "merge",
+  "hebrew_root": "גזר",
+  "confidence": "high",
+  "reason": "Cut/decree"
+ },
+ {
+  "aramaic_root": "arc:גין",
+  "decision": "suggest-cognate",
+  "hebrew_root": "גיר",
+  "confidence": "low",
+  "reason": "Same word as Hebrew גִּיר chalk (Isa 27:9); owner should find its key"
+ },
+ {
+  "aramaic_root": "arc:גלל",
+  "decision": "merge",
+  "hebrew_root": "גלל II",
+  "confidence": "high",
+  "reason": "Roll/wheel/scroll"
+ },
+ {
+  "aramaic_root": "arc:גמר",
+  "decision": "merge",
+  "hebrew_root": "גמר",
+  "confidence": "high",
+  "reason": "Complete/end"
+ },
+ {
+  "aramaic_root": "arc:דבח",
+  "decision": "suggest-cognate",
+  "hebrew_root": "זבח",
+  "confidence": "medium",
+  "reason": "Sacrifice/altar; Aramaic ד = Hebrew ז"
+ },
+ {
+  "aramaic_root": "arc:דבק",
+  "decision": "merge",
+  "hebrew_root": "דבק",
+  "confidence": "high",
+  "reason": "Cling"
+ },
+ {
+  "aramaic_root": "arc:דור",
+  "decision": "merge",
+  "hebrew_root": "דור",
+  "confidence": "high",
+  "reason": "Dwell/generation"
+ },
+ {
+  "aramaic_root": "arc:דוש",
+  "decision": "merge",
+  "hebrew_root": "דוש",
+  "confidence": "high",
+  "reason": "Tread/thresh"
+ },
+ {
+  "aramaic_root": "arc:דחל",
+  "decision": "suggest-cognate",
+  "hebrew_root": "זחל",
+  "confidence": "medium",
+  "reason": "Fear; Aramaic ד = Hebrew ז (Job 32:6 זָחַלְתִּי)"
+ },
+ {
+  "aramaic_root": "arc:דין",
+  "decision": "merge",
+  "hebrew_root": "דין",
+  "confidence": "high",
+  "reason": "Judge/province"
+ },
+ {
+  "aramaic_root": "arc:דכר",
+  "decision": "suggest-cognate",
+  "hebrew_root": "זכר",
+  "confidence": "medium",
+  "reason": "Ram/remember; Aramaic ד = Hebrew ז (זָכָר, זִכָּרוֹן)"
+ },
+ {
+  "aramaic_root": "arc:דלק",
+  "decision": "merge",
+  "hebrew_root": "דלק",
+  "confidence": "high",
+  "reason": "Burn"
+ },
+ {
+  "aramaic_root": "arc:דמה",
+  "decision": "merge",
+  "hebrew_root": "דמה I",
+  "confidence": "high",
+  "reason": "Be like"
+ },
+ {
+  "aramaic_root": "arc:דרע",
+  "decision": "suggest-cognate",
+  "hebrew_root": "זרע",
+  "confidence": "medium",
+  "reason": "Arm; Aramaic ד = Hebrew ז (זְרוֹעַ)"
+ },
+ {
+  "aramaic_root": "arc:הדר",
+  "decision": "merge",
+  "hebrew_root": "הדר",
+  "confidence": "high",
+  "reason": "Honour/glory"
+ },
+ {
+  "aramaic_root": "arc:הרהר",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:זבן",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:זהר",
+  "decision": "merge",
+  "hebrew_root": "זהר II",
+  "confidence": "high",
+  "reason": "Warn (Hebrew הִזְהִיר warn)"
+ },
+ {
+  "aramaic_root": "arc:זון",
+  "decision": "merge",
+  "hebrew_root": "זון",
+  "confidence": "high",
+  "reason": "Feed/food"
+ },
+ {
+  "aramaic_root": "arc:זוע",
+  "decision": "merge",
+  "hebrew_root": "זוע",
+  "confidence": "high",
+  "reason": "Tremble"
+ },
+ {
+  "aramaic_root": "arc:זמר",
+  "decision": "merge",
+  "hebrew_root": "זמר I",
+  "confidence": "high",
+  "reason": "Music/singer"
+ },
+ {
+  "aramaic_root": "arc:זער",
+  "decision": "merge",
+  "hebrew_root": "זער",
+  "confidence": "high",
+  "reason": "Little"
+ },
+ {
+  "aramaic_root": "arc:זקף",
+  "decision": "merge",
+  "hebrew_root": "זקף",
+  "confidence": "high",
+  "reason": "Raise up"
+ },
+ {
+  "aramaic_root": "arc:חבל",
+  "decision": "merge",
+  "hebrew_root": "חבל II",
+  "confidence": "high",
+  "reason": "Destroy/hurt"
+ },
+ {
+  "aramaic_root": "arc:חבר",
+  "decision": "merge",
+  "hebrew_root": "חבר",
+  "confidence": "high",
+  "reason": "Companion/unite"
+ },
+ {
+  "aramaic_root": "arc:חוד",
+  "decision": "merge",
+  "hebrew_root": "חוד",
+  "confidence": "high",
+  "reason": "Riddle"
+ },
+ {
+  "aramaic_root": "arc:חוה",
+  "decision": "merge",
+  "hebrew_root": "חוה III",
+  "confidence": "high",
+  "reason": "Declare"
+ },
+ {
+  "aramaic_root": "arc:חוט",
+  "decision": "merge",
+  "hebrew_root": "חוט",
+  "confidence": "medium",
+  "reason": "Repair/join (sew); BDB links it to חוּט thread"
+ },
+ {
+  "aramaic_root": "arc:חזה",
+  "decision": "merge",
+  "hebrew_root": "חזה I",
+  "confidence": "high",
+  "reason": "See/vision"
+ },
+ {
+  "aramaic_root": "arc:חכם",
+  "decision": "merge",
+  "hebrew_root": "חכם",
+  "confidence": "high",
+  "reason": "Wisdom"
+ },
+ {
+  "aramaic_root": "arc:חלף",
+  "decision": "merge",
+  "hebrew_root": "חלף",
+  "confidence": "high",
+  "reason": "Pass/change"
+ },
+ {
+  "aramaic_root": "arc:חלק",
+  "decision": "merge",
+  "hebrew_root": "חלק I",
+  "confidence": "high",
+  "reason": "Portion/division"
+ },
+ {
+  "aramaic_root": "arc:חנן",
+  "decision": "merge",
+  "hebrew_root": "חנן I",
+  "confidence": "high",
+  "reason": "Shew favour"
+ },
+ {
+  "aramaic_root": "arc:חסן",
+  "decision": "merge",
+  "hebrew_root": "חסן",
+  "confidence": "high",
+  "reason": "Power/strength"
+ },
+ {
+  "aramaic_root": "arc:חצף",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:חרב",
+  "decision": "merge",
+  "hebrew_root": "חרב II",
+  "confidence": "high",
+  "reason": "Be waste"
+ },
+ {
+  "aramaic_root": "arc:חרך",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Singe; BDB glosses Hebrew חרך I as \"set in motion\", so meanings differ"
+ },
+ {
+  "aramaic_root": "arc:חשב",
+  "decision": "merge",
+  "hebrew_root": "חשב",
+  "confidence": "high",
+  "reason": "Think"
+ },
+ {
+  "aramaic_root": "arc:חשח",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:חשך",
+  "decision": "merge",
+  "hebrew_root": "חשך II",
+  "confidence": "high",
+  "reason": "Darkness"
+ },
+ {
+  "aramaic_root": "arc:חשל",
+  "decision": "merge",
+  "hebrew_root": "חשל",
+  "confidence": "high",
+  "reason": "Shatter"
+ },
+ {
+  "aramaic_root": "arc:חתם",
+  "decision": "merge",
+  "hebrew_root": "חתם",
+  "confidence": "high",
+  "reason": "Seal"
+ },
+ {
+  "aramaic_root": "arc:טעם",
+  "decision": "merge",
+  "hebrew_root": "טעם",
+  "confidence": "high",
+  "reason": "Taste/decree"
+ },
+ {
+  "aramaic_root": "arc:טרד",
+  "decision": "merge",
+  "hebrew_root": "טרד",
+  "confidence": "high",
+  "reason": "Drive away"
+ },
+ {
+  "aramaic_root": "arc:יבל",
+  "decision": "merge",
+  "hebrew_root": "יבל",
+  "confidence": "high",
+  "reason": "Bear along/conduct"
+ },
+ {
+  "aramaic_root": "arc:ידע",
+  "decision": "merge",
+  "hebrew_root": "ידע",
+  "confidence": "high",
+  "reason": "Know"
+ },
+ {
+  "aramaic_root": "arc:יהב",
+  "decision": "merge",
+  "hebrew_root": "יהב",
+  "confidence": "high",
+  "reason": "Give"
+ },
+ {
+  "aramaic_root": "arc:יחם",
+  "decision": "merge",
+  "hebrew_root": "יחם",
+  "confidence": "high",
+  "reason": "Heat/rage"
+ },
+ {
+  "aramaic_root": "arc:יטב",
+  "decision": "merge",
+  "hebrew_root": "יטב",
+  "confidence": "high",
+  "reason": "Be good/pleasing"
+ },
+ {
+  "aramaic_root": "arc:יכל",
+  "decision": "merge",
+  "hebrew_root": "יכל",
+  "confidence": "high",
+  "reason": "Be able"
+ },
+ {
+  "aramaic_root": "arc:יסף",
+  "decision": "merge",
+  "hebrew_root": "יסף",
+  "confidence": "high",
+  "reason": "Add"
+ },
+ {
+  "aramaic_root": "arc:יצב",
+  "decision": "merge",
+  "hebrew_root": "יצב",
+  "confidence": "medium",
+  "reason": "Make certain / stand firm; same root, sense shifted"
+ },
+ {
+  "aramaic_root": "arc:יקד",
+  "decision": "merge",
+  "hebrew_root": "יקד",
+  "confidence": "high",
+  "reason": "Burn"
+ },
+ {
+  "aramaic_root": "arc:יקר",
+  "decision": "merge",
+  "hebrew_root": "יקר",
+  "confidence": "high",
+  "reason": "Honour/precious"
+ },
+ {
+  "aramaic_root": "arc:ישן",
+  "decision": "merge",
+  "hebrew_root": "ישן",
+  "confidence": "high",
+  "reason": "Sleep"
+ },
+ {
+  "aramaic_root": "arc:כהל",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:כלל",
+  "decision": "merge",
+  "hebrew_root": "כלל I",
+  "confidence": "high",
+  "reason": "Complete"
+ },
+ {
+  "aramaic_root": "arc:כנש",
+  "decision": "suggest-cognate",
+  "hebrew_root": "כנס",
+  "confidence": "medium",
+  "reason": "Gather; Aramaic שׁ ~ Hebrew ס (כָּנַס gather), not a standard shift"
+ },
+ {
+  "aramaic_root": "arc:כסא",
+  "decision": "suggest-cognate",
+  "hebrew_root": "כסא",
+  "confidence": "low",
+  "reason": "Same word as Hebrew כִּסֵּא throne (ר inserted); no Hebrew key כסא found—owner should find it"
+ },
+ {
+  "aramaic_root": "arc:כפת",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:כרר",
+  "decision": "merge",
+  "hebrew_root": "כרר",
+  "confidence": "high",
+  "reason": "Talent; Hebrew כִּכָּר (round) sits under this root in BDB"
+ },
+ {
+  "aramaic_root": "arc:כתב",
+  "decision": "merge",
+  "hebrew_root": "כתב",
+  "confidence": "high",
+  "reason": "Write"
+ },
+ {
+  "aramaic_root": "arc:לאך",
+  "decision": "merge",
+  "hebrew_root": "לאך",
+  "confidence": "high",
+  "reason": "Messenger/angel"
+ },
+ {
+  "aramaic_root": "arc:לבב",
+  "decision": "merge",
+  "hebrew_root": "לבב",
+  "confidence": "high",
+  "reason": "Heart"
+ },
+ {
+  "aramaic_root": "arc:לבש",
+  "decision": "merge",
+  "hebrew_root": "לבש",
+  "confidence": "high",
+  "reason": "Clothe/garment"
+ },
+ {
+  "aramaic_root": "arc:מאה",
+  "decision": "merge",
+  "hebrew_root": "מאה",
+  "confidence": "high",
+  "reason": "Hundred"
+ },
+ {
+  "aramaic_root": "arc:מלא",
+  "decision": "merge",
+  "hebrew_root": "מלא",
+  "confidence": "high",
+  "reason": "Fill"
+ },
+ {
+  "aramaic_root": "arc:מלח",
+  "decision": "merge",
+  "hebrew_root": "מלח II",
+  "confidence": "high",
+  "reason": "Salt"
+ },
+ {
+  "aramaic_root": "arc:מלך I",
+  "decision": "merge",
+  "hebrew_root": "מלך I",
+  "confidence": "high",
+  "reason": "King/kingdom"
+ },
+ {
+  "aramaic_root": "arc:מלך II",
+  "decision": "merge",
+  "hebrew_root": "מלך II",
+  "confidence": "high",
+  "reason": "Counsel"
+ },
+ {
+  "aramaic_root": "arc:מלל",
+  "decision": "merge",
+  "hebrew_root": "מלל I",
+  "confidence": "high",
+  "reason": "Word/speak"
+ },
+ {
+  "aramaic_root": "arc:מנה",
+  "decision": "merge",
+  "hebrew_root": "מנה",
+  "confidence": "high",
+  "reason": "Number/count"
+ },
+ {
+  "aramaic_root": "arc:מרד",
+  "decision": "merge",
+  "hebrew_root": "מרד",
+  "confidence": "high",
+  "reason": "Rebellion"
+ },
+ {
+  "aramaic_root": "arc:מרט",
+  "decision": "merge",
+  "hebrew_root": "מרט",
+  "confidence": "high",
+  "reason": "Pluck/make smooth"
+ },
+ {
+  "aramaic_root": "arc:נבא",
+  "decision": "merge",
+  "hebrew_root": "נבא",
+  "confidence": "high",
+  "reason": "Prophesy"
+ },
+ {
+  "aramaic_root": "arc:נגד",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Aramaic sense is \"flow\"; Hebrew נגד means conspicuous/tell"
+ },
+ {
+  "aramaic_root": "arc:נדב",
+  "decision": "merge",
+  "hebrew_root": "נדב",
+  "confidence": "high",
+  "reason": "Volunteer/freewill"
+ },
+ {
+  "aramaic_root": "arc:נדד",
+  "decision": "merge",
+  "hebrew_root": "נדד I",
+  "confidence": "high",
+  "reason": "Flee/retreat"
+ },
+ {
+  "aramaic_root": "arc:נהר I",
+  "decision": "merge",
+  "hebrew_root": "נהר I",
+  "confidence": "high",
+  "reason": "River"
+ },
+ {
+  "aramaic_root": "arc:נהר II",
+  "decision": "merge",
+  "hebrew_root": "נהר II",
+  "confidence": "high",
+  "reason": "Light"
+ },
+ {
+  "aramaic_root": "arc:נזק",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:נחת",
+  "decision": "merge",
+  "hebrew_root": "נחת",
+  "confidence": "high",
+  "reason": "Descend"
+ },
+ {
+  "aramaic_root": "arc:נטל",
+  "decision": "merge",
+  "hebrew_root": "נטל",
+  "confidence": "high",
+  "reason": "Lift"
+ },
+ {
+  "aramaic_root": "arc:נסח",
+  "decision": "merge",
+  "hebrew_root": "נסח",
+  "confidence": "high",
+  "reason": "Pull away"
+ },
+ {
+  "aramaic_root": "arc:נסך",
+  "decision": "merge",
+  "hebrew_root": "נסך I",
+  "confidence": "high",
+  "reason": "Pour out/drink-offering"
+ },
+ {
+  "aramaic_root": "arc:נפל",
+  "decision": "merge",
+  "hebrew_root": "נפל",
+  "confidence": "high",
+  "reason": "Fall"
+ },
+ {
+  "aramaic_root": "arc:נפק",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Biblical Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:נצח",
+  "decision": "merge",
+  "hebrew_root": "נצח I",
+  "confidence": "high",
+  "reason": "Be pre-eminent"
+ },
+ {
+  "aramaic_root": "arc:נצל",
+  "decision": "merge",
+  "hebrew_root": "נצל",
+  "confidence": "high",
+  "reason": "Rescue"
+ },
+ {
+  "aramaic_root": "arc:נקש",
+  "decision": "merge",
+  "hebrew_root": "נקש",
+  "confidence": "high",
+  "reason": "Knock"
+ },
+ {
+  "aramaic_root": "arc:נתן",
+  "decision": "merge",
+  "hebrew_root": "נתן",
+  "confidence": "high",
+  "reason": "Give/gift"
+ },
+ {
+  "aramaic_root": "arc:סבל",
+  "decision": "merge",
+  "hebrew_root": "סבל",
+  "confidence": "high",
+  "reason": "Bear burden"
+ },
+ {
+  "aramaic_root": "arc:סוף",
+  "decision": "merge",
+  "hebrew_root": "סוף",
+  "confidence": "high",
+  "reason": "End"
+ },
+ {
+  "aramaic_root": "arc:סעד",
+  "decision": "merge",
+  "hebrew_root": "סעד",
+  "confidence": "high",
+  "reason": "Support"
+ },
+ {
+  "aramaic_root": "arc:ספר",
+  "decision": "merge",
+  "hebrew_root": "ספר",
+  "confidence": "high",
+  "reason": "Book/scribe"
+ },
+ {
+  "aramaic_root": "arc:סתר I",
+  "decision": "merge",
+  "hebrew_root": "סתר",
+  "confidence": "high",
+  "reason": "Hide"
+ },
+ {
+  "aramaic_root": "arc:סתר II",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "BDB separate homonym: destroy; Hebrew סתר only hide"
+ },
+ {
+  "aramaic_root": "arc:עבד",
+  "decision": "merge",
+  "hebrew_root": "עבד",
+  "confidence": "high",
+  "reason": "Work/servant"
+ },
+ {
+  "aramaic_root": "arc:עדה",
+  "decision": "merge",
+  "hebrew_root": "עדה I",
+  "confidence": "high",
+  "reason": "Pass on"
+ },
+ {
+  "aramaic_root": "arc:עוד",
+  "decision": "merge",
+  "hebrew_root": "עוד",
+  "confidence": "high",
+  "reason": "Still/again"
+ },
+ {
+  "aramaic_root": "arc:עלה",
+  "decision": "merge",
+  "hebrew_root": "עלה",
+  "confidence": "high",
+  "reason": "Go up/most high/burnt-offering"
+ },
+ {
+  "aramaic_root": "arc:עלל",
+  "decision": "merge",
+  "hebrew_root": "עלל III",
+  "confidence": "medium",
+  "reason": "Go in; cf. Hebrew עָלַל thrust in (Job 16:15)"
+ },
+ {
+  "aramaic_root": "arc:ענה I",
+  "decision": "merge",
+  "hebrew_root": "ענה I",
+  "confidence": "high",
+  "reason": "Answer"
+ },
+ {
+  "aramaic_root": "arc:ענה II",
+  "decision": "merge",
+  "hebrew_root": "ענה III",
+  "confidence": "high",
+  "reason": "Poor/afflicted"
+ },
+ {
+  "aramaic_root": "arc:ענז",
+  "decision": "merge",
+  "hebrew_root": "ענז",
+  "confidence": "high",
+  "reason": "She-goat"
+ },
+ {
+  "aramaic_root": "arc:עפא",
+  "decision": "suggest-cognate",
+  "hebrew_root": "עפה",
+  "confidence": "low",
+  "reason": "Leafage = Hebrew עֳפִי (Ps 104:12); Hebrew key uncertain, owner should check"
+ },
+ {
+  "aramaic_root": "arc:עצב",
+  "decision": "merge",
+  "hebrew_root": "עצב I",
+  "confidence": "high",
+  "reason": "Pain"
+ },
+ {
+  "aramaic_root": "arc:עקר",
+  "decision": "merge",
+  "hebrew_root": "עקר",
+  "confidence": "high",
+  "reason": "Root/uproot"
+ },
+ {
+  "aramaic_root": "arc:ערב",
+  "decision": "merge",
+  "hebrew_root": "ערב I",
+  "confidence": "medium",
+  "reason": "Mix; Hebrew mixture is under I, though mingle also appears under II"
+ },
+ {
+  "aramaic_root": "arc:ערר",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Foe; neither Hebrew ערר homonym (cave, stripped) fits"
+ },
+ {
+  "aramaic_root": "arc:עשר",
+  "decision": "merge",
+  "hebrew_root": "עשר I",
+  "confidence": "high",
+  "reason": "Ten/twenty"
+ },
+ {
+  "aramaic_root": "arc:פחה",
+  "decision": "suggest-cognate",
+  "hebrew_root": "פחה",
+  "confidence": "low",
+  "reason": "Same loanword as Hebrew פֶּחָה governor; no Hebrew key פחה found—owner should find it"
+ },
+ {
+  "aramaic_root": "arc:פלג",
+  "decision": "merge",
+  "hebrew_root": "פלג",
+  "confidence": "high",
+  "reason": "Divide/half/division"
+ },
+ {
+  "aramaic_root": "arc:פלח",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Serve/worship vs Hebrew cleave; meanings differ"
+ },
+ {
+  "aramaic_root": "arc:פסס",
+  "decision": "merge",
+  "hebrew_root": "פסס I",
+  "confidence": "medium",
+  "reason": "Palm/flat of the hand"
+ },
+ {
+  "aramaic_root": "arc:פרס",
+  "decision": "merge",
+  "hebrew_root": "פרס",
+  "confidence": "high",
+  "reason": "Divide/break in two"
+ },
+ {
+  "aramaic_root": "arc:פרק",
+  "decision": "merge",
+  "hebrew_root": "פרק",
+  "confidence": "high",
+  "reason": "Tear away/break off"
+ },
+ {
+  "aramaic_root": "arc:פרש",
+  "decision": "merge",
+  "hebrew_root": "פרש II",
+  "confidence": "high",
+  "reason": "Make distinct"
+ },
+ {
+  "aramaic_root": "arc:פשר",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Interpret; Hebrew פתר is possibly related but not by a regular shift"
+ },
+ {
+  "aramaic_root": "arc:פתא",
+  "decision": "suggest-cognate",
+  "hebrew_root": "פתה",
+  "confidence": "low",
+  "reason": "Breadth; cf. Hebrew פתה be spacious (Gen 9:27)"
+ },
+ {
+  "aramaic_root": "arc:פתח",
+  "decision": "merge",
+  "hebrew_root": "פתח I",
+  "confidence": "high",
+  "reason": "Open"
+ },
+ {
+  "aramaic_root": "arc:צבע I",
+  "decision": "merge",
+  "hebrew_root": "צבע I",
+  "confidence": "high",
+  "reason": "Dip/wet, same root as dye"
+ },
+ {
+  "aramaic_root": "arc:צבע II",
+  "decision": "merge",
+  "hebrew_root": "צבע II",
+  "confidence": "high",
+  "reason": "Finger"
+ },
+ {
+  "aramaic_root": "arc:צלא",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:צלח",
+  "decision": "merge",
+  "hebrew_root": "צלח II",
+  "confidence": "high",
+  "reason": "Prosper/advance"
+ },
+ {
+  "aramaic_root": "arc:קבל",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "low",
+  "reason": "DATA ERROR: members are קדם words, not קבל; would match Hebrew קדם"
+ },
+ {
+  "aramaic_root": "arc:קדש",
+  "decision": "merge",
+  "hebrew_root": "קדש",
+  "confidence": "high",
+  "reason": "Holy"
+ },
+ {
+  "aramaic_root": "arc:קול",
+  "decision": "merge",
+  "hebrew_root": "קול",
+  "confidence": "high",
+  "reason": "Voice/sound"
+ },
+ {
+  "aramaic_root": "arc:קום",
+  "decision": "merge",
+  "hebrew_root": "קום",
+  "confidence": "high",
+  "reason": "Arise/endure"
+ },
+ {
+  "aramaic_root": "arc:קטל",
+  "decision": "merge",
+  "hebrew_root": "קטל",
+  "confidence": "high",
+  "reason": "Slay"
+ },
+ {
+  "aramaic_root": "arc:קטר",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "low",
+  "reason": "Joint/knot; Hebrew קטר II \"shut in\" is at best distant"
+ },
+ {
+  "aramaic_root": "arc:קצא",
+  "decision": "suggest-cognate",
+  "hebrew_root": "קצה",
+  "confidence": "medium",
+  "reason": "End; Hebrew קָצֶה (weak-letter variant). קְצַץ cut off fits Hebrew קצץ"
+ },
+ {
+  "aramaic_root": "arc:קצף",
+  "decision": "merge",
+  "hebrew_root": "קצף I",
+  "confidence": "high",
+  "reason": "Wrath"
+ },
+ {
+  "aramaic_root": "arc:קרא",
+  "decision": "merge",
+  "hebrew_root": "קרא I",
+  "confidence": "high",
+  "reason": "Call"
+ },
+ {
+  "aramaic_root": "arc:קרב",
+  "decision": "merge",
+  "hebrew_root": "קרב I",
+  "confidence": "high",
+  "reason": "Approach/war"
+ },
+ {
+  "aramaic_root": "arc:קרה",
+  "decision": "merge",
+  "hebrew_root": "קרה",
+  "confidence": "high",
+  "reason": "City"
+ },
+ {
+  "aramaic_root": "arc:קרן",
+  "decision": "merge",
+  "hebrew_root": "קרן",
+  "confidence": "high",
+  "reason": "Horn"
+ },
+ {
+  "aramaic_root": "arc:קרץ",
+  "decision": "merge",
+  "hebrew_root": "קרץ",
+  "confidence": "medium",
+  "reason": "Piece (bite off); Hebrew nip/pinch"
+ },
+ {
+  "aramaic_root": "arc:קשט",
+  "decision": "merge",
+  "hebrew_root": "קשט II",
+  "confidence": "high",
+  "reason": "Truth"
+ },
+ {
+  "aramaic_root": "arc:ראה",
+  "decision": "merge",
+  "hebrew_root": "ראה",
+  "confidence": "high",
+  "reason": "Appearance/see"
+ },
+ {
+  "aramaic_root": "arc:רבב",
+  "decision": "merge",
+  "hebrew_root": "רבב I",
+  "confidence": "high",
+  "reason": "Great/myriad"
+ },
+ {
+  "aramaic_root": "arc:רבה",
+  "decision": "merge",
+  "hebrew_root": "רבה I",
+  "confidence": "high",
+  "reason": "Grow great"
+ },
+ {
+  "aramaic_root": "arc:רבע",
+  "decision": "merge",
+  "hebrew_root": "רבע I",
+  "confidence": "high",
+  "reason": "Four/fourth"
+ },
+ {
+  "aramaic_root": "arc:רגז",
+  "decision": "merge",
+  "hebrew_root": "רגז",
+  "confidence": "high",
+  "reason": "Rage/agitation"
+ },
+ {
+  "aramaic_root": "arc:רגש",
+  "decision": "merge",
+  "hebrew_root": "רגש",
+  "confidence": "high",
+  "reason": "Be in tumult"
+ },
+ {
+  "aramaic_root": "arc:רוח",
+  "decision": "merge",
+  "hebrew_root": "רוח I",
+  "confidence": "high",
+  "reason": "Wind/spirit/smell"
+ },
+ {
+  "aramaic_root": "arc:רום",
+  "decision": "merge",
+  "hebrew_root": "רום",
+  "confidence": "high",
+  "reason": "Rise/height"
+ },
+ {
+  "aramaic_root": "arc:רחץ",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "Trust vs Hebrew wash; unrelated"
+ },
+ {
+  "aramaic_root": "arc:רחק",
+  "decision": "merge",
+  "hebrew_root": "רחק",
+  "confidence": "high",
+  "reason": "Far"
+ },
+ {
+  "aramaic_root": "arc:רעה",
+  "decision": "merge",
+  "hebrew_root": "רעה III",
+  "confidence": "high",
+  "reason": "Good pleasure/thought (רַעְיוֹן)"
+ },
+ {
+  "aramaic_root": "arc:רפס",
+  "decision": "merge",
+  "hebrew_root": "רפס",
+  "confidence": "high",
+  "reason": "Tread/stamp"
+ },
+ {
+  "aramaic_root": "arc:רשם",
+  "decision": "merge",
+  "hebrew_root": "רשם",
+  "confidence": "high",
+  "reason": "Inscribe"
+ },
+ {
+  "aramaic_root": "arc:שאל",
+  "decision": "merge",
+  "hebrew_root": "שאל",
+  "confidence": "high",
+  "reason": "Ask/request"
+ },
+ {
+  "aramaic_root": "arc:שבב",
+  "decision": "merge",
+  "hebrew_root": "שבב II",
+  "confidence": "high",
+  "reason": "Flame"
+ },
+ {
+  "aramaic_root": "arc:שבח",
+  "decision": "merge",
+  "hebrew_root": "שבח II",
+  "confidence": "high",
+  "reason": "Laud"
+ },
+ {
+  "aramaic_root": "arc:שבך",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Trigon is a foreign instrument name (sambykē), not Hebrew lattice"
+ },
+ {
+  "aramaic_root": "arc:שבע",
+  "decision": "merge",
+  "hebrew_root": "שבע II",
+  "confidence": "high",
+  "reason": "Seven"
+ },
+ {
+  "aramaic_root": "arc:שבק",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:שבש",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "No Hebrew cognate root"
+ },
+ {
+  "aramaic_root": "arc:שגא",
+  "decision": "merge",
+  "hebrew_root": "שגא",
+  "confidence": "high",
+  "reason": "Grow great"
+ },
+ {
+  "aramaic_root": "arc:שדת",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁדשׁ",
+  "confidence": "medium",
+  "reason": "Six/sixty; Aramaic ת = Hebrew שׁ (שֵׁשׁ, שִׁשִּׁים); check Hebrew key spelling"
+ },
+ {
+  "aramaic_root": "arc:שוה I",
+  "decision": "merge",
+  "hebrew_root": "שוה I",
+  "confidence": "high",
+  "reason": "Become like/even"
+ },
+ {
+  "aramaic_root": "arc:שוה II",
+  "decision": "merge",
+  "hebrew_root": "שוה II",
+  "confidence": "high",
+  "reason": "Be set/placed"
+ },
+ {
+  "aramaic_root": "arc:שוק",
+  "decision": "merge",
+  "hebrew_root": "שוק I",
+  "confidence": "high",
+  "reason": "Leg"
+ },
+ {
+  "aramaic_root": "arc:שחת",
+  "decision": "merge",
+  "hebrew_root": "שחת",
+  "confidence": "high",
+  "reason": "Corrupt"
+ },
+ {
+  "aramaic_root": "arc:שיב",
+  "decision": "merge",
+  "hebrew_root": "שיב",
+  "confidence": "high",
+  "reason": "Be hoary"
+ },
+ {
+  "aramaic_root": "arc:שכב",
+  "decision": "merge",
+  "hebrew_root": "שכב",
+  "confidence": "high",
+  "reason": "Lie down/couch"
+ },
+ {
+  "aramaic_root": "arc:שכח",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "high",
+  "reason": "Find vs Hebrew forget; different roots"
+ },
+ {
+  "aramaic_root": "arc:שכל",
+  "decision": "merge",
+  "hebrew_root": "שכל I",
+  "confidence": "high",
+  "reason": "Consider/insight"
+ },
+ {
+  "aramaic_root": "arc:שכן",
+  "decision": "merge",
+  "hebrew_root": "שכן",
+  "confidence": "high",
+  "reason": "Dwell"
+ },
+ {
+  "aramaic_root": "arc:שלח",
+  "decision": "merge",
+  "hebrew_root": "שלח I",
+  "confidence": "high",
+  "reason": "Send"
+ },
+ {
+  "aramaic_root": "arc:שלט",
+  "decision": "merge",
+  "hebrew_root": "שלט I",
+  "confidence": "high",
+  "reason": "Rule/dominion"
+ },
+ {
+  "aramaic_root": "arc:שלם",
+  "decision": "merge",
+  "hebrew_root": "שלם",
+  "confidence": "high",
+  "reason": "Complete/peace"
+ },
+ {
+  "aramaic_root": "arc:שמד",
+  "decision": "merge",
+  "hebrew_root": "שמד",
+  "confidence": "high",
+  "reason": "Destroy"
+ },
+ {
+  "aramaic_root": "arc:שמם",
+  "decision": "merge",
+  "hebrew_root": "שמם",
+  "confidence": "high",
+  "reason": "Be appalled/desolate"
+ },
+ {
+  "aramaic_root": "arc:שמע",
+  "decision": "merge",
+  "hebrew_root": "שמע",
+  "confidence": "high",
+  "reason": "Hear"
+ },
+ {
+  "aramaic_root": "arc:שמש I",
+  "decision": "merge",
+  "hebrew_root": "שמש",
+  "confidence": "high",
+  "reason": "Sun"
+ },
+ {
+  "aramaic_root": "arc:שמש II",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Minister/serve; Hebrew שמש only sun"
+ },
+ {
+  "aramaic_root": "arc:שנא",
+  "decision": "merge",
+  "hebrew_root": "שנא",
+  "confidence": "high",
+  "reason": "Hate"
+ },
+ {
+  "aramaic_root": "arc:שנן",
+  "decision": "merge",
+  "hebrew_root": "שנן",
+  "confidence": "high",
+  "reason": "Tooth"
+ },
+ {
+  "aramaic_root": "arc:שפט",
+  "decision": "merge",
+  "hebrew_root": "שפט",
+  "confidence": "high",
+  "reason": "Judge"
+ },
+ {
+  "aramaic_root": "arc:שפל",
+  "decision": "merge",
+  "hebrew_root": "שפל",
+  "confidence": "high",
+  "reason": "Be low"
+ },
+ {
+  "aramaic_root": "arc:שפר",
+  "decision": "merge",
+  "hebrew_root": "שפר",
+  "confidence": "high",
+  "reason": "Fair/beautiful"
+ },
+ {
+  "aramaic_root": "arc:שרק",
+  "decision": "merge",
+  "hebrew_root": "שרק III",
+  "confidence": "high",
+  "reason": "Pipe/whistling = hiss"
+ },
+ {
+  "aramaic_root": "arc:שרש",
+  "decision": "merge",
+  "hebrew_root": "שרש",
+  "confidence": "high",
+  "reason": "Root"
+ },
+ {
+  "aramaic_root": "arc:שתה",
+  "decision": "merge",
+  "hebrew_root": "שתה I",
+  "confidence": "high",
+  "reason": "Drink/feast"
+ },
+ {
+  "aramaic_root": "arc:תבר",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁבר",
+  "confidence": "medium",
+  "reason": "Break; Aramaic ת = Hebrew שׁ"
+ },
+ {
+  "aramaic_root": "arc:תוב",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁוב",
+  "confidence": "medium",
+  "reason": "Return; Aramaic ת = Hebrew שׁ"
+ },
+ {
+  "aramaic_root": "arc:תוה",
+  "decision": "keep-separate",
+  "hebrew_root": null,
+  "confidence": "medium",
+  "reason": "Be startled; Hebrew תוה mark/pain unrelated"
+ },
+ {
+  "aramaic_root": "arc:תלת",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁלשׁ",
+  "confidence": "medium",
+  "reason": "Three/third/thirty; Aramaic ת = Hebrew שׁ"
+ },
+ {
+  "aramaic_root": "arc:תנא",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁנה",
+  "confidence": "medium",
+  "reason": "Second/two; Aramaic ת = Hebrew שׁ (שֵׁנִי, שְׁנַיִם)"
+ },
+ {
+  "aramaic_root": "arc:תקל",
+  "decision": "suggest-cognate",
+  "hebrew_root": "שׁקל",
+  "confidence": "medium",
+  "reason": "Weigh/shekel; Aramaic ת = Hebrew שׁ"
+ },
+ {
+  "aramaic_root": "arc:תקן",
+  "decision": "merge",
+  "hebrew_root": "תקן",
+  "confidence": "high",
+  "reason": "Set in order/straight"
+ },
+ {
+  "aramaic_root": "arc:תקף",
+  "decision": "merge",
+  "hebrew_root": "תקף",
+  "confidence": "high",
+  "reason": "Strength/might"
+ }
+]

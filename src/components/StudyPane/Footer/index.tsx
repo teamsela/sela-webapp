@@ -7,6 +7,7 @@ import clsx from "clsx";
 import BSBModal from "@/components/Modals/Footer/BSBModal";
 import DiscoveryModal from "@/components/Modals/Footer/DiscoveryModal";
 import ESVModal from "@/components/Modals/Footer/ESVModal";
+import HebrewLexiconModal from "@/components/Modals/Footer/HebrewLexiconModal";
 import OHBModal from "@/components/Modals/Footer/OHBModal";
 import ScripturaModal from "@/components/Modals/Footer/ScripturaModal";
 import StepBibleModal from "@/components/Modals/Footer/StepBibleModal";
@@ -151,6 +152,8 @@ export const Footer = () => {
             <ESVModal triggerClassName="px-0 hover:underline" />
             <span>,</span>
             <OHBModal triggerClassName="px-0 hover:underline" />
+            <span>,</span>
+            <HebrewLexiconModal triggerClassName="px-0 hover:underline" />
             <span>,</span>
             <ScripturaModal triggerClassName="px-0 hover:underline" />
           </div>

@@ -1,0 +1,1362 @@
+[
+ {
+  "family": "מרט",
+  "groups": [
+   {
+    "label": "make smooth",
+    "ids": [
+     "H4803"
+    ]
+   },
+   {
+    "label": "lessen (מעט, misgrouped)",
+    "ids": [
+     "H4593"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "משח",
+  "groups": [
+   {
+    "label": "anoint",
+    "ids": [
+     "H4886",
+     "H4899",
+     "H4888a",
+     "H4473",
+     "H4888b"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4473",
+    "lemma": "מִמְשַׁח",
+    "question": "מִמְשַׁח 'cherub of expansion' with מָשַׁח 'anoint' — Ezek 28:14 often read 'anointed cherub', BDB 'expansion' (משח II)",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "מתח",
+  "groups": [
+   {
+    "label": "spread out",
+    "ids": [
+     "H4969"
+    ]
+   },
+   {
+    "label": "sack",
+    "ids": [
+     "H572"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נבל I",
+  "groups": [
+   {
+    "label": "harp",
+    "ids": [
+     "H5035b"
+    ]
+   },
+   {
+    "label": "skin-bag, jar",
+    "ids": [
+     "H5035a"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5035a",
+    "lemma": "נֵ֫בֶל",
+    "question": "נֵבֶל 'bag/jar' with נֵבֶל 'harp' — harp possibly named for its bulging jar-like shape; usually treated as homonyms",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "נדד I",
+  "groups": [
+   {
+    "label": "retreat, flee, wander",
+    "ids": [
+     "H5074",
+     "H5076",
+     "H5206"
+    ]
+   },
+   {
+    "label": "menstrual impurity",
+    "ids": [
+     "H5079"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5079",
+    "lemma": "נִדָּה",
+    "question": "נִדָּה 'impurity' with נָדַד 'flee/retreat' — link via 'something shunned/expelled' (or from נדה) is not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "נהר II",
+  "groups": [
+   {
+    "label": "shine, light",
+    "ids": [
+     "H5102b",
+     "H5105"
+    ]
+   },
+   {
+    "label": "channel, den",
+    "ids": [
+     "H4492"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נחל I",
+  "groups": [
+   {
+    "label": "get as a possession",
+    "ids": [
+     "H5159",
+     "H5157"
+    ]
+   },
+   {
+    "label": "flute",
+    "ids": [
+     "H5155"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נחל II",
+  "groups": [
+   {
+    "label": "torrent",
+    "ids": [
+     "H5158a"
+    ]
+   },
+   {
+    "label": "palm-tree",
+    "ids": [
+     "H5158b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נטה",
+  "groups": [
+   {
+    "label": "stretch out, incline",
+    "ids": [
+     "H5186",
+     "H4296",
+     "H4295",
+     "H4297",
+     "H4298"
+    ]
+   },
+   {
+    "label": "staff, branch, tribe",
+    "ids": [
+     "H4294"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4294",
+    "lemma": "מַטֶּה",
+    "question": "מַטֶּה 'staff/tribe' with נָטָה 'stretch out' — BDB derives staff as thing stretched out; link not transparent",
+    "default": "apart"
+   },
+   {
+    "id": "H4296",
+    "lemma": "מִטָּה",
+    "question": "מִטָּה 'couch' with נָטָה 'stretch out' — bed as where one stretches out; plausible but not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "נטש",
+  "groups": [
+   {
+    "label": "leave, forsake",
+    "ids": [
+     "H5203"
+    ]
+   },
+   {
+    "label": "twig, tendril",
+    "ids": [
+     "H5189"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נכא",
+  "groups": [
+   {
+    "label": "smite, stricken",
+    "ids": [
+     "H5218b",
+     "H5217",
+     "H5218a"
+    ]
+   },
+   {
+    "label": "spice, gum",
+    "ids": [
+     "H5219"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נעל",
+  "groups": [
+   {
+    "label": "sandal",
+    "ids": [
+     "H5275",
+     "H5274b"
+    ]
+   },
+   {
+    "label": "bar, bolt",
+    "ids": [
+     "H4514",
+     "H5274a",
+     "H4515"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נפח",
+  "groups": [
+   {
+    "label": "breathe, blow",
+    "ids": [
+     "H5301",
+     "H4646",
+     "H4647"
+    ]
+   },
+   {
+    "label": "apple-tree",
+    "ids": [
+     "H8598"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H8598",
+    "lemma": "תַּפּוּחַ",
+    "question": "תַּפּוּחַ 'apple' with נָפַח 'breathe' — named for its fragrance (breath); standard etymology but not felt by readers",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "נצץ I",
+  "groups": [
+   {
+    "label": "bloom, blossom",
+    "ids": [
+     "H5132b",
+     "H5328",
+     "H5322a",
+     "H5339"
+    ]
+   },
+   {
+    "label": "sparkle, spark",
+    "ids": [
+     "H5213",
+     "H5340"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נקב I",
+  "groups": [
+   {
+    "label": "pierce, bore",
+    "ids": [
+     "H5344a",
+     "H4717",
+     "H4718a",
+     "H4718b",
+     "H5345"
+    ]
+   },
+   {
+    "label": "female",
+    "ids": [
+     "H5347"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5347",
+    "lemma": "נְקֵבָה",
+    "question": "נְקֵבָה 'female' with נָקַב 'pierce' — anatomical etymology standard in lexica but not a meaning link most readers would make",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "נקה",
+  "groups": [
+   {
+    "label": "clean, innocent",
+    "ids": [
+     "H5352",
+     "H5355a",
+     "H5356a",
+     "H5355b"
+    ]
+   },
+   {
+    "label": "sacrificial bowl",
+    "ids": [
+     "H4518"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "נשף",
+  "groups": [
+   {
+    "label": "twilight",
+    "ids": [
+     "H5399"
+    ]
+   },
+   {
+    "label": "blow; owl",
+    "ids": [
+     "H5398",
+     "H3244"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5398",
+    "lemma": "נָשַׁף",
+    "question": "נָשַׁף 'blow' with נֶשֶׁף 'twilight' — twilight as time of the evening breeze; possible but not evident",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "נתק",
+  "groups": [
+   {
+    "label": "pull, tear away",
+    "ids": [
+     "H5423"
+    ]
+   },
+   {
+    "label": "scab, scall",
+    "ids": [
+     "H5424"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "סבל",
+  "groups": [
+   {
+    "label": "burden",
+    "ids": [
+     "H5445",
+     "H5450",
+     "H5449",
+     "H5447",
+     "H5448"
+    ]
+   },
+   {
+    "label": "ear of grain (=שבלת)",
+    "ids": [
+     "H5451"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "סוף",
+  "groups": [
+   {
+    "label": "come to an end",
+    "ids": [
+     "H5486",
+     "H5490"
+    ]
+   },
+   {
+    "label": "storm-wind",
+    "ids": [
+     "H5492a"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5492a",
+    "lemma": "סוּפָה",
+    "question": "סוּפָה 'storm-wind' with סוּף 'come to an end' — storm that sweeps away/makes an end (BDB) vs. separate homonym",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "סחר",
+  "groups": [
+   {
+    "label": "go around, trade",
+    "ids": [
+     "H5503",
+     "H5504",
+     "H4536",
+     "H5506",
+     "H5507"
+    ]
+   },
+   {
+    "label": "paving stone",
+    "ids": [
+     "H5508"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "סלל I",
+  "groups": [
+   {
+    "label": "lift up, build up (road, mound)",
+    "ids": [
+     "H4546",
+     "H5549",
+     "H5550",
+     "H4547",
+     "H5551"
+    ]
+   },
+   {
+    "label": "Selah",
+    "ids": [
+     "H5542"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ספח III",
+  "groups": [
+   {
+    "label": "scab",
+    "ids": [
+     "H4556",
+     "H5597",
+     "H5596b"
+    ]
+   },
+   {
+    "label": "long veil",
+    "ids": [
+     "H4555"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ספף",
+  "groups": [
+   {
+    "label": "stand at the threshold",
+    "ids": [
+     "H5592b",
+     "H5605"
+    ]
+   },
+   {
+    "label": "basin",
+    "ids": [
+     "H5592a"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עגב",
+  "groups": [
+   {
+    "label": "lust",
+    "ids": [
+     "H5689",
+     "H5690",
+     "H5691"
+    ]
+   },
+   {
+    "label": "reed-pipe",
+    "ids": [
+     "H5748"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עגל",
+  "groups": [
+   {
+    "label": "calf",
+    "ids": [
+     "H5695",
+     "H5697a"
+    ]
+   },
+   {
+    "label": "round; cart, track, hoop",
+    "ids": [
+     "H5699",
+     "H4570",
+     "H5696",
+     "H5694"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עדה I",
+  "groups": [
+   {
+    "label": "pass on, perpetuity",
+    "ids": [
+     "H5703",
+     "H5710a"
+    ]
+   },
+   {
+    "label": "booty",
+    "ids": [
+     "H5706"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עדר III",
+  "groups": [
+   {
+    "label": "flock",
+    "ids": [
+     "H5739"
+    ]
+   },
+   {
+    "label": "be lacking",
+    "ids": [
+     "H5737c"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עוד",
+  "groups": [
+   {
+    "label": "bear witness, testimony",
+    "ids": [
+     "H5707",
+     "H5715",
+     "H5749b",
+     "H5713b",
+     "H5713a",
+     "H8584"
+    ]
+   },
+   {
+    "label": "again, still; return",
+    "ids": [
+     "H5750",
+     "H5749a"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5750",
+    "lemma": "עוֹד",
+    "question": "עוֹד 'again/still' with עֵד 'witness' — BDB links via 'repeat/reiterate', many lexica treat as separate roots",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "עוף I",
+  "groups": [
+   {
+    "label": "fly, birds",
+    "ids": [
+     "H5775",
+     "H5774a"
+    ]
+   },
+   {
+    "label": "eyelid",
+    "ids": [
+     "H6079"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6079",
+    "lemma": "עַפְעַף",
+    "question": "עַפְעַף 'eyelid' with עוּף 'fly' — 'flutterer' by reduplication; plausible but not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "עזב I",
+  "groups": [
+   {
+    "label": "leave, forsake",
+    "ids": [
+     "H5800a",
+     "H5805"
+    ]
+   },
+   {
+    "label": "wares",
+    "ids": [
+     "H5801"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5801",
+    "lemma": "עִזָּבוֹן",
+    "question": "עִזָּבוֹן 'wares' with עָזַב 'leave' — goods left/deposited (trade), or a separate עזב II 'put, set'",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "עזז",
+  "groups": [
+   {
+    "label": "strength",
+    "ids": [
+     "H5797",
+     "H5794",
+     "H5810",
+     "H5807",
+     "H5808"
+    ]
+   },
+   {
+    "label": "osprey",
+    "ids": [
+     "H5822"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עלה",
+  "groups": [
+   {
+    "label": "go up, high",
+    "ids": [
+     "H5927",
+     "H5930a",
+     "H4605",
+     "H4609b",
+     "H5945b",
+     "H5945a",
+     "H5944",
+     "H4608",
+     "H4610",
+     "H5920",
+     "H5930b",
+     "H5942",
+     "H4607",
+     "H4609a"
+    ]
+   },
+   {
+    "label": "leaf",
+    "ids": [
+     "H5929"
+    ]
+   },
+   {
+    "label": "water-course",
+    "ids": [
+     "H8585a"
+    ]
+   },
+   {
+    "label": "healing",
+    "ids": [
+     "H8585b"
+    ]
+   },
+   {
+    "label": "pestle",
+    "ids": [
+     "H5940"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H5929",
+    "lemma": "עָלֶה",
+    "question": "עָלֶה 'leaf' with עָלָה 'go up' — leaf as what sprouts up; BDB derivation, link not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "עלל I",
+  "groups": [
+   {
+    "label": "glean",
+    "ids": [
+     "H5955",
+     "H5953b"
+    ]
+   },
+   {
+    "label": "act, deed, wantonness",
+    "ids": [
+     "H4611",
+     "H5949",
+     "H5953a",
+     "H8586",
+     "H5950"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עלל III",
+  "groups": [
+   {
+    "label": "yoke",
+    "ids": [
+     "H5923"
+    ]
+   },
+   {
+    "label": "furnace, crucible",
+    "ids": [
+     "H5948"
+    ]
+   },
+   {
+    "label": "insert, thrust in",
+    "ids": [
+     "H5953d"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עמר I",
+  "groups": [
+   {
+    "label": "sheaf, bind sheaves",
+    "ids": [
+     "H6016a",
+     "H5995",
+     "H6014a"
+    ]
+   },
+   {
+    "label": "omer (dry measure)",
+    "ids": [
+     "H6016b"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6016b",
+    "lemma": "עֹ֫מֶר",
+    "question": "עֹמֶר 'omer' with עֹמֶר 'sheaf' — measure possibly 'a sheaf-ful', usually treated as homonym",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "ענה I",
+  "groups": [
+   {
+    "label": "answer",
+    "ids": [
+     "H6030b",
+     "H4617"
+    ]
+   },
+   {
+    "label": "time, now",
+    "ids": [
+     "H6258",
+     "H6256",
+     "H6261"
+    ]
+   },
+   {
+    "label": "conjugal rights",
+    "ids": [
+     "H5772"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ענק",
+  "groups": [
+   {
+    "label": "neck, necklace",
+    "ids": [
+     "H6059",
+     "H6060b",
+     "H6060a"
+    ]
+   },
+   {
+    "label": "Anak, Anakim",
+    "ids": [
+     "H6061",
+     "H6062"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עפר II",
+  "groups": [
+   {
+    "label": "lead (metal)",
+    "ids": [
+     "H5777"
+    ]
+   },
+   {
+    "label": "young hart",
+    "ids": [
+     "H6082"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עצם I",
+  "groups": [
+   {
+    "label": "bone",
+    "ids": [
+     "H6106"
+    ]
+   },
+   {
+    "label": "mighty, vast",
+    "ids": [
+     "H6099",
+     "H6105a",
+     "H6108",
+     "H6109",
+     "H8592"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6105a",
+    "lemma": "עָצֹם",
+    "question": "עָצַם 'be mighty/vast' with עֶצֶם 'bone' — bone as the strong part of the body; link plausible but not evident",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "עקר",
+  "groups": [
+   {
+    "label": "pluck up, hamstring",
+    "ids": [
+     "H6135",
+     "H6131b",
+     "H6131a",
+     "H6133"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6135",
+    "lemma": "עָקָר",
+    "question": "עָקָר 'barren' with עָקַר 'uproot' — barren as 'uprooted, rootless'; plausible metaphor, not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "ערב VI",
+  "groups": [
+   {
+    "label": "raven",
+    "ids": [
+     "H6158"
+    ]
+   },
+   {
+    "label": "poplar",
+    "ids": [
+     "H6155"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ערג",
+  "groups": [
+   {
+    "label": "garden terrace",
+    "ids": [
+     "H6170"
+    ]
+   },
+   {
+    "label": "long for",
+    "ids": [
+     "H6165"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ערר II",
+  "groups": [
+   {
+    "label": "stripped, childless",
+    "ids": [
+     "H6185",
+     "H6209",
+     "H6199"
+    ]
+   },
+   {
+    "label": "juniper",
+    "ids": [
+     "H6176"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עשת II",
+  "groups": [
+   {
+    "label": "think",
+    "ids": [
+     "H6245b",
+     "H6248",
+     "H6250"
+    ]
+   },
+   {
+    "label": "one (in eleven)",
+    "ids": [
+     "H6249"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "עתד",
+  "groups": [
+   {
+    "label": "he-goat",
+    "ids": [
+     "H6260"
+    ]
+   },
+   {
+    "label": "ready",
+    "ids": [
+     "H6264",
+     "H6257",
+     "H6259"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פאה",
+  "groups": [
+   {
+    "label": "corner",
+    "ids": [
+     "H6285"
+    ]
+   },
+   {
+    "label": "cleave in pieces",
+    "ids": [
+     "H6284"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פוח",
+  "groups": [
+   {
+    "label": "breathe, blow",
+    "ids": [
+     "H6315"
+    ]
+   },
+   {
+    "label": "soot",
+    "ids": [
+     "H6368"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פור I",
+  "groups": [
+   {
+    "label": "pot",
+    "ids": [
+     "H6517"
+    ]
+   },
+   {
+    "label": "wine-press",
+    "ids": [
+     "H6333"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פחד",
+  "groups": [
+   {
+    "label": "dread",
+    "ids": [
+     "H6343",
+     "H6342",
+     "H6345"
+    ]
+   },
+   {
+    "label": "thigh",
+    "ids": [
+     "H6344"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פחח",
+  "groups": [
+   {
+    "label": "bird-trap, ensnare",
+    "ids": [
+     "H6341a",
+     "H6351"
+    ]
+   },
+   {
+    "label": "metal plate",
+    "ids": [
+     "H6341b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פנן",
+  "groups": [
+   {
+    "label": "corner",
+    "ids": [
+     "H6438",
+     "H6434"
+    ]
+   },
+   {
+    "label": "corals",
+    "ids": [
+     "H6443"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פסס I",
+  "groups": [
+   {
+    "label": "flat (of hand/foot)",
+    "ids": [
+     "H6446"
+    ]
+   },
+   {
+    "label": "abundance",
+    "ids": [
+     "H6451"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "פעה",
+  "groups": [
+   {
+    "label": "groan",
+    "ids": [
+     "H6463"
+    ]
+   },
+   {
+    "label": "viper",
+    "ids": [
+     "H660"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H660",
+    "lemma": "אֶפְעֶה",
+    "question": "אֶפְעֶה 'viper' with פָּעָה 'groan/cry out' — viper as 'hisser'; plausible but not transparent",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "פרח I",
+  "groups": [
+   {
+    "label": "bud, sprout",
+    "ids": [
+     "H6524a",
+     "H6525",
+     "H667",
+     "H6526"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H667",
+    "lemma": "אֶפְרֹחַ",
+    "question": "אֶפְרֹחַ 'fledgling' with פָּרַח 'bud/break out' — young brood as 'sprouting'; plausible extension, not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "פתה",
+  "groups": [
+   {
+    "label": "be simple, open",
+    "ids": [
+     "H6601b",
+     "H6612a",
+     "H6601a",
+     "H6612b",
+     "H6615"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6601a",
+    "lemma": "פָּתָה",
+    "question": "פָּתָה 'be spacious' with פָּתָה 'be simple' — both 'open' (open-minded = naive) or two homonyms",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "פתן",
+  "groups": [
+   {
+    "label": "threshold",
+    "ids": [
+     "H4670"
+    ]
+   },
+   {
+    "label": "serpent",
+    "ids": [
+     "H6620"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "צהר",
+  "groups": [
+   {
+    "label": "press out oil",
+    "ids": [
+     "H3323",
+     "H6671"
+    ]
+   },
+   {
+    "label": "midday, light; roof",
+    "ids": [
+     "H6672a",
+     "H6672b"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H6672a",
+    "lemma": "צֹ֫הַר",
+    "question": "צֹהַר 'midday' with יִצְהָר 'oil' — BDB links both via 'shine/glisten'; not a link readers see",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "צוד I",
+  "groups": [
+   {
+    "label": "hunt",
+    "ids": [
+     "H6679a",
+     "H6718a",
+     "H4686a",
+     "H4685b",
+     "H4685c",
+     "H6719"
+    ]
+   },
+   {
+    "label": "stronghold, siege-works",
+    "ids": [
+     "H4686b",
+     "H4679",
+     "H4685d",
+     "H4685a"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4686b",
+    "lemma": "מְצוּדָה",
+    "question": "מְצוּדָה 'stronghold' with צוּד 'hunt' — fortress as hunter's lookout/eyrie (BDB); possible but not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "צוה",
+  "groups": [
+   {
+    "label": "command",
+    "ids": [
+     "H6680",
+     "H4687",
+     "H6673"
+    ]
+   },
+   {
+    "label": "sign-post",
+    "ids": [
+     "H6725"
+    ]
+   }
+  ],
+  "borderline": []
+ }
+]

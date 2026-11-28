@@ -34,7 +34,7 @@ describe("Person, Gender, Number specification (pages 121-126)", () => {
       morphology: "V-Piel-Imperf.h-1cs | 2ms", metadata: {},
       newLine: false, BSBnewLine: false, newVerse: false, showVerseNum: false,
       firstWordInStrophe: true, firstStropheInStanza: true, lastStropheInStanza: true,
-      motifData: { lemma: "", relatedStrongNums: undefined, categories: [] },
+      motifData: { lemma: "", categories: [] },
     };
     const metadata = (): StudyMetadata => ({
       words: { 1: { indent: 2, color: { fill: "#FFF9C4", text: "#666666", border: "#D9D9D9" } } },

@@ -1,5 +1,6 @@
 import { BoxDisplayConfig, LanguageMode, NonEnglishDisplayMode } from "@/lib/types"
 import type { PersonGenderNumberCode } from "@/lib/personGenderNumber";
+import type { RootRef } from "@/lib/roots";
 
 // The /demo route opens this real, shared study (also at
 // /study/guest_psalm1_template/view). Visitors can mark it up, but their
@@ -88,9 +89,19 @@ export type LexiconData = {
 }
 
 export type MotifData = {
+    /** Dictionary form (BDB) for words without a root; legacy lexicon lemma otherwise. */
     lemma: string;
-    relatedStrongNums: number[] | undefined;
+    /** English gloss of `lemma`, for words without a root. */
+    lemmaGloss?: string;
     categories: string[];
+    /** English qualifier for lemmaGloss, used only to tell apart chips that share a label. */
+    lemmaQualifier?: string;
+    /** Root group (see src/lib/roots). Undefined for particles and unrooted words. */
+    root?: RootRef;
+    /** Proper name: left out of Repeated Roots (God's names are root groups instead). */
+    isName?: boolean;
+    /** Later part of a word written as several words (אַל־תַּשְׁחֵת): same occurrence as the part before it. */
+    compoundPart?: boolean;
 }
 
 export type WordInformation = {
@@ -219,8 +230,6 @@ export type HebWord = {
     firstStropheInStanza: boolean;
     lastStropheInStanza: boolean;
     lemma: string | undefined;
-    relatedWords: LexiconData | undefined;
-    relatedStrongNums: number[] | undefined;
     categories: string[];
 }
 

@@ -9,7 +9,7 @@ import { StropheNote, StructureUpdateType, StudyNotes, LanguageMode, NonEnglishD
 import { RichDoc, mergeRichDocs } from '@/lib/richText';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
-import { mergeData, extractIdenticalWordsFromPassage } from '@/lib/utils';
+import { mergeData, extractIdenticalWordsFromPassage, wordsInSameGroups } from '@/lib/utils';
 import { useState } from 'react';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 
@@ -644,20 +644,22 @@ const Passage = ({
     }
   }, [ctxStructureUpdateType, ctxSelectedWords, ctxSetNumSelectedWords, ctxSetSelectedWords, ctxSetStructureUpdateType, ctxReadmeBtnOn, ctxActiveLayerId]);
 
-  const strongNumWordMap = extractIdenticalWordsFromPassage(ctxPassageProps);
-  useEffect(() => { // handler select/deselect identical words
+  const repeatedWordGroups = extractIdenticalWordsFromPassage(ctxPassageProps);
+  useEffect(() => { // handler select/deselect words sharing a root (or identical words)
     const handler = (word: WordProps) => {
-      const identicalWords = strongNumWordMap.get(word.strongNumber);
-      if (!identicalWords) {
+      const identicalWords = wordsInSameGroups(word, repeatedWordGroups);
+      if (identicalWords.length === 0) {
         return;
       }
-      const newSelectedHebWords = [...ctxSelectedWords];
+      let newSelectedHebWords = [...ctxSelectedWords];
+      const selectedIds = new Set(newSelectedHebWords.map(w => w.wordId));
 
-      const toSelect = identicalWords.filter(word => newSelectedHebWords.indexOf(word) < 0);
+      const toSelect = identicalWords.filter(w => !selectedIds.has(w.wordId));
       if (toSelect.length > 0) { // select all if some are not selected
-        toSelect.forEach(word => newSelectedHebWords.push(word));
+        toSelect.forEach(w => newSelectedHebWords.push(w));
       } else { // deselect if all are selected
-        identicalWords.forEach(word => newSelectedHebWords.splice(newSelectedHebWords.indexOf(word), 1))
+        const groupIds = new Set(identicalWords.map(w => w.wordId));
+        newSelectedHebWords = newSelectedHebWords.filter(w => !groupIds.has(w.wordId));
       }
       ctxSetSelectedWords(newSelectedHebWords);
       ctxSetNumSelectedWords(newSelectedHebWords.length);
@@ -665,7 +667,7 @@ const Passage = ({
 
     eventBus.on("selectAllIdenticalWords", handler);
     return () => eventBus.off("selectAllIdenticalWords", handler);
-  }, [ctxSelectedWords]);
+  }, [ctxSelectedWords, ctxPassageProps]);
 
   return (
     <StropheAlignContext.Provider value={alignContextValue}>

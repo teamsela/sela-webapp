@@ -164,25 +164,165 @@ export function parsePassageInfo(inputString: string, bookString: string) : Pass
   return result;
 }
 
-export function extractIdenticalWordsFromPassage(passageProps : PassageProps) : Map<number, WordProps[]>  {
-  const strongNumWordsMap = new Map<number, WordProps[]>();
-  passageProps.stanzaProps.forEach((stanzas) => {
-    stanzas.strophes.forEach((strophe) => {
-        strophe.lines.forEach((line) => {
-            line.words.forEach((word) => {
-                const currentWord = strongNumWordsMap.get(word.strongNumber);
-                if (currentWord !== undefined) {
-                    currentWord.push(word);
-                }
-                else {
-                  strongNumWordsMap.set(word.strongNumber, [word]);
-                }
-            })
-        })
+const HEBREW_LETTERS = /[^\u05D0-\u05EA]/g;
+
+/**
+ * The group a word belongs to for "repeated" words in a passage:
+ * - its root group (motifData.root) when it has one,
+ * - otherwise its Strong's number (particles, unrooted words: exact match),
+ * - otherwise (untagged words such as לוֹ) its consonantal spelling.
+ * Proper names are left out (undefined). God's names are root groups: "Yahweh" (יהוה, יָהּ)
+ * and "God" (אֱלֹהִים, אֵל, אֱלוֹהַּ).
+ */
+export function wordGroupKey(word: WordProps): string | undefined {
+  if (word.motifData?.isName) {
+    return undefined;
+  }
+  if (word.motifData?.root) {
+    return word.motifData.root.id;
+  }
+  if (word.strongNumber) {
+    return `s${word.strongNumber}`;
+  }
+  const consonants = (word.wlcWord || "").replace(HEBREW_LETTERS, "");
+  return consonants ? `w${consonants}` : undefined;
+}
+
+const CANTILLATION = /[֑-ֽ֯׀׃־]/g; // accents, meteg, paseq, sof pasuq, maqaf
+
+export type GroupLabel = {
+  /** Hebrew chip text, unpointed so it names the root and its family rather than one word:
+   *  the root letters (ישׁב), or the letters of the word for exact-match groups (כי) */
+  hebrew: string;
+  /** English chip text: the root's sense, or the word's gloss */
+  english: string;
+  /** BDB homonym numeral, used only to tell apart chips that would otherwise look the same */
+  homonym?: string;
+  /** A pointed word from the group for the tooltip (יָשַׁב, דִּבֵּר, כִּי) */
+  word?: string;
+  /** English qualifier, added only when two chips' English labels are the same ("assemble") */
+  qualifier?: string;
+};
+
+/** How many times a group's word occurs: the parts of a word written as several words
+ *  (אַל־תַּשְׁחֵת) count once. */
+export function groupOccurrences(words: WordProps[]): number {
+  return words.filter((w) => !w.motifData?.compoundPart).length;
+}
+
+/** Removes vowel points, dagesh and accents, keeping the letters and the shin/sin dot (שׁ/שׂ). */
+export function unpointed(hebrew: string): string {
+  return hebrew
+    .normalize("NFD")
+    .replace(/[\u0591-\u05BD\u05BF\u05C4\u05C5\u05C7\u034F]/g, "") // \u034F: joiner in some source words
+    .replace(/\u05C0|\u05C3|\u05BE/g, "")
+    .normalize("NFC")
+    .trim();
+}
+
+/**
+ * English for divine names: God's personal name is shown as the name itself ("Yahweh", not
+ * "LORD"); the titles use the common English that readers and scholars accept ("God", "Lord").
+ */
+const DIVINE_NAME_ENGLISH: Record<number, string> = {
+  3068: "Yahweh", // יהוה
+  3050: "Yahweh", // יָהּ
+  3069: "Yahweh", // יֱהוִה
+  430: "God", // אֱלֹהִים
+  410: "God", // אֵל
+  433: "God", // אֱלוֹהַּ
+  426: "God", // Aramaic אֱלָהּ
+  136: "Lord", // אֲדֹנָי
+};
+
+/** English for a group made of divine names (most frequent one in the group), if any. */
+function divineName(words: WordProps[]): string | undefined {
+  const counts = new Map<string, number>();
+  words.forEach((w) => {
+    const name = DIVINE_NAME_ENGLISH[w.strongNumber];
+    if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
+  });
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+}
+
+/** Chip label for a repeated-word group (see wordGroupKey). */
+export function groupLabel(groupKey: string, words: WordProps[]): GroupLabel {
+  const lead = words[0];
+  if (groupKey.startsWith("r")) {
+    const root = words.map((w) => w.motifData?.root).find((r) => r?.id === groupKey);
+    if (root) {
+      // English comes from the root data (a curated, sense-correct label for the root family),
+      // not from the STEP lookup, which cannot tell the senses of one Strong's number apart
+      const english = divineName(words) || root.gloss || englishGloss(lead);
+      return {
+        hebrew: root.letters || unpointed(root.label),
+        english,
+        homonym: root.homonym,
+        word: root.label,
+        qualifier: root.qualifier,
+      };
+    }
+  }
+  const motif = lead?.motifData;
+  const word = (motif?.lemma || lead?.wlcWord || "").replace(CANTILLATION, "").trim();
+  const english = divineName(words) || motif?.lemmaGloss || englishGloss(lead);
+  return { hebrew: unpointed(word), english, word, qualifier: motif?.lemmaQualifier };
+}
+
+const HEBREW_TEXT = /[\u0590-\u05FF]/;
+
+/** English fallback for a chip: the word's English gloss, never Hebrew. */
+function englishGloss(word: WordProps | undefined): string {
+  const gloss = [word?.ETCBCgloss, word?.gloss].map((g) => g?.trim() || "").find((g) => g && !HEBREW_TEXT.test(g));
+  return gloss || "";
+}
+
+/**
+ * When two chips in the same panel would read the same, tell them apart:
+ * - Hebrew: add the homonym numeral (ענה I / ענה IV);
+ * - English: add the reviewed English qualifier ("to gather (assemble)" / "to gather (harvest)").
+ *   English chips never show Hebrew.
+ */
+export function disambiguateGroupLabels(labels: GroupLabel[]): GroupLabel[] {
+  // compare Hebrew by letters only (shin/sin dots aside), so labels of homonymous roots collide
+  const letters = (s: string) => s.replace(HEBREW_LETTERS, "");
+  const hebrewCounts = new Map<string, number>();
+  const englishCounts = new Map<string, number>();
+  labels.forEach((l) => {
+    hebrewCounts.set(letters(l.hebrew), (hebrewCounts.get(letters(l.hebrew)) ?? 0) + 1);
+    const english = l.english.toLowerCase();
+    englishCounts.set(english, (englishCounts.get(english) ?? 0) + 1);
+  });
+  return labels.map((l) => ({
+    ...l,
+    hebrew: (hebrewCounts.get(letters(l.hebrew)) ?? 0) > 1 && l.homonym ? `${l.hebrew} ${l.homonym}` : l.hebrew,
+    english: (englishCounts.get(l.english.toLowerCase()) ?? 0) > 1 && l.qualifier ? `${l.english} (${l.qualifier})` : l.english,
+  }));
+}
+
+/** Map of group key (see wordGroupKey) to the passage's words in that group, in passage order. */
+export function extractIdenticalWordsFromPassage(passageProps: PassageProps): Map<string, WordProps[]> {
+  const groups = new Map<string, WordProps[]>();
+  passageProps.stanzaProps.forEach((stanza) => {
+    stanza.strophes.forEach((strophe) => {
+      strophe.lines.forEach((line) => {
+        line.words.forEach((word) => {
+          const key = wordGroupKey(word);
+          if (!key) return;
+          const group = groups.get(key);
+          if (group) group.push(word);
+          else groups.set(key, [word]);
+        });
+      });
     });
   });
+  return groups;
+}
 
-  return strongNumWordsMap;
+/** All words in the same group as `word` (including itself), in passage order. */
+export function wordsInSameGroups(word: WordProps, groups: Map<string, WordProps[]>): WordProps[] {
+  const key = wordGroupKey(word);
+  return key ? [...(groups.get(key) ?? [word])] : [word];
 }
 
 function measureStringWidth(context: CanvasRenderingContext2D, text: string): number {

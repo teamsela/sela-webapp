@@ -1,0 +1,1662 @@
+{
+ "arc:חשח": {
+  "name": "verb",
+  "label": "to need"
+ },
+ "arc:פשר": {
+  "name": "verb",
+  "label": "to interpret"
+ },
+ "אבס": {
+  "name": "verb",
+  "label": "to fatten"
+ },
+ "אבר": {
+  "name": "verb",
+  "label": "to soar"
+ },
+ "אדם II": {
+  "name": "verb",
+  "label": "to be red"
+ },
+ "אדר": {
+  "name": "verb",
+  "label": "to be majestic"
+ },
+ "אהל I": {
+  "name": "noun",
+  "label": "tent"
+ },
+ "אור": {
+  "name": "verb",
+  "label": "to shine"
+ },
+ "אזן I": {
+  "name": "noun",
+  "label": "ear"
+ },
+ "אזן II": {
+  "name": "noun",
+  "label": "scales"
+ },
+ "אחר": {
+  "name": "noun",
+  "label": "after"
+ },
+ "אטר": {
+  "name": "verb",
+  "label": "to shut"
+ },
+ "אלה IV": {
+  "name": "verb",
+  "label": "to swear"
+ },
+ "אלף I": {
+  "name": "noun",
+  "label": "chief"
+ },
+ "אלף II": {
+  "name": "noun",
+  "label": "thousand"
+ },
+ "אמן": {
+  "name": "verb",
+  "label": "to be firm"
+ },
+ "אנף": {
+  "name": "verb",
+  "label": "to be angry"
+ },
+ "אפד": {
+  "name": "noun",
+  "label": "ephod"
+ },
+ "אפס": {
+  "name": "verb",
+  "label": "to cease"
+ },
+ "אצר": {
+  "name": "verb",
+  "label": "to store up"
+ },
+ "ארח": {
+  "name": "verb",
+  "label": "to travel"
+ },
+ "ארך": {
+  "name": "verb",
+  "label": "to be long"
+ },
+ "אשם": {
+  "name": "verb",
+  "label": "to be guilty"
+ },
+ "אשר I": {
+  "name": "verb",
+  "label": "to call blessed"
+ },
+ "בדד I": {
+  "name": "verb",
+  "label": "to be alone"
+ },
+ "בדק": {
+  "name": "noun",
+  "label": "breach"
+ },
+ "בכר": {
+  "name": "noun",
+  "label": "firstborn"
+ },
+ "בעל": {
+  "name": "verb",
+  "label": "to own, marry"
+ },
+ "בצק": {
+  "name": "noun",
+  "label": "dough"
+ },
+ "בצר": {
+  "name": "verb",
+  "label": "to fortify"
+ },
+ "בקר": {
+  "name": "noun",
+  "label": "morning"
+ },
+ "ברא II": {
+  "name": "verb",
+  "label": "to be fat"
+ },
+ "ברד": {
+  "name": "noun",
+  "label": "hail"
+ },
+ "ברק": {
+  "name": "verb",
+  "label": "to flash"
+ },
+ "ברר": {
+  "name": "verb",
+  "label": "to purify"
+ },
+ "גאה": {
+  "name": "verb",
+  "label": "to be exalted"
+ },
+ "גבל": {
+  "name": "verb",
+  "label": "to border"
+ },
+ "גבר": {
+  "name": "verb",
+  "label": "to prevail"
+ },
+ "גדד": {
+  "name": "noun",
+  "label": "troop"
+ },
+ "גדל": {
+  "name": "verb",
+  "label": "to be great"
+ },
+ "גדר": {
+  "name": "verb",
+  "label": "to wall up"
+ },
+ "גזה": {
+  "name": "verb",
+  "label": "to hew"
+ },
+ "גלל II": {
+  "name": "verb",
+  "label": "to roll"
+ },
+ "גלם": {
+  "name": "verb",
+  "label": "to wrap up"
+ },
+ "גנן": {
+  "name": "verb",
+  "label": "to protect"
+ },
+ "גרז": {
+  "name": "noun",
+  "label": "axe"
+ },
+ "גרם": {
+  "name": "noun",
+  "label": "bone"
+ },
+ "גרר": {
+  "name": "verb",
+  "label": "to drag"
+ },
+ "גרש II": {
+  "name": "verb",
+  "label": "to drive out"
+ },
+ "גשם": {
+  "name": "noun",
+  "label": "rain"
+ },
+ "דבב": {
+  "name": "noun",
+  "label": "slander"
+ },
+ "דגה": {
+  "name": "noun",
+  "label": "fish"
+ },
+ "דגל": {
+  "name": "noun",
+  "label": "banner"
+ },
+ "דהר": {
+  "name": "verb",
+  "label": "to gallop"
+ },
+ "דוה": {
+  "name": "verb",
+  "label": "to be sick"
+ },
+ "דור": {
+  "name": "noun",
+  "label": "generation"
+ },
+ "דלל": {
+  "name": "verb",
+  "label": "to be low"
+ },
+ "דמע": {
+  "name": "verb",
+  "label": "to shed tears"
+ },
+ "דרך": {
+  "name": "verb",
+  "label": "to tread"
+ },
+ "דשא": {
+  "name": "verb",
+  "label": "to sprout"
+ },
+ "הבל I": {
+  "name": "verb",
+  "label": "to be vain"
+ },
+ "הדר": {
+  "name": "verb",
+  "label": "to honor"
+ },
+ "הום": {
+  "name": "verb",
+  "label": "to be in uproar"
+ },
+ "הון": {
+  "name": "noun",
+  "label": "wealth"
+ },
+ "הלא": {
+  "name": "noun",
+  "label": "beyond"
+ },
+ "המה": {
+  "name": "verb",
+  "label": "to roar"
+ },
+ "זבח": {
+  "name": "verb",
+  "label": "to sacrifice"
+ },
+ "זבל": {
+  "name": "verb",
+  "label": "to exalt"
+ },
+ "זהר I": {
+  "name": "verb",
+  "label": "to shine"
+ },
+ "זון": {
+  "name": "verb",
+  "label": "to feed"
+ },
+ "זוע": {
+  "name": "verb",
+  "label": "to tremble"
+ },
+ "זיד": {
+  "name": "verb",
+  "label": "to be arrogant"
+ },
+ "זכך": {
+  "name": "verb",
+  "label": "to be pure"
+ },
+ "זמם": {
+  "name": "verb",
+  "label": "to devise"
+ },
+ "זמר II": {
+  "name": "verb",
+  "label": "to prune"
+ },
+ "זנב": {
+  "name": "noun",
+  "label": "tail"
+ },
+ "זקן": {
+  "name": "verb",
+  "label": "to be old"
+ },
+ "זרח": {
+  "name": "verb",
+  "label": "to rise"
+ },
+ "זרם": {
+  "name": "verb",
+  "label": "to pour"
+ },
+ "זרע I": {
+  "name": "verb",
+  "label": "to sow"
+ },
+ "חבל I": {
+  "name": "verb",
+  "label": "to bind"
+ },
+ "חגג": {
+  "name": "verb",
+  "label": "to keep a feast"
+ },
+ "חדר": {
+  "name": "noun",
+  "label": "room"
+ },
+ "חדש": {
+  "name": "verb",
+  "label": "to be new"
+ },
+ "חוג": {
+  "name": "noun",
+  "label": "circle"
+ },
+ "חוד": {
+  "name": "noun",
+  "label": "riddle"
+ },
+ "חוט": {
+  "name": "noun",
+  "label": "thread"
+ },
+ "חול II": {
+  "name": "noun",
+  "label": "strength"
+ },
+ "חור I": {
+  "name": "verb",
+  "label": "to be white"
+ },
+ "חזה I": {
+  "name": "verb",
+  "label": "to behold"
+ },
+ "חיה": {
+  "name": "verb",
+  "label": "to live"
+ },
+ "חכם": {
+  "name": "verb",
+  "label": "to be wise"
+ },
+ "חלא I": {
+  "name": "verb",
+  "label": "to be sick"
+ },
+ "חלל I": {
+  "name": "verb",
+  "label": "to pierce"
+ },
+ "חלם II": {
+  "name": "verb",
+  "label": "to dream"
+ },
+ "חלק I": {
+  "name": "verb",
+  "label": "to divide"
+ },
+ "חלק II": {
+  "name": "verb",
+  "label": "to be smooth"
+ },
+ "חמד": {
+  "name": "verb",
+  "label": "to desire"
+ },
+ "חמם": {
+  "name": "verb",
+  "label": "to be warm"
+ },
+ "חמס": {
+  "name": "verb",
+  "label": "to do violence"
+ },
+ "חמץ I": {
+  "name": "verb",
+  "label": "to be leavened"
+ },
+ "חמר I": {
+  "name": "noun",
+  "label": "clay"
+ },
+ "חמש I": {
+  "name": "noun",
+  "label": "five"
+ },
+ "חנן I": {
+  "name": "verb",
+  "label": "to be gracious"
+ },
+ "חנף": {
+  "name": "verb",
+  "label": "to be profane"
+ },
+ "חסד I": {
+  "name": "noun",
+  "label": "steadfast love"
+ },
+ "חסד II": {
+  "name": "verb",
+  "label": "to shame"
+ },
+ "חסל": {
+  "name": "noun",
+  "label": "locust"
+ },
+ "חסן": {
+  "name": "noun",
+  "label": "wealth"
+ },
+ "חפף I": {
+  "name": "verb",
+  "label": "to shelter"
+ },
+ "חפש II": {
+  "name": "verb",
+  "label": "to be free"
+ },
+ "חצה": {
+  "name": "verb",
+  "label": "to divide"
+ },
+ "חצץ": {
+  "name": "noun",
+  "label": "arrow"
+ },
+ "חצר IV": {
+  "name": "noun",
+  "label": "trumpet"
+ },
+ "חקק": {
+  "name": "verb",
+  "label": "to inscribe"
+ },
+ "חרב II": {
+  "name": "verb",
+  "label": "to be desolate"
+ },
+ "חרב III": {
+  "name": "noun",
+  "label": "sword"
+ },
+ "חרף I": {
+  "name": "verb",
+  "label": "to reproach"
+ },
+ "חרף II": {
+  "name": "noun",
+  "label": "winter"
+ },
+ "חרש II": {
+  "name": "verb",
+  "label": "to engrave"
+ },
+ "חשך II": {
+  "name": "verb",
+  "label": "to be dark"
+ },
+ "חשק": {
+  "name": "noun",
+  "label": "band"
+ },
+ "חתה": {
+  "name": "noun",
+  "label": "firepan"
+ },
+ "חתן": {
+  "name": "noun",
+  "label": "in-law"
+ },
+ "טבח": {
+  "name": "verb",
+  "label": "to slaughter"
+ },
+ "טבע": {
+  "name": "noun",
+  "label": "signet ring"
+ },
+ "טוב": {
+  "name": "verb",
+  "label": "to be good"
+ },
+ "טעם": {
+  "name": "verb",
+  "label": "to taste"
+ },
+ "טפח": {
+  "name": "noun",
+  "label": "handbreadth"
+ },
+ "טפף": {
+  "name": "noun",
+  "label": "children"
+ },
+ "טרח": {
+  "name": "verb",
+  "label": "to toil"
+ },
+ "יבם": {
+  "name": "noun",
+  "label": "sister-in-law"
+ },
+ "יגה I": {
+  "name": "verb",
+  "label": "to grieve"
+ },
+ "יהד": {
+  "name": "noun",
+  "label": "in Hebrew"
+ },
+ "יחד": {
+  "name": "noun",
+  "label": "together"
+ },
+ "יחם": {
+  "name": "verb",
+  "label": "to be hot"
+ },
+ "ימן": {
+  "name": "noun",
+  "label": "right hand"
+ },
+ "יעד": {
+  "name": "verb",
+  "label": "to appoint"
+ },
+ "יעה": {
+  "name": "noun",
+  "label": "shovel"
+ },
+ "יפה": {
+  "name": "verb",
+  "label": "to be beautiful"
+ },
+ "יצע": {
+  "name": "verb",
+  "label": "to spread out"
+ },
+ "יקד": {
+  "name": "verb",
+  "label": "to burn"
+ },
+ "יקר": {
+  "name": "verb",
+  "label": "to be precious"
+ },
+ "יקש": {
+  "name": "verb",
+  "label": "to ensnare"
+ },
+ "ירה I": {
+  "name": "verb",
+  "label": "to teach"
+ },
+ "ישם II": {
+  "name": "verb",
+  "label": "to be desolate"
+ },
+ "ישר": {
+  "name": "verb",
+  "label": "to be straight"
+ },
+ "כאב": {
+  "name": "verb",
+  "label": "to be in pain"
+ },
+ "כבד": {
+  "name": "verb",
+  "label": "to be heavy"
+ },
+ "כבר I": {
+  "name": "verb",
+  "label": "to be abundant"
+ },
+ "כהן": {
+  "name": "noun",
+  "label": "priest"
+ },
+ "כוה": {
+  "name": "verb",
+  "label": "to burn"
+ },
+ "כזב": {
+  "name": "verb",
+  "label": "to lie"
+ },
+ "כלל I": {
+  "name": "noun",
+  "label": "all"
+ },
+ "כנף": {
+  "name": "noun",
+  "label": "wing"
+ },
+ "כסל": {
+  "name": "noun",
+  "label": "fool"
+ },
+ "כסס": {
+  "name": "verb",
+  "label": "to compute"
+ },
+ "כפן": {
+  "name": "verb",
+  "label": "to be hungry"
+ },
+ "כפף": {
+  "name": "noun",
+  "label": "palm"
+ },
+ "כתר": {
+  "name": "verb",
+  "label": "to surround"
+ },
+ "כתש": {
+  "name": "verb",
+  "label": "to pound"
+ },
+ "לבב": {
+  "name": "noun",
+  "label": "heart"
+ },
+ "לבן": {
+  "name": "verb",
+  "label": "to be white"
+ },
+ "לוט": {
+  "name": "noun",
+  "label": "secret arts"
+ },
+ "לחם I": {
+  "name": "verb",
+  "label": "to fight"
+ },
+ "לחם II": {
+  "name": "noun",
+  "label": "bread"
+ },
+ "ליץ": {
+  "name": "verb",
+  "label": "to mock"
+ },
+ "לקש": {
+  "name": "noun",
+  "label": "latter rain"
+ },
+ "לשן": {
+  "name": "noun",
+  "label": "tongue"
+ },
+ "מהר II": {
+  "name": "noun",
+  "label": "bride-price"
+ },
+ "מחח": {
+  "name": "noun",
+  "label": "fatling"
+ },
+ "מטר": {
+  "name": "verb",
+  "label": "to rain"
+ },
+ "מלח I": {
+  "name": "noun",
+  "label": "rags"
+ },
+ "מלח II": {
+  "name": "noun",
+  "label": "salt"
+ },
+ "מלך I": {
+  "name": "verb",
+  "label": "to reign"
+ },
+ "מלך II": {
+  "name": "verb",
+  "label": "to counsel"
+ },
+ "מלל I": {
+  "name": "verb",
+  "label": "to speak"
+ },
+ "מלל II": {
+  "name": "noun",
+  "label": "ear of grain"
+ },
+ "מעט": {
+  "name": "verb",
+  "label": "to be few"
+ },
+ "מרק I": {
+  "name": "verb",
+  "label": "to polish"
+ },
+ "מרר I": {
+  "name": "verb",
+  "label": "to be bitter"
+ },
+ "משל I": {
+  "name": "verb",
+  "label": "to compare"
+ },
+ "מתק": {
+  "name": "verb",
+  "label": "to be sweet"
+ },
+ "נאה": {
+  "name": "verb",
+  "label": "to be lovely"
+ },
+ "נאם": {
+  "name": "noun",
+  "label": "declaration"
+ },
+ "נאק": {
+  "name": "verb",
+  "label": "to groan"
+ },
+ "נבא": {
+  "name": "verb",
+  "label": "to prophesy"
+ },
+ "נבל II": {
+  "name": "verb",
+  "label": "to be foolish"
+ },
+ "נבל III": {
+  "name": "verb",
+  "label": "to wither"
+ },
+ "נגה": {
+  "name": "verb",
+  "label": "to shine"
+ },
+ "נדב": {
+  "name": "verb",
+  "label": "to offer freely"
+ },
+ "נדר": {
+  "name": "verb",
+  "label": "to vow"
+ },
+ "נהה": {
+  "name": "verb",
+  "label": "to wail"
+ },
+ "נהר I": {
+  "name": "noun",
+  "label": "river"
+ },
+ "נהר II": {
+  "name": "verb",
+  "label": "to be radiant"
+ },
+ "נוב": {
+  "name": "verb",
+  "label": "to bear fruit"
+ },
+ "נוה III": {
+  "name": "noun",
+  "label": "pasture"
+ },
+ "נון": {
+  "name": "verb",
+  "label": "to propagate"
+ },
+ "נזר": {
+  "name": "verb",
+  "label": "to dedicate"
+ },
+ "נחל I": {
+  "name": "verb",
+  "label": "to inherit"
+ },
+ "ניר I": {
+  "name": "noun",
+  "label": "fallow ground"
+ },
+ "נכא": {
+  "name": "verb",
+  "label": "to crush"
+ },
+ "נכר II": {
+  "name": "verb",
+  "label": "to be foreign"
+ },
+ "נסך I": {
+  "name": "verb",
+  "label": "to pour out"
+ },
+ "נסך II": {
+  "name": "verb",
+  "label": "to weave"
+ },
+ "נסך III": {
+  "name": "verb",
+  "label": "to install"
+ },
+ "נסס II": {
+  "name": "noun",
+  "label": "banner"
+ },
+ "נעל": {
+  "name": "noun",
+  "label": "sandal"
+ },
+ "נעם I": {
+  "name": "verb",
+  "label": "to be pleasant"
+ },
+ "נפש": {
+  "name": "noun",
+  "label": "soul"
+ },
+ "נצה I": {
+  "name": "verb",
+  "label": "to fly"
+ },
+ "נצץ I": {
+  "name": "verb",
+  "label": "to blossom"
+ },
+ "נשם": {
+  "name": "verb",
+  "label": "to breathe"
+ },
+ "נשק II": {
+  "name": "verb",
+  "label": "to be armed"
+ },
+ "סבב": {
+  "name": "verb",
+  "label": "to surround"
+ },
+ "סבך": {
+  "name": "verb",
+  "label": "to entangle"
+ },
+ "סבל": {
+  "name": "verb",
+  "label": "to bear"
+ },
+ "סוף": {
+  "name": "verb",
+  "label": "to end"
+ },
+ "סכך II": {
+  "name": "noun",
+  "label": "booth, thicket"
+ },
+ "סכל": {
+  "name": "verb",
+  "label": "to act foolishly"
+ },
+ "סלל I": {
+  "name": "verb",
+  "label": "to build up"
+ },
+ "סמר": {
+  "name": "noun",
+  "label": "nail"
+ },
+ "סעף": {
+  "name": "noun",
+  "label": "cleft"
+ },
+ "סער": {
+  "name": "verb",
+  "label": "to storm"
+ },
+ "ספח III": {
+  "name": "noun",
+  "label": "scab"
+ },
+ "ספף": {
+  "name": "noun",
+  "label": "threshold"
+ },
+ "ספר": {
+  "name": "verb",
+  "label": "to count"
+ },
+ "עבד": {
+  "name": "verb",
+  "label": "to serve"
+ },
+ "עבת": {
+  "name": "verb",
+  "label": "to twist"
+ },
+ "עדה I": {
+  "name": "noun",
+  "label": "forever"
+ },
+ "עדן I": {
+  "name": "noun",
+  "label": "delight"
+ },
+ "עוב": {
+  "name": "noun",
+  "label": "cloud"
+ },
+ "עוג": {
+  "name": "verb",
+  "label": "to bake"
+ },
+ "עוד": {
+  "name": "verb",
+  "label": "to testify"
+ },
+ "עוה II": {
+  "name": "verb",
+  "label": "to act perversely"
+ },
+ "עוז": {
+  "name": "verb",
+  "label": "to take refuge"
+ },
+ "עול III": {
+  "name": "verb",
+  "label": "to act unjustly"
+ },
+ "עון": {
+  "name": "verb",
+  "label": "to dwell"
+ },
+ "עוף I": {
+  "name": "verb",
+  "label": "to fly"
+ },
+ "עוף II": {
+  "name": "noun",
+  "label": "gloom"
+ },
+ "עור I": {
+  "name": "verb",
+  "label": "to blind"
+ },
+ "עור III": {
+  "name": "noun",
+  "label": "naked"
+ },
+ "עזז": {
+  "name": "verb",
+  "label": "to be strong"
+ },
+ "עטר": {
+  "name": "verb",
+  "label": "to crown"
+ },
+ "עיט": {
+  "name": "noun",
+  "label": "bird of prey"
+ },
+ "עיף": {
+  "name": "verb",
+  "label": "to be faint"
+ },
+ "עכס": {
+  "name": "noun",
+  "label": "anklet"
+ },
+ "עלל II": {
+  "name": "noun",
+  "label": "child"
+ },
+ "עלל III": {
+  "name": "noun",
+  "label": "yoke"
+ },
+ "עמל": {
+  "name": "verb",
+  "label": "to toil"
+ },
+ "עמק": {
+  "name": "verb",
+  "label": "to be deep"
+ },
+ "עמר I": {
+  "name": "noun",
+  "label": "sheaf"
+ },
+ "ענה II": {
+  "name": "verb",
+  "label": "to be busy"
+ },
+ "ענה III": {
+  "name": "verb",
+  "label": "to afflict"
+ },
+ "ענן I": {
+  "name": "noun",
+  "label": "cloud"
+ },
+ "עסס": {
+  "name": "verb",
+  "label": "to press"
+ },
+ "עפל I": {
+  "name": "noun",
+  "label": "tumors"
+ },
+ "עפר I": {
+  "name": "noun",
+  "label": "dust"
+ },
+ "עצב II": {
+  "name": "verb",
+  "label": "to fashion"
+ },
+ "עצל": {
+  "name": "verb",
+  "label": "to be lazy"
+ },
+ "עקב": {
+  "name": "noun",
+  "label": "heel"
+ },
+ "עקל": {
+  "name": "verb",
+  "label": "to bend"
+ },
+ "עקר": {
+  "name": "verb",
+  "label": "to uproot"
+ },
+ "עקש": {
+  "name": "verb",
+  "label": "to twist"
+ },
+ "ערב I": {
+  "name": "verb",
+  "label": "to mix"
+ },
+ "ערב V": {
+  "name": "noun",
+  "label": "evening"
+ },
+ "ערה": {
+  "name": "verb",
+  "label": "to lay bare"
+ },
+ "ערל": {
+  "name": "noun",
+  "label": "uncircumcised"
+ },
+ "ערם I": {
+  "name": "verb",
+  "label": "to pile up"
+ },
+ "ערם III": {
+  "name": "verb",
+  "label": "to be crafty"
+ },
+ "ערף I": {
+  "name": "noun",
+  "label": "neck"
+ },
+ "ערף II": {
+  "name": "noun",
+  "label": "thick darkness"
+ },
+ "עשן": {
+  "name": "verb",
+  "label": "to smoke"
+ },
+ "עשר I": {
+  "name": "noun",
+  "label": "ten"
+ },
+ "עשר II": {
+  "name": "verb",
+  "label": "to be rich"
+ },
+ "עשש": {
+  "name": "noun",
+  "label": "moth"
+ },
+ "עשת I": {
+  "name": "verb",
+  "label": "to be smooth"
+ },
+ "עשת II": {
+  "name": "verb",
+  "label": "to think"
+ },
+ "פאר I": {
+  "name": "verb",
+  "label": "to glorify"
+ },
+ "פאר II": {
+  "name": "noun",
+  "label": "bough"
+ },
+ "פגר": {
+  "name": "noun",
+  "label": "corpse"
+ },
+ "פזז I": {
+  "name": "noun",
+  "label": "pure gold"
+ },
+ "פחד": {
+  "name": "verb",
+  "label": "to dread"
+ },
+ "פחח": {
+  "name": "noun",
+  "label": "trap"
+ },
+ "פטר": {
+  "name": "verb",
+  "label": "to set free"
+ },
+ "פכך": {
+  "name": "noun",
+  "label": "flask"
+ },
+ "פלג": {
+  "name": "verb",
+  "label": "to split"
+ },
+ "פלט": {
+  "name": "verb",
+  "label": "to escape"
+ },
+ "פלץ": {
+  "name": "verb",
+  "label": "to shudder"
+ },
+ "פנה": {
+  "name": "verb",
+  "label": "to turn"
+ },
+ "פסח I": {
+  "name": "verb",
+  "label": "to pass over"
+ },
+ "פסח II": {
+  "name": "verb",
+  "label": "to limp"
+ },
+ "פסל": {
+  "name": "verb",
+  "label": "to carve"
+ },
+ "פעם": {
+  "name": "noun",
+  "label": "step, time"
+ },
+ "פצע": {
+  "name": "verb",
+  "label": "to wound"
+ },
+ "פרה": {
+  "name": "verb",
+  "label": "to bear fruit"
+ },
+ "פרע I": {
+  "name": "verb",
+  "label": "to lead"
+ },
+ "פשע I": {
+  "name": "verb",
+  "label": "to step"
+ },
+ "פשע II": {
+  "name": "verb",
+  "label": "to rebel"
+ },
+ "פתל": {
+  "name": "verb",
+  "label": "to twist"
+ },
+ "פתת": {
+  "name": "verb",
+  "label": "to crumble"
+ },
+ "צבא": {
+  "name": "noun",
+  "label": "army"
+ },
+ "צדק": {
+  "name": "verb",
+  "label": "to be righteous"
+ },
+ "צהב": {
+  "name": "verb",
+  "label": "to gleam"
+ },
+ "צהר": {
+  "name": "noun",
+  "label": "fresh oil"
+ },
+ "צוד II": {
+  "name": "noun",
+  "label": "provisions"
+ },
+ "צוח": {
+  "name": "verb",
+  "label": "to cry out"
+ },
+ "צוץ I": {
+  "name": "verb",
+  "label": "to blossom"
+ },
+ "צור IV": {
+  "name": "verb",
+  "label": "to fashion"
+ },
+ "צחח": {
+  "name": "verb",
+  "label": "to be dazzling"
+ },
+ "צלל I": {
+  "name": "verb",
+  "label": "to ring"
+ },
+ "צלל III": {
+  "name": "noun",
+  "label": "shadow"
+ },
+ "צמא": {
+  "name": "verb",
+  "label": "to be thirsty"
+ },
+ "צמד": {
+  "name": "verb",
+  "label": "to join"
+ },
+ "צמק": {
+  "name": "verb",
+  "label": "to shrivel"
+ },
+ "צנף": {
+  "name": "verb",
+  "label": "to wrap"
+ },
+ "צעד I": {
+  "name": "verb",
+  "label": "to march"
+ },
+ "צער": {
+  "name": "verb",
+  "label": "to be small"
+ },
+ "צרב": {
+  "name": "verb",
+  "label": "to scorch"
+ },
+ "צרר I": {
+  "name": "verb",
+  "label": "to distress"
+ },
+ "צרר II": {
+  "name": "verb",
+  "label": "to be hostile"
+ },
+ "קדם": {
+  "name": "verb",
+  "label": "to go before"
+ },
+ "קדש": {
+  "name": "verb",
+  "label": "to be holy"
+ },
+ "קהל": {
+  "name": "verb",
+  "label": "to assemble"
+ },
+ "קור I": {
+  "name": "noun",
+  "label": "fountain"
+ },
+ "קטן": {
+  "name": "verb",
+  "label": "to be small"
+ },
+ "קין": {
+  "name": "noun",
+  "label": "lament"
+ },
+ "קיץ II": {
+  "name": "noun",
+  "label": "summer"
+ },
+ "קלה II": {
+  "name": "verb",
+  "label": "to be dishonored"
+ },
+ "קנן": {
+  "name": "noun",
+  "label": "nest"
+ },
+ "קצה I": {
+  "name": "noun",
+  "label": "end"
+ },
+ "קצע II": {
+  "name": "noun",
+  "label": "corner"
+ },
+ "קצץ": {
+  "name": "verb",
+  "label": "to cut off"
+ },
+ "קרח I": {
+  "name": "verb",
+  "label": "to be bald"
+ },
+ "קרן": {
+  "name": "noun",
+  "label": "horn"
+ },
+ "קרר I": {
+  "name": "verb",
+  "label": "to be cold"
+ },
+ "קשש II": {
+  "name": "noun",
+  "label": "stubble"
+ },
+ "רבב I": {
+  "name": "verb",
+  "label": "to be many"
+ },
+ "רבד II": {
+  "name": "verb",
+  "label": "to spread"
+ },
+ "רבע I": {
+  "name": "noun",
+  "label": "four"
+ },
+ "רגל": {
+  "name": "noun",
+  "label": "foot"
+ },
+ "רהב": {
+  "name": "verb",
+  "label": "to be arrogant"
+ },
+ "רוח I": {
+  "name": "noun",
+  "label": "spirit"
+ },
+ "רזה": {
+  "name": "verb",
+  "label": "to be lean"
+ },
+ "רחב": {
+  "name": "verb",
+  "label": "to be wide"
+ },
+ "רחם I": {
+  "name": "verb",
+  "label": "to have compassion"
+ },
+ "רחש": {
+  "name": "noun",
+  "label": "pan"
+ },
+ "ריק": {
+  "name": "verb",
+  "label": "to empty"
+ },
+ "ריר": {
+  "name": "noun",
+  "label": "spittle"
+ },
+ "רכב": {
+  "name": "verb",
+  "label": "to ride"
+ },
+ "רכך": {
+  "name": "verb",
+  "label": "to be tender"
+ },
+ "רכש": {
+  "name": "verb",
+  "label": "to acquire"
+ },
+ "רמה II": {
+  "name": "verb",
+  "label": "to deceive"
+ },
+ "רמם II": {
+  "name": "noun",
+  "label": "maggot"
+ },
+ "רעב": {
+  "name": "verb",
+  "label": "to be hungry"
+ },
+ "רעה II": {
+  "name": "verb",
+  "label": "to befriend"
+ },
+ "רעל": {
+  "name": "verb",
+  "label": "to reel"
+ },
+ "רעע I": {
+  "name": "verb",
+  "label": "to be evil"
+ },
+ "רצע": {
+  "name": "verb",
+  "label": "to pierce"
+ },
+ "רצף I": {
+  "name": "noun",
+  "label": "pavement"
+ },
+ "רקב": {
+  "name": "verb",
+  "label": "to rot"
+ },
+ "רקק II": {
+  "name": "verb",
+  "label": "to spit"
+ },
+ "רשע": {
+  "name": "verb",
+  "label": "to be wicked"
+ },
+ "רתק": {
+  "name": "verb",
+  "label": "to fasten"
+ },
+ "שאה I": {
+  "name": "verb",
+  "label": "to roar"
+ },
+ "שאן": {
+  "name": "verb",
+  "label": "to be at ease"
+ },
+ "שבה": {
+  "name": "verb",
+  "label": "to take captive"
+ },
+ "שבץ": {
+  "name": "verb",
+  "label": "to interweave"
+ },
+ "שגא": {
+  "name": "verb",
+  "label": "to grow great"
+ },
+ "שגג": {
+  "name": "verb",
+  "label": "to err"
+ },
+ "שדף": {
+  "name": "verb",
+  "label": "to scorch"
+ },
+ "שדש": {
+  "name": "noun",
+  "label": "six"
+ },
+ "שוח": {
+  "name": "verb",
+  "label": "to sink down"
+ },
+ "שוט I": {
+  "name": "verb",
+  "label": "to swerve"
+ },
+ "שחד": {
+  "name": "verb",
+  "label": "to bribe"
+ },
+ "שחק II": {
+  "name": "verb",
+  "label": "to grind"
+ },
+ "שחר I": {
+  "name": "verb",
+  "label": "to be black"
+ },
+ "שחר II": {
+  "name": "noun",
+  "label": "dawn"
+ },
+ "שטן": {
+  "name": "verb",
+  "label": "to oppose"
+ },
+ "שטר": {
+  "name": "noun",
+  "label": "officer"
+ },
+ "שיב": {
+  "name": "verb",
+  "label": "to be gray"
+ },
+ "שיד": {
+  "name": "verb",
+  "label": "to plaster"
+ },
+ "שכר I": {
+  "name": "verb",
+  "label": "to hire"
+ },
+ "שכר II": {
+  "name": "verb",
+  "label": "to be drunk"
+ },
+ "שלג": {
+  "name": "noun",
+  "label": "snow"
+ },
+ "שלה I": {
+  "name": "verb",
+  "label": "to be at ease"
+ },
+ "שלט I": {
+  "name": "verb",
+  "label": "to have power"
+ },
+ "שלל II": {
+  "name": "verb",
+  "label": "to plunder"
+ },
+ "שלם": {
+  "name": "verb",
+  "label": "to be complete"
+ },
+ "שלש": {
+  "name": "noun",
+  "label": "three"
+ },
+ "שמאל": {
+  "name": "noun",
+  "label": "left"
+ },
+ "שמן I": {
+  "name": "noun",
+  "label": "oil"
+ },
+ "שנה III": {
+  "name": "noun",
+  "label": "two"
+ },
+ "שנן": {
+  "name": "verb",
+  "label": "to sharpen"
+ },
+ "שער I": {
+  "name": "noun",
+  "label": "goat"
+ },
+ "שפה II": {
+  "name": "verb",
+  "label": "to be bare"
+ },
+ "שפה III": {
+  "name": "noun",
+  "label": "ash heap"
+ },
+ "שפט": {
+  "name": "verb",
+  "label": "to judge"
+ },
+ "שפר": {
+  "name": "verb",
+  "label": "to be beautiful"
+ },
+ "שקד II": {
+  "name": "noun",
+  "label": "almond"
+ },
+ "שקל": {
+  "name": "verb",
+  "label": "to weigh"
+ },
+ "שקץ": {
+  "name": "verb",
+  "label": "to detest"
+ },
+ "שקר II": {
+  "name": "verb",
+  "label": "to deal falsely"
+ },
+ "שרד I": {
+  "name": "verb",
+  "label": "to survive"
+ },
+ "שרך": {
+  "name": "noun",
+  "label": "sandal strap"
+ },
+ "שרר I": {
+  "name": "noun",
+  "label": "prince"
+ },
+ "שרש": {
+  "name": "noun",
+  "label": "root"
+ },
+ "תאם": {
+  "name": "verb",
+  "label": "to be double"
+ },
+ "תאר": {
+  "name": "verb",
+  "label": "to outline"
+ },
+ "תוה I": {
+  "name": "noun",
+  "label": "mark"
+ },
+ "תלע": {
+  "name": "noun",
+  "label": "worm"
+ },
+ "תמם": {
+  "name": "verb",
+  "label": "to be whole"
+ },
+ "תעב": {
+  "name": "verb",
+  "label": "to abhor"
+ },
+ "תפף": {
+  "name": "noun",
+  "label": "tambourine"
+ },
+ "תקף": {
+  "name": "verb",
+  "label": "to prevail"
+ }
+}

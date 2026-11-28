@@ -1,0 +1,2279 @@
+[
+ {
+  "family": "arc:דור",
+  "groups": [
+   {
+    "label": "dwell",
+    "ids": [
+     "H1753",
+     "H4070a",
+     "H4070b"
+    ]
+   },
+   {
+    "label": "generation, continuance",
+    "ids": [
+     "H1859",
+     "H8411"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1859",
+    "lemma": "דָּר",
+    "question": "dar 'generation' with dur 'dwell' — BDB links via 'go round/circle'; link not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "arc:דין",
+  "groups": [
+   {
+    "label": "judge, judgment",
+    "ids": [
+     "H4083",
+     "H1780",
+     "H1778",
+     "H1782"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4083",
+    "lemma": "מְדִינָה",
+    "question": "medinah 'district' with din 'judge' — province as area of jurisdiction; plausible but not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "arc:דכר",
+  "groups": [
+   {
+    "label": "record, memorial",
+    "ids": [
+     "H1799b",
+     "H1799a"
+    ]
+   },
+   {
+    "label": "ram",
+    "ids": [
+     "H1798"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1798",
+    "lemma": "דְּכַר",
+    "question": "dekar 'ram' (male) with dikron 'memorandum' — like zakar male / zakar remember",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "arc:אמר",
+  "groups": [
+   {
+    "label": "say, word",
+    "ids": [
+     "H560",
+     "H3983"
+    ]
+   },
+   {
+    "label": "lamb",
+    "ids": [
+     "H563"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "arc:קרב",
+  "groups": [
+   {
+    "label": "approach",
+    "ids": [
+     "H7127",
+     "H7129"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H7129",
+    "lemma": "קְרָב",
+    "question": "qerab 'war' with qereb 'approach' — battle as closing in; link graspable but indirect",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "word:אַל",
+  "groups": [
+   {
+    "label": "not",
+    "ids": [
+     "H408"
+    ]
+   },
+   {
+    "label": "hail",
+    "ids": [
+     "H417"
+    ]
+   },
+   {
+    "label": "sandalwood/almug",
+    "ids": [
+     "H418",
+     "H484"
+    ]
+   },
+   {
+    "label": "band of soldiers",
+    "ids": [
+     "H510"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:הוּךְ (arc)",
+  "groups": [
+   {
+    "label": "go",
+    "ids": [
+     "H1946",
+     "H1981"
+    ]
+   },
+   {
+    "label": "toll",
+    "ids": [
+     "H1983"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:כּוֹס",
+  "groups": [
+   {
+    "label": "cup",
+    "ids": [
+     "H3563a"
+    ]
+   },
+   {
+    "label": "owl",
+    "ids": [
+     "H3563b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:מָן",
+  "groups": [
+   {
+    "label": "manna",
+    "ids": [
+     "H4478a"
+    ]
+   },
+   {
+    "label": "what?",
+    "ids": [
+     "H4478b"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4478b",
+    "lemma": "מָן",
+    "question": "man 'what?' with man 'manna' — Exod 16:15 folk etymology explicitly ties them; otherwise a pun",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "word:נָדָן",
+  "groups": [
+   {
+    "label": "gift",
+    "ids": [
+     "H5083"
+    ]
+   },
+   {
+    "label": "sheath",
+    "ids": [
+     "H5084"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:סִיר",
+  "groups": [
+   {
+    "label": "pot",
+    "ids": [
+     "H5518a"
+    ]
+   },
+   {
+    "label": "thorn",
+    "ids": [
+     "H5518b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:סֶ֫רֶן",
+  "groups": [
+   {
+    "label": "tyrant (Philistine lord)",
+    "ids": [
+     "H5633a"
+    ]
+   },
+   {
+    "label": "axle",
+    "ids": [
+     "H5633b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:עַל (arc)",
+  "groups": [
+   {
+    "label": "above",
+    "ids": [
+     "H5924"
+    ]
+   },
+   {
+    "label": "matter, pretext",
+    "ids": [
+     "H5931"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "word:צִי",
+  "groups": [
+   {
+    "label": "wild beast",
+    "ids": [
+     "H6728"
+    ]
+   },
+   {
+    "label": "ship",
+    "ids": [
+     "H6716"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אבה I",
+  "groups": [
+   {
+    "label": "be willing",
+    "ids": [
+     "H14"
+    ]
+   },
+   {
+    "label": "needy, poor",
+    "ids": [
+     "H34"
+    ]
+   },
+   {
+    "label": "reed",
+    "ids": [
+     "H16"
+    ]
+   },
+   {
+    "label": "caper-berry",
+    "ids": [
+     "H35"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H34",
+    "lemma": "אֶבְיוֹן",
+    "question": "evyon 'needy' with avah 'be willing' — 'wanting' > 'in want'; derivation disputed (Egyptian loan?)",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "אבר",
+  "groups": [
+   {
+    "label": "fly, pinion",
+    "ids": [
+     "H84",
+     "H83",
+     "H82"
+    ]
+   },
+   {
+    "label": "mighty, strong one",
+    "ids": [
+     "H47",
+     "H46"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אגם",
+  "groups": [
+   {
+    "label": "pool",
+    "ids": [
+     "H98"
+    ]
+   },
+   {
+    "label": "sad",
+    "ids": [
+     "H99"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אגר II",
+  "groups": [
+   {
+    "label": "letter",
+    "ids": [
+     "H107"
+    ]
+   },
+   {
+    "label": "payment, wage",
+    "ids": [
+     "H95"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אדם I",
+  "groups": [
+   {
+    "label": "man",
+    "ids": [
+     "H120",
+     "H127"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H127",
+    "lemma": "אֲדָמָה",
+    "question": "adamah 'ground' with adam 'man' — Gen 2:7 makes the link explicit; etymologically debated",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "אדן",
+  "groups": [
+   {
+    "label": "lord",
+    "ids": [
+     "H136",
+     "H113"
+    ]
+   },
+   {
+    "label": "base, socket",
+    "ids": [
+     "H134"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אוד",
+  "groups": [
+   {
+    "label": "distress, calamity",
+    "ids": [
+     "H343"
+    ]
+   },
+   {
+    "label": "cause, because of",
+    "ids": [
+     "H182"
+    ]
+   },
+   {
+    "label": "firebrand",
+    "ids": [
+     "H181"
+    ]
+   },
+   {
+    "label": "mist",
+    "ids": [
+     "H108"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אוה IV",
+  "groups": [
+   {
+    "label": "hawk",
+    "ids": [
+     "H344"
+    ]
+   },
+   {
+    "label": "jackal",
+    "ids": [
+     "H338"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אול II",
+  "groups": [
+   {
+    "label": "ram, leader",
+    "ids": [
+     "H352a",
+     "H352c",
+     "H193b"
+    ]
+   },
+   {
+    "label": "porch, pillar",
+    "ids": [
+     "H197",
+     "H361",
+     "H352b"
+    ]
+   },
+   {
+    "label": "terebinth",
+    "ids": [
+     "H424",
+     "H436",
+     "H352d"
+    ]
+   },
+   {
+    "label": "hart, hind",
+    "ids": [
+     "H354",
+     "H355"
+    ]
+   },
+   {
+    "label": "body",
+    "ids": [
+     "H193a"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אור",
+  "groups": [
+   {
+    "label": "light",
+    "ids": [
+     "H216",
+     "H215",
+     "H3974",
+     "H224",
+     "H217a",
+     "H219a",
+     "H217b",
+     "H3975"
+    ]
+   },
+   {
+    "label": "herb",
+    "ids": [
+     "H219b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אזן I",
+  "groups": [
+   {
+    "label": "ear",
+    "ids": [
+     "H241",
+     "H238"
+    ]
+   },
+   {
+    "label": "implements",
+    "ids": [
+     "H240"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "איש",
+  "groups": [
+   {
+    "label": "man",
+    "ids": [
+     "H376"
+    ]
+   },
+   {
+    "label": "pupil of eye",
+    "ids": [
+     "H380"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H380",
+    "lemma": "אִישׁוֹן",
+    "question": "ishon 'pupil' with ish 'man' — 'little man' (reflection) in the eye; needs explanation",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "אטם",
+  "groups": [
+   {
+    "label": "shut",
+    "ids": [
+     "H331"
+    ]
+   },
+   {
+    "label": "thread, linen",
+    "ids": [
+     "H330"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אלה V",
+  "groups": [
+   {
+    "label": "fat tail",
+    "ids": [
+     "H451"
+    ]
+   },
+   {
+    "label": "wail",
+    "ids": [
+     "H421"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אלם II",
+  "groups": [
+   {
+    "label": "be dumb, bind",
+    "ids": [
+     "H481",
+     "H483",
+     "H485",
+     "H482"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H483",
+    "lemma": "אִלֵּם",
+    "question": "illem 'dumb' with alam 'bind' (sheaf) — 'tongue-tied'; verb has both senses, often split as homonyms",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "אמם",
+  "groups": [
+   {
+    "label": "cubit",
+    "ids": [
+     "H520a"
+    ]
+   },
+   {
+    "label": "mother, tribe",
+    "ids": [
+     "H517",
+     "H523"
+    ]
+   },
+   {
+    "label": "doorpost foundation",
+    "ids": [
+     "H520b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אמן",
+  "groups": [
+   {
+    "label": "firm, faithful",
+    "ids": [
+     "H571",
+     "H539",
+     "H530",
+     "H543",
+     "H551",
+     "H529",
+     "H552",
+     "H546",
+     "H548",
+     "H544",
+     "H545",
+     "H547"
+    ]
+   },
+   {
+    "label": "craftsman",
+    "ids": [
+     "H525",
+     "H542"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אמר",
+  "groups": [
+   {
+    "label": "say",
+    "ids": [
+     "H559",
+     "H561",
+     "H565a",
+     "H562",
+     "H3982",
+     "H565b"
+    ]
+   },
+   {
+    "label": "treetop",
+    "ids": [
+     "H534"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אנף",
+  "groups": [
+   {
+    "label": "nose, anger",
+    "ids": [
+     "H639",
+     "H599"
+    ]
+   },
+   {
+    "label": "heron",
+    "ids": [
+     "H601"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אנק",
+  "groups": [
+   {
+    "label": "cry, groan",
+    "ids": [
+     "H602",
+     "H603"
+    ]
+   },
+   {
+    "label": "gecko/ferret",
+    "ids": [
+     "H604"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אפק",
+  "groups": [
+   {
+    "label": "channel",
+    "ids": [
+     "H650"
+    ]
+   },
+   {
+    "label": "hold back, restrain",
+    "ids": [
+     "H662"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אפר II",
+  "groups": [
+   {
+    "label": "covering",
+    "ids": [
+     "H666"
+    ]
+   },
+   {
+    "label": "palanquin",
+    "ids": [
+     "H668"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארב",
+  "groups": [
+   {
+    "label": "lie in wait",
+    "ids": [
+     "H693",
+     "H3993",
+     "H695",
+     "H696",
+     "H698"
+    ]
+   },
+   {
+    "label": "lattice, window",
+    "ids": [
+     "H699"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארג",
+  "groups": [
+   {
+    "label": "weave",
+    "ids": [
+     "H707",
+     "H708"
+    ]
+   },
+   {
+    "label": "purple",
+    "ids": [
+     "H713",
+     "H710"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארה I",
+  "groups": [
+   {
+    "label": "lion",
+    "ids": [
+     "H738b",
+     "H738a"
+    ]
+   },
+   {
+    "label": "pluck",
+    "ids": [
+     "H717"
+    ]
+   },
+   {
+    "label": "manger, stall",
+    "ids": [
+     "H723",
+     "H220"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארה II",
+  "groups": [
+   {
+    "label": "lion of God, heroes",
+    "ids": [
+     "H739",
+     "H691"
+    ]
+   },
+   {
+    "label": "altar hearth",
+    "ids": [
+     "H741",
+     "H2025"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארז",
+  "groups": [
+   {
+    "label": "cedar",
+    "ids": [
+     "H730",
+     "H731"
+    ]
+   },
+   {
+    "label": "firm",
+    "ids": [
+     "H729"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ארח",
+  "groups": [
+   {
+    "label": "way, travel",
+    "ids": [
+     "H734",
+     "H737",
+     "H732",
+     "H736"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H737",
+    "lemma": "אֲרֻחָה",
+    "question": "aruchah 'meal, allowance' with orach 'way' — traveller's ration; link not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "ארך",
+  "groups": [
+   {
+    "label": "long",
+    "ids": [
+     "H753",
+     "H748",
+     "H750",
+     "H752"
+    ]
+   },
+   {
+    "label": "healing",
+    "ids": [
+     "H724"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H724",
+    "lemma": "אֲרוּכָה",
+    "question": "arukhah 'healing' with arakh 'be long' — new flesh 'lengthening' over wound; speculative",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "אשר I",
+  "groups": [
+   {
+    "label": "go straight, happy",
+    "ids": [
+     "H835",
+     "H833",
+     "H838a",
+     "H838b",
+     "H837"
+    ]
+   },
+   {
+    "label": "box-tree",
+    "ids": [
+     "H8391"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "אשש",
+  "groups": [
+   {
+    "label": "raisin-cake",
+    "ids": [
+     "H809"
+    ]
+   },
+   {
+    "label": "be a man",
+    "ids": [
+     "H377"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "באר",
+  "groups": [
+   {
+    "label": "well, pit",
+    "ids": [
+     "H953a",
+     "H875",
+     "H877"
+    ]
+   },
+   {
+    "label": "make plain, explain",
+    "ids": [
+     "H874"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בגד",
+  "groups": [
+   {
+    "label": "garment",
+    "ids": [
+     "H899b"
+    ]
+   },
+   {
+    "label": "treachery",
+    "ids": [
+     "H898",
+     "H899a",
+     "H901",
+     "H900"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בדל",
+  "groups": [
+   {
+    "label": "separate",
+    "ids": [
+     "H914",
+     "H913",
+     "H915",
+     "H3995"
+    ]
+   },
+   {
+    "label": "bdellium",
+    "ids": [
+     "H916"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H913",
+    "lemma": "בְּדִיל",
+    "question": "bedil 'alloy, tin' with badal 'separate' — dross separated in smelting (Isa 1:25); plausible",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "בוס",
+  "groups": [
+   {
+    "label": "tread down",
+    "ids": [
+     "H947",
+     "H4001",
+     "H8395"
+    ]
+   },
+   {
+    "label": "Jebusite",
+    "ids": [
+     "H2983"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בחר",
+  "groups": [
+   {
+    "label": "choose",
+    "ids": [
+     "H977",
+     "H972",
+     "H4005",
+     "H4004"
+    ]
+   },
+   {
+    "label": "young man, youth",
+    "ids": [
+     "H970",
+     "H979"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H970",
+    "lemma": "בָּחוּר",
+    "question": "bachur 'young man' with bachar 'choose' — 'choice/picked young men' vs separate root 'be young'",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "בין",
+  "groups": [
+   {
+    "label": "discern, between",
+    "ids": [
+     "H995",
+     "H8394",
+     "H998",
+     "H1004a",
+     "H1143"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1143",
+    "lemma": "בֵּנַיִם",
+    "question": "benayim 'interval/space between' with bin 'discern' — discern = distinguish between; recognisable to some",
+    "default": "together"
+   },
+   {
+    "id": "H1004a",
+    "lemma": "בֵּית",
+    "question": "beyt 'between' with bin 'discern' — same question as benayim 'interval'",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "בלה I",
+  "groups": [
+   {
+    "label": "wear out",
+    "ids": [
+     "H1086",
+     "H1087",
+     "H1094",
+     "H8399"
+    ]
+   },
+   {
+    "label": "not, without, worthless",
+    "ids": [
+     "H1077",
+     "H1097",
+     "H1100"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1097",
+    "lemma": "בְּלִי",
+    "question": "beli 'without' with balah 'wear out' — 'wearing out' > 'nothing' > negation; deep etymology",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "בלל",
+  "groups": [
+   {
+    "label": "mingle",
+    "ids": [
+     "H1101a",
+     "H1098",
+     "H8397",
+     "H1101b",
+     "H8400"
+    ]
+   },
+   {
+    "label": "snail",
+    "ids": [
+     "H7642"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בצר",
+  "groups": [
+   {
+    "label": "fortify, make inaccessible",
+    "ids": [
+     "H1219",
+     "H4013",
+     "H1223",
+     "H1225"
+    ]
+   },
+   {
+    "label": "vintage",
+    "ids": [
+     "H1210",
+     "H1208"
+    ]
+   },
+   {
+    "label": "dearth",
+    "ids": [
+     "H1226",
+     "H6869a"
+    ]
+   },
+   {
+    "label": "precious ore",
+    "ids": [
+     "H1220"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בקר",
+  "groups": [
+   {
+    "label": "morning",
+    "ids": [
+     "H1242"
+    ]
+   },
+   {
+    "label": "cattle, herdsman",
+    "ids": [
+     "H1241",
+     "H951"
+    ]
+   },
+   {
+    "label": "inquire, seek",
+    "ids": [
+     "H1239",
+     "H1243",
+     "H1244"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ברח",
+  "groups": [
+   {
+    "label": "flee, go through",
+    "ids": [
+     "H1272",
+     "H1280",
+     "H1281",
+     "H4015"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1280",
+    "lemma": "בְּרִיחַ",
+    "question": "beriach 'bar' with barach 'flee/go through' — crossbar passing through; link not obvious from 'flee'",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "ברך",
+  "groups": [
+   {
+    "label": "bless, kneel",
+    "ids": [
+     "H1288",
+     "H1293",
+     "H1290"
+    ]
+   },
+   {
+    "label": "pool",
+    "ids": [
+     "H1295"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ברק",
+  "groups": [
+   {
+    "label": "lightning, flash",
+    "ids": [
+     "H1300b",
+     "H1300a",
+     "H1304a",
+     "H1299",
+     "H1304b"
+    ]
+   },
+   {
+    "label": "briers",
+    "ids": [
+     "H1303"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "ברר",
+  "groups": [
+   {
+    "label": "purify",
+    "ids": [
+     "H1305",
+     "H1250a",
+     "H1249",
+     "H1252",
+     "H1253",
+     "H1287"
+    ]
+   },
+   {
+    "label": "open field",
+    "ids": [
+     "H1250b"
+    ]
+   },
+   {
+    "label": "fowl",
+    "ids": [
+     "H1257"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בשר",
+  "groups": [
+   {
+    "label": "flesh",
+    "ids": [
+     "H1320"
+    ]
+   },
+   {
+    "label": "tidings",
+    "ids": [
+     "H1319",
+     "H1309"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "בתת",
+  "groups": [
+   {
+    "label": "bath (measure)",
+    "ids": [
+     "H1324"
+    ]
+   },
+   {
+    "label": "end, desolation",
+    "ids": [
+     "H1326",
+     "H1327"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גבל",
+  "groups": [
+   {
+    "label": "border",
+    "ids": [
+     "H1366",
+     "H1367",
+     "H1379"
+    ]
+   },
+   {
+    "label": "twisted cords",
+    "ids": [
+     "H1383",
+     "H4020"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גבן",
+  "groups": [
+   {
+    "label": "hump, peak",
+    "ids": [
+     "H1386",
+     "H1384"
+    ]
+   },
+   {
+    "label": "curd, cheese",
+    "ids": [
+     "H1385"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גבע",
+  "groups": [
+   {
+    "label": "hill",
+    "ids": [
+     "H1389"
+    ]
+   },
+   {
+    "label": "cup, cap, bud",
+    "ids": [
+     "H1375",
+     "H4021",
+     "H1392"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1375",
+    "lemma": "גָּבִיעַ",
+    "question": "gavia 'cup' with givah 'hill' — both rounded/convex; shape link debatable",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "גדד",
+  "groups": [
+   {
+    "label": "cut, troop",
+    "ids": [
+     "H1416",
+     "H1413",
+     "H1417"
+    ]
+   },
+   {
+    "label": "coriander",
+    "ids": [
+     "H1407"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גדה",
+  "groups": [
+   {
+    "label": "kid",
+    "ids": [
+     "H1423",
+     "H1429"
+    ]
+   },
+   {
+    "label": "river bank",
+    "ids": [
+     "H1415",
+     "H1428"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גדל",
+  "groups": [
+   {
+    "label": "great",
+    "ids": [
+     "H1419a",
+     "H1431",
+     "H4026",
+     "H1420",
+     "H1433",
+     "H1432",
+     "H4024a"
+    ]
+   },
+   {
+    "label": "tassels, twisted threads",
+    "ids": [
+     "H1434"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גוב",
+  "groups": [
+   {
+    "label": "pit",
+    "ids": [
+     "H1356a"
+    ]
+   },
+   {
+    "label": "beam",
+    "ids": [
+     "H1356b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גוה",
+  "groups": [
+   {
+    "label": "body, back",
+    "ids": [
+     "H1471a",
+     "H1472",
+     "H1460a",
+     "H1458",
+     "H1460b",
+     "H1465"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1471a",
+    "lemma": "גּוֹי",
+    "question": "goy 'nation' with gevah 'body' — nation as a body of people; derivation debated",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "גוף",
+  "groups": [
+   {
+    "label": "body",
+    "ids": [
+     "H1480"
+    ]
+   },
+   {
+    "label": "shut",
+    "ids": [
+     "H1479"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גור I",
+  "groups": [
+   {
+    "label": "sojourn",
+    "ids": [
+     "H1616",
+     "H1481a",
+     "H4033",
+     "H1628"
+    ]
+   },
+   {
+    "label": "granary",
+    "ids": [
+     "H4035",
+     "H4460"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גור II",
+  "groups": [
+   {
+    "label": "whelp",
+    "ids": [
+     "H1482",
+     "H1484"
+    ]
+   },
+   {
+    "label": "stir up strife",
+    "ids": [
+     "H1481b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גיל",
+  "groups": [
+   {
+    "label": "rejoice",
+    "ids": [
+     "H1523",
+     "H1524a",
+     "H1525"
+    ]
+   },
+   {
+    "label": "age, generation",
+    "ids": [
+     "H1524b"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גלל II",
+  "groups": [
+   {
+    "label": "roll, round",
+    "ids": [
+     "H1530",
+     "H4039",
+     "H1556",
+     "H1543",
+     "H1538",
+     "H1534",
+     "H1552",
+     "H1550a",
+     "H1550b",
+     "H1536"
+    ]
+   },
+   {
+    "label": "dung, idols",
+    "ids": [
+     "H1561",
+     "H1557",
+     "H1544"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גלם",
+  "groups": [
+   {
+    "label": "wrap up",
+    "ids": [
+     "H1545",
+     "H1563",
+     "H1564"
+    ]
+   },
+   {
+    "label": "barren, gaunt",
+    "ids": [
+     "H1565"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גמא",
+  "groups": [
+   {
+    "label": "rush, papyrus",
+    "ids": [
+     "H1573"
+    ]
+   },
+   {
+    "label": "swallow",
+    "ids": [
+     "H1572"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גמל",
+  "groups": [
+   {
+    "label": "deal, recompense",
+    "ids": [
+     "H1580",
+     "H1576",
+     "H1578",
+     "H8408"
+    ]
+   },
+   {
+    "label": "camel",
+    "ids": [
+     "H1581"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גמם",
+  "groups": [
+   {
+    "label": "also",
+    "ids": [
+     "H1571"
+    ]
+   },
+   {
+    "label": "eagerness (obscure)",
+    "ids": [
+     "H4041"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גנן",
+  "groups": [
+   {
+    "label": "defend, shield, garden",
+    "ids": [
+     "H4043",
+     "H1588",
+     "H1593",
+     "H1598",
+     "H1594",
+     "H4044"
+    ]
+   },
+   {
+    "label": "hand over",
+    "ids": [
+     "H4042"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1593",
+    "lemma": "גַּנָּה",
+    "question": "gannah 'garden' with ganan 'defend' / magen 'shield' — enclosed (protected) plot; link not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "גרה",
+  "groups": [
+   {
+    "label": "stir up, strife",
+    "ids": [
+     "H1624",
+     "H8409"
+    ]
+   },
+   {
+    "label": "throat",
+    "ids": [
+     "H1627"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גרל",
+  "groups": [
+   {
+    "label": "lot",
+    "ids": [
+     "H1486"
+    ]
+   },
+   {
+    "label": "harsh",
+    "ids": [
+     "H1632"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גרם",
+  "groups": [
+   {
+    "label": "bone, break bones",
+    "ids": [
+     "H1634",
+     "H1633b"
+    ]
+   },
+   {
+    "label": "gnaw/leave (obscure)",
+    "ids": [
+     "H1633a"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גרף",
+  "groups": [
+   {
+    "label": "sweep away",
+    "ids": [
+     "H1640",
+     "H4053"
+    ]
+   },
+   {
+    "label": "fist",
+    "ids": [
+     "H106"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "גרר",
+  "groups": [
+   {
+    "label": "drag",
+    "ids": [
+     "H1625",
+     "H1641",
+     "H4050"
+    ]
+   },
+   {
+    "label": "grain, weight",
+    "ids": [
+     "H1626",
+     "H1620"
+    ]
+   },
+   {
+    "label": "throat",
+    "ids": [
+     "H1621"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1625",
+    "lemma": "גֵּרָה",
+    "question": "gerah 'cud' with garar 'drag' — cud 'dragged up' when chewing; plausible",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "גרש II",
+  "groups": [
+   {
+    "label": "drive out",
+    "ids": [
+     "H4054",
+     "H1644",
+     "H1645",
+     "H1646"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4054",
+    "lemma": "מִגְרָשׁ",
+    "question": "migrash 'common, pasture land' with garash 'drive out' — land where flocks are driven; not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "דבב",
+  "groups": [
+   {
+    "label": "whisper, move gently",
+    "ids": [
+     "H1681",
+     "H1680"
+    ]
+   },
+   {
+    "label": "bear",
+    "ids": [
+     "H1677"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דבר",
+  "groups": [
+   {
+    "label": "speak, word",
+    "ids": [
+     "H1697",
+     "H1696",
+     "H1700",
+     "H1699b",
+     "H1703",
+     "H4057a"
+    ]
+   },
+   {
+    "label": "wilderness, pasture, floats",
+    "ids": [
+     "H4057b",
+     "H1699a",
+     "H1702"
+    ]
+   },
+   {
+    "label": "pestilence",
+    "ids": [
+     "H1698"
+    ]
+   },
+   {
+    "label": "inner sanctuary",
+    "ids": [
+     "H1687"
+    ]
+   },
+   {
+    "label": "bee",
+    "ids": [
+     "H1682"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1687",
+    "lemma": "דְּבִיר",
+    "question": "devir 'inner sanctuary' with davar 'speak' — KJV 'oracle'; BDB 'back room'",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "דבש",
+  "groups": [
+   {
+    "label": "honey",
+    "ids": [
+     "H1706"
+    ]
+   },
+   {
+    "label": "hump",
+    "ids": [
+     "H1707"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דגה",
+  "groups": [
+   {
+    "label": "fish",
+    "ids": [
+     "H1709",
+     "H1710",
+     "H1728",
+     "H1771",
+     "H1711",
+     "H1729",
+     "H1770"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1711",
+    "lemma": "דָּגָה",
+    "question": "dagah 'multiply' with dag 'fish' — Gen 48:16 'teem like fish'; denominative but figurative",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "דהר",
+  "groups": [
+   {
+    "label": "rush, gallop",
+    "ids": [
+     "H1726",
+     "H1725"
+    ]
+   },
+   {
+    "label": "elm (tree)",
+    "ids": [
+     "H8410"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דוד",
+  "groups": [
+   {
+    "label": "beloved, uncle",
+    "ids": [
+     "H1730",
+     "H1736",
+     "H1733"
+    ]
+   },
+   {
+    "label": "pot",
+    "ids": [
+     "H1731"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דוה",
+  "groups": [
+   {
+    "label": "faint, ill",
+    "ids": [
+     "H1739",
+     "H1742",
+     "H1741",
+     "H4064",
+     "H1738"
+    ]
+   },
+   {
+    "label": "ink",
+    "ids": [
+     "H1773"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דור",
+  "groups": [
+   {
+    "label": "generation",
+    "ids": [
+     "H1755"
+    ]
+   },
+   {
+    "label": "circle, pile",
+    "ids": [
+     "H1754a",
+     "H4071",
+     "H1752"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H1754a",
+    "lemma": "דּוּר",
+    "question": "dur 'circle' with dor 'generation' — generation as a cycle; link not obvious",
+    "default": "apart"
+   }
+  ]
+ },
+ {
+  "family": "דוש",
+  "groups": [
+   {
+    "label": "tread, thresh",
+    "ids": [
+     "H1758",
+     "H1786",
+     "H4098"
+    ]
+   },
+   {
+    "label": "antelope (pygarg)",
+    "ids": [
+     "H1788"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דין",
+  "groups": [
+   {
+    "label": "judge",
+    "ids": [
+     "H4082",
+     "H1777",
+     "H1779",
+     "H4066",
+     "H4079",
+     "H4090",
+     "H1781"
+    ]
+   }
+  ],
+  "borderline": [
+   {
+    "id": "H4082",
+    "lemma": "מְדִינָה",
+    "question": "medinah 'province' with din 'judge' — area of jurisdiction; plausible but not obvious",
+    "default": "together"
+   }
+  ]
+ },
+ {
+  "family": "דלה",
+  "groups": [
+   {
+    "label": "door",
+    "ids": [
+     "H1817c",
+     "H1817b",
+     "H1817a"
+    ]
+   },
+   {
+    "label": "draw water, bucket",
+    "ids": [
+     "H1802",
+     "H1805"
+    ]
+   },
+   {
+    "label": "branch",
+    "ids": [
+     "H1808"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דלל",
+  "groups": [
+   {
+    "label": "low, poor",
+    "ids": [
+     "H1800",
+     "H1809",
+     "H1803b"
+    ]
+   },
+   {
+    "label": "thrum, hair",
+    "ids": [
+     "H1803a"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דרך",
+  "groups": [
+   {
+    "label": "way, tread",
+    "ids": [
+     "H1870",
+     "H1869",
+     "H4096"
+    ]
+   },
+   {
+    "label": "drachma",
+    "ids": [
+     "H1871"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "דרר",
+  "groups": [
+   {
+    "label": "south",
+    "ids": [
+     "H1864"
+    ]
+   },
+   {
+    "label": "liberty, flowing",
+    "ids": [
+     "H1865"
+    ]
+   },
+   {
+    "label": "thistles",
+    "ids": [
+     "H1863"
+    ]
+   },
+   {
+    "label": "swallow",
+    "ids": [
+     "H1866"
+    ]
+   },
+   {
+    "label": "pearl",
+    "ids": [
+     "H1858"
+    ]
+   }
+  ],
+  "borderline": []
+ },
+ {
+  "family": "הוה",
+  "groups": [
+   {
+    "label": "ruin, calamity",
+    "ids": [
+     "H1942",
+     "H1943",
+     "H1962"
+    ]
+   },
+   {
+    "label": "become",
+    "ids": [
+     "H1933b"
+    ]
+   }
+  ],
+  "borderline": []
+ }
+]

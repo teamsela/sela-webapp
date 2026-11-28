@@ -13,6 +13,7 @@ import { nanoid } from 'nanoid';
 import { parsePassageInfo, PassageInfo } from './utils';
 import { StudyData, PassageData, PassageStaticData, StudyMetadata, WordProps, FetchStudiesResult, DEMO_STUDY_ID, LayerData } from './data';
 import { transliterateHebrew } from './transliterate';
+import { isCompoundWord, lookupRoot } from './roots';
 
 const SORT_COLUMNS = {
   name: study.name,
@@ -581,7 +582,6 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
         BSBnewLine: hebBible.BSBnewLine,
         BSBstanzaBreak: hebBible.BSBstanzaBreak,
         motifCategories: motifLink.categories,
-        relatedStrongCodes: motifLink.relatedStrongCodes,
         motifLemma: lemmaLink.lemma,
       })
       .from(hebBible)
@@ -906,8 +906,9 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
     );
   };
 
-  const strongNumberSet = new Set<number>();
-  passageContent.forEach(word => word.strongNumber && strongNumberSet.add(word.strongNumber));
+  // nth occurrence of each Strong's number within its verse, used to resolve homonym roots
+  const verseStrongCounts = new Map<string, number>();
+  let previousWord: WordProps | undefined;
   passageContent.forEach(word => {
     let hebWord = {} as WordProps;
     hebWord.wordId = word.hebId || 0;
@@ -924,16 +925,32 @@ async function loadBibleData(book: string, passage: string): Promise<WordProps[]
     hebWord.newVerse = false;
     hebWord.BSBstanzaBreak = (word.BSBstanzaBreak) || false;
 
-    if (word.motifCategories || word.relatedStrongCodes || word.motifLemma) {
-      const relatedStrongNums = word.relatedStrongCodes?.map(code => parseInt(code))
-                                  .filter(code => strongNumberSet.has(code) && code != word.strongNumber);
-      hebWord.motifData = {
-        lemma: word.motifLemma || "",
-        relatedStrongNums: relatedStrongNums || [],
-        categories: word.motifCategories || []
-      }
-      //console.log(hebWord.motifData);
-    }
+    const verseStrongKey = `${hebWord.chapter}|${hebWord.verse}|${hebWord.strongNumber}`;
+    const nthInVerse = verseStrongCounts.get(verseStrongKey) ?? 0;
+    verseStrongCounts.set(verseStrongKey, nthInVerse + 1);
+    const rootInfo = lookupRoot(passageInfo.book ?? book, hebWord.chapter, hebWord.verse, hebWord.strongNumber, nthInVerse);
+
+    // a dictionary word written as several words (אַל־תַּשְׁחֵת) has one row per part: the later parts
+    // continue the same occurrence rather than repeat it
+    const continuesCompound = Boolean(
+      previousWord &&
+        isCompoundWord(hebWord.strongNumber) &&
+        previousWord.strongNumber === hebWord.strongNumber &&
+        previousWord.chapter === hebWord.chapter &&
+        previousWord.verse === hebWord.verse
+    );
+
+    hebWord.motifData = {
+      // BDB dictionary form when available (the legacy lexicon lemma is misaligned for some entries)
+      lemma: rootInfo.lemma || word.motifLemma || "",
+      lemmaGloss: rootInfo.lemmaGloss,
+      lemmaQualifier: rootInfo.lemmaQualifier,
+      categories: word.motifCategories || [],
+      root: rootInfo.root,
+      isName: rootInfo.isName,
+      compoundPart: continuesCompound || undefined,
+    };
+    previousWord = hebWord;
 
     const wordInfo = word.strongNumber ? stepBibleMap.get(word.strongNumber) : undefined;
     const defaultStrong = word.strongNumber ? formatStrongCode(word.strongNumber) : "";
